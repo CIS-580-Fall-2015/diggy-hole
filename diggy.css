@@ -6,7 +6,7 @@
 }
 
 #credits-menu {
-  overflow: hidden;
+  overflow: scroll;
   justify-content: flex-start;
 }
 
@@ -38,5 +38,3 @@
   text-decoration: underline;
   font-weight: bold;
 }
-
-
