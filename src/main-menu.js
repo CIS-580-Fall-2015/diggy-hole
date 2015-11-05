@@ -1,4 +1,8 @@
-// Main Menu game state defined using the Module pattern
+/* MainMenu GameState module
+ * Provides the main menu for the Diggy Hole game.
+ * Authors:
+ * - Nathan Bean
+ */
 module.exports = (function (){
   var menu = document.getElementById("main-menu"),
       play = document.getElementById("play-btn"),

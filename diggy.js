@@ -91,8 +91,7 @@ module.exports = (function (){
    */
   var update = function(elapsedTime) {
     scroll -= 0.0001 * elapsedTime;
-    wrap.style.marginTop = Math.round(scroll) + "px";
-console.log(scroll);    
+    wrap.style.marginTop = Math.round(scroll) + "px";   
   }
   
   /* 
@@ -130,8 +129,155 @@ console.log(scroll);
   
 })();
 },{}],3:[function(require,module,exports){
+/* The entity manager for the DiggyHole game
+ * Currently it uses brute-force approaches
+ * to its role - this needs to be refactored
+ * into a spatial data structure approach.
+ * Authors:
+ * - Nathan Bean 
+ */
+module.exports = (function (){
+  const MAX_ENTITIES = 100;
+  
+  var entities = [],
+      entityCount = 0;
+  
+  /* Adds an entity to those managed.
+   * Arguments:
+   * - entity, the entity to add
+   */
+  function add(entity) {
+    if(entityCount < MAX_ENTITIES) {
+      // Determine the entity's unique ID
+      // (we simply use an auto-increment count)
+      var id = entityCount;
+      entityCount++;
+      
+      // Set the entity's id on the entity itself
+      // as a property.  Due to the dynamic nature of 
+      // JavaScript, this is easy
+      entity._entity_id = id;
+      
+      // Store the entity in the entities array
+      entities[id] = entity;
+      return true;
+    } else { 
+      // We've hit the max number of allowable entities,
+      // yet we may have freed up some space within our
+      // entity array when an entity was removed.
+      // If so, let's co-opt it.
+      for(var i = 0; i < MAX_ENTITIES; i++) {
+        if(entities[i] == undefined) {
+          entity._entity_id = i;
+          entities[i] = entity;
+          return i;
+        }
+      }
+      // If we get to this point, there are simply no
+      // available spaces for a new entity.
+      // Log an error message, and return an error value.
+      console.error("Too many entities");
+      return undefined;
+    }
+  }
+  
+  /* Removes an entity from those managed
+   * Arguments: 
+   * - entity, the entity to remove
+   */
+  function remove(entity) {
+    // Set the entry in the entities table to undefined,
+    // indicating an open slot
+    entities[entity._entity_id] = undefined;
+  }
+  
+  /* Checks for collisions between entities, and
+   * triggers the collide() event handler.
+   */
+  function checkCollisions() {
+    for(var i = 0; i < entityCount; i++) {
+      // Don't check for nonexistant entities
+      if(entities[i]) {
+        for(var j = 0; j < entityCount; j++) {
+          // don't check for collisions with ourselves
+          // and don't bother checking non-existing entities
+          if(i != j && entities[j]) {
+            var boundsA = entities[i].boundingBox();
+            var boundsB = entities[j].boundingBox();
+            if( boundsA.left < boundsB.right &&
+                boundsA.right > boundsB.left &&
+                boundsA.top < boundsB.bottom &&
+                boundsA.bottom > boundsB.top
+              ) {
+              entities[i].collide(entities[j]);
+              entities[j].collide(entities[i]);
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  /* Returns all entities within the given radius.
+   * Arguments: 
+   * - x, the x-coordinate of the center of the query circle
+   * - y, the y-coordinate of the center of the query circle
+   * - r, the radius of the center of the circle
+   * Returns:
+   *   An array of entity references
+   */
+  function queryRadius(x, y, r) {
+    var entitiesInRadius = [];
+    for(var i = 0; i < entityCount; i++) {
+      // Only check existing entities
+      if(entities[i]) {
+        var circ = entities[i].boundingCircle();
+        if( Math.pow(circ.radius, 2) + Math.pow(r, 2) >=
+            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.y, 2)
+        ) entitiesInRadius.push(entities[i]);
+      }
+    }
+    return entitiesInRadius;
+  }
+  
+  /* Updates all managed entities
+   * Arguments:
+   * - elapsedTime, how much time has passed between the prior frameElement
+   *   and this one.
+   * - tilemap, the current tilemap for the game.
+   */
+  function update(elapsedTime, tilemap) {
+    for(i = 0; i < entityCount; i++) {
+      if(entities[i]) entities[i].update(elapsedTime, tilemap, this);
+    }
+    checkCollisions();
+  }
+  
+  /* Renders the managed entities
+   * Arguments:
+   * - ctx, the rendering contextual
+   * - debug, the flag to trigger visual debugging
+   */
+  function render(ctx, debug) {
+    for(var i = 0; i < entityCount; i++) {
+      if(entities[i]) entities[i].render(ctx, debug);
+    }
+  }
+  
+  return {
+    add: add,
+    remove: remove,
+    queryRadius: queryRadius,
+    update: update,
+    render: render
+  }
+  
+}());
+},{}],4:[function(require,module,exports){
 /* Base class for all game entities,
- * implemented as a common JS module 
+ * implemented as a common JS module
+ * Authors:
+ * - Nathan Bean 
  */
 module.exports = (function(){
   
@@ -192,27 +338,48 @@ module.exports = (function(){
      // Return a bounding box for your entity
    }
    
+   /* BoundingCircle function
+    * This function returns a bounding circle, i.e.
+    * {cx: 0, cy: 0, radius: 20}
+    * the circle should contain your entity or at 
+    * least the part that can be collided with.
+    */
+   Entity.prototype.boundingBox = function() {
+     // Return a bounding box for your entity
+   }
+   
    return Entity;
   
 }());
-},{}],4:[function(require,module,exports){
-// Gameplay game state defined using the Module pattern
+},{}],5:[function(require,module,exports){
+/* Game GameState module
+ * Provides the main game logic for the Diggy Hole game.
+ * Authors:
+ * - Nathan Bean
+ */
 module.exports = (function (){
   
+  // The width & height of the screen
   const SCREEN_WIDTH = 1280,
         SCREEN_HEIGHT = 720;
-        
+
+  // Module variables
   var Player = require('./player.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
-      tilemapData = require('../tilemaps/example_tilemap.js'),
-      playerEntity = new Player(180, 240, 0, inputManager),
-      player = {x: 1, y: 2},
+      entityManager = require('./entity-manager.js'),
+      player,
       screenCtx,
       backBuffer,
       backBufferCtx,
       stateManager;
-        
+  
+  /* Loads the GameState, triggered by the StateManager
+   * This function sets up the screen canvas, the tilemap,
+   * and loads the entity.
+   * arguments:
+   * - sm, the state manager that loaded this game
+   */  
   var load = function(sm) {
     stateManager = sm;
     
@@ -238,42 +405,45 @@ module.exports = (function (){
       onload: function() {
         window.tilemap = tilemap;
         tilemap.render(screenCtx);
-        console.log(tilemap);
       }
     });
-  }
     
-  // Helper function to check for non-existent or solid tiles
-  function isPassible(x, y) {
-    var data = tilemap.tileAt(x, y, 0);
-    // if the tile is out-of-bounds for the tilemap, then
-    // data will be undefined, a "falsy" value, and the
-    // && operator will shortcut to false.
-    // Otherwise, it is truthy, so the solid property
-    // of the tile will determine the result
-    return data && !data.solid
+    // Create the player and add them to
+    // the entity manager
+    player = new Player(180, 240, 0, inputManager);
+    entityManager.add(player);
   }
-  
+   
+  /* Updates the state of the game world
+   * arguments: 
+   * - elapsedTime, the amount of time passed between
+   * this and the prior frame.   
+   */
   var update = function(elapsedTime) {
-    playerEntity.update(elapsedTime, tilemap);
+    //player.update(elapsedTime, tilemap);
+    entityManager.update(elapsedTime, tilemap);
     inputManager.swapBuffers();
   }
   
+  /* Renders the current state of the game world
+   */
   var render = function() {
     // Clear the back buffer
     backBufferCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     
+    // TODO: Calculate rubberbanding
+    var bounds = player.boundingBox();
+    var offsetX = SCREEN_WIDTH / 2,
+        offsetY = SCREEN_HEIGHT / 2;
+    
     // Apply camera transforms
-    backBufferCtx.save();
-    backBufferCtx.translate((10 - player.x) * 64, (6 - player.y) * 64);
+    backBufferCtx.save();backBufferCtx.translate(offsetX - bounds.left, offsetY - bounds.top);
+    tilemap.setCameraPosition(bounds.left, bounds.top);
     
-    // Redraw the map & player
+    // Redraw the map & entities
     tilemap.render(backBufferCtx);
-    backBufferCtx.beginPath();
-    backBufferCtx.arc(player.x * 64 + 32, player.y * 64 + 32, 30, 0, Math.PI * 2);
-    backBufferCtx.fill();
-    
-    playerEntity.render(backBufferCtx, true);
+    entityManager.render(backBufferCtx, true);
+    //player.render(backBufferCtx, true);
     
     backBufferCtx.restore();
     
@@ -281,14 +451,10 @@ module.exports = (function (){
     screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);    
   }
   
-  function movePlayer(x, y) {
-    player.x += x;
-    player.y += y;
-    tilemap.setCameraPosition(player.x * 64, player.y * 64);
-    tilemap.render(screenCtx);
-  }
-    
-  // Event handler for key down events
+  /* Event handler for key down events
+   * arguments:
+   * - event, the key down event to process
+   */
   function keyDown(event) {
     if(event.keyCode == 27) { // ESC
       var mainMenu = require('./main-menu.js');
@@ -297,11 +463,15 @@ module.exports = (function (){
     inputManager.keyDown(event);
   }
   
-  // Event handler for key up events
+  /* Event handler for key up events
+   * arguments:
+   * - event, the key up event to process
+   */
   function keyUp(event) {
     inputManager.keyUp(event);
   }
   
+  /* Exits the game */
   var exit = function() {}
   
   return {
@@ -314,7 +484,7 @@ module.exports = (function (){
   }
   
 })();
-},{"../tilemaps/example_tilemap.js":11,"./input-manager.js":5,"./main-menu.js":6,"./player.js":9,"./tilemap.js":10}],5:[function(require,module,exports){
+},{"./entity-manager.js":3,"./input-manager.js":6,"./main-menu.js":7,"./player.js":10,"./tilemap.js":11}],6:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -373,8 +543,12 @@ module.exports = (function() {
   }
   
 })();
-},{}],6:[function(require,module,exports){
-// Main Menu game state defined using the Module pattern
+},{}],7:[function(require,module,exports){
+/* MainMenu GameState module
+ * Provides the main menu for the Diggy Hole game.
+ * Authors:
+ * - Nathan Bean
+ */
 module.exports = (function (){
   var menu = document.getElementById("main-menu"),
       play = document.getElementById("play-btn"),
@@ -494,7 +668,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./credits-screen":2}],7:[function(require,module,exports){
+},{"./credits-screen":2}],8:[function(require,module,exports){
 
 
 // Wait for the window to load completely
@@ -538,7 +712,12 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":4,"./main-menu":6}],8:[function(require,module,exports){
+},{"./game":5,"./main-menu":7}],9:[function(require,module,exports){
+/* Noise generation module
+ * Authors:
+ * - Nathan Bean
+ * - Wyatt Watson
+ */
 module.exports = (function(){
   // Initially, we start with a random seed
   var seed = Math.random();
@@ -659,8 +838,10 @@ module.exports = (function(){
   }
 
 }());
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /* Player module
+ * Implements the entity pattern and provides
+ * the DiggyHole player info.
  * Authors:
  * - Wyatt Watson
  * - Nathan Bean
@@ -682,7 +863,8 @@ module.exports = (function(){
 
   // Movement constants
   const SPEED = 150;
-  const GRAVITY = -0.5;
+  const GRAVITY = -250;
+  const JUMP_VELOCITY = -600;
   
   //The Right facing dwarf spritesheet
   var dwarfRight = new Image();
@@ -738,18 +920,45 @@ module.exports = (function(){
   // Player inherits from Entity
   Player.prototype = new Entity();
   
+  // Determines if the player is on the ground
   Player.prototype.onGround = function(tilemap) {
     var box = this.boundingBox(),
         tileX = Math.floor((box.left + (SIZE/2))/64),
-        tileY = Math.floor(box.bottom / 64) + 1,
+        tileY = Math.floor(box.bottom / 64),
         tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
-    console.log(tile);
     // find the tile we are standing on.
-    return (tile && tile.solid);
+    return (tile && tile.data.solid) ? true : false;
   }
   
+  // Moves the player to the left, colliding with solid tiles
+  Player.prototype.moveLeft = function(distance, tilemap) {
+    this.currentX -= distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.left/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid) 
+      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
+  }
   
-  // Player update function
+  // Moves the player to the right, colliding with solid tiles
+  Player.prototype.moveRight = function(distance, tilemap) {
+    this.currentX += distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.right/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+  }
+  
+  /* Player update function
+   * arguments:
+   * - elapsedTime, the time that has passed 
+   *   between this and the last frame.
+   * - tilemap, the tilemap that corresponds to
+   *   the current game world.
+   */
   Player.prototype.update = function(elapsedTime, tilemap) {
     var sprite = this;
     
@@ -763,25 +972,26 @@ module.exports = (function(){
         case STANDING:
         case WALKING:
           // If there is no ground underneath, fall
-          if(sprite.onGround(tilemap)) {
+          if(!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
+            sprite.velocityY = 0;
           } else {
             if(isKeyDown(commands.DIG)) {
               sprite.state = DIGGING;
             }
             else if(isKeyDown(commands.UP)) {
               sprite.state = JUMPING;
-              sprite.velocityY = SPEED * 50;
+              sprite.velocityY = JUMP_VELOCITY;
             }
             else if(isKeyDown(commands.LEFT)) {
               sprite.isLeft = true;
               sprite.state = WALKING;
-              sprite.currentX -= elapsedTime * SPEED;
+              sprite.moveLeft(elapsedTime * SPEED, tilemap);
             }
             else if(isKeyDown(commands.RIGHT)) {
               sprite.isLeft = false;
               sprite.state = WALKING;
-              sprite.currentX += elapsedTime * SPEED;
+              sprite.moveRight(elapsedTime * SPEED, tilemap);
             }
             else {
               sprite.state = STANDING;
@@ -791,32 +1001,33 @@ module.exports = (function(){
         case DIGGING:
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-          sprite.currentY -= sprite.velocityY * elapsedTime;
-          if(sprite.velocityY < 0) {
+          sprite.currentY += sprite.velocityY * elapsedTime;
+          if(sprite.velocityY > 0) {
             sprite.state = FALLING;
           }
           if(isKeyDown(commands.LEFT)) {
             sprite.isLeft = true;
-            sprite.currentX -= elapsedTime * SPEED;
+            sprite.moveLeft(elapsedTime * SPEED, tilemap);
           }
           if(isKeyDown(commands.RIGHT)) {
             sprite.isLeft = true;
-            sprite.currentX += elapsedTime * SPEED;
+            sprite.moveRight(elapsedTime * SPEED, tilemap);
           }
           break;
         case FALLING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-          sprite.currentY -= sprite.velocityY * elapsedTime;
+          sprite.currentY += sprite.velocityY * elapsedTime;
           if(sprite.onGround(tilemap)) {
             sprite.state = STANDING;
+            sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
           }
           else if(isKeyDown(commands.LEFT)) {
             sprite.isLeft = true;
-            sprite.currentX -= elapsedTime * SPEED;
+            sprite.moveLeft(elapsedTime * SPEED, tilemap);
           }
           else if(isKeyDown(commands.RIGHT)) {
             sprite.isLeft = false;
-            sprite.currentX += elapsedTime * SPEED;
+            sprite.moveRight(elapsedTime * SPEED, tilemap);
           }
           break;
         case SWIMMING:
@@ -826,8 +1037,6 @@ module.exports = (function(){
       // Swap input buffers
       swapBuffers();
     }
-      
-    //console.log(this.isLeft);
        
     // Update animation
     if(this.isLeft)
@@ -837,7 +1046,12 @@ module.exports = (function(){
     
   }
   
-  // Player Render Function
+  /* Player Render Function
+   * arguments:
+   * - ctx, the rendering context
+   * - debug, a flag that indicates turning on
+   * visual debugging
+   */
   Player.prototype.render = function(ctx, debug) {
     // Draw the player (and the correct animation)
     if(this.isLeft)
@@ -845,22 +1059,42 @@ module.exports = (function(){
     else
       this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
     
-    if(debug) {
-      var bounds = this.boundingBox();
-      ctx.save();
-      ctx.strokeStyle = "red";
-      ctx.beginPath();
-      ctx.moveTo(bounds.left, bounds.top);
-      ctx.lineTo(bounds.right, bounds.top);
-      ctx.lineTo(bounds.right, bounds.bottom);
-      ctx.lineTo(bounds.left, bounds.bottom);
-      ctx.closePath();
-      ctx.stroke();
-      ctx.restore();
-    }
+    if(debug) renderDebug(this, ctx);
   }
   
-  // Player BoundingBox Function
+  // Draw debugging visual elements
+  function renderDebug(player, ctx) {
+    var bounds = player.boundingBox();
+    ctx.save();
+    
+    // Draw player bounding box
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+    
+    // Outline tile underfoot
+    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(tileX, tileY);
+    ctx.lineTo(tileX + 64, tileY);
+    ctx.lineTo(tileX + 64, tileY + 64);
+    ctx.lineTo(tileX, tileY + 64);
+    ctx.closePath();
+    ctx.stroke();
+    
+    ctx.restore();
+  }
+  
+  /* Player BoundingBox Function
+   * returns: A bounding box representing the player 
+   */
   Player.prototype.boundingBox = function() {
     return {
       left: this.currentX,
@@ -873,8 +1107,13 @@ module.exports = (function(){
   return Player;
 
 }());
-},{"./animation.js":1,"./entity.js":3}],10:[function(require,module,exports){
-// Tilemap engine defined using the Module pattern
+},{"./animation.js":1,"./entity.js":4}],11:[function(require,module,exports){
+/* Tilemap engine providing the static world
+ * elements for Diggy Hole
+ * Authors:
+ * - Nathan Bean 
+ * - Wyatt Watson
+ */
 module.exports = (function (){
   var noisy = require('./noise.js'),
       tiles = [],
@@ -890,24 +1129,46 @@ module.exports = (function (){
       viewportHalfHeight = 0,
       viewportTileWidth = 0,
       viewportTileHeight = 0;
-      
+   
+  /* Clamps the provided value to the provided range
+   * Arguments:
+   * - value, the value to clamp
+   * - min, the minimum of the range to clamp value to
+   * - max, the maximum of the range to clamp value to
+   * Returns:
+   *   The clamped value.
+   */   
   function clamp(value, min, max) {
     return (value < min ? min : (value > max ? max : value));
   }
-      
+  
+  /* Resizes the viewport.
+   * Arguments:
+   * - width, the width of the viewport
+   * - height, the height of hte viewport
+   */   
   var setViewportSize = function(width, height) {
     viewportHalfWidth = width / 2;
     viewportHalfHeight = height / 2;
     viewportTileWidth = Math.ceil(width / tileWidth) + 2;
     viewportTileHeight = Math.ceil(height / tileHeight) + 2;
-    console.log("tile size", viewportTileWidth, viewportTileHeight);
   }
   
+  /* Sets the camera position
+   * Arguments:
+   * - x, the upper-left hand x-coordinate of the viewport
+   * - y, the upper-left-hand y-coordinate of the viewport
+   */
   var setCameraPosition = function(x, y) {
     cameraX = x;
     cameraY = y;
   }
-      
+   
+  /* Loads the tilemap 
+   * - mapData, the JavaScript object
+   * - options, options for loading, currently:
+   *  > onload, a callback to trigger once the load finishes
+   */   
   var load = function(mapData, options) {
       
     var loading = 0;
@@ -944,6 +1205,10 @@ module.exports = (function (){
           rowCount = Math.floor(tilesetmapData.imageheight / tileHeight),
           tileCount = colCount * rowCount;
       for(i = 0; i < tileCount; i++) {
+        var data = {}
+        for (var key in tilesetmapData.tileproperties[i]) {
+          data[key] = tilesetmapData.tileproperties[i][key];
+        }
         var tile = {
           // Reference to the image, shared amongst all tiles in the tileset
           image: tileset,
@@ -951,10 +1216,8 @@ module.exports = (function (){
           sx: (i % colCount) * tileWidth,
           // Source y position. i / colWidth (integer division) == row number 
           sy: Math.floor(i / rowCount) * tileHeight,
-          // Indicates a solid tile (i.e. solid property is true).  As properties
-          // can be left blank, we need to make sure the property exists. 
-          // We'll assume any tiles missing the solid property are *not* solid
-          solid: (tilesetmapData.tileproperties[i] && tilesetmapData.tileproperties[i].solid == "true") ? true : false
+          // The tile's data (solid/liquid, etc.)
+          data: data
         }
         tiles.push(tile);
       }
@@ -989,6 +1252,12 @@ module.exports = (function (){
     });
   }
 
+  /* Generates a random tilemap
+   * Arguments:
+   * - width, the width of the tilemap
+   * - height, the height of the tilemap
+   * - options, options to trigger
+   */
   var generate = function(width, height, options) {
     var map = new Array(width*height);
     var noise = noisy.generateNoise(width, height);
@@ -1004,39 +1273,67 @@ module.exports = (function (){
         margin: 0,
         name: "Tileset",
         tileproperties: {
+          0: { // Sky background
+            type: "SkyBackground",
+          },
+          1: { // Clouds
+             type: "Clouds",
+          },
           2: { // Sky Earth
+            type: "Sky Earth",
             solid: true
           },
           3: { // Gems w grass
+            type: "GemsWithGrass",
             solid: true,
             gems: true
           },
           4: { // Dirt w grass
+            type: "DirtWithGrass",
             solid: true
           },
           5: { // Stone w grass
+            type: "StoneWithGrass",
             solid: true
           },
           6: { // Water
+            type: "Water",
             liquid: true
           },
+          7: { // Cave background
+            type: "CaveBackground",
+          },
           8: { // Gems
+            type: "Gems",
+            solid: true,
             gems: true
           },
           9: { // dirt
+            type: "Dirt",
             solid: true,
           },
           10: { // stone
+            type: "Stone",
             solid: true,
           },
           11: { // water
+            type: "Water",
             liquid: true
           },
+          12: { // cave background
+            type: "CaveBackground",
+          },
           13: { // lava
+            type: "Lava",
             liquid: true,
             damage: 10,
+          },
+          14: { // dark background
+            type: "DarkBackground",
+          },
+          15: { // dug background
+            type: "DugBackground",
           }
-          
         },
         spacing: 0,
         tilewidth: 64,
@@ -1066,15 +1363,15 @@ module.exports = (function (){
         var temp = noise[index];
         //Ensure first row is sky
         if(j == 0){
-          map[index] = 0;
+          map[index] = 1;
         }
         //Sky Area
         else if(j < surface-2){
           if(temp < 8 && skyEarthCount == 0 && cloudCount == 0){ //Sky Background
-            map[index] = 0;
+            map[index] = 1;
           }
           else if(temp < 9.4 && skyEarthCount == 0){ //Clouds
-            map[index] = 1;
+            map[index] = 2;
             cloudCount++;
             if(cloudCount > rand2){
               rand2 = noisy.randomNumber(0, 3);
@@ -1082,7 +1379,7 @@ module.exports = (function (){
             }
           }
           else{ //Sky Earth
-            map[index] = 2;
+            map[index] = 3;
             skyEarthCount++;
             if(skyEarthCount > rand){
               skyEarthCount = 0;
@@ -1092,72 +1389,72 @@ module.exports = (function (){
         }
         //Ensure row before the surface is sky
         else if(j < surface){
-          map[index] = 0;
+          map[index] = 1;
         }
         //Surface blocks - Start of Crust Layer
         else if(j == surface){ 
           if(temp < .5){ //Gems w grass
             map[index] = 4;
           }
-          else if(temp < 4){ //Dirt w grass
-            map[index] = 4;
-          }
-          else if(temp < 6){ //Stone w grass
+          else if(temp < 5){ //Dirt w grass
             map[index] = 5;
           }
-          else if(temp < 8){ //Water 6
+          else if(temp < 6){ //Stone w grass
             map[index] = 6;
           }
+          else if(temp < 8){ //Water 
+            map[index] = 7;
+          }
           else{ //Cave Background
-            map[index] = 4;
+            map[index] = 13;
           }
         }
         //Crust Area
         else if(j < midEarth-1){
           if(temp < .5){ //Gems
-            map[index] = 8;
-          }
-          else if(temp < 4){ //Dirt
             map[index] = 9;
           }
-          else if(temp < 6){ //Stone
+          else if(temp < 4){ //Dirt
             map[index] = 10;
           }
-          else if(temp < 8){ //Water 11
+          else if(temp < 6){ //Stone
             map[index] = 11;
           }
-          else{ //Cave Background
+          else if(temp < 8){ //Water 11
             map[index] = 12;
+          }
+          else{ //Cave Background
+            map[index] = 13;
           }
         }
         //Solid layer between crust and deep earth
         else if(j < midEarth){
           if(temp < .5){ //Gems
-            map[index] = 8;
+            map[index] = 9;
           }
           else if(temp < 4){ //Dirt
-            map[index] = 9;
+            map[index] = 10;
           }
           else if(temp < 6){ //Stone
-            map[index] = 10;
+            map[index] = 11;
           }
           else if(temp < 8){ //Water 11
-            map[index] = 9;
+            map[index] = 10;
           }
           else{ //Cave Background
-            map[index] = 10;
+            map[index] = 11;
           }
         }
         //Deep Earth
         else{
           if(temp < 4){ // Lava
-            map[index] = 13;
+            map[index] = 14;
           }
           else if(temp < 6){ // Stone
-            map[index] = 10;
+            map[index] = 11;
           }
           else{ // Dark Background
-            map[index] = 14;
+            map[index] = 15;
           }
         }
       }
@@ -1251,18 +1548,18 @@ module.exports = (function (){
       if(layer.visible) { 
         
         // Only draw tiles that are within the viewport
-        var startX =  clamp(Math.floor((cameraX - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
+        var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
         var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
         var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
         var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
-        
+   
         for(y = startY; y < endY; y++) {
           for(x = startX; x < endX; x++) {
             var tileId = layer.data[x + layer.width * y];
             
             // tiles with an id of < 0 don't exist
-            if(tileId >= 0) {
-              var tile = tiles[tileId];
+            if(tileId > 0) {
+              var tile = tiles[tileId-1];
               if(tile.image) { // Make sure the image has loaded
                 screenCtx.drawImage(
                   tile.image,     // The image to draw 
@@ -1279,11 +1576,16 @@ module.exports = (function (){
     });
   }
   
+  /* Returns the tile at a given position.
+   * - x, the x coordinate of the tile
+   * - y, the y coordinate of the tile
+   * - layer, the layer of the tilemap
+   */
   var tileAt = function(x, y, layer) {
     // sanity check
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight) 
       return undefined;  
-    return tiles[layers[layer].data[x + y*mapWidth] - 1] || {};
+    return tiles[layers[layer].data[x + y*mapWidth] - 1];
   }
   
   // Expose the module's public API
@@ -1298,56 +1600,4 @@ module.exports = (function (){
   
   
 })();
-},{"./noise.js":8}],11:[function(require,module,exports){
-// Modifed example_tilemap.json by adding an export declaration
-// and saving as a JavaScript file
-
-module.exports = { 
- "height":10,
- "layers":[
-        {
-         "data":[3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 2, 2, 2, 2, 2, 2, 3, 3, 2, 4, 4, 1, 4, 2, 2, 2, 3, 3, 2, 2, 2, 2, 4, 4, 4, 2, 3, 3, 2, 2, 2, 2, 2, 2, 1, 2, 3, 3, 3, 1, 3, 2, 2, 2, 4, 4, 3, 3, 2, 2, 3, 2, 3, 2, 2, 4, 4, 3, 2, 2, 3, 2, 3, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
-         "height":10,
-         "name":"Tile Layer 1",
-         "opacity":1,
-         "type":"tilelayer",
-         "visible":true,
-         "width":10,
-         "x":0,
-         "y":0
-        }],
- "orientation":"orthogonal",
- "properties":
-    {
-
-    },
- "renderorder":"right-down",
- "tileheight":64,
- "tilesets":[
-        {
-         "firstgid":1,
-         "image":"tilesets\/example.png",
-         "imageheight":130,
-         "imagewidth":128,
-         "margin":0,
-         "name":"example",
-         "properties":
-            {
-
-            },
-         "spacing":0,
-         "tileheight":64,
-         "tileproperties":
-            {
-             "2":
-                {
-                 "solid":"true"
-                }
-            },
-         "tilewidth":64
-        }],
- "tilewidth":64,
- "version":1,
- "width":10
-}
-},{}]},{},[7]);
+},{"./noise.js":9}]},{},[8]);

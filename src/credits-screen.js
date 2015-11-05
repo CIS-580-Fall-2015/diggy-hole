@@ -32,8 +32,7 @@ module.exports = (function (){
    */
   var update = function(elapsedTime) {
     scroll -= 0.0001 * elapsedTime;
-    wrap.style.marginTop = Math.round(scroll) + "px";
-console.log(scroll);    
+    wrap.style.marginTop = Math.round(scroll) + "px";   
   }
   
   /* 

@@ -1,4 +1,9 @@
-// Tilemap engine defined using the Module pattern
+/* Tilemap engine providing the static world
+ * elements for Diggy Hole
+ * Authors:
+ * - Nathan Bean 
+ * - Wyatt Watson
+ */
 module.exports = (function (){
   var noisy = require('./noise.js'),
       tiles = [],
@@ -14,24 +19,46 @@ module.exports = (function (){
       viewportHalfHeight = 0,
       viewportTileWidth = 0,
       viewportTileHeight = 0;
-      
+   
+  /* Clamps the provided value to the provided range
+   * Arguments:
+   * - value, the value to clamp
+   * - min, the minimum of the range to clamp value to
+   * - max, the maximum of the range to clamp value to
+   * Returns:
+   *   The clamped value.
+   */   
   function clamp(value, min, max) {
     return (value < min ? min : (value > max ? max : value));
   }
-      
+  
+  /* Resizes the viewport.
+   * Arguments:
+   * - width, the width of the viewport
+   * - height, the height of hte viewport
+   */   
   var setViewportSize = function(width, height) {
     viewportHalfWidth = width / 2;
     viewportHalfHeight = height / 2;
     viewportTileWidth = Math.ceil(width / tileWidth) + 2;
     viewportTileHeight = Math.ceil(height / tileHeight) + 2;
-    console.log("tile size", viewportTileWidth, viewportTileHeight);
   }
   
+  /* Sets the camera position
+   * Arguments:
+   * - x, the upper-left hand x-coordinate of the viewport
+   * - y, the upper-left-hand y-coordinate of the viewport
+   */
   var setCameraPosition = function(x, y) {
     cameraX = x;
     cameraY = y;
   }
-      
+   
+  /* Loads the tilemap 
+   * - mapData, the JavaScript object
+   * - options, options for loading, currently:
+   *  > onload, a callback to trigger once the load finishes
+   */   
   var load = function(mapData, options) {
       
     var loading = 0;
@@ -68,6 +95,10 @@ module.exports = (function (){
           rowCount = Math.floor(tilesetmapData.imageheight / tileHeight),
           tileCount = colCount * rowCount;
       for(i = 0; i < tileCount; i++) {
+        var data = {}
+        for (var key in tilesetmapData.tileproperties[i]) {
+          data[key] = tilesetmapData.tileproperties[i][key];
+        }
         var tile = {
           // Reference to the image, shared amongst all tiles in the tileset
           image: tileset,
@@ -75,10 +106,8 @@ module.exports = (function (){
           sx: (i % colCount) * tileWidth,
           // Source y position. i / colWidth (integer division) == row number 
           sy: Math.floor(i / rowCount) * tileHeight,
-          // Indicates a solid tile (i.e. solid property is true).  As properties
-          // can be left blank, we need to make sure the property exists. 
-          // We'll assume any tiles missing the solid property are *not* solid
-          solid: (tilesetmapData.tileproperties[i] && tilesetmapData.tileproperties[i].solid == "true") ? true : false
+          // The tile's data (solid/liquid, etc.)
+          data: data
         }
         tiles.push(tile);
       }
@@ -113,6 +142,12 @@ module.exports = (function (){
     });
   }
 
+  /* Generates a random tilemap
+   * Arguments:
+   * - width, the width of the tilemap
+   * - height, the height of the tilemap
+   * - options, options to trigger
+   */
   var generate = function(width, height, options) {
     var map = new Array(width*height);
     var noise = noisy.generateNoise(width, height);
@@ -128,39 +163,67 @@ module.exports = (function (){
         margin: 0,
         name: "Tileset",
         tileproperties: {
+          0: { // Sky background
+            type: "SkyBackground",
+          },
+          1: { // Clouds
+             type: "Clouds",
+          },
           2: { // Sky Earth
+            type: "Sky Earth",
             solid: true
           },
           3: { // Gems w grass
+            type: "GemsWithGrass",
             solid: true,
             gems: true
           },
           4: { // Dirt w grass
+            type: "DirtWithGrass",
             solid: true
           },
           5: { // Stone w grass
+            type: "StoneWithGrass",
             solid: true
           },
           6: { // Water
+            type: "Water",
             liquid: true
           },
+          7: { // Cave background
+            type: "CaveBackground",
+          },
           8: { // Gems
+            type: "Gems",
+            solid: true,
             gems: true
           },
           9: { // dirt
+            type: "Dirt",
             solid: true,
           },
           10: { // stone
+            type: "Stone",
             solid: true,
           },
           11: { // water
+            type: "Water",
             liquid: true
           },
+          12: { // cave background
+            type: "CaveBackground",
+          },
           13: { // lava
+            type: "Lava",
             liquid: true,
             damage: 10,
+          },
+          14: { // dark background
+            type: "DarkBackground",
+          },
+          15: { // dug background
+            type: "DugBackground",
           }
-          
         },
         spacing: 0,
         tilewidth: 64,
@@ -190,15 +253,15 @@ module.exports = (function (){
         var temp = noise[index];
         //Ensure first row is sky
         if(j == 0){
-          map[index] = 0;
+          map[index] = 1;
         }
         //Sky Area
         else if(j < surface-2){
           if(temp < 8 && skyEarthCount == 0 && cloudCount == 0){ //Sky Background
-            map[index] = 0;
+            map[index] = 1;
           }
           else if(temp < 9.4 && skyEarthCount == 0){ //Clouds
-            map[index] = 1;
+            map[index] = 2;
             cloudCount++;
             if(cloudCount > rand2){
               rand2 = noisy.randomNumber(0, 3);
@@ -206,7 +269,7 @@ module.exports = (function (){
             }
           }
           else{ //Sky Earth
-            map[index] = 2;
+            map[index] = 3;
             skyEarthCount++;
             if(skyEarthCount > rand){
               skyEarthCount = 0;
@@ -216,72 +279,72 @@ module.exports = (function (){
         }
         //Ensure row before the surface is sky
         else if(j < surface){
-          map[index] = 0;
+          map[index] = 1;
         }
         //Surface blocks - Start of Crust Layer
         else if(j == surface){ 
           if(temp < .5){ //Gems w grass
             map[index] = 4;
           }
-          else if(temp < 4){ //Dirt w grass
-            map[index] = 4;
-          }
-          else if(temp < 6){ //Stone w grass
+          else if(temp < 5){ //Dirt w grass
             map[index] = 5;
           }
-          else if(temp < 8){ //Water 6
+          else if(temp < 6){ //Stone w grass
             map[index] = 6;
           }
+          else if(temp < 8){ //Water 
+            map[index] = 7;
+          }
           else{ //Cave Background
-            map[index] = 4;
+            map[index] = 13;
           }
         }
         //Crust Area
         else if(j < midEarth-1){
           if(temp < .5){ //Gems
-            map[index] = 8;
-          }
-          else if(temp < 4){ //Dirt
             map[index] = 9;
           }
-          else if(temp < 6){ //Stone
+          else if(temp < 4){ //Dirt
             map[index] = 10;
           }
-          else if(temp < 8){ //Water 11
+          else if(temp < 6){ //Stone
             map[index] = 11;
           }
-          else{ //Cave Background
+          else if(temp < 8){ //Water 11
             map[index] = 12;
+          }
+          else{ //Cave Background
+            map[index] = 13;
           }
         }
         //Solid layer between crust and deep earth
         else if(j < midEarth){
           if(temp < .5){ //Gems
-            map[index] = 8;
+            map[index] = 9;
           }
           else if(temp < 4){ //Dirt
-            map[index] = 9;
+            map[index] = 10;
           }
           else if(temp < 6){ //Stone
-            map[index] = 10;
+            map[index] = 11;
           }
           else if(temp < 8){ //Water 11
-            map[index] = 9;
+            map[index] = 10;
           }
           else{ //Cave Background
-            map[index] = 10;
+            map[index] = 11;
           }
         }
         //Deep Earth
         else{
           if(temp < 4){ // Lava
-            map[index] = 13;
+            map[index] = 14;
           }
           else if(temp < 6){ // Stone
-            map[index] = 10;
+            map[index] = 11;
           }
           else{ // Dark Background
-            map[index] = 14;
+            map[index] = 15;
           }
         }
       }
@@ -375,18 +438,18 @@ module.exports = (function (){
       if(layer.visible) { 
         
         // Only draw tiles that are within the viewport
-        var startX =  clamp(Math.floor((cameraX - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
+        var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
         var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
         var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
         var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
-        
+   
         for(y = startY; y < endY; y++) {
           for(x = startX; x < endX; x++) {
             var tileId = layer.data[x + layer.width * y];
             
             // tiles with an id of < 0 don't exist
-            if(tileId >= 0) {
-              var tile = tiles[tileId];
+            if(tileId > 0) {
+              var tile = tiles[tileId-1];
               if(tile.image) { // Make sure the image has loaded
                 screenCtx.drawImage(
                   tile.image,     // The image to draw 
@@ -403,11 +466,16 @@ module.exports = (function (){
     });
   }
   
+  /* Returns the tile at a given position.
+   * - x, the x coordinate of the tile
+   * - y, the y coordinate of the tile
+   * - layer, the layer of the tilemap
+   */
   var tileAt = function(x, y, layer) {
     // sanity check
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight) 
       return undefined;  
-    return tiles[layers[layer].data[x + y*mapWidth] - 1] || {};
+    return tiles[layers[layer].data[x + y*mapWidth] - 1];
   }
   
   // Expose the module's public API

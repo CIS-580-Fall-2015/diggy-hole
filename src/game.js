@@ -1,20 +1,31 @@
-// Gameplay game state defined using the Module pattern
+/* Game GameState module
+ * Provides the main game logic for the Diggy Hole game.
+ * Authors:
+ * - Nathan Bean
+ */
 module.exports = (function (){
   
+  // The width & height of the screen
   const SCREEN_WIDTH = 1280,
         SCREEN_HEIGHT = 720;
-        
+
+  // Module variables
   var Player = require('./player.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
-      tilemapData = require('../tilemaps/example_tilemap.js'),
-      playerEntity = new Player(180, 240, 0, inputManager),
-      player = {x: 1, y: 2},
+      entityManager = require('./entity-manager.js'),
+      player,
       screenCtx,
       backBuffer,
       backBufferCtx,
       stateManager;
-        
+  
+  /* Loads the GameState, triggered by the StateManager
+   * This function sets up the screen canvas, the tilemap,
+   * and loads the entity.
+   * arguments:
+   * - sm, the state manager that loaded this game
+   */  
   var load = function(sm) {
     stateManager = sm;
     
@@ -40,42 +51,45 @@ module.exports = (function (){
       onload: function() {
         window.tilemap = tilemap;
         tilemap.render(screenCtx);
-        console.log(tilemap);
       }
     });
-  }
     
-  // Helper function to check for non-existent or solid tiles
-  function isPassible(x, y) {
-    var data = tilemap.tileAt(x, y, 0);
-    // if the tile is out-of-bounds for the tilemap, then
-    // data will be undefined, a "falsy" value, and the
-    // && operator will shortcut to false.
-    // Otherwise, it is truthy, so the solid property
-    // of the tile will determine the result
-    return data && !data.solid
+    // Create the player and add them to
+    // the entity manager
+    player = new Player(180, 240, 0, inputManager);
+    entityManager.add(player);
   }
-  
+   
+  /* Updates the state of the game world
+   * arguments: 
+   * - elapsedTime, the amount of time passed between
+   * this and the prior frame.   
+   */
   var update = function(elapsedTime) {
-    playerEntity.update(elapsedTime, tilemap);
+    //player.update(elapsedTime, tilemap);
+    entityManager.update(elapsedTime, tilemap);
     inputManager.swapBuffers();
   }
   
+  /* Renders the current state of the game world
+   */
   var render = function() {
     // Clear the back buffer
     backBufferCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     
+    // TODO: Calculate rubberbanding
+    var bounds = player.boundingBox();
+    var offsetX = SCREEN_WIDTH / 2,
+        offsetY = SCREEN_HEIGHT / 2;
+    
     // Apply camera transforms
-    backBufferCtx.save();
-    backBufferCtx.translate((10 - player.x) * 64, (6 - player.y) * 64);
+    backBufferCtx.save();backBufferCtx.translate(offsetX - bounds.left, offsetY - bounds.top);
+    tilemap.setCameraPosition(bounds.left, bounds.top);
     
-    // Redraw the map & player
+    // Redraw the map & entities
     tilemap.render(backBufferCtx);
-    backBufferCtx.beginPath();
-    backBufferCtx.arc(player.x * 64 + 32, player.y * 64 + 32, 30, 0, Math.PI * 2);
-    backBufferCtx.fill();
-    
-    playerEntity.render(backBufferCtx, true);
+    entityManager.render(backBufferCtx, true);
+    //player.render(backBufferCtx, true);
     
     backBufferCtx.restore();
     
@@ -83,14 +97,10 @@ module.exports = (function (){
     screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);    
   }
   
-  function movePlayer(x, y) {
-    player.x += x;
-    player.y += y;
-    tilemap.setCameraPosition(player.x * 64, player.y * 64);
-    tilemap.render(screenCtx);
-  }
-    
-  // Event handler for key down events
+  /* Event handler for key down events
+   * arguments:
+   * - event, the key down event to process
+   */
   function keyDown(event) {
     if(event.keyCode == 27) { // ESC
       var mainMenu = require('./main-menu.js');
@@ -99,11 +109,15 @@ module.exports = (function (){
     inputManager.keyDown(event);
   }
   
-  // Event handler for key up events
+  /* Event handler for key up events
+   * arguments:
+   * - event, the key up event to process
+   */
   function keyUp(event) {
     inputManager.keyUp(event);
   }
   
+  /* Exits the game */
   var exit = function() {}
   
   return {

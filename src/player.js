@@ -1,4 +1,6 @@
 /* Player module
+ * Implements the entity pattern and provides
+ * the DiggyHole player info.
  * Authors:
  * - Wyatt Watson
  * - Nathan Bean
@@ -20,7 +22,8 @@ module.exports = (function(){
 
   // Movement constants
   const SPEED = 150;
-  const GRAVITY = -0.5;
+  const GRAVITY = -250;
+  const JUMP_VELOCITY = -600;
   
   //The Right facing dwarf spritesheet
   var dwarfRight = new Image();
@@ -76,18 +79,45 @@ module.exports = (function(){
   // Player inherits from Entity
   Player.prototype = new Entity();
   
+  // Determines if the player is on the ground
   Player.prototype.onGround = function(tilemap) {
     var box = this.boundingBox(),
         tileX = Math.floor((box.left + (SIZE/2))/64),
-        tileY = Math.floor(box.bottom / 64) + 1,
+        tileY = Math.floor(box.bottom / 64),
         tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
-    console.log(tile);
     // find the tile we are standing on.
-    return (tile && tile.solid);
+    return (tile && tile.data.solid) ? true : false;
   }
   
+  // Moves the player to the left, colliding with solid tiles
+  Player.prototype.moveLeft = function(distance, tilemap) {
+    this.currentX -= distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.left/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid) 
+      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
+  }
   
-  // Player update function
+  // Moves the player to the right, colliding with solid tiles
+  Player.prototype.moveRight = function(distance, tilemap) {
+    this.currentX += distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.right/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+  }
+  
+  /* Player update function
+   * arguments:
+   * - elapsedTime, the time that has passed 
+   *   between this and the last frame.
+   * - tilemap, the tilemap that corresponds to
+   *   the current game world.
+   */
   Player.prototype.update = function(elapsedTime, tilemap) {
     var sprite = this;
     
@@ -101,25 +131,26 @@ module.exports = (function(){
         case STANDING:
         case WALKING:
           // If there is no ground underneath, fall
-          if(sprite.onGround(tilemap)) {
+          if(!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
+            sprite.velocityY = 0;
           } else {
             if(isKeyDown(commands.DIG)) {
               sprite.state = DIGGING;
             }
             else if(isKeyDown(commands.UP)) {
               sprite.state = JUMPING;
-              sprite.velocityY = SPEED * 50;
+              sprite.velocityY = JUMP_VELOCITY;
             }
             else if(isKeyDown(commands.LEFT)) {
               sprite.isLeft = true;
               sprite.state = WALKING;
-              sprite.currentX -= elapsedTime * SPEED;
+              sprite.moveLeft(elapsedTime * SPEED, tilemap);
             }
             else if(isKeyDown(commands.RIGHT)) {
               sprite.isLeft = false;
               sprite.state = WALKING;
-              sprite.currentX += elapsedTime * SPEED;
+              sprite.moveRight(elapsedTime * SPEED, tilemap);
             }
             else {
               sprite.state = STANDING;
@@ -129,32 +160,33 @@ module.exports = (function(){
         case DIGGING:
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-          sprite.currentY -= sprite.velocityY * elapsedTime;
-          if(sprite.velocityY < 0) {
+          sprite.currentY += sprite.velocityY * elapsedTime;
+          if(sprite.velocityY > 0) {
             sprite.state = FALLING;
           }
           if(isKeyDown(commands.LEFT)) {
             sprite.isLeft = true;
-            sprite.currentX -= elapsedTime * SPEED;
+            sprite.moveLeft(elapsedTime * SPEED, tilemap);
           }
           if(isKeyDown(commands.RIGHT)) {
             sprite.isLeft = true;
-            sprite.currentX += elapsedTime * SPEED;
+            sprite.moveRight(elapsedTime * SPEED, tilemap);
           }
           break;
         case FALLING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-          sprite.currentY -= sprite.velocityY * elapsedTime;
+          sprite.currentY += sprite.velocityY * elapsedTime;
           if(sprite.onGround(tilemap)) {
             sprite.state = STANDING;
+            sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
           }
           else if(isKeyDown(commands.LEFT)) {
             sprite.isLeft = true;
-            sprite.currentX -= elapsedTime * SPEED;
+            sprite.moveLeft(elapsedTime * SPEED, tilemap);
           }
           else if(isKeyDown(commands.RIGHT)) {
             sprite.isLeft = false;
-            sprite.currentX += elapsedTime * SPEED;
+            sprite.moveRight(elapsedTime * SPEED, tilemap);
           }
           break;
         case SWIMMING:
@@ -164,8 +196,6 @@ module.exports = (function(){
       // Swap input buffers
       swapBuffers();
     }
-      
-    //console.log(this.isLeft);
        
     // Update animation
     if(this.isLeft)
@@ -175,7 +205,12 @@ module.exports = (function(){
     
   }
   
-  // Player Render Function
+  /* Player Render Function
+   * arguments:
+   * - ctx, the rendering context
+   * - debug, a flag that indicates turning on
+   * visual debugging
+   */
   Player.prototype.render = function(ctx, debug) {
     // Draw the player (and the correct animation)
     if(this.isLeft)
@@ -183,22 +218,42 @@ module.exports = (function(){
     else
       this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
     
-    if(debug) {
-      var bounds = this.boundingBox();
-      ctx.save();
-      ctx.strokeStyle = "red";
-      ctx.beginPath();
-      ctx.moveTo(bounds.left, bounds.top);
-      ctx.lineTo(bounds.right, bounds.top);
-      ctx.lineTo(bounds.right, bounds.bottom);
-      ctx.lineTo(bounds.left, bounds.bottom);
-      ctx.closePath();
-      ctx.stroke();
-      ctx.restore();
-    }
+    if(debug) renderDebug(this, ctx);
   }
   
-  // Player BoundingBox Function
+  // Draw debugging visual elements
+  function renderDebug(player, ctx) {
+    var bounds = player.boundingBox();
+    ctx.save();
+    
+    // Draw player bounding box
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+    
+    // Outline tile underfoot
+    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(tileX, tileY);
+    ctx.lineTo(tileX + 64, tileY);
+    ctx.lineTo(tileX + 64, tileY + 64);
+    ctx.lineTo(tileX, tileY + 64);
+    ctx.closePath();
+    ctx.stroke();
+    
+    ctx.restore();
+  }
+  
+  /* Player BoundingBox Function
+   * returns: A bounding box representing the player 
+   */
   Player.prototype.boundingBox = function() {
     return {
       left: this.currentX,
