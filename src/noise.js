@@ -1,3 +1,8 @@
+/* Noise generation module
+ * Authors:
+ * - Nathan Bean
+ * - Wyatt Watson
+ */
 module.exports = (function(){
   // Initially, we start with a random seed
   var seed = Math.random();

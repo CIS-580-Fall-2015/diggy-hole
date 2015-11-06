@@ -1,5 +1,7 @@
 /* Base class for all game entities,
- * implemented as a common JS module 
+ * implemented as a common JS module
+ * Authors:
+ * - Nathan Bean 
  */
 module.exports = (function(){
   
@@ -55,6 +57,16 @@ module.exports = (function(){
     * box, i.e {top: 0, left: 0, right: 20, bottom: 50}
     * the box should contain your entity or at least the
     * part that can be collided with.
+    */
+   Entity.prototype.boundingBox = function() {
+     // Return a bounding box for your entity
+   }
+   
+   /* BoundingCircle function
+    * This function returns a bounding circle, i.e.
+    * {cx: 0, cy: 0, radius: 20}
+    * the circle should contain your entity or at 
+    * least the part that can be collided with.
     */
    Entity.prototype.boundingBox = function() {
      // Return a bounding box for your entity
