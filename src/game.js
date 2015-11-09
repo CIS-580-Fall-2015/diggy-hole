@@ -14,6 +14,7 @@ module.exports = (function (){
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
+      Barrel = require('./barrel.js'),
       player,
       screenCtx,
       backBuffer,
@@ -58,6 +59,8 @@ module.exports = (function (){
     // the entity manager
     player = new Player(180, 240, 0, inputManager);
     entityManager.add(player);
+    barrel = new Barrel(180, 240, 0, inputManager);
+    entityManager.add(barrel);
   }
    
   /* Updates the state of the game world

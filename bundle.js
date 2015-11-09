@@ -66,12 +66,7 @@ module.exports = (function() {
  
 module.exports = (function(){
   var Entity = require('./entity.js'),
-		Player = require('./player.js'),
       Animation = require('./animation.js');
-  
-  
-  const DEBUG = true;
-  
   
   /* The following are barrel states */
   const IDLE = 0;
@@ -81,9 +76,6 @@ module.exports = (function(){
   const SWIMMING = 4;
   const DEAD = 5;
 
-  const PROJECTILE = 6;
-  
-  
   // The Sprite Size
   const SIZE = 64;
 
@@ -91,8 +83,6 @@ module.exports = (function(){
   const SPEED = 150;
   const GRAVITY = -250;
   const JUMP_VELOCITY = -600;
-  const PROJECTILE_SPEED = 200;
-  const PROJECTILE_DIST = 3*SIZE;
   
   //The Right facing dwarf spritesheet
   var dwarfRight = new Image();
@@ -101,15 +91,6 @@ module.exports = (function(){
   //The left facing dwarf spritesheet
   var dwarfLeft = new Image();
   dwarfLeft.src = "DwarfAnimatedLeft.png";
-  
-    var boneLeft = new Image();
-  boneLeft.src = 'BoneLeft.png';
-  
-  var barrelIdle = new Image();
-  barrelIdle.src = 'BarrelIdle.png';
-  
-    var barrelAttack = new Image();
-  barrelAttack.src = 'BarrelAttack.png';
 
   //The Barrel constructor
   function Barrel(locationX, locationY, layerIndex) {
@@ -129,22 +110,10 @@ module.exports = (function(){
 	
 	this.type = "BarrelSkeleton";
 	
-	this.range = 3*SIZE;
-	this.attackFrequency = 1.2;
-	this.lastAttack = 0;
+	this.range = 5;
 	this.lives = 5;
-	this.projectile = {
-		enabled: false,
-		size: 10,
-		distTraveled: 0,
-		x: this.currentX,
-		y: this.currentY,
-		xSpeed: 0,
-		isLeft: true
-	}
 	
-	this.state = IDLE;
-	this.playerInRange = false;
+	this.state = States.IDLE;
 	this.attacked = false;
 	this.attackedFromLeft = false;
     
@@ -155,22 +124,20 @@ module.exports = (function(){
     }
     
     //The right-facing animations
-    this.animations.right[IDLE] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
-	this.animations.right[ATTACKING] = new Animation(barrelAttack, SIZE, SIZE, 0, 0, 12);
+    this.animations.right[IDLE] = new Animation(dwarfRight, SIZE, SIZE, SIZE*2, SIZE);
+	this.animations.right[ATTACKING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE*2, 4);
     this.animations.right[ROLLING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
-    this.animations.right[FALLING] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
-    this.animations.right[SWIMMING] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
+    this.animations.right[FALLING] = new Animation(dwarfRight, SIZE, SIZE, SIZE, SIZE);
+    this.animations.right[SWIMMING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
 	this.animations.right[DEAD] = new Animation(dwarfRight, SIZE, SIZE, SIZE*3, 0);
-	this.animations.right[PROJECTILE] = new Animation(boneLeft, SIZE, SIZE, 0, 0, 8);
     
     //The left-facing animations
-    this.animations.left[IDLE] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
-	this.animations.left[ATTACKING] = new Animation(barrelAttack, SIZE, SIZE, 0, 0, 12);
+    this.animations.left[IDLE] = new Animation(dwarfLeft, SIZE, SIZE, SIZE*2, SIZE);
+	this.animations.left[ATTACKING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE*2, 4);
     this.animations.left[ROLLING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
-    this.animations.left[FALLING] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
-    this.animations.left[SWIMMING] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
-	this.animations.left[DEAD] = new Animation(dwarfLeft, SIZE, SIZE, SIZE*3, 0);
-	this.animations.left[PROJECTILE] = new Animation(boneLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.left[FALLING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE, SIZE);
+    this.animations.left[SWIMMING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
+	this.animations.right[DEAD] = new Animation(dwarfRight, SIZE, SIZE, SIZE*3, 0);
   }
   
   // Barrel inherits from Entity
@@ -218,14 +185,17 @@ module.exports = (function(){
   Barrel.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
     
-	var entities = entityManager.queryRadius(this.currentX, this.currentY, this.range);
-	this.playerInRange = false;
-		for(var i=0; i<entities.length;i++){
-			if(entities[i] instanceof Player){
-				this.playerInRange = true;
-				break;
+	var entities = entityManager.queryRadius(this.x, this.y, this.range);
+		for(var i=0; i<entities.length();){
+			if(entities[i].instanceof()=="Player"){
+				var playerInRange = true;
 			}
 		}
+      
+	      // The "with" keyword allows us to change the
+    // current scope, i.e. 'this' becomes our 
+    // inputManager
+    with (this.inputManager) {
     
       // Process barrel state
       switch(sprite.state) {
@@ -234,74 +204,45 @@ module.exports = (function(){
 			if(!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
             sprite.velocityY = 0;
-			if(DEBUG){
-				console.log("Barrel state: FALLING");
-			}
-          } else if(sprite.attacked){
-				if(--this.lives<1){
+          } else if(attacked){
+			  if(--this.lives<1){
 				  sprite.state = DEAD;
-				  
-				  if(DEBUG){
-					console.log("Barrel state: DEAD");
-				  }
-				}
-				  
-			  
-			if(!sprite.attackedFromLeft) {
+			  }
+			if(!attackedFromLeft) {
               sprite.isLeft = true;
               sprite.state = ROLLING;
               sprite.moveLeft(elapsedTime * SPEED, tilemap);
-			  if(DEBUG){
-				console.log("Barrel state: ROLLING left");
-			}
             }
-            else if(sprite.attackedFromLeft) {
+            else if(attackedFromLeft) {
               sprite.isLeft = false;
               sprite.state = ROLLING;
               sprite.moveRight(elapsedTime * SPEED, tilemap);
-			  
-			  if(DEBUG){
-				console.log("Barrel state: ROLLING right");
-			}
             }
-		  }
-			else if(sprite.playerInRange){
-				this.lastAttack = this.attackFrequency;
+			else if(playerInRange){
 				sprite.state = ATTACKING;
-				
-				if(DEBUG){
-				console.log("Barrel state: ATTACKING");
 			}
-			}
-			break;
-          
-		
+          }
+		break;
 		
 		case ATTACKING:
-			sprite.attack(elapsedTime, entities);
 			if(!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
             sprite.velocityY = 0;
-          } else if(sprite.attacked){
-			if(!sprite.attackedFromLeft) {
+          } else if(attacked){
+			if(!attackedFromLeft) {
               sprite.isLeft = true;
               sprite.state = ROLLING;
               sprite.moveLeft(elapsedTime * SPEED, tilemap);
             }
-            else if(sprite.attackedFromLeft) {
+            else if(attackedFromLeft) {
               sprite.isLeft = false;
               sprite.state = ROLLING;
               sprite.moveRight(elapsedTime * SPEED, tilemap);
             }
-		  }
-			else if(!sprite.playerInRange){
-				sprite.state = IDLE;
-				
-				if(DEBUG){
-				console.log("Barrel state: IDLE");
+			else if(playerInRange){
+				sprite.state = ATTACKING;
 			}
-			}
-          
+          }
 		break;
 		
         case ROLLING:
@@ -322,10 +263,6 @@ module.exports = (function(){
             }
             else {
               sprite.state = IDLE;
-			  
-			  if(DEBUG){
-				console.log("Barrel state: IDLE");
-			}
             }
           }
           break;
@@ -336,10 +273,6 @@ module.exports = (function(){
           if(sprite.onGround(tilemap)) {
             sprite.state = IDLE;
             sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-			
-			if(DEBUG){
-				console.log("Barrel state: IDLE");
-			}
           }
           break;
 		  
@@ -351,65 +284,16 @@ module.exports = (function(){
           // NOT IMPLEMENTED YET
       }
 	  
-	// Update projectile
-	if(this.projectile.enabled){
-
-			this.projectile.x += elapsedTime * this.projectile.xSpeed;
-			this.projectile.distTraveled +=	elapsedTime * this.projectile.xSpeed;	
-			var entities = entityManager.queryRadius(this.projectile.x, this.projectile.y, this.projectile.size);
-			this.playerHit = false;
-			for(var i=0; i<entities.length;i++){
-				if(entities[i] instanceof Player){
-					this.playerHit = true;
-					break;
-				}
-			}
-			if(this.playerHit){
-				this.projectile.enabled = false;
-				if(DEBUG){
-					console.log("Player hit!");
-				}
-			}
-			
-			if(this.projectile.distTraveled >= PROJECTILE_DIST || this.projectile.distTraveled <= -PROJECTILE_DIST){
-				this.projectile.distTraveled = 0;
-				this.projectile.enabled = false;
-			}
-			
-			if(this.projectile.isLeft){
-		var box = this.projectileBoundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid) 
-      this.projectile.enabled = false;
-
-			
-		
-	} else {
-		var box = this.projectileBoundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.projectile.enabled = false;
-	}  
-       
-	}
-    // Update animation
-    if(this.isLeft){
-		this.animations.left[this.state].update(elapsedTime);
-		
-    } else {
-		this.animations.right[this.state].update(elapsedTime);
+      // Swap input buffers
+      swapBuffers();
     }
-	
-	// Update projectile animation
-	if(this.projectile.isLeft){
-		this.animations.left[PROJECTILE].update(elapsedTime);
-	} else {
-		this.animations.right[PROJECTILE].update(elapsedTime);
-	}
+       
+    // Update animation
+    if(this.isLeft)
+      this.animations.left[this.state].update(elapsedTime);
+    else
+      this.animations.right[this.state].update(elapsedTime);
+    
   }
   
   /* Barrel Render Function
@@ -425,13 +309,6 @@ module.exports = (function(){
     else
       this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
     
-	if(this.projectile.enabled){
-		if(this.projectile.isLeft){
-			this.animations.left[PROJECTILE].render(ctx, this.projectile.x, this.projectile.y);
-		} else {
-			this.animations.right[PROJECTILE].render(ctx, this.projectile.x, this.projectile.y);
-		}
-	}
     if(debug) renderDebug(this, ctx);
   }
   
@@ -468,7 +345,7 @@ module.exports = (function(){
   /* barrel BoundingBox Function
    * returns: A bounding box representing the barrel 
    */
-  Barrel.prototype.boundingBox = function() {
+  barrel.prototype.boundingBox = function() {
     return {
       left: this.currentX,
       top: this.currentY,
@@ -477,56 +354,12 @@ module.exports = (function(){
     }
   }
   
-   Barrel.prototype.projectileBoundingBox = function() {
-    return {
-      left: this.projectile.x,
-      top: this.projectile.y,
-      right: this.projectile.x + SIZE,
-      bottom: this.projectile.y + SIZE
-    }
-  }
-  
-    Barrel.prototype.boundingCircle = function() {
-     return {
-		 cx: this.currentX,
-		 cy: this.currentY,
-		 radius: SIZE/2
-	 }
-   }
-   
-   Barrel.prototype.attack = function(elapsedTime, entities){
-		this.lastAttack += elapsedTime;
-		if(!this.projectile.enabled && this.lastAttack >= this.attackFrequency){
-			
-			for(var i=0; i<entities.length;i++){
-				if(entities[i] instanceof Player){
-					var playerX = entities[i].currentX;
-					break;
-				}
-			}
-			if(playerX > this.currentX){
-				this.projectile.isLeft = false;
-				this.projectile.xSpeed = PROJECTILE_SPEED;
-			} else {
-				this.projectile.xSpeed = -PROJECTILE_SPEED;
-				this.projectile.isLeft = true;
-			}
-			
-			this.lastAttack = 0;
-			this.projectile.x = this.currentX;
-			this.projectile.y = this.currentY;
-			
-			this.projectile.enabled = true;
-		}
-	   
-   }
-  
-  return Barrel;
+  return barrel;
 
 }());
 
 
-},{"./animation.js":1,"./entity.js":5,"./player.js":11}],3:[function(require,module,exports){
+},{"./animation.js":1,"./entity.js":5}],3:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -702,13 +535,11 @@ module.exports = (function (){
       // Only check existing entities
       if(entities[i]) {
         var circ = entities[i].boundingCircle();
-        if( Math.pow(circ.radius + r, 2) >=
-            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.cy, 2)
-        ){
-		entitiesInRadius.push(entities[i]);
+        if( Math.pow(circ.radius, 2) + Math.pow(r, 2) >=
+            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.y, 2)
+        ) entitiesInRadius.push(entities[i]);
       }
     }
-	}
     return entitiesInRadius;
   }
   
@@ -816,8 +647,8 @@ module.exports = (function(){
     * the circle should contain your entity or at 
     * least the part that can be collided with.
     */
-   Entity.prototype.boundingCircle = function() {
-     // Return a bounding circle for your entity
+   Entity.prototype.boundingBox = function() {
+     // Return a bounding box for your entity
    }
    
    return Entity;
@@ -1578,14 +1409,6 @@ module.exports = (function(){
       bottom: this.currentY + SIZE
     }
   }
-  
-  Player.prototype.boundingCircle = function() {
-     return {
-		 cx: this.currentX,
-		 cy: this.currentY,
-		 radius: SIZE/2
-	 }
-   }
   
   return Player;
 

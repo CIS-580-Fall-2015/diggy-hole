@@ -263,6 +263,14 @@ module.exports = (function(){
     }
   }
   
+  Player.prototype.boundingCircle = function() {
+     return {
+		 cx: this.currentX,
+		 cy: this.currentY,
+		 radius: SIZE/2
+	 }
+   }
+  
   return Player;
 
 }());
