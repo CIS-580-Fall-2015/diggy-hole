@@ -1,4 +1,271 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/* Entity: Kakao(aka DiamondGroundhog) module
+ * Implements the entity pattern and provides
+ * the entity Kakao info.
+ * Author:
+ * - Karen(Fei) Fang
+ * Image source: http://www.archjrc.com/clipart
+ */
+module.exports = (function(){
+  var Entity = require('./entity.js'),
+      Diamond = require('./diamond.js'),
+      Animation = require('./animation.js');
+
+  /* The following are Kakao States */
+  const WALKING = 0;
+  const FALLING  = 1;
+  const HURT = 2;
+
+  // The Sprite Size
+  const SIZE = 64;
+
+  // Movement constants
+  const SPEED = 150/7;   //SLOWER THAN PLAYER
+  const GRAVITY = -250;
+
+  //The Kakao spritesheet
+  var kakaoImage = new Image();
+  kakaoImage.src = 'img/Kakao-animation.png';
+
+
+  //The Kakao constructor
+  function Kakao(locationX, locationY, layerIndex) {
+    this.type = "Kakao";
+    //default state
+    this.state = WALKING;
+    this.layerIndex = layerIndex;
+    this.currentX = locationX;
+    this.currentY = locationY;
+
+    this.currentTileIndex = 0;
+    this.constSpeed = 15;
+    this.gravity = .5;
+    this.angle = 0;
+    this.xSpeed = 10;
+    this.ySpeed = 15;
+    this.isLeft = false;
+    this.hurtFrame =0;
+    this.hasDiamond = false;
+    this.moveDiamond = false;
+
+    //The animations
+    this.animations = {
+      left: [],
+      right: [],
+    }
+
+    //The right-facing animations
+    this.animations.right[WALKING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0, 4);
+    this.animations.right[FALLING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0);
+    this.animations.right[HURT] = new Animation(kakaoImage, SIZE, SIZE, 0, SIZE*2, 4, 1/4);
+
+    //The left-facing animations
+    this.animations.left[WALKING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0, 4);
+    this.animations.left[FALLING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0);
+    this.animations.left[HURT] = new Animation(kakaoImage, SIZE, SIZE, 0, SIZE*2, 4, 1/4);
+
+    console.log("Kakao: create diamond entity");
+    this.diamond = new Diamond(this.currentX, this.currentY, 0);
+  }
+
+  // Kakao inherits from Entity
+  Kakao.prototype = new Entity();
+
+  // Determines if the Kakao is on the ground
+  Kakao.prototype.onGround = function(tilemap) {
+    var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (SIZE/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+  }
+
+  // Moves the Kakao to the left, colliding with solid tiles
+  Kakao.prototype.moveLeft = function(distance, tilemap) {
+    this.currentX -= distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.left/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.isLeft = false;  // turn when collide
+  }
+
+  // Moves the Kakao to the right, colliding with solid tiles
+  Kakao.prototype.moveRight = function(distance, tilemap) {
+    this.currentX += distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.right/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.isLeft = true;  // turn when collide
+  }
+
+  /* Kakao update function
+   * arguments:
+   * - elapsedTime, the time that has passed
+   *   between this and the last frame.
+   * - tilemap, the tilemap that corresponds to
+   *   the current game world.
+   */
+  Kakao.prototype.update = function(elapsedTime, tilemap, entityManager) {
+    if(!this.hasDiamond){
+      console.log("Kakao: add diamond to entityManager");
+      entityManager.add(this.diamond);
+      this.hasDiamond = true;
+    }
+    var sprite = this;
+    // Process Kakao state
+    switch(sprite.state) {
+      case WALKING:
+      // If there is no ground underneath, fall
+      if(!sprite.onGround(tilemap)) {
+        sprite.state = FALLING;
+        sprite.velocityY = 0;
+      } else {
+        if(sprite.isLeft){  //is not passable, turn
+          sprite.moveLeft(elapsedTime * SPEED, tilemap);
+        }else{
+          sprite.moveRight(elapsedTime * SPEED, tilemap);
+        }
+      }
+      break;
+      case FALLING:
+      sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+      sprite.currentY += sprite.velocityY * elapsedTime;
+      if(sprite.onGround(tilemap)) {
+        sprite.state = WALKING;
+        sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+      }
+      break;
+      case HURT:
+        //1/elapsedTime is the number of frames per min
+        //Each frame of HURT state is 1/4 min, thus the total HURT animation takes 1 min
+        //Therefore, hurtFrame is 1/(1/elapsedTime) = (1/elapsedTime)
+        if(sprite.hurtFrame <= (1/elapsedTime)){
+          sprite.hurtFrame++;
+        }else {
+          /*
+           *PLAN A: Relocate after HURT
+          */
+          //sprite.hurtFrame = 0;  //for relocation
+          //sprite.currentX += 3*SIZE;  //for relocation
+          //console.log("Kakao: Relocating to "+"( "+sprite.currentX+" , "+sprite.currentY+" )...");
+          /*
+           *PLAN B: Remove after HURT
+          */
+          entityManager.remove(this);
+          console.log("Kakao: Entity Kakao removed.");
+          /*
+          sprite.currentX=0;
+          sprite.currentY=0;
+          console.log("Kakao: sprite.diamond: "+sprite.diamond.state);
+          if(!sprite.diamond){
+            entityManager.remove(this);
+            console.log("Kakao: Entity Diamond removed.");
+            console.log("Kakao: Entity Kakao removed.");
+          }
+          */
+        }
+      break;
+    }
+    //console.log("Kakao: State: "+this.state+" Direction: "+this.isLeft);
+
+    // Update animation
+    if(this.isLeft)
+      this.animations.left[this.state].update(elapsedTime);
+    else
+      this.animations.right[this.state].update(elapsedTime);
+
+  }
+
+  /* Kakao Render Function
+   * arguments:
+   * - ctx, the rendering context
+   * - debug, a flag that indicates turning on
+   * visual debugging
+   */
+  Kakao.prototype.render = function(ctx, debug) {
+    // Draw the Kakao (and the correct animation)
+    if(this.isLeft)
+      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
+    else
+      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
+
+    if(debug) renderDebug(this, ctx);
+  }
+
+  // Draw debugging visual elements
+  function renderDebug(Kakao, ctx) {
+    var bounds = Kakao.boundingBox();
+    ctx.save();
+
+    // Draw Kakao bounding box
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Outline tile underfoot
+    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(tileX, tileY);
+    ctx.lineTo(tileX + 64, tileY);
+    ctx.lineTo(tileX + 64, tileY + 64);
+    ctx.lineTo(tileX, tileY + 64);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  /* Kakao BoundingBox Function
+   * returns: A bounding box representing the Kakao
+   */
+  Kakao.prototype.boundingBox = function() {
+    return {
+      left: this.currentX,
+      top: this.currentY,
+      right: this.currentX + SIZE,
+      bottom: this.currentY + SIZE
+    }
+  }
+
+  Kakao.prototype.boundingCircle =function(){
+    return{
+      cx: this.currentX + SIZE/2,
+      cy: this.currentY + SIZE/2,
+      radius: SIZE/2
+    }
+  }
+
+  Kakao.prototype.collide = function(otherEntity){
+    //console.log("Kakao: otherEntity.type: " + otherEntity.type);
+    if(otherEntity.type!="Diamond"){
+      this.state = HURT;
+      this.diamond.state = 1; //DROPPED
+      if(!this.moveDiamond){
+        //console.log("Diamond: collide: "+this.currentX+" , "+this.currentY);
+        this.diamond.currentX += SIZE;
+        this.diamond.currentY -= SIZE;
+        this.moveDiamond = true;
+      }
+    }
+  }
+
+  return Kakao;
+
+}());
+
+},{"./animation.js":2,"./diamond.js":4,"./entity.js":6}],2:[function(require,module,exports){
 module.exports = (function() { 
   
   function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame) {
@@ -56,7 +323,7 @@ module.exports = (function() {
   
 }());
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -128,7 +395,132 @@ module.exports = (function (){
   }
   
 })();
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
+/* Entity: Diamond(added by Diamond) module
+ * Implements the entity pattern and provides
+ * the entity Diamond info.
+ * Author:
+ * - Karen(Fei) Fang
+ * Image source: https://openclipart.org
+ */
+module.exports = (function(){
+  var Entity = require('./entity.js'),
+      Animation = require('./animation.js');
+
+  // The Sprite Size
+  const SIZE = 64;
+
+  /* The following are Diamond States */
+  const HOLD = 0;
+  const DROPPED = 1;
+  const PICKED = 2;
+
+  //The Diamond spritesheet
+  var diamondImage = new Image();
+  diamondImage .src = 'img/diamond-animation.png';
+
+  var pickFrame = 0;
+
+
+  //The Diamond constructor
+  function Diamond(locationX, locationY, layerIndex) {
+    this.type = "Diamond";
+
+    this.layerIndex = layerIndex;
+    this.currentX = locationX;
+    this.currentY = locationY;
+
+    //default state
+    this.state = HOLD;
+
+    this.currentTileIndex = 0;
+
+    //The animations
+    this.animations = [];
+    this.animations[DROPPED] = new Animation(diamondImage, SIZE, SIZE, 0, 0);
+    this.animations[PICKED] = new Animation(diamondImage, SIZE, SIZE, 0, 0, 4, 1/4);
+  }
+
+  // Diamond inherits from Entity
+  Diamond.prototype = new Entity();
+
+  /* Diamond update function
+   * arguments:
+   * - elapsedTime, the time that has passed
+   *   between this and the last frame.
+   * - tilemap, the tilemap that corresponds to
+   *   the current game world.
+   */
+  Diamond.prototype.update = function(elapsedTime, tilemap, entityManager) {
+    switch (this.state) {
+      case HOLD:
+        return;
+      case DROPPED:
+        break;
+      case PICKED:
+        if(this.pickFrame <= 3*(1/elapsedTime)){
+          this.pickFrame++;
+        }else {
+          entityManager.remove(this);
+          console.log("Diamond: Player picked up the diamond! Entity Diamond removed.");
+          return;
+        }
+        break;
+    }
+    this.animations[this.state].update(elapsedTime);
+
+  }
+
+  /* Diamond Render Function
+   * arguments:
+   * - ctx, the rendering context
+   * - debug, a flag that indicates turning on
+   * visual debugging
+   */
+  Diamond.prototype.render = function(ctx, debug) {
+    // Draw the Diamond (and the correct animation)
+    //console.log("Diamond: this.state: "+this.state);
+    if(this.state != HOLD){
+      //console.log("Diamond: this.currentX: "+this.currentX+" this.currentY: "+this.currentY);
+      this.animations[this.state].render(ctx, this.currentX, this.currentY);
+    }
+  }
+
+  /* Diamond BoundingBox Function
+   * returns: A bounding box representing the Diamond
+   */
+  Diamond.prototype.boundingBox = function() {
+    return {
+      left: this.currentX + 1/4*SIZE,
+      top: this.currentY,
+      right: this.currentX + 3/4*SIZE,
+      bottom: this.currentY + SIZE
+    }
+  }
+
+  Diamond.prototype.collide = function(otherEntity){
+    if(otherEntity.type && otherEntity.type === "Kakao"&& this.state===HOLD){
+      //console.log("Kakao: Update diamond position.");
+      this.currentX = otherEntity.currentX;
+      this.currentY = otherEntity.currentY;
+      return;
+    }
+    if(otherEntity.type && otherEntity.type!= "Kakao"){
+      this.state = DROPPED;
+      //console.log("Diamond: collide: "+this.currentX+" , "+this.currentY);
+      this.currentX += 2*SIZE;
+      this.currentY -= 2*SIZE;
+    }
+    if(!otherEntity.type){  //collides with player
+      this.state = PICKED;
+    }
+  }
+
+  return Diamond;
+
+}());
+
+},{"./animation.js":2,"./entity.js":6}],5:[function(require,module,exports){
 /* The entity manager for the DiggyHole game
  * Currently it uses brute-force approaches
  * to its role - this needs to be refactored
@@ -273,7 +665,7 @@ module.exports = (function (){
   }
   
 }());
-},{}],4:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -351,52 +743,54 @@ module.exports = (function(){
    return Entity;
   
 }());
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /* Game GameState module
  * Provides the main game logic for the Diggy Hole game.
  * Authors:
  * - Nathan Bean
  */
 module.exports = (function (){
-  
+
   // The width & height of the screen
   const SCREEN_WIDTH = 1280,
         SCREEN_HEIGHT = 720;
 
   // Module variables
   var Player = require('./player.js'),
+      Kakao = require('./Kakao.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
       player,
+      kakao,
       screenCtx,
       backBuffer,
       backBufferCtx,
       stateManager;
-  
+
   /* Loads the GameState, triggered by the StateManager
    * This function sets up the screen canvas, the tilemap,
    * and loads the entity.
    * arguments:
    * - sm, the state manager that loaded this game
-   */  
+   */
   var load = function(sm) {
     stateManager = sm;
-    
+
     // Set up the screen canvas
     var screen = document.createElement("canvas");
     screen.width = SCREEN_WIDTH;
     screen.height = SCREEN_HEIGHT;
     screenCtx = screen.getContext("2d");
     document.getElementById("game-screen-container").appendChild(screen);
-  
+
     // Set up the back buffer
     backBuffer = document.createElement("canvas");
     backBuffer.width = SCREEN_WIDTH;
     backBuffer.height = SCREEN_HEIGHT;
     backBufferCtx = backBuffer.getContext("2d");
-  
-    // Generate the tilemap 
+
+    // Generate the tilemap
     tilemap.generate(1000, 1000, {
       viewport: {
         width: 1028,
@@ -407,50 +801,55 @@ module.exports = (function (){
         tilemap.render(screenCtx);
       }
     });
-    
+
     // Create the player and add them to
     // the entity manager
     player = new Player(180, 240, 0, inputManager);
     entityManager.add(player);
+
+    // Karenfang: Create a Kakao and add it to
+    // the entity manager
+    kakao = new Kakao(310,240,0);  //two tiles to the right of the player
+    entityManager.add(kakao);
   }
-   
+
   /* Updates the state of the game world
-   * arguments: 
+   * arguments:
    * - elapsedTime, the amount of time passed between
-   * this and the prior frame.   
+   * this and the prior frame.
    */
   var update = function(elapsedTime) {
     //player.update(elapsedTime, tilemap);
     entityManager.update(elapsedTime, tilemap);
     inputManager.swapBuffers();
   }
-  
+
   /* Renders the current state of the game world
    */
   var render = function() {
     // Clear the back buffer
     backBufferCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    
+
     // TODO: Calculate rubberbanding
     var bounds = player.boundingBox();
     var offsetX = SCREEN_WIDTH / 2,
         offsetY = SCREEN_HEIGHT / 2;
-    
+
     // Apply camera transforms
     backBufferCtx.save();backBufferCtx.translate(offsetX - bounds.left, offsetY - bounds.top);
     tilemap.setCameraPosition(bounds.left, bounds.top);
-    
+
     // Redraw the map & entities
     tilemap.render(backBufferCtx);
     entityManager.render(backBufferCtx, true);
     //player.render(backBufferCtx, true);
-    
+
     backBufferCtx.restore();
-    
+
     // Flip the back buffer
-    screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);    
+    screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
   }
-  
+
   /* Event handler for key down events
    * arguments:
    * - event, the key down event to process
@@ -459,10 +858,10 @@ module.exports = (function (){
     if(event.keyCode == 27) { // ESC
       var mainMenu = require('./main-menu.js');
       stateManager.pushState(mainMenu);
-    } 
+    }
     inputManager.keyDown(event);
   }
-  
+
   /* Event handler for key up events
    * arguments:
    * - event, the key up event to process
@@ -470,10 +869,10 @@ module.exports = (function (){
   function keyUp(event) {
     inputManager.keyUp(event);
   }
-  
+
   /* Exits the game */
   var exit = function() {}
-  
+
   return {
     load: load,
     exit: exit,
@@ -482,9 +881,10 @@ module.exports = (function (){
     keyDown: keyDown,
     keyUp: keyUp
   }
-  
+
 })();
-},{"./entity-manager.js":3,"./input-manager.js":6,"./main-menu.js":7,"./player.js":10,"./tilemap.js":11}],6:[function(require,module,exports){
+
+},{"./Kakao.js":1,"./entity-manager.js":5,"./input-manager.js":8,"./main-menu.js":9,"./player.js":12,"./tilemap.js":13}],8:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -543,7 +943,7 @@ module.exports = (function() {
   }
   
 })();
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -668,7 +1068,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./credits-screen":2}],8:[function(require,module,exports){
+},{"./credits-screen":3}],10:[function(require,module,exports){
 
 
 // Wait for the window to load completely
@@ -712,7 +1112,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":5,"./main-menu":7}],9:[function(require,module,exports){
+},{"./game":7,"./main-menu":9}],11:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -838,7 +1238,7 @@ module.exports = (function(){
   }
 
 }());
-},{}],10:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -1107,7 +1507,7 @@ module.exports = (function(){
   return Player;
 
 }());
-},{"./animation.js":1,"./entity.js":4}],11:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":6}],13:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -1600,4 +2000,4 @@ module.exports = (function (){
   
   
 })();
-},{"./noise.js":9}]},{},[8]);
+},{"./noise.js":11}]},{},[10]);
