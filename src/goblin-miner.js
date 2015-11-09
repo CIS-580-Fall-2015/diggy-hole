@@ -274,6 +274,12 @@ module.exports = (function(){
     ctx.restore();
   }
   
+  GoblinMiner.prototype.collide = function(otherEntity) {
+  	if(otherEntity.type == "player"){
+  		return [ATTACKING, 0];
+  	}
+  }
+  
   /* Goblin Miner BoundingBox Function
    * returns: A bounding box representing the Goblin Miner 
    */
