@@ -101,19 +101,16 @@ module.exports = (function(){
   }
 
   Diamond.prototype.collide = function(otherEntity){
-    if(otherEntity.type && otherEntity.type === "Kakao"&& this.state===HOLD){
+    if(otherEntity.type === "Kakao"&& this.state===HOLD){
       //console.log("Kakao: Update diamond position.");
       this.currentX = otherEntity.currentX;
       this.currentY = otherEntity.currentY;
       return;
     }
-    if(otherEntity.type && otherEntity.type!= "Kakao"){
+    if(otherEntity.type!="player" && otherEntity.type!= "Kakao"){  //collides with other players
       this.state = DROPPED;
-      //console.log("Diamond: collide: "+this.currentX+" , "+this.currentY);
-      this.currentX += 2*SIZE;
-      this.currentY -= 2*SIZE;
     }
-    if(!otherEntity.type){  //collides with player
+    if(otherEntity.type === "player"){  //collides with player
       this.state = PICKED;
     }
   }
