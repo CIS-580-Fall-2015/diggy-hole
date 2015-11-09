@@ -19,11 +19,11 @@ module.exports = (function() {
 
   //Right
   var golemRight = new Image();
-  golemRight.src = 'img/GolemAnimatedRight.png';
+  golemRight.src = 'img/golem_right.png';
 
   //Left
   var golemLeft = new Image();
-  golemLeft.src = "img/GolemAnimatedLeft.png";
+  golemLeft.src = "img/golem_left.png";
 
   //The Player constructor
   function Golem(locationX, locationY, layerIndex) {
@@ -38,6 +38,7 @@ module.exports = (function() {
     this.isLeft = false;
     this.entity_type = "Golem";
     this.arm = new Entity();
+    this.stateTime = 0;
 
     //Arm proprerties
     this.arm.currentY = this.currentY + 16;
@@ -56,13 +57,13 @@ module.exports = (function() {
         left: this.currentX,
         top: this.currentY,
         right: this.currentX + ARMX,
-        bottom: this.currentY + ARMY,
+        bottom: this.currentY + ARMY
       };
     };
 
     this.arm.render = function(context, debug) {
       //TODO this
-    }
+    };
 
     //Update handled by Golem
 
@@ -113,27 +114,42 @@ module.exports = (function() {
       // Kill if not on ground
       entityManager.remove(this);
     }
+    var pd = entityManager.playerDistance(this);
+    // Don't proccess the rest of the state if the player is too far away
+    if (pd > 20) {
+      return;
+    }
     // Process player state
     switch (sprite.state) {
       case STANDING:
-        
+        this.isLeft = entityManager.playerDirection(this);
+        if (pd < 320) {
+          this.state = CHARGING;
+          this.stateTime = 1;
+        }
         break;
       case DORMANT:
-        //TODO this
+        if (pd < 640) {
+          this.state = RISING;
+          this.stateTime = 0.1875;
+        }
         break;
       case CHARGING:
-        //TODO this
-        break;
-      case RISING:
-        //TODO this
+        if (this.stateTime < 0) {
+          this.state = ATTACK;
+          this.stateTime = 0.25;
+        }
         break;
       case ATTACK:
-        //TODO this
+      case RISING:
+        if (this.stateTime < 0) {
+          this.state = STANDING;
+        }
         break;
 
     }
 
-
+    this.stateTime -= elapsedTime;
 
     // Update animation
     if (this.isLeft)
