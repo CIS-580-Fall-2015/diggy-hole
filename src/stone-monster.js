@@ -22,7 +22,7 @@ module.exports = (function(){
     const SPRITE_HEIGHT = 80;
 
     const CLOSE_TO_PLAYER = SIZE*4;
-    const WAIT_TIME = 10;
+    const WAIT_TIME = 3;
 
     function StoneMonster(locationX, locationY, layerIndex) {
         this.type = "StoneMonster";
@@ -111,11 +111,13 @@ module.exports = (function(){
         switch(this.state) {
             case WAITING:
                 this.waitingTime += elapsedTime;
-                if(this.waitingTime < WAIT_TIME && Math.random() > 0.5){
+                if(this.waitingTime < WAIT_TIME){
                     break;
                 }
                 var player = entityManager.getPlayer();
-                if (player && (this.currentX < player.currentX - CLOSE_TO_PLAYER || this.currentX > player.currentX + CLOSE_TO_PLAYER)) {
+                if (player && (this.currentX < player.currentX - CLOSE_TO_PLAYER
+                    || this.currentX > player.currentX + CLOSE_TO_PLAYER
+                    || this.currentY < player.currentY )) {
                     this.waitingTime = 0;
                     this.state = MOVING;
                 }
