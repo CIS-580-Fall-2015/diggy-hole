@@ -16,7 +16,7 @@ module.exports = (function(){
   const DEAD = 5;
   const DONE = 6;
   
-  const GROUNDLVL = 10;
+  var GROUNDLVL = 10;
 
   // The Sprite Size
   const SIZE = 64;
@@ -167,7 +167,7 @@ module.exports = (function(){
    */
   Dwarf.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
-    
+    GROUNDLVL = tilemap.surface;
     // The "with" keyword allows us to change the
     // current scope, i.e. 'this' becomes our 
     // inputManager

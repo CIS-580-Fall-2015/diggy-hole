@@ -233,8 +233,8 @@ module.exports = (function (){
     ]
     
     // Determines where the surface is (and end of the sky)
-    //var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));  
-    var surface = 10;
+    var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));  
+    this.surface = surface;
     // Determines where the crust layer of the earth ends
     var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
 	
@@ -348,9 +348,7 @@ module.exports = (function (){
             map[index] = 15;
           }
         }
-		if(j == 10){//flat ground for debug
-          map[index] = 4;
-        }
+		
       }
     }
     

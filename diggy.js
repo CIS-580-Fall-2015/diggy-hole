@@ -385,7 +385,7 @@ module.exports = (function(){
   const DEAD = 5;
   const DONE = 6;
   
-  const GROUNDLVL = 10;
+  var GROUNDLVL = 10;
 
   // The Sprite Size
   const SIZE = 64;
@@ -536,7 +536,7 @@ module.exports = (function(){
    */
   Dwarf.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
-    
+    GROUNDLVL = tilemap.surface;
     // The "with" keyword allows us to change the
     // current scope, i.e. 'this' becomes our 
     // inputManager
@@ -1002,7 +1002,7 @@ module.exports = (function (){
     backBufferCtx = backBuffer.getContext("2d");
   
     // Generate the tilemap 
-    tilemap.generate(100, 100, {
+    tilemap.generate(1000, 1000, {
       viewport: {
         width: 1028,
         height: 720
@@ -1960,8 +1960,8 @@ module.exports = (function (){
     ]
     
     // Determines where the surface is (and end of the sky)
-    //var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));  
-    var surface = 10;
+    var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));  
+    this.surface = surface;
     // Determines where the crust layer of the earth ends
     var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
 	
@@ -2075,9 +2075,7 @@ module.exports = (function (){
             map[index] = 15;
           }
         }
-		if(j == 10){//flat ground for debug
-          map[index] = 4;
-        }
+		
       }
     }
     

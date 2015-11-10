@@ -45,7 +45,7 @@ module.exports = (function (){
     backBufferCtx = backBuffer.getContext("2d");
   
     // Generate the tilemap 
-    tilemap.generate(100, 100, {
+    tilemap.generate(1000, 1000, {
       viewport: {
         width: 1028,
         height: 720
