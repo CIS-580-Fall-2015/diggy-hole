@@ -22,6 +22,7 @@ module.exports = (function(){
     const SPRITE_HEIGHT = 80;
 
     const CLOSE_TO_PLAYER = SIZE*4;
+    const WAIT_TIME = 10;
 
     function StoneMonster(locationX, locationY, layerIndex) {
         this.type = "StoneMonster";
@@ -32,6 +33,7 @@ module.exports = (function(){
         this.state = MOVING;
         this.isMovingRight = true;
         this.bounced = false;
+        this.waitingTime = 0;
 
         this.idle_image = new Image();
         this.idle_image.src = 'stone_monster_idle.png';
@@ -108,8 +110,13 @@ module.exports = (function(){
     StoneMonster.prototype.update = function(elapsedTime, tilemap, entityManager) {
         switch(this.state) {
             case WAITING:
+                this.waitingTime += elapsedTime;
+                if(this.waitingTime < WAIT_TIME && Math.random() > 0.5){
+                    break;
+                }
                 var player = entityManager.getPlayer();
                 if (player && (this.currentX < player.currentX - CLOSE_TO_PLAYER || this.currentX > player.currentX + CLOSE_TO_PLAYER)) {
+                    this.waitingTime = 0;
                     this.state = MOVING;
                 }
                 break;
