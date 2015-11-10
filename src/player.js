@@ -36,6 +36,7 @@ module.exports = (function(){
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
     this.data = {type: 'player'};
+	this.type = 'player';
 	this.inputManager = inputManager
     this.state = WALKING; 
     this.dug = false; 
@@ -263,6 +264,14 @@ module.exports = (function(){
       bottom: this.currentY + SIZE
     }
   }
+  
+  Player.prototype.boundingCircle = function() {
+     return {
+		 cx: this.currentX + SIZE/2,
+		 cy: this.currentY + SIZE/2,
+		 radius: SIZE/2
+	 }
+   }
   
   return Player;
 

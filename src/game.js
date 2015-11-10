@@ -57,13 +57,14 @@ module.exports = (function (){
     });
     
 	
-	goblinMiner = new GoblinMiner(180-64-64, 240, 0);
-	entityManager.add(goblinMiner);
 	
     // Create the player and add them to
     // the entity manager
     player = new Player(180, 240, 0, inputManager);
     entityManager.add(player);
+	
+	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
+	entityManager.add(goblinMiner);
   }
    
   /* Updates the state of the game world
