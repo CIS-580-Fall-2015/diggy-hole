@@ -1,6 +1,6 @@
 module.exports = (function() { 
   
-  function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame) {
+  function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame, playItOnce) {
     this.frameIndex = 0,
     this.time = 0,
     this.secondsPerFrame = secondsPerFrame || (1/16),
@@ -12,6 +12,8 @@ module.exports = (function() {
     
     this.drawLocationX = top || 0;
     this.drawLocationY = left || 0;
+
+    this.playItOnce = playItOnce;
   }
   
   Animation.prototype.setStats = function(frameCount, locationX, locationY){
@@ -30,7 +32,7 @@ module.exports = (function() {
       // If the current frame index is in range
       if (this.frameIndex < this.numberOfFrames - 1) {	
         this.frameIndex += 1;
-      } else {
+      } else if(!this.playItOnce) {
         this.frameIndex = 0;
       }
     }
