@@ -50,7 +50,7 @@ module.exports = (function()
 	function Knight(xlocation, ylocation, layer)
 	{
 		// Type Info
-		this.type = "Knight";
+		this.type = "knight";
 		// Layer info
 		this.layer = layer; 
 		// State variable
