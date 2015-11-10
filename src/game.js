@@ -16,6 +16,8 @@ module.exports = (function (){
       entityManager = require('./entity-manager.js'),
       Barrel = require('./barrel.js'),
 	  DynamiteDwarf = require('./dynamiteDwarf.js'),
+	  Kakao = require('./Kakao.js'),
+	  kakao,
       player,
       screenCtx,
       backBuffer,
@@ -70,6 +72,11 @@ module.exports = (function (){
 	
 	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
 	entityManager.add(dynamiteDwarf);
+	
+	// Karenfang: Create a Kakao and add it to
+    // the entity manager
+    kakao = new Kakao(310,240,0);  //two tiles to the right of the player
+    entityManager.add(kakao);
   }
    
   /* Updates the state of the game world
