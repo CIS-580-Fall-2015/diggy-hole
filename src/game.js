@@ -58,7 +58,7 @@ module.exports = (function (){
     
     // Create the player and add them to
     // the entity manager
-    player = new Player(180, 240, 0, inputManager);
+    player = new Player(64*6, 240, 0, inputManager);
     stoneMonster = new StoneMonster(0, 0, 0);
 
     entityManager.add(stoneMonster);

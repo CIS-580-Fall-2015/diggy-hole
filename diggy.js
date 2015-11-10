@@ -423,7 +423,7 @@ module.exports = (function (){
     
     // Create the player and add them to
     // the entity manager
-    player = new Player(180, 240, 0, inputManager);
+    player = new Player(64*6, 240, 0, inputManager);
     stoneMonster = new StoneMonster(0, 0, 0);
 
     entityManager.add(stoneMonster);
@@ -1147,6 +1147,7 @@ module.exports = (function(){
     const SPRITE_WIDTH = 82;
     const SPRITE_HEIGHT = 80;
 
+    const CLOSE_TO_PLAYER = SIZE*4;
 
     function StoneMonster(locationX, locationY, layerIndex) {
         this.type = "StoneMonster";
@@ -1155,7 +1156,6 @@ module.exports = (function(){
         this.currentY = locationY;
         this.speedY = 0;
         this.state = MOVING;
-        this.waiting = false;
         this.isMovingRight = true;
         this.bounced = false;
 
@@ -1218,14 +1218,14 @@ module.exports = (function(){
         else if(!this.bounced){
             var player = entityManager.getPlayer();
             if (player) {
-                if (this.currentX < player.currentX) {
+                if (this.currentX < player.currentX - CLOSE_TO_PLAYER) {
                     this.isMovingRight = true;
                 }
-                else if (this.currentX > player.currentX) {
+                else if (this.currentX > player.currentX + CLOSE_TO_PLAYER) {
                     this.isMovingRight = false;
                 }
-                else {
-
+                else if (this.currentY > player.currentY){
+                    this.state = WAITING;
                 }
             }
         }
@@ -1234,8 +1234,10 @@ module.exports = (function(){
     StoneMonster.prototype.update = function(elapsedTime, tilemap, entityManager) {
         switch(this.state) {
             case WAITING:
-                this.bounced = false;
-                this.state = MOVING;
+                var player = entityManager.getPlayer();
+                if (player && (this.currentX < player.currentX - CLOSE_TO_PLAYER || this.currentX > player.currentX + CLOSE_TO_PLAYER)) {
+                    this.state = MOVING;
+                }
                 break;
             case MOVING:
                 if(!this.onGround(tilemap)) {
@@ -1243,15 +1245,14 @@ module.exports = (function(){
                     this.speedY = 0;
                     break;
                 }
-                else{
-                    this.move(elapsedTime, tilemap, entityManager);
-                }
+                this.move(elapsedTime, tilemap, entityManager);
                 break;
             case FALLING:
+                this.bounced = false;
                 this.speedY += Math.pow(GRAVITY * elapsedTime, 2);
                 this.currentY += this.speedY * elapsedTime;
                 if(this.onGround(tilemap)) {
-                    this.state =  WAITING;
+                    this.state =  MOVING;
                     this.currentY = 64 * Math.floor(this.currentY / 64);
                 }
                 break;
@@ -1291,7 +1292,6 @@ module.exports = (function(){
     StoneMonster.prototype.renderDebug = function(ctx) {
         var bounds = this.boundingBox();
         ctx.save();
-
         ctx.strokeStyle = "red";
         ctx.beginPath();
         ctx.moveTo(bounds.left, bounds.top);
