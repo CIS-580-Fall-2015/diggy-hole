@@ -15,6 +15,7 @@ module.exports = (function (){
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
       Barrel = require('./barrel.js'),
+	  dynamiteDwarf = require('./dynamiteDwarf.js'),
       player,
       screenCtx,
       backBuffer,
@@ -66,6 +67,8 @@ module.exports = (function (){
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
     entityManager.add(barrel);
 	}
+	
+	dynamiteDwarf = new DynamiteDwarf(180, 240, 0, inputManager)
   }
    
   /* Updates the state of the game world
