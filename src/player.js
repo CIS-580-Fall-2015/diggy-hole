@@ -35,7 +35,7 @@ module.exports = (function(){
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
-    this.inputManager = inputManager
+    this.inputManager = inputManager;
     this.state = WALKING; 
     this.dug = false; 
     this.downPressed = false;
@@ -56,8 +56,8 @@ module.exports = (function(){
     //The animations
     this.animations = {
       left: [],
-      right: [],
-    }
+      right: []
+    };
     
     //The right-facing animations
     this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, SIZE*2, SIZE);
@@ -110,6 +110,15 @@ module.exports = (function(){
     if (tile && tile.data.solid)
       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
   }
+
+  /*Player.prototype.playerState = function()
+  {
+    return {
+      state: this.state,
+      isLeft: this.isLeft
+    }
+  };*/
+
   
   /* Player update function
    * arguments:

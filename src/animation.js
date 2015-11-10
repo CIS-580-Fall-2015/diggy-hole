@@ -1,8 +1,8 @@
-module.exports = (function() { 
-  
-  function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame) {
-    this.frameIndex = 0,
-    this.time = 0,
+  module.exports = (function() {
+
+    function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame) {
+      this.frameIndex = 0,
+      this.time = 0,
     this.secondsPerFrame = secondsPerFrame || (1/16),
     this.numberOfFrames = numberOfFrames || 1;
   

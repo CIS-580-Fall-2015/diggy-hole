@@ -11,10 +11,12 @@ module.exports = (function (){
 
   // Module variables
   var Player = require('./player.js'),
+      Octopus = require('./octopus.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
       player,
+      octopus,
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -58,7 +60,10 @@ module.exports = (function (){
     // the entity manager
     player = new Player(180, 240, 0, inputManager);
     entityManager.add(player);
-  }
+
+    octopus = new Octopus(120, 240, 0);
+    entityManager.add(octopus);
+  };
    
   /* Updates the state of the game world
    * arguments: 
@@ -69,7 +74,9 @@ module.exports = (function (){
     //player.update(elapsedTime, tilemap);
     entityManager.update(elapsedTime, tilemap);
     inputManager.swapBuffers();
-  }
+
+    octopus.getPlayerPosition(player.boundingBox());
+  };
   
   /* Renders the current state of the game world
    */
@@ -95,7 +102,7 @@ module.exports = (function (){
     
     // Flip the back buffer
     screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);    
-  }
+  };
   
   /* Event handler for key down events
    * arguments:

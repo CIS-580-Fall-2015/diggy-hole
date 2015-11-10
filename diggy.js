@@ -1,9 +1,9 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-module.exports = (function() { 
-  
-  function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame) {
-    this.frameIndex = 0,
-    this.time = 0,
+  module.exports = (function() {
+
+    function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame) {
+      this.frameIndex = 0,
+      this.time = 0,
     this.secondsPerFrame = secondsPerFrame || (1/16),
     this.numberOfFrames = numberOfFrames || 1;
   
@@ -365,10 +365,12 @@ module.exports = (function (){
 
   // Module variables
   var Player = require('./player.js'),
+      Octopus = require('./octopus.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
       player,
+      octopus,
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -412,7 +414,10 @@ module.exports = (function (){
     // the entity manager
     player = new Player(180, 240, 0, inputManager);
     entityManager.add(player);
-  }
+
+    octopus = new Octopus(120, 240, 0);
+    entityManager.add(octopus);
+  };
    
   /* Updates the state of the game world
    * arguments: 
@@ -423,7 +428,9 @@ module.exports = (function (){
     //player.update(elapsedTime, tilemap);
     entityManager.update(elapsedTime, tilemap);
     inputManager.swapBuffers();
-  }
+
+    octopus.getPlayerPosition(player.boundingBox());
+  };
   
   /* Renders the current state of the game world
    */
@@ -449,7 +456,7 @@ module.exports = (function (){
     
     // Flip the back buffer
     screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);    
-  }
+  };
   
   /* Event handler for key down events
    * arguments:
@@ -484,7 +491,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./entity-manager.js":3,"./input-manager.js":6,"./main-menu.js":7,"./player.js":10,"./tilemap.js":11}],6:[function(require,module,exports){
+},{"./entity-manager.js":3,"./input-manager.js":6,"./main-menu.js":7,"./octopus.js":10,"./player.js":12,"./tilemap.js":13}],6:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -839,6 +846,267 @@ module.exports = (function(){
 
 }());
 },{}],10:[function(require,module,exports){
+/**
+ * Created by Jessica on 11/8/15.
+ */
+
+module.exports = function () {
+
+    var Entity = require('./entity.js'),
+        OctopusAnimation = require('./octopus_animation.js');
+
+
+    //const STANDING = 0;
+    const WALKING = 1;
+    const JUMPING = 2;
+    const ATTACKING = 3;
+    const FALLING = 4;
+
+    const SIZE = 64;
+
+    const SPEED = 150;
+    const GRAVITY = -250;
+    const JUMP_VELOCITY = -600;
+
+    const IMG_WIDTH = 240;
+    const IMG_HEIGH = 309;
+
+    var oct = new Image();
+    oct.src = 'octopus.png';
+
+    function Octopus(locationX, locationY, layerIndex) {
+        this.state = WALKING;
+        this.layerIndex = layerIndex;
+        this.currentX = locationX;
+        this.currentY = locationY;
+        this.gravity = 0.5;
+        this.xSpeed = 10;
+        this.ySpeed = 15;
+        this.animations = [];
+        this.isLeft = false;
+        this.type = "magicOctopus";
+
+        //this.animations[STANDING] = new OctopusAnimation(oct, IMG_WIDTH, IMG_HEIGH, SIZE, 0, 0);
+        this.animations[WALKING] = new OctopusAnimation(oct, IMG_WIDTH, IMG_HEIGH, SIZE, 0, 0, 4);
+        this.animations[JUMPING] = new OctopusAnimation(oct, IMG_WIDTH, IMG_HEIGH, SIZE, 0, IMG_HEIGH, 4);
+        this.animations[FALLING] = new OctopusAnimation(oct, IMG_WIDTH, IMG_HEIGH, SIZE, 0, 0);
+        this.animations[ATTACKING] = new OctopusAnimation(oct, IMG_WIDTH, IMG_HEIGH, SIZE, 0, IMG_HEIGH * 2, 4);
+
+    }
+
+    Octopus.prototype = new Entity();
+
+    Octopus.prototype.onGround = function (tilemap) {
+        var box = this.boundingBox(),
+            tileX = Math.floor((box.left + (SIZE / 2)) / 64),
+            tileY = Math.floor(box.bottom / 64);
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+        return (tile && tile.data.solid) ? true : false;
+    };
+
+    Octopus.prototype.moveLeft = function (distance, tilemap) {
+        this.currentX -= distance;
+        var box = this.boundingBox(),
+            tileX = Math.floor(box.left / 64),
+            tileY = Math.floor(box.bottom / 64) - 1,
+            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+        if (tile && tile.data.solid)
+            this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
+    };
+
+    Octopus.prototype.moveRight = function (distance, tilemap) {
+        this.currentX += distance;
+        var box = this.boundingBox(),
+            tileX = Math.floor(box.right / 64),
+            tileY = Math.floor(box.bottom / 64) - 1,
+            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+        if (tile && tile.data.solid)
+            this.currentX = (Math.ceil(this.currentX / 64) - 1) * 64;
+    };
+
+    Octopus.prototype.getPlayerPosition = function(playerPosition) {
+
+        console.log(playerPosition.top + " " + this.currentY);
+
+        if (playerPosition.top <= this.currentY - 64) {
+            this.state = JUMPING;
+            this.velocityY = JUMP_VELOCITY;
+        } else if (playerPosition.left > this.currentX + 64) {
+            this.state = WALKING;
+            this.isLeft = false;
+        } else if (playerPosition.left < this.currentX - 64) {
+            this.state = WALKING;
+            this.isLeft = true;
+        }
+
+    };
+
+    Octopus.prototype.update = function(elapsedTime, tilemap) {
+
+        switch(this.state) {
+            //case STANDING:
+            case WALKING:
+                // If there is no ground underneath, fall
+                if (!this.onGround(tilemap)) {
+                    this.state = FALLING;
+                    this.velocityY = 0;
+                }
+                if (this.isLeft == true) {
+                    console.log("leftleftleftlelft");
+                    this.moveLeft(elapsedTime * SPEED, tilemap);
+                } else {
+                    this.moveRight(elapsedTime * SPEED, tilemap);
+                }
+
+                break;
+            case JUMPING:
+                this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+                this.currentY += this.velocityY * elapsedTime;
+                if (this.velocityY > 0) {
+                    this.state = FALLING;
+                }
+                break;
+            case FALLING:
+                this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+                this.currentY += this.velocityY * elapsedTime;
+                if (this.onGround(tilemap)) {
+                    this.state = WALKING;
+                    this.currentY = 64 * Math.floor(this.currentY / 64);
+                }
+                break;
+        }
+        this.animations[this.state].update(elapsedTime);
+
+     };
+
+    function renderDebug(player, ctx) {
+        var bounds = player.boundingBox();
+        ctx.save();
+
+        // Draw player bounding box
+        ctx.strokeStyle = "black";
+        ctx.beginPath();
+        ctx.moveTo(bounds.left, bounds.top);
+        ctx.lineTo(bounds.right, bounds.top);
+        ctx.lineTo(bounds.right, bounds.bottom);
+        ctx.lineTo(bounds.left, bounds.bottom);
+        ctx.closePath();
+        ctx.stroke(); // Outline tile underfoot
+        var tileX = 64 * Math.floor((bounds.left + (SIZE / 2 )) / 64),
+            tileY = 64 * (Math.floor(bounds.bottom / 64));
+        ctx.strokeStyle = "black";
+        ctx.beginPath();
+        ctx.moveTo(tileX, tileY);
+        ctx.lineTo(tileX + 64, tileY);
+        ctx.lineTo(tileX + 64, tileY + 64);
+        ctx.lineTo(tileX, tileY + 64);
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+
+    Octopus.prototype.render = function (context, debug) {
+        this.animations[this.state].render(context, this.currentX, this.currentY);
+
+        if (debug) renderDebug(this, context);
+    };
+
+    Octopus.prototype.collide = function (otherEntity) {
+        if (otherEntity.type != "player") {
+            if (this.onGround(tilemap)) {
+                this.state = ATTACKING;
+            }
+        }
+    };
+
+    Octopus.prototype.boundingBox = function () {
+        return {
+            left: this.currentX,
+            top: this.currentY,
+            right: this.currentX + SIZE,
+            bottom: this.currentY + SIZE
+        }
+    };
+
+    Octopus.prototype.boundingCircle = function () {
+        return {
+            cx: this.currentX + SIZE / 2,
+            cy: this.currentY + SIZE / 2,
+            radius: SIZE / 2
+        }
+    };
+
+    return Octopus;
+
+}();
+
+
+},{"./entity.js":4,"./octopus_animation.js":11}],11:[function(require,module,exports){
+/**
+ * Created by Jessica on 11/8/15.
+ */
+module.exports = (function() {
+
+    function OctopusAnimation(image, srcWidth, srcHeight, size, top, left, numberOfFrames, secondsPerFrame) {
+        this.frameIndex = 0;
+        this.time = 0;
+        this.secondsPerFrame = secondsPerFrame || (1/16);
+        this.numberOfFrames = numberOfFrames || 1;
+
+        this.srcWidth = srcWidth;
+        this.srcHeight = srcHeight;
+        this.size = size;
+        this.image = image;
+
+        this.drawLocationX = top || 0;
+        this.drawLocationY = left || 0;
+    }
+
+    OctopusAnimation.prototype.setStats = function(frameCount, locationX, locationY){
+        this.numberOfFrames = frameCount;
+        this.drawLocationY = locationY;
+        this.drawLocationX = locationX;
+    };
+
+    OctopusAnimation.prototype.update = function (elapsedTime, tilemap) {
+        this.time += elapsedTime;
+
+        // Update animation
+        if (this.time > this.secondsPerFrame) {
+            if(this.time > this.secondsPerFrame) this.time -= this.secondsPerFrame;
+
+            // If the current frame index is in range
+            if (this.frameIndex < this.numberOfFrames - 1) {
+                this.frameIndex += 1;
+            } else {
+                this.frameIndex = 0;
+            }
+        }
+    };
+
+    OctopusAnimation.prototype.render = function(ctx, x, y) {
+
+        // Draw the current frame
+        ctx.drawImage(
+            this.image,
+            this.drawLocationX + this.frameIndex * this.srcWidth,
+            this.drawLocationY,
+            this.srcWidth,
+            this.srcHeight,
+            x,
+            y,
+            this.size,
+            this.size);
+    };
+
+
+
+    return OctopusAnimation;
+
+}());
+},{}],12:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -876,7 +1144,7 @@ module.exports = (function(){
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
-    this.inputManager = inputManager
+    this.inputManager = inputManager;
     this.state = WALKING; 
     this.dug = false; 
     this.downPressed = false;
@@ -897,8 +1165,8 @@ module.exports = (function(){
     //The animations
     this.animations = {
       left: [],
-      right: [],
-    }
+      right: []
+    };
     
     //The right-facing animations
     this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, SIZE*2, SIZE);
@@ -951,6 +1219,15 @@ module.exports = (function(){
     if (tile && tile.data.solid)
       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
   }
+
+  /*Player.prototype.playerState = function()
+  {
+    return {
+      state: this.state,
+      isLeft: this.isLeft
+    }
+  };*/
+
   
   /* Player update function
    * arguments:
@@ -1107,7 +1384,7 @@ module.exports = (function(){
   return Player;
 
 }());
-},{"./animation.js":1,"./entity.js":4}],11:[function(require,module,exports){
+},{"./animation.js":1,"./entity.js":4}],13:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
