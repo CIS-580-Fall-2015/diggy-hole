@@ -52,6 +52,9 @@ module.exports = (function(){
     this.xSpeed = 10; 
     this.ySpeed = 15;
     this.isLeft = false;
+    // Added to maintain some sort of consistency with all other Entities
+    this.type = "player";
+    this.data = {type: 'player'};
     
     //The animations
     this.animations = {

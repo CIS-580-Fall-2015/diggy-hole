@@ -6,7 +6,7 @@
  * - Nathan Bean 
  */
 module.exports = (function (){
-  const MAX_ENTITIES = 500;
+  const MAX_ENTITIES = 100;
   
   var entities = [],
       entityCount = 0;
