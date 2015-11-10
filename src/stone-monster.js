@@ -164,7 +164,7 @@ module.exports = (function(){
                 this.animation_right.render(ctx, this.currentX - 19, this.currentY - 16);
             }
             else {
-                this.animation_left.render(ctx, this.currentX, this.currentY - 16);
+                this.animation_left.render(ctx, this.currentX, this.currentY);
             }
         }
         if(debug){
