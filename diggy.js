@@ -1168,9 +1168,12 @@ module.exports = (function(){
         moving_image_left.src = 'stone-monster-moving-left.png';
         var moving_image_right = new Image();
         moving_image_right.src = 'stone-monster-moving-right.png';
+        var destroyed_image = new Image();
+        destroyed_image.src = 'stone_monster_destroyed.png';
 
         this.animation_right = new Animation(moving_image_right, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
-        this.animation_left = new Animation(moving_image_left, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 8, 8, 0.1);
+        this.animation_left = new Animation(moving_image_left, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
+        this.animation_destroyed = new Animation(destroyed_image, SIZE, SIZE, 0, 0, 8, 0.05);
     }
 
     StoneMonster.prototype = new Entity();
@@ -1211,7 +1214,7 @@ module.exports = (function(){
         }
         if(collided){
             if(this.bounced){
-                this.state = STUCK;
+                this.state = SMASHED;
                 return;
             }
             this.isMovingRight = !this.isMovingRight;
@@ -1234,10 +1237,10 @@ module.exports = (function(){
     };
 
     StoneMonster.prototype.update = function(elapsedTime, tilemap, entityManager) {
-        switch(this.state) {
+        switch (this.state) {
             case WAITING:
                 this.waitingTime += elapsedTime;
-                if(this.waitingTime < WAIT_TIME){
+                if (this.waitingTime < WAIT_TIME) {
                     break;
                 }
                 var player = entityManager.getPlayer();
@@ -1249,7 +1252,7 @@ module.exports = (function(){
                 }
                 break;
             case MOVING:
-                if(!this.onGround(tilemap)) {
+                if (!this.onGround(tilemap)) {
                     this.state = FALLING;
                     this.speedY = 0;
                     break;
@@ -1260,18 +1263,19 @@ module.exports = (function(){
                 this.bounced = false;
                 this.speedY += Math.pow(GRAVITY * elapsedTime, 2);
                 this.currentY += this.speedY * elapsedTime;
-                if(this.onGround(tilemap)) {
-                    this.state =  MOVING;
+                if (this.onGround(tilemap)) {
+                    this.state = MOVING;
                     this.currentY = 64 * Math.floor(this.currentY / 64);
                 }
                 break;
             case SMASHED:
+                this.animation_destroyed.update(elapsedTime);
                 break;
             case STUCK:
                 break;
         }
-        if(this.state == MOVING) {
-            if(this.isMovingRight){
+        if (this.state == MOVING) {
+            if (this.isMovingRight) {
                 this.animation_right.update(elapsedTime);
             }
             else {
@@ -1279,7 +1283,6 @@ module.exports = (function(){
             }
         }
     };
-
 
     StoneMonster.prototype.render = function(ctx, debug) {
         if(this.state == WAITING || this.state == FALLING || this.state == STUCK) {
@@ -1292,6 +1295,9 @@ module.exports = (function(){
             else {
                 this.animation_left.render(ctx, this.currentX, this.currentY - 16);
             }
+        }
+        else if(this.state == SMASHED){
+            this.animation_destroyed.render(ctx, this.currentX, this.currentY);
         }
         if(debug){
             this.renderDebug(ctx);
