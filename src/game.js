@@ -14,7 +14,9 @@ module.exports = (function (){
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
+	  GoblinMiner = require('./goblin-miner.js'),
       player,
+	  goblinMiner,
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -54,6 +56,10 @@ module.exports = (function (){
       }
     });
     
+	
+	goblinMiner = new GoblinMiner(180-64-64, 240, 0);
+	entityManager.add(goblinMiner);
+	
     // Create the player and add them to
     // the entity manager
     player = new Player(180, 240, 0, inputManager);

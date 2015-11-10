@@ -26,12 +26,15 @@ module.exports = (function(){
      * - tileMap, the tilemap
      */
     function vision(tileX, tileY, layerIndex, tileMap){
-	var entities = [];
-	for(int i = -5; i <= 5; i++){
+	var entities = new Array();
+	for(i = -5; i <= 5; i++){
 		if(i == 0){}
 		else{
-			var temp = [tileMap.tileAt(tileX+i, tileY, layerIndex), i];
-			entities.push(temp);
+			var temp = {
+				entity: tileMap.tileAt(tileX+i, tileY, layerIndex), 
+				direction: i};
+			if(tileX+i >= 0 && tileX+i <= tileMap.height)
+				entities.push(temp);
 		}
 	}
 	return entities;
@@ -44,13 +47,16 @@ module.exports = (function(){
      * - tileMap, the tilemap
      */
     function aggressionRadius(tileX, tileY, layerIndex, tileMap){
-	var entities = [];
-	for(int j = -7; j <= 7; j++){
-		for(int i = -7; i <= 7; i++){
+	var entities = new Array();
+	for(j = -7; j <= 7; j++){
+		for(i = -7; i <= 7; i++){
 			if(i == 0 && j == 0){}
 			else{
-				var temp = [tileMap.tileAt(tileX+i, tileY, layerIndex), i];
-				entities.push(tileMap.tileAt(tileX+i, tileY+j, layerIndex));
+				var temp = {
+					entity: tileMap.tileAt(tileX+i, tileY+j, layerIndex),
+				direction: i};
+				if(tileX+i >= 0 && tileX+i <= tileMap.width && tileY+j >= 0 && tileY+j <= tileMap.height)
+					entities.push(tileMap.tileAt(tileX+i, tileY+j, layerIndex));
 			}
 		}
 	}
@@ -134,29 +140,29 @@ module.exports = (function(){
      * - direction, the possible direction the goblin miner is moving
      */
     function command(tileX, tileY, layerIndex, tileMap, currentState, direction){  
-	if(!(checkBelow(tileX, tileY, layerIndex, tileMap))){
-		return [FALLING, 0];
+	if((checkBelow(tileX, tileY, layerIndex, tileMap))){
+		return {command: FALLING, direction: 0};
 	}
 		  
 	var visionEnts = vision(tileX, tileY, layerIndex, tileMap);
 	var aggroEnts = aggressionRadius(tileX, tileY, layerIndex, tileMap);
 		  
 	// Check for player in vision
-	for(int i = 0; i < visionEnts.length; i++){
-		if(visionEnts[i].[0].type == 'player'){
-			var temp
-			if(visionEnts[i].[1] == 1 || visionEnts[i].[1] == -1)
-				temp = [ATTACKING, visionEnts[i].[1]];
+	for(i = 0; i < visionEnts.length; i++){
+		if(visionEnts[i].entity.data.type == 'player'){
+			var temp;
+			if(visionEnts[i].direction == 1 || visionEnts[i].direction == -1)
+				temp = {command: ATTACKING, direction: visionEnts[i].direction};
 			else
-				temp = [CHARGING, visionEnts[i].[1]];
+				temp = {command: CHARGING, direction: visionEnts[i].direction};
 			return temp;
 		}
 	}
 		  
 	// Check for player in aggro range
 	for(i = 0; i < aggroEnts.length; i++){
-		if(aggroEnts[i].[0].type == 'player'){
-			var temp = [AGGRESSIVE_STANDING, aggroEnts[i].[1]];
+		if(aggroEnts[i].entity.data.type == 'player'){
+			var temp = {command: AGGRESSIVE_STANDING, direction: aggroEnts[i].direction};
 			return temp;
 		}
 	}
@@ -166,94 +172,101 @@ module.exports = (function(){
 		  
 	switch(currentState) {
 		case AGGRESSIVE_STANDING:
-		    return [PASSIVE_STANDING, 0];
+		    return {command: PASSIVE_STANDING, direction: 0};
+			break;
 		case PASSIVE_STANDING:
 		    if(randomNum > .8)
-			    return [PASSIVE_STANDING, 0];
+			    return {command: PASSIVE_STANDING, direction: 0};
 		    else{
 			    if(randomNum > .6){
 				    if(checkAbovePath(tileX, tileY, layerIndex, tileMap))
-						return [JUMPING, 0];
+						return {command: JUMPING, direction: 0};
 				}
 			}
 			if(randomNum > .4){
 				if(checkLeft(tileX, tileY, layerIndex, tileMap))
-					return [WALKING, -1];
+					return {command: WALKING, direction: -1};
 				else{
 					if(randomNum > .7)
-						return [DIGGING, -1];
+						return {command: DIGGING, direction: -1};
 					else
-						return [WALKING, 1];
+						return {command: WALKING, direction: 1};
 				}
 			}
 			else{
 				if(checkRight(tileX, tileY, layerIndex, tileMap))
-					return [WALKING, 1];
+					return {command: WALKING, direction: 1};
 				else{
 					if(randomNum < .1)
-						return [DIGGING, 1];
+						return {command: DIGGING, direction: 1};
 					else
-						return [WALKING, -1];
+						return {command: WALKING, direction: -1};
 				}
 			}
+			break;
 		case WALKING:
 		    if(randomNum > .9){
 			    if(checkAbovePath(tileX, tileY, layerIndex, tileMap))
-					return [JUMPING, 0];
+					return {command: JUMPING, direction: 0};
 		    }
 		    if(randomNum < .05)
-			    return [PASSIVE_STANDING, 0];
+			    return {command: PASSIVE_STANDING, direction: 0};
 		    if(direction == 1){
 			    if(checkRight(tileX, tileY, layerIndex, tileMap))
-				    return [WALKING, 1];
+				    return {command: WALKING, direction: 1};
 			    else
-				    return [DIGGING, 1];
+				    return {command: DIGGING, direction: 1};
 		    }
 		    else{
 			    if(checkLeft(tileX, tileY, layerIndex, tileMap))
-				    return [WALKING, -1];
+				    return {command: WALKING, direction: -1};
 			    else
-				    return [DIGGING, -1];
+				    return {command: DIGGING, direction: -1};
 		    }
+			break;
 		case DIGGING:
 		    if(direction == 1 && checkRight(tileX, tileY, layerIndex, tileMap))
-			    return [WALKING, 1];
+			    return {command: WALKING, direction: 1};
 		    else if(direction == -1 && checkLeft(tileX, tileY, layerIndex, tileMap))
-			    return [WALKING, -1];
+			    return {command: WALKING, direction: -1};
 		    else
-			    return [currentState, direction];
+			    return {command: currentState, direction: direction};
+			break;
 		case JUMPING:
-		    /* if(checkAbove(tileX, tileY, layerIndex, tileMap))
-			    return [FALLING, 0]; */
+		     /*if(checkAbove(tileX, tileY, layerIndex, tileMap))
+			    return [FALLING, 0];*/ 
 		    if(randomNum > .5){
 			    if(checkRight(tileX, tileY, layerIndex, tileMap))
-				    return [JUMPING, 1];
+				    return {command: JUMPING, direction: 1};
 			    else
-					return [JUMPING, 0];
+					return {command: JUMPING, direction: 0};
 		    }
 		    else{
 			    if(checkLeft(tileX, tileY, layerIndex, tileMap))
-					return [JUMPING, -1];
+					return {command: JUMPING, direction: -1};
 			    else
-					return [JUMPING, 0];
+					return {command: JUMPING, direction: 0};
 		    }
+			break;
 		case FALLING:
-			/* if(!(checkBelow(tileX, tileY, layerIndex, tileMap)))
+			/*if(!(checkBelow(tileX, tileY, layerIndex, tileMap)))
 				return [PASSIVE_STANDING, 0]; */
 			if(randomNum > .5){
 			    if(checkRight(tileX, tileY, layerIndex, tileMap))
-					return [FALLING, 1];
+					return {command: FALLING, direction: 1};
 			    else
-					return [FALLING, 0];
+					return {command: FALLING, direction: 0};
 			}
 			else{
 			    if(checkLeft(tileX, tileY, layerIndex, tileMap))
-					return [FALLING, -1];
+					return {command: FALLING, direction: -1};
 			    else
-				    return [FALLING, 0];
-			}	  
+				    return {command: FALLING, direction: 0};
+			}	
+			break;
         }
-    }
+		return {command: currentState, direction: direction};
+    } 
   
     // Movement constants
     const SPEED = 150;
@@ -262,11 +275,13 @@ module.exports = (function(){
   
     // Current stance (Passive, Aggressive)
     var Passive = true;
+	
+	var SIZE = 64;
   
     /* ADD CODE HERE */
     // The right facing goblin miner spritesheet(s)
     var goblinMinerRight = new Image();
-    goblinMinerRight.src = '';
+    goblinMinerRight.src = 'Passive_Scratch.png';
   
     // The left facing goblin miner spritesheet(s)
     var goblinMinerLeft = new Image();
@@ -274,7 +289,8 @@ module.exports = (function(){
     /* END ADD CODE HERE*/
 
     function GoblinMiner(locationX, locationY, layerIndex){
-	    this.state = STANDING;
+	    this.data = {type: 'goblinMiner'};
+		this.state = PASSIVE_STANDING;
 	    this.layerIndex = layerIndex;
 	    this.currentX = locationX;
 	    this.currentY = locationY;
@@ -288,9 +304,7 @@ module.exports = (function(){
 	    this.xSpeed = 10;
 	    this.ySpeed = 15;
 	    this.isLeft = false;
-	  
-	    // The state machine
-	    this.stateMachine = StateMachine;
+		this.direction = 0;
 	  
 	    // The animations
 	    this.animations = {
@@ -300,7 +314,7 @@ module.exports = (function(){
 	  
 	    /* ADD CODE HERE */
 	    // The right-facing animations
-	  
+	    this.animations.right[PASSIVE_STANDING] = new Animation(goblinMinerRight, 354/8, 64, 354/8, 0, 0, 1);
 	    // the left-facing animations
 	    /* END ADD CODE HERE */
     }  
@@ -352,114 +366,92 @@ module.exports = (function(){
     // The "with" keyword allows us to change the
     // current scope, i.e. 'this' becomes our 
     // inputManager
-    with (this.stateMachine) {
-    
-	  /* ADD CODE HERE */
-      // Process Goblin Miner state
-      switch(sprite.state) {
+    var whatDo = command(Math.floor(this.currentX/64), Math.floor(this.currentY/64), this.layerIndex, tilemap, this.state, this.direction);
+    //var whatDo = {command: PASSIVE_STANDING, direction: 0};
+	this.state = whatDo.command;
+	this.direction = whatDo.direction;
+	
+	/* ADD CODE HERE */
+    // Process Goblin Miner state
+    switch(whatDo.command) {
         case PASSIVE_STANDING:
 		case AGGRESSIVE_STANDING:
         case WALKING:
-          // If there is no ground underneath, fall
-          if(!sprite.onGround(tilemap)) {
-            sprite.state = FALLING;
-            sprite.velocityY = 0;
-          } else {
-            if(isKeyDown(commands.DIG)) {
-              sprite.state = DIGGING;
-            }
-            else if(isKeyDown(commands.UP)) {
-              sprite.state = JUMPING;
-              sprite.velocityY = JUMP_VELOCITY;
-            }
-            else if(isKeyDown(commands.LEFT)) {
-              sprite.isLeft = true;
-              sprite.state = WALKING;
-              sprite.moveLeft(elapsedTime * SPEED, tilemap);
-            }
-            else if(isKeyDown(commands.RIGHT)) {
-              sprite.isLeft = false;
-              sprite.state = WALKING;
-              sprite.moveRight(elapsedTime * SPEED, tilemap);
-            }
-            else {
-              sprite.state = STANDING;
-            }
-          }
+          if(whatDo.direction > 0){
+			  this.isLeft = false;
+			  this.moveRight(elapsedTime * SPEED, tilemap);
+		  }
+		  else{
+			  this.isLeft = true;
+			  this.moveLeft(elapsedTime * SPEED, tilemap);
+		  }
           break;
 		case CHARGING:
-          // If there is no ground underneath, fall
-          if(!sprite.onGround(tilemap)) {
-            sprite.state = FALLING;
-            sprite.velocityY = 0;
-          } else {
-            if(isKeyDown(commands.DIG)) {
-              sprite.state = DIGGING;
-            }
-            else if(isKeyDown(commands.UP)) {
-              sprite.state = JUMPING;
-              sprite.velocityY = JUMP_VELOCITY;
-            }
-            else if(isKeyDown(commands.LEFT)) {
-              sprite.isLeft = true;
-              sprite.state = WALKING;
-              sprite.moveLeft(elapsedTime * SPEED, tilemap);
-            }
-            else if(isKeyDown(commands.RIGHT)) {
-              sprite.isLeft = false;
-              sprite.state = WALKING;
-              sprite.moveRight(elapsedTime * SPEED, tilemap);
-            }
-            else {
-              sprite.state = STANDING;
-            }
-          }
+          if(whatDo.direction > 0){
+			  this.isLeft = false;
+			  this.moveRight(elapsedTime * SPEED*2, tilemap);
+		  }
+		  else{
+			  this.isLeft = true;
+			  this.moveLeft(elapsedTime * SPEED*2, tilemap);
+		  }
           break;
         case DIGGING:
+		  if(whatDo.direction > 0){
+			  //dig right
+		  }
+		  else{
+			  //dig left
+		  }
 		case ATTACKING:
+		  if(whatDo.direction > 0){
+			  //attack right
+		  }
+		  else{
+			  //attack left
+		  }
         case JUMPING:
-          sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-          sprite.currentY += sprite.velocityY * elapsedTime;
-          if(sprite.velocityY > 0) {
-            sprite.state = FALLING;
+          //sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          //sprite.currentY += sprite.velocityY * elapsedTime;
+          if(this.velocityY > 0) {
+            this.state = FALLING;
           }
-          if(isKeyDown(commands.LEFT)) {
-            sprite.isLeft = true;
-            sprite.moveLeft(elapsedTime * SPEED, tilemap);
-          }
-          if(isKeyDown(commands.RIGHT)) {
-            sprite.isLeft = true;
-            sprite.moveRight(elapsedTime * SPEED, tilemap);
-          }
+          
+          if(whatDo.direction > 0){
+			  this.isLeft = false;
+			  this.moveRight(elapsedTime * SPEED, tilemap);
+		  }
+		  else{
+			  this.isLeft = true;
+			  this.moveLeft(elapsedTime * SPEED, tilemap);
+		  }
           break;
         case FALLING:
-          sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-          sprite.currentY += sprite.velocityY * elapsedTime;
-          if(sprite.onGround(tilemap)) {
-            sprite.state = STANDING;
-            sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-          }
-          else if(isKeyDown(commands.LEFT)) {
-            sprite.isLeft = true;
-            sprite.moveLeft(elapsedTime * SPEED, tilemap);
-          }
-          else if(isKeyDown(commands.RIGHT)) {
-            sprite.isLeft = false;
-            sprite.moveRight(elapsedTime * SPEED, tilemap);
-          }
+          //this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          //this.currentY += sprite.velocityY * elapsedTime;
+          if(this.onGround(tilemap)) {
+            this.state = PASSIVE_STANDING;
+            this.currentY = 64 * Math.floor(sprite.currentY / 64);
+          }  
+          if(whatDo.direction > 0){
+			  this.isLeft = false;
+			  this.moveRight(elapsedTime * SPEED, tilemap);
+		  }
+		  else{
+			  this.isLeft = true;
+			  this.moveLeft(elapsedTime * SPEED, tilemap);
+		  }
           break;
       }
 	  /* END ADD CODE HERE */
-      
-      // Swap input buffers
-      swapBuffers();
-    }
        
     // Update animation
-    if(this.isLeft)
+    /* if(this.isLeft)
       this.animations.left[this.state].update(elapsedTime);
     else
-      this.animations.right[this.state].update(elapsedTime);
+      this.animations.right[this.state].update(elapsedTime); */
+  
+    this.animations.right[PASSIVE_STANDING].update(elapsedTime);
     
   }
   
@@ -471,11 +463,13 @@ module.exports = (function(){
    */
   GoblinMiner.prototype.render = function(ctx, debug) {
     // Draw the Goblin Miner (and the correct animation)
-    if(this.isLeft)
+    /* if(this.isLeft)
       this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
     else
-      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
+      this.animations.right[this.state].render(ctx, this.currentX, this.currentY); */
     
+	this.animations.right[PASSIVE_STANDING].render(ctx, this.currentX, this.currentY);
+	
     if(debug) renderDebug(this, ctx);
   }
   

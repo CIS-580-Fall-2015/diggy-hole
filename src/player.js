@@ -35,7 +35,8 @@ module.exports = (function(){
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
-    this.inputManager = inputManager
+    this.data = {type: 'player'};
+	this.inputManager = inputManager
     this.state = WALKING; 
     this.dug = false; 
     this.downPressed = false;
