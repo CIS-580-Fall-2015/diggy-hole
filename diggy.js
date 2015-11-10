@@ -811,7 +811,7 @@ module.exports = (function (){
  * - Nathan Bean 
  */
 module.exports = (function (){
-  const MAX_ENTITIES = 500;
+  const MAX_ENTITIES = 100;
   
   var entities = [],
       entityCount = 0;
@@ -1035,16 +1035,9 @@ module.exports = (function(){
  */
 module.exports = (function (){
   
-	const DEBUG = false;
   // The width & height of the screen
   const SCREEN_WIDTH = 1280,
-        SCREEN_HEIGHT = 720;
-		
-	//Number of barrels spawned
-	const BARRELS_SPAWNED = 90;
-	const TILES_X = 200;
-	const TILES_Y = 200;
-	
+        SCREEN_HEIGHT = 720;	
 	
   // Module variables
   var Player = require('./player.js'),
@@ -1081,7 +1074,7 @@ module.exports = (function (){
     backBufferCtx = backBuffer.getContext("2d");
   
     // Generate the tilemap 
-    tilemap.generate(TILES_X, TILES_Y, {
+    tilemap.generate(1000, 1000, {
       viewport: {
         width: 1028,
         height: 720
@@ -1096,11 +1089,9 @@ module.exports = (function (){
     // the entity manager
     player = new Player(180, 240, 0, inputManager);
     entityManager.add(player);
-    barrel = new Barrel(180, 240, 0, inputManager);
-    entityManager.add(barrel);
 	
-	for(var i = 0; i < BARRELS_SPAWNED; i++){
-		barrel = new Barrel(Math.random()*64*TILES_X, Math.random()*64*TILES_Y/8, 0, inputManager);
+	for(var i = 0; i < 10; i++){
+		barrel = new Barrel(Math.random()*64*1000, Math.random()*64*1000/8, 0, inputManager);
     entityManager.add(barrel);
 	}
   }
@@ -1584,6 +1575,7 @@ module.exports = (function(){
     this.xSpeed = 10; 
     this.ySpeed = 15;
     this.isLeft = false;
+	this.type = "player";
     
     //The animations
     this.animations = {
