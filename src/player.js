@@ -52,6 +52,7 @@ module.exports = (function(){
     this.xSpeed = 10; 
     this.ySpeed = 15;
     this.isLeft = false;
+	this.type = 'player';
     
     //The animations
     this.animations = {
@@ -60,7 +61,7 @@ module.exports = (function(){
     }
     
     //The right-facing animations
-    this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, SIZE*2, SIZE);
+    this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0);
     this.animations.right[WALKING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
     this.animations.right[JUMPING] = new Animation(dwarfRight, SIZE, SIZE, SIZE*3, 0);
     this.animations.right[DIGGING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE*2, 4);
@@ -68,7 +69,7 @@ module.exports = (function(){
     this.animations.right[SWIMMING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
     
     //The left-facing animations
-    this.animations.left[STANDING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE*2, SIZE);
+    this.animations.left[STANDING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE*3, 0);
     this.animations.left[WALKING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
     this.animations.left[JUMPING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE*3, 0);
     this.animations.left[DIGGING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE*2, 4);
@@ -158,6 +159,11 @@ module.exports = (function(){
           }
           break;
         case DIGGING:
+			var box = this.boundingBox(),
+			tileX = Math.floor((box.left + (SIZE/2))/64),
+			tileY = Math.floor(box.bottom / 64);											
+			tilemap.setTileAt(7, tileX, tileY, 0);			
+			sprite.state = FALLING;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
           sprite.currentY += sprite.velocityY * elapsedTime;
@@ -169,7 +175,7 @@ module.exports = (function(){
             sprite.moveLeft(elapsedTime * SPEED, tilemap);
           }
           if(isKeyDown(commands.RIGHT)) {
-            sprite.isLeft = true;
+            sprite.isLeft = false;
             sprite.moveRight(elapsedTime * SPEED, tilemap);
           }
           break;

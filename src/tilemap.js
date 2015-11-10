@@ -18,7 +18,8 @@ module.exports = (function (){
       viewportHalfWidth = 0,
       viewportHalfHeight = 0,
       viewportTileWidth = 0,
-      viewportTileHeight = 0;
+      viewportTileHeight = 0,
+	  tileset;
    
   /* Clamps the provided value to the provided range
    * Arguments:
@@ -81,7 +82,7 @@ module.exports = (function (){
     // Load the tileset(s)
     mapData.tilesets.forEach( function(tilesetmapData, index) {
       // Load the tileset image
-      var tileset = new Image();
+      tileset = new Image();
       loading++;
       tileset.onload = function() {
         loading--;
@@ -232,8 +233,8 @@ module.exports = (function (){
     ]
     
     // Determines where the surface is (and end of the sky)
-    var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));  
-    
+    //var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));  
+    var surface = 10;
     // Determines where the crust layer of the earth ends
     var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
 	
@@ -346,6 +347,9 @@ module.exports = (function (){
           else{ // Dark Background
             map[index] = 15;
           }
+        }
+		if(j == 10){//flat ground for debug
+          map[index] = 4;
         }
       }
     }
@@ -478,12 +482,35 @@ module.exports = (function (){
     return tiles[layers[layer].data[x + y*mapWidth] - 1];
   }
   
+  /*
+	Changes the type of tile at a given position
+	author: Alexander Duben
+  */
+  var setTileAt = function(newType, x,y, layer){
+	 if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){ 
+      return undefined; 
+	 }else{
+		 var tile = {
+          // Reference to the image, shared amongst all tiles in the tileset
+          image: tileset,
+          // Source x position.  i % colCount == col number (as we remove full rows)
+          sx: x,
+          // Source y position. i / colWidth (integer division) == row number 
+          sy: y,
+          // The tile's data (solid/liquid, etc.)
+          data: newType
+        }
+		layers[layer].data[x + y*mapWidth] = tile;
+	 }
+  }
+  
   // Expose the module's public API
   return {
     load: load,
     generate: generate,
     render: render,
     tileAt: tileAt,
+	setTileAt: setTileAt,
     setViewportSize: setViewportSize,
     setCameraPosition: setCameraPosition
   }

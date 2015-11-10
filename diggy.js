@@ -129,6 +129,604 @@ module.exports = (function (){
   
 })();
 },{}],3:[function(require,module,exports){
+/* Dynamite Dynamite module
+ * Authors:
+ * Alexander Duben
+ */
+module.exports = (function(){
+  var Entity = require('./entity.js');
+  Animation = require('./animation.js');
+  
+  //states
+  const COUNTDOWN = 0;
+  const DETONATE = 1;
+  const DONE = 2;
+  const FALLING = 3;
+
+  // The Sprite Size
+  const SIZE = 64;
+
+  // Movement constants
+  const SPEED = 50;
+  const GRAVITY = -250;
+  const JUMP_VELOCITY = -600;
+  
+  
+  var dynamiteImg = new Image();
+  dynamiteImg.src = './img/dynamiteSprite.png';
+  var explosionImg = new Image();
+  explosionImg.src = './img/explosionSpriteBig.png';
+  var detonationTimer = 0;
+  var explosionTimer = 0;
+
+  //The Dynamite constructor
+  function Dynamite(locationX, locationY, layerIndex, inputManager, sourceEntity) {
+    this.inputManager = inputManager
+    this.state = FALLING; 
+    this.dug = false; 
+    this.downPressed = false;
+    this.layerIndex = layerIndex;
+    this.currentX = locationX; 
+    this.currentY = locationY; 
+    this.nextX = 0; 
+    this.nextY = 0;
+    this.currentTileIndex = 0; 
+    this.nextTileIndex = 0;
+    this.constSpeed = 15; 
+    this.gravity = .5; 
+    this.angle = 0; 
+    this.xSpeed = 10; 
+    this.ySpeed = 15;
+    this.isLeft = false;
+	this.isPlayerColliding = false;
+	this.type = 'dynamite';
+	this.velocityY = -800;
+	this.source = sourceEntity;
+	
+       //The animations
+    this.animations = {
+      dynamite: [],
+    }
+    
+    //The right-facing animations
+    this.animations.dynamite[FALLING] = new Animation(dynamiteImg, SIZE, SIZE, 0, 0, 8);
+    this.animations.dynamite[DETONATE] = new Animation(explosionImg, 300, 300, 0, 0, 4);
+	this.animations.dynamite[COUNTDOWN] = new Animation(dynamiteImg, SIZE, SIZE, 0, 0);
+	this.animations.dynamite[DONE] = new Animation(explosionImg, SIZE, SIZE, 5*SIZE, 0);
+  }
+  // Dynamite inherits from Entity
+  Dynamite.prototype = new Entity();
+  
+  // Determines if the player is on the ground
+  Dynamite.prototype.onGround = function(tilemap) {
+    var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (SIZE/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+  }
+  
+  
+  
+  /* Dynamite update function
+   * arguments:
+   * - elapsedTime, the time that has passed 
+   *   between this and the last frame.
+   * - tilemap, the tilemap that corresponds to
+   *   the current game world.
+   */
+  Dynamite.prototype.update = function(elapsedTime, tilemap, entityManager) {
+    var sprite = this;
+    
+    // The "with" keyword allows us to change the
+    // current scope, i.e. 'this' becomes our 
+    // inputManager
+    with (this.inputManager) {	
+
+		switch(sprite.state) {
+        case FALLING:
+			sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+			sprite.currentY += sprite.velocityY * elapsedTime;
+			if(sprite.onGround(tilemap)) {
+				sprite.velocityY = 0;
+				sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+				sprite.state = COUNTDOWN;
+			}
+			detonationTimer++;
+			
+          break;
+		case COUNTDOWN:
+			detonationTimer++;
+			if(detonationTimer > 260){
+				sprite.state = DETONATE;
+			}
+		break;
+        case DETONATE:
+		  if(explosionTimer < 15){
+			  explosionTimer++;
+			  if(explosionTimer == 8){
+				  sprite.source.state = 6; //remove source body
+			  }
+		  }else{
+				var box = sprite.boundingBox(),
+				tileX = Math.floor((box.left + (SIZE/2))/64),
+				tileY = Math.floor(box.bottom / 64);
+				for(var i = tileX-3; i < tileX+3;i++){
+					for(var j = tileY -3; j < tileY+3;j++){
+						
+						tilemap.setTileAt(7, i, j, 0);
+					}	  
+				}
+				for(var i = tileX-5; i < tileX+5;i++){
+					for(var j = tileY -5; j < tileY+5;j++){
+						if(Math.random() < 0.4){
+							tilemap.setTileAt(7, i, j, 0);
+						}
+						
+					}	  
+				}
+				sprite.state = DONE;
+				
+				
+		  }
+		  
+          break;
+		  
+		  case DONE:
+		  //final state
+			break;
+		}
+		
+      
+      
+      // Swap input buffers
+      swapBuffers();
+    }
+       
+    // Update animation
+    
+      this.animations.dynamite[this.state].update(elapsedTime);
+    
+    
+  }
+  
+  /* Dynamite Render Function
+   * arguments:
+   * - ctx, the rendering context
+   * - debug, a flag that indicates turning on
+   * visual debugging
+   */
+  Dynamite.prototype.render = function(ctx, debug) {
+    // Draw the Dynamite (and the correct animation)
+    if(this.state == COUNTDOWN){
+		this.animations.dynamite[this.state].render(ctx, this.currentX, this.currentY+25); 
+	}
+	else if(this.state == DETONATE){
+		this.animations.dynamite[this.state].render(ctx, this.currentX-100, this.currentY-100);
+	}else{
+		this.animations.dynamite[this.state].render(ctx, this.currentX, this.currentY);
+	}
+    if(this.state != DONE){
+		if(debug) renderDebug(this, ctx);
+	}
+    
+  }
+  
+  // Draw debugging visual elements
+  function renderDebug(Dynamite, ctx) {
+    var bounds = Dynamite.boundingBox();
+    ctx.save();
+    
+    // Draw Dynamite bounding box
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+    
+    // Outline tile underfoot
+    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(tileX, tileY);
+    ctx.lineTo(tileX + 64, tileY);
+    ctx.lineTo(tileX + 64, tileY + 64);
+    ctx.lineTo(tileX, tileY + 64);
+    ctx.closePath();
+    ctx.stroke();
+    
+    ctx.restore();
+  }
+  
+  Dynamite.prototype.collide = function(otherEntity){
+	  
+  }
+  
+  /* Dynamite BoundingBox Function
+   * returns: A bounding box representing the Dynamite 
+   */
+  Dynamite.prototype.boundingBox = function() {
+    return {
+      left: this.currentX,
+      top: this.currentY,
+      right: this.currentX + SIZE,
+      bottom: this.currentY + SIZE
+    }
+  }
+  
+  Dynamite.prototype.boundingCircle = function() {
+     return {cx: this.currentX+SIZE/2, cy: this.currentY+SIZE/2, radius: SIZE/2}
+   }
+  
+  return Dynamite;
+
+}());
+},{"./animation.js":1,"./entity.js":6}],4:[function(require,module,exports){
+/* Dynamite Dwarf module
+ * Authors:
+ * Alexander Duben
+ */
+module.exports = (function(){
+  var Entity = require('./entity.js'),
+      Animation = require('./animation.js'),
+	  Dynamite = require('./dynamite.js');
+  
+  /* The following are Dwarf States (Swimming is not implemented) */
+  const STANDING = 0;
+  const WALKING = 1;
+  const DETONATING = 2;
+  const FALLING = 3;
+  const DYING = 4;
+  const DEAD = 5;
+  const DONE = 6;
+  
+  const GROUNDLVL = 10;
+
+  // The Sprite Size
+  const SIZE = 64;
+
+  // Movement constants
+  const SPEED = 50;
+  const GRAVITY = -250;
+  const JUMP_VELOCITY = -600;
+  
+  //The Right facing dwarf spritesheet
+  var dwarfRight = new Image();
+  dwarfRight.src = 'DwarfAnimatedRight.png';
+
+  //The left facing dwarf spritesheet
+  var dwarfLeft = new Image();
+  dwarfLeft.src = "DwarfAnimatedLeft.png";
+  
+  //walk sprites
+  var walkLeft = new Image();
+  walkLeft.src = "./img/dwarfWalkLeft.png";
+  var walkRight = new Image();
+  walkRight.src = "./img/dwarfWalkRight.png";
+  
+  //idle sprites
+  var idleLeft = new Image();
+  idleLeft.src = "./img/dwarfIdleLeft.png";
+  var idleRight = new Image();
+  idleRight.src = "./img/dwarfIdleRight.png";
+  
+  //fall sprites
+  var fallLeft = new Image();
+  fallLeft.src = "./img/dwarfFallLeft.png";
+  var fallRight = new Image();
+  fallRight.src = "./img/dwarfFallRight.png";
+  
+  //dying sprites
+  var dieLeft = new Image();
+  dieLeft.src = "./img/dwarfDyingLeft.png";
+  var dieRight = new Image();
+  dieRight.src = "./img/dwarfDyingRight.png";
+  
+  //dead sprites
+  var deadLeft = new Image();
+  deadLeft.src = "./img/dwarfDeadLeft.png";
+  var deadRight = new Image();
+  deadRight.src = "./img/dwarfDeadRight.png";
+  
+  //detonate sprite
+  var detonate = new Image();
+  detonate.src = "./img/dwarfDetonate.png";
+  
+  var walkTimer = 0,
+	idleTimer = 0,
+	settingChargesTimer = 0,
+	dyingTimer = 0;
+
+  //The Dwarf constructor
+  function Dwarf(locationX, locationY, layerIndex, inputManager) {
+    this.inputManager = inputManager
+    this.state = WALKING; 
+    this.dug = false; 
+    this.downPressed = false;
+    this.layerIndex = layerIndex;
+    this.currentX = locationX; 
+    this.currentY = locationY; 
+    this.nextX = 0; 
+    this.nextY = 0;
+    this.currentTileIndex = 0; 
+    this.nextTileIndex = 0;
+    this.constSpeed = 15; 
+    this.gravity = .5; 
+    this.angle = 0; 
+    this.xSpeed = 10; 
+    this.ySpeed = 15;
+    this.isLeft = false;
+	this.isPlayerColliding = false;
+	this.type = 'dynamiteDwarf';
+	//this.player = playerEntity;
+    
+    //The animations
+    this.animations = {
+      left: [],
+      right: [],
+    }
+    
+    //The right-facing animations
+    this.animations.right[STANDING] = new Animation(idleRight, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[WALKING] = new Animation(walkRight, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[DYING] = new Animation(dieRight, SIZE, SIZE, SIZE,0,7);
+    this.animations.right[DETONATING] = new Animation(detonate, SIZE, SIZE, 0, 0, 20, 1/8);
+    this.animations.right[FALLING] = new Animation(fallRight, SIZE, SIZE, 0, 0);
+	this.animations.right[DEAD] = new Animation(deadRight, SIZE, SIZE, 0, 0);
+	this.animations.right[DONE] = new Animation(dieRight,SIZE,SIZE,0,0);
+    
+    
+    //The left-facing animations
+    this.animations.left[STANDING] = new Animation(idleLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.left[WALKING] = new Animation(walkLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.left[DYING] = new Animation(dieLeft, SIZE, SIZE, 0,0,7);
+    this.animations.left[DETONATING] = new Animation(detonate, SIZE, SIZE, 0, 0, 20, 1/8);
+    this.animations.left[FALLING] = new Animation(fallLeft, SIZE, SIZE, 0, 0);
+	this.animations.left[DEAD] = new Animation(deadLeft, SIZE, SIZE, 0, 0);
+    this.animations.left[DONE] = new Animation(dieRight,SIZE,SIZE,0,0);
+  }
+  
+  // Dwarf inherits from Entity
+  Dwarf.prototype = new Entity();
+  
+  
+  // Determines if the Dwarf is on the ground
+  Dwarf.prototype.onGround = function(tilemap) {
+    var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (SIZE/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+  }
+  
+  // Moves the Dwarf to the left, colliding with solid tiles
+  Dwarf.prototype.moveLeft = function(distance, tilemap) {
+    this.currentX -= distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.left/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid) 
+      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
+  }
+  
+  // Moves the Dwarf to the right, colliding with solid tiles
+  Dwarf.prototype.moveRight = function(distance, tilemap) {
+    this.currentX += distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.right/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+  }
+  
+  /* Dwarf update function
+   * arguments:
+   * - elapsedTime, the time that has passed 
+   *   between this and the last frame.
+   * - tilemap, the tilemap that corresponds to
+   *   the current game world.
+   */
+  Dwarf.prototype.update = function(elapsedTime, tilemap, entityManager) {
+    var sprite = this;
+    
+    // The "with" keyword allows us to change the
+    // current scope, i.e. 'this' becomes our 
+    // inputManager
+    with (this.inputManager) {
+	
+      // Process Dwarf state
+      switch(sprite.state) {
+        case STANDING:
+			sprite.isPlayerColliding = false;
+			if(isKeyDown(commands.ATTACK)){
+				sprite.state = DYING;
+			}
+			if(!sprite.onGround(tilemap)) {
+				sprite.state = FALLING;
+				sprite.velocityY = 0;
+				idleTimer = 0;
+				break;
+			}
+			if(idleTimer < 120){
+				idleTimer++;
+				if(isKeyDown(commands.PAY)) {
+					sprite.state = DETONATING;
+				}
+			}else{
+				idleTimer = 0;
+				sprite.state = WALKING;
+			}
+
+			break;
+        case WALKING:
+          // If there is no ground underneath, fall
+          if(sprite.isPlayerColliding){
+			  sprite.state = STANDING;
+			  walkTimer = 0;
+		  }else if(!sprite.onGround(tilemap)) {
+            sprite.state = FALLING;
+            sprite.velocityY = 0;
+          }
+		  else {                      
+            if(walkTimer<480) {
+              sprite.state = WALKING;
+			  walkTimer++;
+			  if(sprite.isLeft){
+				 sprite.moveLeft(elapsedTime * SPEED, tilemap); 
+			  }else{
+				 sprite.moveRight(elapsedTime * SPEED, tilemap); 
+			  }             
+            }else{
+				walkTimer = 0;
+				sprite.isLeft = !sprite.isLeft;
+			}
+          }
+          break;
+       
+        case DETONATING:
+			var player = entityManager.getEntity(0);//player entity
+			if(settingChargesTimer < 150){
+				settingChargesTimer++;
+			}else{
+				settingChargesTimer = 0;
+				var box = sprite.boundingBox(),
+				tileX = Math.floor((box.left + (SIZE/2))/64),
+				tileY = Math.floor(box.bottom / 64);								
+				for(var j = tileY; j > GROUNDLVL;j--){
+					tilemap.setTileAt(7, tileX, j-1, 0);
+				}
+				player.currentX = tileX*64;
+				player.currentY = tileY*64;
+				//player.velocityY = -1500;		
+				player.velocityY = -Math.sqrt((tileY-GROUNDLVL)*64*10*(-GRAVITY));//shoot player above surface level
+				if((tileY-GROUNDLVL) <= 0){//if above surface just use just constant force
+					player.velocityY = -1500;
+				}
+				player.state = 2;//jumping
+				sprite.state = WALKING;
+			}
+          break;
+        case FALLING:
+          sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          sprite.currentY += sprite.velocityY * elapsedTime;
+          if(sprite.onGround(tilemap)) {
+            sprite.state = WALKING;
+            sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+          }
+          
+          break;
+        case DYING:
+			if(dyingTimer < 25){
+				dyingTimer++;
+			}else{
+				dyingTimer = 0;
+				var dynamite = new Dynamite(sprite.currentX,sprite.currentY,0, sprite.inputManager,sprite);
+				entityManager.add(dynamite);
+				sprite.state = DEAD;
+			}
+			break;
+		case DEAD:
+			//stays dead until body destroyed
+			break;
+		case DONE:
+			//final state
+			break;
+      }
+      
+      // Swap input buffers
+      swapBuffers();
+    }
+       
+    // Update animation
+    if(this.isLeft)
+      this.animations.left[this.state].update(elapsedTime);
+    else
+      this.animations.right[this.state].update(elapsedTime);
+    
+  }
+  
+  /* Dwarf Render Function
+   * arguments:
+   * - ctx, the rendering context
+   * - debug, a flag that indicates turning on
+   * visual debugging
+   */
+  Dwarf.prototype.render = function(ctx, debug) {
+    // Draw the Dwarf (and the correct animation)
+    if(this.isLeft)
+      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
+    else
+      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
+    
+    if(this.state != DONE){
+		if(debug) renderDebug(this, ctx);
+	}
+  }
+  
+  // Draw debugging visual elements
+  function renderDebug(Dwarf, ctx) {
+    var bounds = Dwarf.boundingBox();
+    ctx.save();
+    
+    // Draw Dwarf bounding box
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+    
+    // Outline tile underfoot
+    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(tileX, tileY);
+    ctx.lineTo(tileX + 64, tileY);
+    ctx.lineTo(tileX + 64, tileY + 64);
+    ctx.lineTo(tileX, tileY + 64);
+    ctx.closePath();
+    ctx.stroke();
+    
+    ctx.restore();
+  }
+  
+  Dwarf.prototype.collide = function(otherEntity){
+	  if(otherEntity.type == 'player'){
+		  this.isPlayerColliding = true;
+	  }
+  }
+  
+  /* Dwarf BoundingBox Function
+   * returns: A bounding box representing the Dwarf 
+   */
+  Dwarf.prototype.boundingBox = function() {
+    return {
+      left: this.currentX,
+      top: this.currentY,
+      right: this.currentX + SIZE,
+      bottom: this.currentY + SIZE
+    }
+  }
+  
+  Dwarf.prototype.boundingCircle = function() {
+     return {cx: this.currentX+SIZE/2, cy: this.currentY+SIZE/2, radius: SIZE/2};
+   }
+  
+  return Dwarf;
+
+}());
+},{"./animation.js":1,"./dynamite.js":3,"./entity.js":6}],5:[function(require,module,exports){
 /* The entity manager for the DiggyHole game
  * Currently it uses brute-force approaches
  * to its role - this needs to be refactored
@@ -233,7 +831,7 @@ module.exports = (function (){
       if(entities[i]) {
         var circ = entities[i].boundingCircle();
         if( Math.pow(circ.radius, 2) + Math.pow(r, 2) >=
-            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.y, 2)
+            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.cy, 2)
         ) entitiesInRadius.push(entities[i]);
       }
     }
@@ -264,16 +862,21 @@ module.exports = (function (){
     }
   }
   
+  function getEntity(index){
+	  return entities[index];
+  }
+  
   return {
     add: add,
     remove: remove,
     queryRadius: queryRadius,
     update: update,
+	getEntity: getEntity,
     render: render
   }
   
 }());
-},{}],4:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -344,14 +947,14 @@ module.exports = (function(){
     * the circle should contain your entity or at 
     * least the part that can be collided with.
     */
-   Entity.prototype.boundingBox = function() {
+   Entity.prototype.boundingCircle = function() {
      // Return a bounding box for your entity
    }
    
    return Entity;
   
 }());
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /* Game GameState module
  * Provides the main game logic for the Diggy Hole game.
  * Authors:
@@ -365,10 +968,12 @@ module.exports = (function (){
 
   // Module variables
   var Player = require('./player.js'),
+	  DynamiteDwarf = require('./dynamiteDwarf.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
       player,
+	  dynamiteDwarf,
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -397,7 +1002,7 @@ module.exports = (function (){
     backBufferCtx = backBuffer.getContext("2d");
   
     // Generate the tilemap 
-    tilemap.generate(1000, 1000, {
+    tilemap.generate(100, 100, {
       viewport: {
         width: 1028,
         height: 720
@@ -412,6 +1017,10 @@ module.exports = (function (){
     // the entity manager
     player = new Player(180, 240, 0, inputManager);
     entityManager.add(player);
+	
+	//Create dynamite dwarf
+	dynamiteDwarf = new DynamiteDwarf(280,240,0, inputManager);
+	entityManager.add(dynamiteDwarf);
   }
    
   /* Updates the state of the game world
@@ -484,15 +1093,17 @@ module.exports = (function (){
   }
   
 })();
-},{"./entity-manager.js":3,"./input-manager.js":6,"./main-menu.js":7,"./player.js":10,"./tilemap.js":11}],6:[function(require,module,exports){
+},{"./dynamiteDwarf.js":4,"./entity-manager.js":5,"./input-manager.js":8,"./main-menu.js":9,"./player.js":12,"./tilemap.js":13}],8:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
     RIGHT: 39,
     LEFT: 37,
-	  UP: 38,
-	  DOWN: 40,
+	UP: 38,
+	DOWN: 40,
     DIG: 32,
+	PAY: 80,
+	ATTACK : 65
   }
   
   var oldKeys = [];
@@ -543,7 +1154,7 @@ module.exports = (function() {
   }
   
 })();
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -668,7 +1279,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./credits-screen":2}],8:[function(require,module,exports){
+},{"./credits-screen":2}],10:[function(require,module,exports){
 
 
 // Wait for the window to load completely
@@ -712,7 +1323,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":5,"./main-menu":7}],9:[function(require,module,exports){
+},{"./game":7,"./main-menu":9}],11:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -838,7 +1449,7 @@ module.exports = (function(){
   }
 
 }());
-},{}],10:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -893,6 +1504,7 @@ module.exports = (function(){
     this.xSpeed = 10; 
     this.ySpeed = 15;
     this.isLeft = false;
+	this.type = 'player';
     
     //The animations
     this.animations = {
@@ -901,7 +1513,7 @@ module.exports = (function(){
     }
     
     //The right-facing animations
-    this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, SIZE*2, SIZE);
+    this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0);
     this.animations.right[WALKING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
     this.animations.right[JUMPING] = new Animation(dwarfRight, SIZE, SIZE, SIZE*3, 0);
     this.animations.right[DIGGING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE*2, 4);
@@ -909,7 +1521,7 @@ module.exports = (function(){
     this.animations.right[SWIMMING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
     
     //The left-facing animations
-    this.animations.left[STANDING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE*2, SIZE);
+    this.animations.left[STANDING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE*3, 0);
     this.animations.left[WALKING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
     this.animations.left[JUMPING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE*3, 0);
     this.animations.left[DIGGING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE*2, 4);
@@ -999,6 +1611,11 @@ module.exports = (function(){
           }
           break;
         case DIGGING:
+			var box = this.boundingBox(),
+			tileX = Math.floor((box.left + (SIZE/2))/64),
+			tileY = Math.floor(box.bottom / 64);											
+			tilemap.setTileAt(7, tileX, tileY, 0);			
+			sprite.state = FALLING;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
           sprite.currentY += sprite.velocityY * elapsedTime;
@@ -1010,7 +1627,7 @@ module.exports = (function(){
             sprite.moveLeft(elapsedTime * SPEED, tilemap);
           }
           if(isKeyDown(commands.RIGHT)) {
-            sprite.isLeft = true;
+            sprite.isLeft = false;
             sprite.moveRight(elapsedTime * SPEED, tilemap);
           }
           break;
@@ -1107,7 +1724,7 @@ module.exports = (function(){
   return Player;
 
 }());
-},{"./animation.js":1,"./entity.js":4}],11:[function(require,module,exports){
+},{"./animation.js":1,"./entity.js":6}],13:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -1128,7 +1745,8 @@ module.exports = (function (){
       viewportHalfWidth = 0,
       viewportHalfHeight = 0,
       viewportTileWidth = 0,
-      viewportTileHeight = 0;
+      viewportTileHeight = 0,
+	  tileset;
    
   /* Clamps the provided value to the provided range
    * Arguments:
@@ -1191,7 +1809,7 @@ module.exports = (function (){
     // Load the tileset(s)
     mapData.tilesets.forEach( function(tilesetmapData, index) {
       // Load the tileset image
-      var tileset = new Image();
+      tileset = new Image();
       loading++;
       tileset.onload = function() {
         loading--;
@@ -1342,8 +1960,8 @@ module.exports = (function (){
     ]
     
     // Determines where the surface is (and end of the sky)
-    var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));  
-    
+    //var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));  
+    var surface = 10;
     // Determines where the crust layer of the earth ends
     var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
 	
@@ -1456,6 +2074,9 @@ module.exports = (function (){
           else{ // Dark Background
             map[index] = 15;
           }
+        }
+		if(j == 10){//flat ground for debug
+          map[index] = 4;
         }
       }
     }
@@ -1588,16 +2209,39 @@ module.exports = (function (){
     return tiles[layers[layer].data[x + y*mapWidth] - 1];
   }
   
+  /*
+	Changes the type of tile at a given position
+	author: Alexander Duben
+  */
+  var setTileAt = function(newType, x,y, layer){
+	 if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){ 
+      return undefined; 
+	 }else{
+		 var tile = {
+          // Reference to the image, shared amongst all tiles in the tileset
+          image: tileset,
+          // Source x position.  i % colCount == col number (as we remove full rows)
+          sx: x,
+          // Source y position. i / colWidth (integer division) == row number 
+          sy: y,
+          // The tile's data (solid/liquid, etc.)
+          data: newType
+        }
+		layers[layer].data[x + y*mapWidth] = tile;
+	 }
+  }
+  
   // Expose the module's public API
   return {
     load: load,
     generate: generate,
     render: render,
     tileAt: tileAt,
+	setTileAt: setTileAt,
     setViewportSize: setViewportSize,
     setCameraPosition: setCameraPosition
   }
   
   
 })();
-},{"./noise.js":9}]},{},[8]);
+},{"./noise.js":11}]},{},[10]);

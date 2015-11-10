@@ -11,10 +11,12 @@ module.exports = (function (){
 
   // Module variables
   var Player = require('./player.js'),
+	  DynamiteDwarf = require('./dynamiteDwarf.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
       player,
+	  dynamiteDwarf,
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -43,7 +45,7 @@ module.exports = (function (){
     backBufferCtx = backBuffer.getContext("2d");
   
     // Generate the tilemap 
-    tilemap.generate(1000, 1000, {
+    tilemap.generate(100, 100, {
       viewport: {
         width: 1028,
         height: 720
@@ -58,6 +60,10 @@ module.exports = (function (){
     // the entity manager
     player = new Player(180, 240, 0, inputManager);
     entityManager.add(player);
+	
+	//Create dynamite dwarf
+	dynamiteDwarf = new DynamiteDwarf(280,240,0, inputManager);
+	entityManager.add(dynamiteDwarf);
   }
    
   /* Updates the state of the game world

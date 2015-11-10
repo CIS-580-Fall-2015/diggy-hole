@@ -68,7 +68,7 @@ module.exports = (function(){
     * the circle should contain your entity or at 
     * least the part that can be collided with.
     */
-   Entity.prototype.boundingBox = function() {
+   Entity.prototype.boundingCircle = function() {
      // Return a bounding box for your entity
    }
    
