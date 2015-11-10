@@ -21,6 +21,8 @@ module.exports = (function(){
     const SPRITE_WIDTH = 82;
     const SPRITE_HEIGHT = 80;
 
+    const CLOSE_TO_PLAYER = 100;
+
 
     function StoneMonster(locationX, locationY, layerIndex) {
         this.type = "StoneMonster";
@@ -92,14 +94,14 @@ module.exports = (function(){
         else if(!this.bounced){
             var player = entityManager.getPlayer();
             if (player) {
-                if (this.currentX < player.currentX) {
+                if (this.currentX < player.currentX - CLOSE_TO_PLAYER) {
                     this.isMovingRight = true;
                 }
-                else if (this.currentX > player.currentX) {
+                else if (this.currentX > player.currentX + CLOSE_TO_PLAYER) {
                     this.isMovingRight = false;
                 }
                 else {
-
+                    this.state = WAITING;
                 }
             }
         }
@@ -109,7 +111,7 @@ module.exports = (function(){
         switch(this.state) {
             case WAITING:
                 this.bounced = false;
-                this.state = MOVING;
+                //this.state = MOVING;
                 break;
             case MOVING:
                 if(!this.onGround(tilemap)) {
@@ -117,9 +119,7 @@ module.exports = (function(){
                     this.speedY = 0;
                     break;
                 }
-                else{
-                    this.move(elapsedTime, tilemap, entityManager);
-                }
+                this.move(elapsedTime, tilemap, entityManager);
                 break;
             case FALLING:
                 this.speedY += Math.pow(GRAVITY * elapsedTime, 2);
