@@ -60,8 +60,10 @@ module.exports = (function (){
     player = new Player(180, 240, 0, inputManager);
     entityManager.add(player);
 	
+	
+	// Spawn 10 barrels close to player
 	for(var i = 0; i < 10; i++){
-		barrel = new Barrel(Math.random()*64*1000, Math.random()*64*1000/8, 0, inputManager);
+		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
     entityManager.add(barrel);
 	}
   }
