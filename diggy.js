@@ -141,6 +141,8 @@ module.exports = (function (){
   
   var entities = [],
       entityCount = 0;
+
+  var Player = require('./player.js');
   
   /* Adds an entity to those managed.
    * Arguments:
@@ -263,17 +265,26 @@ module.exports = (function (){
       if(entities[i]) entities[i].render(ctx, debug);
     }
   }
+
+  function getPlayer(){
+    for(var i = 0; i < entityCount; i++) {
+      if(entities[i] && entities[i] instanceof Player){
+        return entities[i];
+      }
+    }
+  }
   
   return {
     add: add,
     remove: remove,
     queryRadius: queryRadius,
     update: update,
-    render: render
+    render: render,
+    getPlayer: getPlayer
   }
   
 }());
-},{}],4:[function(require,module,exports){
+},{"./player.js":10}],4:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -1128,22 +1139,25 @@ module.exports = (function(){
 
     // StoneMonster States
     const WAITING = 0;
-    const MOVING_RIGHT = 1;
-    const MOVING_LEFT = 2;
-    const FALLING = 3;
-    const SMASHED = 4;
+    const MOVING = 1;
+    const FALLING = 2;
+    const SMASHED = 3;
+    const STUCK = 4;
 
     const SPRITE_WIDTH = 82;
     const SPRITE_HEIGHT = 80;
 
 
     function StoneMonster(locationX, locationY, layerIndex) {
+        this.type = "StoneMonster";
         this.layerIndex = layerIndex;
         this.currentX = locationX;
         this.currentY = locationY;
-        this.speedX = 0;
         this.speedY = 0;
-        this.state = MOVING_RIGHT;
+        this.state = MOVING;
+        this.waiting = false;
+        this.isMovingRight = true;
+        this.bounced = false;
 
         this.idle_image = new Image();
         this.idle_image.src = 'stone_monster_idle.png';
@@ -1153,10 +1167,8 @@ module.exports = (function(){
         var moving_image_right = new Image();
         moving_image_right.src = 'stone-monster-moving-right.png';
 
-        this.animations = [];
-
-        this.animations[MOVING_RIGHT] = new Animation(moving_image_right, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
-        this.animations[MOVING_LEFT] = new Animation(moving_image_left, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 8, 8, 0.1);
+        this.animation_right = new Animation(moving_image_right, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
+        this.animation_left = new Animation(moving_image_left, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 8, 8, 0.1);
     }
 
     StoneMonster.prototype = new Entity();
@@ -1167,32 +1179,73 @@ module.exports = (function(){
             tileX = Math.floor(box.left/64),
             tileY = Math.floor(box.bottom / 64) - 1,
             tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && tile.data.solid)
-            this.currentX = (Math.floor(this.currentX/64) + 1) * 64
+        if (tile && tile.data.solid) {
+            this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
+            return true;
+        }
+        return false;
     };
 
-    // Moves the player to the right, colliding with solid tiles
     StoneMonster.prototype.moveRight = function(distance, tilemap) {
         this.currentX += distance;
         var box = this.boundingBox(),
             tileX = Math.floor(box.right/64),
             tileY = Math.floor(box.bottom / 64) - 1,
             tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && tile.data.solid)
-            this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+        if (tile && tile.data.solid) {
+            this.currentX = (Math.ceil(this.currentX / 64) - 1) * 64;
+            return true;
+        }
+        return false;
     };
 
-    StoneMonster.prototype.update = function(elapsedTime, tilemap) {
+    StoneMonster.prototype.move = function(elapsedTime, tilemap, entityManager){
+        var collided = false;
+        if(this.isMovingRight){
+            collided = this.moveRight(elapsedTime * SPEED, tilemap);
+        }
+        else{
+            collided = this.moveLeft(elapsedTime * SPEED, tilemap);
+        }
+        if(collided){
+            if(this.bounced){
+                this.state = STUCK;
+                return;
+            }
+            this.isMovingRight = !this.isMovingRight;
+            this.bounced = true;
+        }
+        else if(!this.bounced){
+            var player = entityManager.getPlayer();
+            if (player) {
+                if (this.currentX < player.currentX) {
+                    this.isMovingRight = true;
+                }
+                else if (this.currentX > player.currentX) {
+                    this.isMovingRight = false;
+                }
+                else {
+
+                }
+            }
+        }
+    };
+
+    StoneMonster.prototype.update = function(elapsedTime, tilemap, entityManager) {
         switch(this.state) {
             case WAITING:
-                this.state = MOVING_RIGHT;
+                this.bounced = false;
+                this.state = MOVING;
                 break;
-            case MOVING_RIGHT:
+            case MOVING:
                 if(!this.onGround(tilemap)) {
                     this.state = FALLING;
                     this.speedY = 0;
+                    break;
                 }
-                this.moveRight(elapsedTime * SPEED, tilemap);
+                else{
+                    this.move(elapsedTime, tilemap, entityManager);
+                }
                 break;
             case FALLING:
                 this.speedY += Math.pow(GRAVITY * elapsedTime, 2);
@@ -1204,22 +1257,31 @@ module.exports = (function(){
                 break;
             case SMASHED:
                 break;
+            case STUCK:
+                break;
         }
-        if(this.state == MOVING_RIGHT || this.state == MOVING_LEFT) {
-            this.animations[this.state].update(elapsedTime);
+        if(this.state == MOVING) {
+            if(this.isMovingRight){
+                this.animation_right.update(elapsedTime);
+            }
+            else {
+                this.animation_left.update(elapsedTime);
+            }
         }
     };
 
 
     StoneMonster.prototype.render = function(ctx, debug) {
-        if(this.state == WAITING || this.state == FALLING) {
+        if(this.state == WAITING || this.state == FALLING || this.state == STUCK) {
             ctx.drawImage(this.idle_image, this.currentX, this.currentY);
         }
-        else if(this.state == MOVING_LEFT) {
-            this.animations[this.state].render(ctx, this.currentX, this.currentY - 16);
-        }
-        else if(this.state == MOVING_RIGHT) {
-            this.animations[this.state].render(ctx, this.currentX - 19, this.currentY - 16);
+        else if(this.state == MOVING) {
+            if(this.isMovingRight){
+                this.animation_right.render(ctx, this.currentX - 19, this.currentY - 16);
+            }
+            else {
+                this.animation_left.render(ctx, this.currentX, this.currentY - 16);
+            }
         }
         if(debug){
             this.renderDebug(ctx);

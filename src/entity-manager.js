@@ -10,6 +10,8 @@ module.exports = (function (){
   
   var entities = [],
       entityCount = 0;
+
+  var Player = require('./player.js');
   
   /* Adds an entity to those managed.
    * Arguments:
@@ -132,13 +134,22 @@ module.exports = (function (){
       if(entities[i]) entities[i].render(ctx, debug);
     }
   }
+
+  function getPlayer(){
+    for(var i = 0; i < entityCount; i++) {
+      if(entities[i] && entities[i] instanceof Player){
+        return entities[i];
+      }
+    }
+  }
   
   return {
     add: add,
     remove: remove,
     queryRadius: queryRadius,
     update: update,
-    render: render
+    render: render,
+    getPlayer: getPlayer
   }
   
 }());
