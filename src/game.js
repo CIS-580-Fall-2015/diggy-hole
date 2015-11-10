@@ -94,7 +94,7 @@ module.exports = (function (){
     
     // Redraw the map & entities
     tilemap.render(backBufferCtx);
-    entityManager.render(backBufferCtx, DEBUG);
+    entityManager.render(backBufferCtx, true);
     //player.render(backBufferCtx, true);
     
     backBufferCtx.restore();
