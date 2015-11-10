@@ -15,7 +15,7 @@ module.exports = (function (){
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
       Barrel = require('./barrel.js'),
-	  dynamiteDwarf = require('./dynamiteDwarf.js'),
+	  DynamiteDwarf = require('./dynamiteDwarf.js'),
       player,
       screenCtx,
       backBuffer,
