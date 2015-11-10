@@ -5,10 +5,17 @@
  */
 module.exports = (function (){
   
+	const DEBUG = false;
   // The width & height of the screen
   const SCREEN_WIDTH = 1280,
         SCREEN_HEIGHT = 720;
-
+		
+	//Number of barrels spawned
+	const BARRELS_SPAWNED = 90;
+	const TILES_X = 200;
+	const TILES_Y = 200;
+	
+	
   // Module variables
   var Player = require('./player.js'),
       inputManager = require('./input-manager.js'),
@@ -44,7 +51,7 @@ module.exports = (function (){
     backBufferCtx = backBuffer.getContext("2d");
   
     // Generate the tilemap 
-    tilemap.generate(1000, 1000, {
+    tilemap.generate(TILES_X, TILES_Y, {
       viewport: {
         width: 1028,
         height: 720
@@ -61,6 +68,11 @@ module.exports = (function (){
     entityManager.add(player);
     barrel = new Barrel(180, 240, 0, inputManager);
     entityManager.add(barrel);
+	
+	for(var i = 0; i < BARRELS_SPAWNED; i++){
+		barrel = new Barrel(Math.random()*64*TILES_X, Math.random()*64*TILES_Y/8, 0, inputManager);
+    entityManager.add(barrel);
+	}
   }
    
   /* Updates the state of the game world
@@ -91,7 +103,7 @@ module.exports = (function (){
     
     // Redraw the map & entities
     tilemap.render(backBufferCtx);
-    entityManager.render(backBufferCtx, true);
+    entityManager.render(backBufferCtx, DEBUG);
     //player.render(backBufferCtx, true);
     
     backBufferCtx.restore();

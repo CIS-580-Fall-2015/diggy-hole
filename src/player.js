@@ -265,8 +265,8 @@ module.exports = (function(){
   
   Player.prototype.boundingCircle = function() {
      return {
-		 cx: this.currentX,
-		 cy: this.currentY,
+		 cx: this.currentX + SIZE/2,
+		 cy: this.currentY + SIZE/2,
 		 radius: SIZE/2
 	 }
    }

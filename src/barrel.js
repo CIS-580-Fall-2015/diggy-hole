@@ -8,7 +8,9 @@
 module.exports = (function(){
   var Entity = require('./entity.js'),
 		Player = require('./player.js'),
+		Bone = require('./bone.js'),
       Animation = require('./animation.js');
+	  entityManager = require('./entity-manager.js');
   
   
   const DEBUG = true;
@@ -32,25 +34,26 @@ module.exports = (function(){
   const SPEED = 150;
   const GRAVITY = -250;
   const JUMP_VELOCITY = -600;
-  const PROJECTILE_SPEED = 200;
-  const PROJECTILE_DIST = 3*SIZE;
+  const MAX_BUMPS = 3;
   
-  //The Right facing dwarf spritesheet
-  var dwarfRight = new Image();
-  dwarfRight.src = 'DwarfAnimatedRight.png';
-
-  //The left facing dwarf spritesheet
-  var dwarfLeft = new Image();
-  dwarfLeft.src = "DwarfAnimatedLeft.png";
   
     var boneLeft = new Image();
-  boneLeft.src = 'BoneLeft.png';
+  boneLeft.src = 'img/BoneLeft.png';
   
   var barrelIdle = new Image();
-  barrelIdle.src = 'BarrelIdle.png';
+  barrelIdle.src = 'img/BarrelIdle.png';
   
     var barrelAttack = new Image();
-  barrelAttack.src = 'BarrelAttack.png';
+  barrelAttack.src = 'img/BarrelAttack.png';
+  
+      var barrelRollingLeft = new Image();
+  barrelRollingLeft.src = 'img/BarrelRollingLeft.png';
+  
+      var barrelRollingRight = new Image();
+  barrelRollingRight.src = 'img/BarrelRollingRight.png';
+  
+    var barrelDead = new Image();
+  barrelDead.src = 'img/BarrelBroken.png';
 
   //The Barrel constructor
   function Barrel(locationX, locationY, layerIndex) {
@@ -68,26 +71,19 @@ module.exports = (function(){
     this.ySpeed = 15;
     this.isLeft = false;
 	
-	this.type = "BarrelSkeleton";
+	this.type = "Barrel";
 	
-	this.range = 3*SIZE;
-	this.attackFrequency = 1.2;
+	this.range = 5*SIZE;
+	this.attackFrequency = 1.7;
 	this.lastAttack = 0;
 	this.lives = 5;
-	this.projectile = {
-		enabled: false,
-		size: 10,
-		distTraveled: 0,
-		x: this.currentX,
-		y: this.currentY,
-		xSpeed: 0,
-		isLeft: true
-	}
 	
 	this.state = IDLE;
 	this.playerInRange = false;
 	this.attacked = false;
+	this.recovered = true;
 	this.attackedFromLeft = false;
+	this.bumpCount = 0;
     
     //The animations
     this.animations = {
@@ -98,20 +94,18 @@ module.exports = (function(){
     //The right-facing animations
     this.animations.right[IDLE] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
 	this.animations.right[ATTACKING] = new Animation(barrelAttack, SIZE, SIZE, 0, 0, 12);
-    this.animations.right[ROLLING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
+    this.animations.right[ROLLING] = new Animation(barrelRollingRight, SIZE, SIZE, 0, 0, 8);
     this.animations.right[FALLING] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
-    this.animations.right[SWIMMING] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
-	this.animations.right[DEAD] = new Animation(dwarfRight, SIZE, SIZE, SIZE*3, 0);
-	this.animations.right[PROJECTILE] = new Animation(boneLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[SWIMMING] = new Animation(barrelRollingRight, SIZE, SIZE, 0, 0, 8);
+	this.animations.right[DEAD] = new Animation(barrelDead, SIZE, SIZE, 0, 0, 1);
     
     //The left-facing animations
     this.animations.left[IDLE] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
 	this.animations.left[ATTACKING] = new Animation(barrelAttack, SIZE, SIZE, 0, 0, 12);
-    this.animations.left[ROLLING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
+    this.animations.left[ROLLING] = new Animation(barrelRollingLeft, SIZE, SIZE, 0, 0, 8);
     this.animations.left[FALLING] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
-    this.animations.left[SWIMMING] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
-	this.animations.left[DEAD] = new Animation(dwarfLeft, SIZE, SIZE, SIZE*3, 0);
-	this.animations.left[PROJECTILE] = new Animation(boneLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.left[SWIMMING] = new Animation(barrelRollingLeft, SIZE, SIZE, 0, 0, 8);
+	this.animations.left[DEAD] = new Animation(barrelDead, SIZE, SIZE, 0, 0, 1);
   }
   
   // Barrel inherits from Entity
@@ -134,8 +128,14 @@ module.exports = (function(){
         tileX = Math.floor(box.left/64),
         tileY = Math.floor(box.bottom / 64) - 1,
         tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid) 
-      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
+    if (tile && tile.data.solid) {
+		this.attackedFromLeft = true;
+		if(++this.bumpCount>MAX_BUMPS){
+			this.state = IDLE;
+			this.bumpCount = 0;
+		}
+      this.currentX = (Math.floor(this.currentX/64) + 1) * 64;
+	}
   }
   
   // Moves the barrel to the right, colliding with solid tiles
@@ -145,8 +145,14 @@ module.exports = (function(){
         tileX = Math.floor(box.right/64),
         tileY = Math.floor(box.bottom / 64) - 1,
         tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
+    if (tile && tile.data.solid){
+		this.attackedFromLeft = false;
+		if(++this.bumpCount>MAX_BUMPS){
+			this.state = IDLE;
+			this.bumpCount = 0;
+		}		
       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+	}
   }
   
   /* Barrel update function
@@ -157,6 +163,9 @@ module.exports = (function(){
    *   the current game world.
    */
   Barrel.prototype.update = function(elapsedTime, tilemap, entityManager) {
+	  if(this.state == DEAD){
+		 return;
+	  }
     var sprite = this;
     
 	var entities = entityManager.queryRadius(this.currentX, this.currentY, this.range);
@@ -164,6 +173,9 @@ module.exports = (function(){
 		for(var i=0; i<entities.length;i++){
 			if(entities[i] instanceof Player){
 				this.playerInRange = true;
+				if(!this.recovered && Math.pow(entities[i].currentX-this.currentX,2)+Math.pow(entities[i].currentY-this.currentY,2)>Math.pow(SIZE,2)){
+					this.recovered = true;
+				}
 				break;
 			}
 		}
@@ -179,21 +191,13 @@ module.exports = (function(){
 				console.log("Barrel state: FALLING");
 			}
           } else if(sprite.attacked){
-				if(--this.lives<1){
-				  sprite.state = DEAD;
-				  
-				  if(DEBUG){
-					console.log("Barrel state: DEAD");
-				  }
-				}
-				  
-			  
+	  
 			if(!sprite.attackedFromLeft) {
               sprite.isLeft = true;
               sprite.state = ROLLING;
               sprite.moveLeft(elapsedTime * SPEED, tilemap);
 			  if(DEBUG){
-				console.log("Barrel state: ROLLING left");
+				console.log("Barrel direction: left");
 			}
             }
             else if(sprite.attackedFromLeft) {
@@ -202,7 +206,7 @@ module.exports = (function(){
               sprite.moveRight(elapsedTime * SPEED, tilemap);
 			  
 			  if(DEBUG){
-				console.log("Barrel state: ROLLING right");
+				console.log("Barrel direction: right");
 			}
             }
 		  }
@@ -223,6 +227,9 @@ module.exports = (function(){
 			if(!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
             sprite.velocityY = 0;
+			if(DEBUG){
+				console.log("Barrel state: FALLING");
+			}
           } else if(sprite.attacked){
 			if(!sprite.attackedFromLeft) {
               sprite.isLeft = true;
@@ -250,22 +257,29 @@ module.exports = (function(){
           if(!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
             sprite.velocityY = 0;
+			if(DEBUG){
+				console.log("Barrel state: FALLING");
+			}
           } else {
-			if(playerInRange && !attackedFromLeft) {
+			if(sprite.playerInRange && !sprite.attackedFromLeft) {
               sprite.isLeft = true;
               sprite.state = ROLLING;
               sprite.moveLeft(elapsedTime * SPEED, tilemap);
+			  this.attacked = false;
             }
-            else if(playerInRange && attackedFromLeft) {
+            else if(sprite.playerInRange && sprite.attackedFromLeft) {
               sprite.isLeft = false;
               sprite.state = ROLLING;
               sprite.moveRight(elapsedTime * SPEED, tilemap);
+			  this.attacked = false;
             }
             else {
+				sprite.attacked = false;
+				sprite.recovered = true;
               sprite.state = IDLE;
 			  
 			  if(DEBUG){
-				console.log("Barrel state: IDLE");
+				console.log("Barrel state: ROLLING");
 			}
             }
           }
@@ -274,14 +288,26 @@ module.exports = (function(){
         case FALLING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
           sprite.currentY += sprite.velocityY * elapsedTime;
-          if(sprite.onGround(tilemap)) {
+		  if(sprite.onGround(tilemap)) {
+			  sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+		  if(sprite.playerInRange && !sprite.attackedFromLeft) {
+              sprite.isLeft = true;
+              sprite.state = ROLLING;
+              sprite.moveLeft(elapsedTime * SPEED, tilemap);
+            }
+            else if(sprite.playerInRange && sprite.attackedFromLeft) {
+              sprite.isLeft = false;
+              sprite.state = ROLLING;
+              sprite.moveRight(elapsedTime * SPEED, tilemap);
+            } else {
             sprite.state = IDLE;
-            sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+            
 			
 			if(DEBUG){
 				console.log("Barrel state: IDLE");
 			}
           }
+		}
           break;
 		  
 		case DEAD:
@@ -291,67 +317,16 @@ module.exports = (function(){
         case SWIMMING:
           // NOT IMPLEMENTED YET
       }
-	  
-	// Update projectile
-	if(this.projectile.enabled){
-
-			this.projectile.x += elapsedTime * this.projectile.xSpeed;
-			this.projectile.distTraveled +=	elapsedTime * this.projectile.xSpeed;	
-			var entities = entityManager.queryRadius(this.projectile.x, this.projectile.y, this.projectile.size);
-			this.playerHit = false;
-			for(var i=0; i<entities.length;i++){
-				if(entities[i] instanceof Player){
-					this.playerHit = true;
-					break;
-				}
-			}
-			if(this.playerHit){
-				this.projectile.enabled = false;
-				if(DEBUG){
-					console.log("Player hit!");
-				}
-			}
-			
-			if(this.projectile.distTraveled >= PROJECTILE_DIST || this.projectile.distTraveled <= -PROJECTILE_DIST){
-				this.projectile.distTraveled = 0;
-				this.projectile.enabled = false;
-			}
-			
-			if(this.projectile.isLeft){
-		var box = this.projectileBoundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid) 
-      this.projectile.enabled = false;
-
-			
-		
-	} else {
-		var box = this.projectileBoundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.projectile.enabled = false;
-	}  
-       
-	}
-    // Update animation
-    if(this.isLeft){
-		this.animations.left[this.state].update(elapsedTime);
-		
-    } else {
-		this.animations.right[this.state].update(elapsedTime);
-    }
 	
-	// Update projectile animation
-	if(this.projectile.isLeft){
-		this.animations.left[PROJECTILE].update(elapsedTime);
-	} else {
-		this.animations.right[PROJECTILE].update(elapsedTime);
-	}
-  }
+	  
+	    // Update animation
+    if(this.isLeft)
+      this.animations.left[this.state].update(elapsedTime);
+    else
+      this.animations.right[this.state].update(elapsedTime);
+	
+	} 
+  
   
   /* Barrel Render Function
    * arguments:
@@ -366,13 +341,6 @@ module.exports = (function(){
     else
       this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
     
-	if(this.projectile.enabled){
-		if(this.projectile.isLeft){
-			this.animations.left[PROJECTILE].render(ctx, this.projectile.x, this.projectile.y);
-		} else {
-			this.animations.right[PROJECTILE].render(ctx, this.projectile.x, this.projectile.y);
-		}
-	}
     if(debug) renderDebug(this, ctx);
   }
   
@@ -418,26 +386,57 @@ module.exports = (function(){
     }
   }
   
-   Barrel.prototype.projectileBoundingBox = function() {
-    return {
-      left: this.projectile.x,
-      top: this.projectile.y,
-      right: this.projectile.x + SIZE,
-      bottom: this.projectile.y + SIZE
-    }
-  }
   
     Barrel.prototype.boundingCircle = function() {
      return {
-		 cx: this.currentX,
-		 cy: this.currentY,
+		 cx: this.currentX + SIZE/2,
+		 cy: this.currentY + SIZE/2,
 		 radius: SIZE/2
 	 }
    }
    
+      /* Collide function
+    * This function is called by the entityManager when it determines
+    * a possible collision.
+    * parameters:
+    * - otherEntity is the entity this enemy collided with
+    *   You will likely want to use 
+    *     'otherEntity instanceof <Type>' 
+    *   to determine what type it is to know what to 
+    *   do with it.
+    */
+   Barrel.prototype.collide = function(otherEntity) {
+	   if((this.state == ATTACKING || this.state == IDLE) && this.recovered && otherEntity instanceof Player){
+		   if(DEBUG){
+		   console.log("Collision with player");
+	   }
+		   if(--this.lives<=0){
+			   this.state = DEAD;
+			   if(DEBUG){
+				console.log("Barrel state: DEAD");
+			}
+			   
+		   } else {
+			   if(DEBUG){
+		   console.log(this.lives+" lives left");
+		   console.log("Barrel state: ROLLING");
+	   }
+			   this.attacked = true;
+			   this.recovered = false;
+			   this.state = ROLLING;
+			   if(otherEntity.currentX <= this.currentX){
+				   this.attackedFromLeft = true;
+			   } else {
+				   this.attackedFromLeft = false;
+			   }
+		   }
+	   }
+   }
+   
+   
    Barrel.prototype.attack = function(elapsedTime, entities){
 		this.lastAttack += elapsedTime;
-		if(!this.projectile.enabled && this.lastAttack >= this.attackFrequency){
+		if(this.lastAttack >= this.attackFrequency){
 			
 			for(var i=0; i<entities.length;i++){
 				if(entities[i] instanceof Player){
@@ -446,18 +445,14 @@ module.exports = (function(){
 				}
 			}
 			if(playerX > this.currentX){
-				this.projectile.isLeft = false;
-				this.projectile.xSpeed = PROJECTILE_SPEED;
+				var isLeft = false;
 			} else {
-				this.projectile.xSpeed = -PROJECTILE_SPEED;
-				this.projectile.isLeft = true;
+				var isLeft = true;
 			}
 			
 			this.lastAttack = 0;
-			this.projectile.x = this.currentX;
-			this.projectile.y = this.currentY;
-			
-			this.projectile.enabled = true;
+			bone = new Bone(this.currentX, this.currentY, 0, isLeft);
+			entityManager.add(bone);
 		}
 	   
    }
