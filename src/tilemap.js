@@ -502,6 +502,13 @@ module.exports = (function (){
 	 }
   }
   
+  //Dig tile out at x, y
+  var removeTileAt = function(x, y, layer) {
+	if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight) 
+      return undefined;
+    layers[layer].data[x + y*mapWidth] =  16; 
+  }
+  
   // Expose the module's public API
   return {
     load: load,
@@ -509,6 +516,7 @@ module.exports = (function (){
     render: render,
     tileAt: tileAt,
 	setTileAt: setTileAt,
+    removeTileAt: removeTileAt,
     setViewportSize: setViewportSize,
     setCameraPosition: setCameraPosition
   }
