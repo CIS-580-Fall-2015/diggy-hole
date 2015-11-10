@@ -18,7 +18,8 @@ module.exports = (function (){
       viewportHalfWidth = 0,
       viewportHalfHeight = 0,
       viewportTileWidth = 0,
-      viewportTileHeight = 0;
+      viewportTileHeight = 0,
+	  tileset;
    
   /* Clamps the provided value to the provided range
    * Arguments:
@@ -81,7 +82,7 @@ module.exports = (function (){
     // Load the tileset(s)
     mapData.tilesets.forEach( function(tilesetmapData, index) {
       // Load the tileset image
-      var tileset = new Image();
+      tileset = new Image();
       loading++;
       tileset.onload = function() {
         loading--;
@@ -347,6 +348,7 @@ module.exports = (function (){
             map[index] = 15;
           }
         }
+		
       }
     }
     
