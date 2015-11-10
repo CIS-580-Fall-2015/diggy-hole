@@ -99,6 +99,14 @@ module.exports = (function(){
       bottom: this.currentY + SIZE
     }
   }
+  
+  Diamond.prototype.boundingCircle =function(){
+    return{
+      cx: this.currentX + SIZE/2,
+      cy: this.currentY + SIZE/2,
+      radius: SIZE/2
+    }
+  }
 
   Diamond.prototype.collide = function(otherEntity){
     if(otherEntity.type === "Kakao"&& this.state===HOLD){
