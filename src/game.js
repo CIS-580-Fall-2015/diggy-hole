@@ -68,7 +68,7 @@ module.exports = (function (){
     entityManager.add(barrel);
 	}
 	
-	dynamiteDwarf = new DynamiteDwarf(180, 240, 0, inputManager);
+	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
 	entityManager.add(dynamiteDwarf);
   }
    
