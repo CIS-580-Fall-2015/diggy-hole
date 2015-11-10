@@ -23,6 +23,7 @@ module.exports = (function(){
 
 
     function StoneMonster(locationX, locationY, layerIndex) {
+        this.type = "StoneMonster";
         this.layerIndex = layerIndex;
         this.currentX = locationX;
         this.currentY = locationY;
@@ -52,8 +53,11 @@ module.exports = (function(){
             tileX = Math.floor(box.left/64),
             tileY = Math.floor(box.bottom / 64) - 1,
             tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && tile.data.solid)
-            this.currentX = (Math.floor(this.currentX/64) + 1) * 64
+        if (tile && tile.data.solid) {
+            this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
+            return true;
+        }
+        return false;
     };
 
     // Moves the player to the right, colliding with solid tiles
@@ -63,8 +67,10 @@ module.exports = (function(){
             tileX = Math.floor(box.right/64),
             tileY = Math.floor(box.bottom / 64) - 1,
             tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && tile.data.solid)
-            this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+        if (tile && tile.data.solid) {
+            this.currentX = (Math.ceil(this.currentX / 64) - 1) * 64;
+        }
+        return false;
     };
 
     StoneMonster.prototype.update = function(elapsedTime, tilemap) {
@@ -77,7 +83,18 @@ module.exports = (function(){
                     this.state = FALLING;
                     this.speedY = 0;
                 }
-                this.moveRight(elapsedTime * SPEED, tilemap);
+                if(this.moveRight(elapsedTime * SPEED, tilemap)){
+                    this.state = MOVING_LEFT;
+                }
+                break;
+            case MOVING_LEFT:
+                if(!this.onGround(tilemap)) {
+                    this.state = FALLING;
+                    this.speedY = 0;
+                }
+                if(this.moveLeft(elapsedTime * SPEED, tilemap)){
+                    this.state = MOVING_RIGHT;
+                }
                 break;
             case FALLING:
                 this.speedY += Math.pow(GRAVITY * elapsedTime, 2);
