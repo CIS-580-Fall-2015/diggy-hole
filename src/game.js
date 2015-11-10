@@ -14,7 +14,9 @@ module.exports = (function (){
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
+      StoneMonster = require('./stone-monster.js'),
       player,
+      stoneMonster,
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -57,6 +59,9 @@ module.exports = (function (){
     // Create the player and add them to
     // the entity manager
     player = new Player(180, 240, 0, inputManager);
+    stoneMonster = new StoneMonster(0, 0, 0);
+
+    entityManager.add(stoneMonster);
     entityManager.add(player);
   }
    
