@@ -618,7 +618,7 @@ module.exports = (function(){
      * - tileMap, the tilemap
      */
     function checkBelow (tileX, tileY, layerIndex, tileMap){
-	var tile = tileMap.tileAt(tileX, tileY-1, layerIndex);
+	var tile = tileMap.tileAt(tileX, tileY+1, layerIndex);
 	if(tile && tile.data.solid)
 		return false;
 	return true;
@@ -698,12 +698,12 @@ module.exports = (function(){
 			}
 			break;
 		case WALKING:
-		    if(randomNum > .9){
+		    /* if(randomNum > .9){
 			    if(checkAbovePath(tileX, tileY, layerIndex, tileMap))
 					return {command: JUMPING, direction: 0};
 		    }
 		    if(randomNum < .05)
-			    return {command: PASSIVE_STANDING, direction: 0};
+			    return {command: PASSIVE_STANDING, direction: 0}; */
 		    if(direction == 1){
 			    if(checkRight(tileX, tileY, layerIndex, tileMap))
 				    return {command: WALKING, direction: 1};
@@ -796,6 +796,7 @@ module.exports = (function(){
 	    this.angle = 0;
 	    this.xSpeed = 10;
 	    this.ySpeed = 15;
+		this.velocityY = 0;
 	    this.isLeft = false;
 		this.direction = 0;
 	  
@@ -868,8 +869,13 @@ module.exports = (function(){
     // Process Goblin Miner state
     switch(whatDo.command) {
         case PASSIVE_STANDING:
+		  this.velocityY = 0;
+		  break;
 		case AGGRESSIVE_STANDING:
+		  this.velocityY = 0;
+		  break;
         case WALKING:
+		  this.velocityY = 0;
           if(whatDo.direction > 0){
 			  this.isLeft = false;
 			  this.moveRight(elapsedTime * SPEED, tilemap);
@@ -920,8 +926,8 @@ module.exports = (function(){
 		  }
           break;
         case FALLING:
-          //this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-          //this.currentY += sprite.velocityY * elapsedTime;
+          this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          this.currentY += sprite.velocityY * elapsedTime;
           if(this.onGround(tilemap)) {
             this.state = PASSIVE_STANDING;
             this.currentY = 64 * Math.floor(sprite.currentY / 64);
@@ -930,7 +936,7 @@ module.exports = (function(){
 			  this.isLeft = false;
 			  this.moveRight(elapsedTime * SPEED, tilemap);
 		  }
-		  else{
+		  else if(whatDo.direction < 0){
 			  this.isLeft = true;
 			  this.moveLeft(elapsedTime * SPEED, tilemap);
 		  }
