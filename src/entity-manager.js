@@ -135,11 +135,16 @@ module.exports = (function (){
     }
   }
   
+    function getEntity(index){
+	  return entities[index];
+  }
+  
   return {
     add: add,
     remove: remove,
     queryRadius: queryRadius,
     update: update,
+	getEntity: getEntity,
     render: render
   }
   
