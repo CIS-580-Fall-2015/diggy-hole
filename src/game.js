@@ -11,6 +11,7 @@ module.exports = (function (){
 	
   // Module variables
   var Player = require('./player.js'),
+      Octopus = require('./octopus.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
@@ -23,6 +24,7 @@ module.exports = (function (){
 	  kakao,
       GoblinMiner = require('./goblin-miner.js'),
       player,
+      octopus,
       stoneMonster,
       screenCtx,
       backBuffer,
@@ -72,6 +74,12 @@ module.exports = (function (){
     // the entity manager
     player = new Player(64*6, 240, 0, inputManager);
     entityManager.add(player);
+<<<<<<< HEAD
+
+    octopus = new Octopus(120, 240, 0);
+    entityManager.add(octopus);
+  };
+=======
 	
 	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
 	entityManager.add(goblinMiner);
@@ -97,6 +105,7 @@ module.exports = (function (){
     kakao = new Kakao(310,240,0);  //two tiles to the right of the player
     entityManager.add(kakao);
   }
+>>>>>>> c8c0e9fc1a40f122033be568b8667981b676ee3f
    
   /* Updates the state of the game world
    * arguments: 
@@ -107,7 +116,9 @@ module.exports = (function (){
     //player.update(elapsedTime, tilemap);
     entityManager.update(elapsedTime, tilemap);
     inputManager.swapBuffers();
-  }
+
+    octopus.getPlayerPosition(player.boundingBox());
+  };
   
   /* Renders the current state of the game world
    */
@@ -133,7 +144,7 @@ module.exports = (function (){
     
     // Flip the back buffer
     screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);    
-  }
+  };
   
   /* Event handler for key down events
    * arguments:
