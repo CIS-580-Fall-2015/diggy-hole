@@ -25,7 +25,7 @@ module.exports = (function(){
     const CLOSE_TO_PLAYER = SIZE * 4;
     const WAIT_TIME = 3;
 
-    const TIME_TO_LIVE = 10;
+    const TIME_TO_LIVE = 25;
 
     function StoneMonster(locationX, locationY, layerIndex) {
         this.type = "StoneMonster";
@@ -247,7 +247,7 @@ module.exports = (function(){
     };
 
     StoneMonster.prototype.collide = function(otherEntity){
-        if(!otherEntity){
+        if(!otherEntity || otherEntity instanceof StoneMonster){
             return;
         }
         if(otherEntity instanceof Player && this.state != FALLING
