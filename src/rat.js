@@ -1,6 +1,4 @@
 /* Enemy module
- * Implements the entity pattern and provides
- * the DiggyHole player info.
  * Authors:
  * Kien Le
  */
@@ -8,29 +6,34 @@ module.exports = (function(){
   var Entity = require('./entity.js'),
       Animation = require('./animation.js');
   
-  /* The following are player States (Swimming is not implemented) */
+  /* The following are enemy States (Swimming is not implemented) */
   const STANDING = 0;
   const WALKING = 1;
-  const FALLING = 4;
+  const FALLING = 2;
+  const ATTACKING = 3;
 
   // The Sprite Size
   const SIZE = 64;
 
   // Movement constants
-  const SPEED = 150;
+  const SPEED = 100;
   const GRAVITY = -250;
   const JUMP_VELOCITY = -600;
   
-  //The Right facing dwarf spritesheet
-  var moleRatRight = new Image();
-  moleRatRight.src = 'DwarfAnimatedRight.png';
+  var ratIdleRight = new Image();
+  ratIdleRight.src = 'img/ratIdleRight.png';
+  
+  var ratIdleLeft = new Image();
+  ratIdleLeft.src = 'img/ratIdleLeft.png';
+  
+  var ratRight = new Image();
+  ratRight.src = 'img/ratRight2.png';
 
-  //The left facing dwarf spritesheet
-  var moleRatLeft = new Image();
-  moleRatLefy.src = "DwarfAnimatedLeft.png";
+  var ratLeft = new Image();
+  ratLeft.src = "img/ratLeft2.png";
 
-  //The Player constructor
-  function Enemy(locationX, locationY, layerIndex) 
+  //The enemy constructor
+  function Rat(locationX, locationY, layerIndex) 
   {  
     this.state = WALKING; 
     this.layerIndex = layerIndex;
@@ -46,6 +49,7 @@ module.exports = (function(){
     this.xSpeed = 10; 
     this.ySpeed = 15;
     this.isLeft = false;
+	this.type = "rat";
     
     //The animations
     this.animations = {
@@ -54,21 +58,23 @@ module.exports = (function(){
     }
     
     //The right-facing animations
-    this.animations.right[STANDING] = new Animation(moleRatRight, SIZE, SIZE, SIZE*2, SIZE);
-    this.animations.right[WALKING] = new Animation(moleRatRight, SIZE, SIZE, 0, 0, 4);
-    this.animations.right[FALLING] = new Animation(moleRatRight, SIZE, SIZE, SIZE, SIZE);
+    this.animations.right[STANDING] = new Animation(ratRight, SIZE, SIZE, SIZE*2, SIZE);
+    this.animations.right[WALKING] = new Animation(ratRight, SIZE, SIZE, 0, 0, 4);
+    this.animations.right[FALLING] = new Animation(ratIdleRight, SIZE, SIZE, SIZE, SIZE);
+	this.animations.right[ATTACKING] = new Animation(ratRight, SIZE, SIZE, 0, 0, 4);
     
     //The left-facing animations
-    this.animations.left[STANDING] = new Animation(moleRatLeft, SIZE, SIZE, SIZE*2, SIZE);
-    this.animations.left[WALKING] = new Animation(moleRatLeft, SIZE, SIZE, 0, 0, 4);
-    this.animations.left[FALLING] = new Animation(moleRatLeft, SIZE, SIZE, SIZE, SIZE);
+    this.animations.left[STANDING] = new Animation(ratLeft, SIZE, SIZE, SIZE*2, SIZE);
+    this.animations.left[WALKING] = new Animation(ratLeft, SIZE, SIZE, 0, 0, 4);
+    this.animations.left[FALLING] = new Animation(ratIdleLeft, SIZE, SIZE, SIZE, SIZE);
+	this.animations.left[ATTACKING] = new Animation(ratLeft, SIZE, SIZE, 0, 0, 4);
   }
   
   // Player inherits from Entity
-  Enemy.prototype = new Entity();
+  Rat.prototype = new Entity();
   
   // Determines if the player is on the ground
-  Enemy.prototype.onGround = function(tilemap) 
+  Rat.prototype.onGround = function(tilemap) 
   {
     var box = this.boundingBox(),
         tileX = Math.floor((box.left + (SIZE/2))/64),
@@ -78,8 +84,26 @@ module.exports = (function(){
     return (tile && tile.data.solid) ? true : false;
   }
   
+  Rat.prototype.checkLeft = function(tilemap) 
+  {
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.left/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+    return (tile && tile.data.solid) ? true : false;
+  }
+  
+  Rat.prototype.checkRight = function(tilemap) 
+  {
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.right/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+    return (tile && tile.data.solid) ? true : false;
+  }
+  
   // Moves the enemy to the left, colliding with solid tiles
-  Enemy.prototype.moveLeft = function(distance, tilemap) 
+  Rat.prototype.moveLeft = function(distance, tilemap) 
   {
     this.currentX -= distance;
     var box = this.boundingBox(),
@@ -91,7 +115,7 @@ module.exports = (function(){
   }
   
   // Moves the enemy to the right, colliding with solid tiles
-  Enemy.prototype.moveRight = function(distance, tilemap) 
+  Rat.prototype.moveRight = function(distance, tilemap) 
   {
     this.currentX += distance;
     var box = this.boundingBox(),
@@ -102,17 +126,17 @@ module.exports = (function(){
       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
   }
   
-  /* Player update function
+  /* Enemy update function
    * arguments:
    * - elapsedTime, the time that has passed 
    *   between this and the last frame.
    * - tilemap, the tilemap that corresponds to
    *   the current game world.
    */
-  Player.prototype.update = function(elapsedTime, tilemap) {
+  Rat.prototype.update = function(elapsedTime, tilemap) {
     var sprite = this;
         
-      // Process player state
+      // Process enemy state
       switch(sprite.state) {
         case STANDING:
         case WALKING:
@@ -124,17 +148,17 @@ module.exports = (function(){
           } 
 		  else 
 		  {            
-            else if(!sprite.onGround(tilemap)) {
-				
-              sprite.isLeft = true;
-              sprite.state = WALKING;
-              sprite.moveLeft(elapsedTime * SPEED, tilemap);
-            }
-            else if(!sprite.onGround(tilemap)) 
-			{
+            if(sprite.onGround(tilemap) && !sprite.checkLeft(tilemap)) 
+			{				
               sprite.isLeft = false;
               sprite.state = WALKING;
               sprite.moveRight(elapsedTime * SPEED, tilemap);
+            }
+            else if(sprite.onGround(tilemap) && !sprite.checkRight(tilemap)) 
+			{
+              sprite.isLeft = true;
+              sprite.state = WALKING;
+              sprite.moveLeft(elapsedTime * SPEED, tilemap);
             }
             else 
 			{
@@ -146,12 +170,14 @@ module.exports = (function(){
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
           sprite.currentY += sprite.velocityY * elapsedTime;
           if(sprite.onGround(tilemap)) {
-            sprite.state = STANDING;
+            sprite.state = WALKING;
             sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
           }          
           break;
-        case SWIMMING:
+        //case SWIMMING:
           // NOT IMPLEMENTED YET
+		case ATTACKING:
+		  // NOT IMPLEMENTED YET
       }   
 	  
     // Update animation
@@ -168,7 +194,7 @@ module.exports = (function(){
    * - debug, a flag that indicates turning on
    * visual debugging
    */
-  Enemy.prototype.render = function(ctx, debug) {
+  Rat.prototype.render = function(ctx, debug) {
     // Draw the enemy (and the correct animation)
     if(this.isLeft)
       this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
@@ -179,11 +205,11 @@ module.exports = (function(){
   }
   
   // Draw debugging visual elements
-  function renderDebug(enemy, ctx) {
-    var bounds = enemy.boundingBox();
+  function renderDebug(player, ctx) {
+    var bounds = player.boundingBox();
     ctx.save();
     
-    // Draw enemy bounding box
+    // Draw player bounding box
     ctx.strokeStyle = "red";
     ctx.beginPath();
     ctx.moveTo(bounds.left, bounds.top);
@@ -206,9 +232,19 @@ module.exports = (function(){
     ctx.stroke();
     
     ctx.restore();
-  }
+   }
   
-  Enemy.prototype.boundingBox = function() {
+   Rat.prototype.collide = function (otherEntity) 
+   {
+        if (otherEntity.type != "player") {
+            if (this.onGround(tilemap)) {
+                this.state = ATTACKING;
+            }
+        }
+    };
+  
+  Rat.prototype.boundingBox = function() 
+  {
     return {
       left: this.currentX,
       top: this.currentY,
@@ -217,6 +253,15 @@ module.exports = (function(){
     }
   }
   
-  return Enemy;
+  Rat.prototype.boundingCircle = function () 
+  {
+        return {
+            cx: this.currentX + SIZE / 2,
+            cy: this.currentY + SIZE / 2,
+            radius: SIZE / 2
+        }
+    };
+  
+  return Rat;
 
 }());

@@ -11,10 +11,12 @@ module.exports = (function (){
 
   // Module variables
   var Player = require('./player.js'),
+	  Rat = require('./rat.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
       player,
+	  rat,
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -56,11 +58,11 @@ module.exports = (function (){
     
     // Create the player and add them to
     // the entity manager
-    player = new Player(180, 240, 0, inputManager);
+    player = new Player(400, 240, 0, inputManager);
     entityManager.add(player);
 	
-	enemy = new Enemy(180, 240, 0)
-	entityManager.add(enemy);
+	rat = new Rat(500, 360, 0);
+	entityManager.add(rat);
   }
    
   /* Updates the state of the game world
