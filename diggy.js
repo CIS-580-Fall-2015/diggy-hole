@@ -1,9 +1,261 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-  module.exports = (function() {
+/* DemonicGroundHog
+ * Authors:
+	Nathan Bean
 
-    function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame) {
-      this.frameIndex = 0,
-      this.time = 0,
+ */
+module.exports = (function(){
+  var Entity = require('./entity.js'),
+      Animation = require('./animation.js');
+
+  /* ground hog states */
+  const IDLE = 0;
+  const MOVING = 1;
+  const ATTACKING = 2;
+  const FALLING = 3;
+  const DIGGING = 4;
+
+  // The Sprite Size
+  const SIZE = 64;
+
+  // Movement constants
+  const SPEED = 30;
+  const GRAVITY = -250;
+
+  //DG (Demonic GroundHog)IDLE sprite sheetS
+  var idleLeft = new Image();
+  idleLeft.src = './img/DGFrontmoving.png';
+  var idleRight = new Image();
+  idleRight.src = './img/DGFrontmoving.png';
+
+  //DG MOVING SPRITE SHEETS
+  var moveLeft = new Image();
+  moveLeft.src = './img/DGmovingleft.png';
+  var moveRight = new Image();
+  moveRight.src =  './img/DGmovingright.png';
+
+  //DG ATACKING sprite sheets
+  var attackLeft = new Image();
+  attackLeft.src = './img/DGattackingright.png';
+  var attackRight = new Image();
+  attackRight.src =  './img/DGattackingLeft.png';
+
+  //DG DIGGING sprite sheets
+  var digLeft = new Image();
+  digLeft.src = './img/DGdiggingmovement.png';
+  var digRight = new Image();
+  digRight.src =  './img/DGdiggingmovement.png';
+
+  //timers
+  var movingTimer = 0,
+	idleTimer = 0,
+	attackingTimer = 0;
+
+  //The Dwarf constructor
+  function DemonicGroundHog(locationX, locationY, layerIndex, entityManager) {
+    this.type = "DemonicGroundHog";
+    this.state = IDLE;
+    this.layerIndex = layerIndex;
+	this.entityManager = entityManager;
+    this.currentX = locationX;
+    this.currentY = locationY;
+    this.currentTileIndex = 0;
+    this.constSpeed = 15;
+    this.gravity = 0.5;
+    this.angle = 0;
+    this.xSpeed = 10;
+    this.ySpeed = 15;
+	this.isPlayerColliding = false;
+    this.isLeft = false;
+
+    //The animations
+    this.animations = {
+      left: [],
+      right: [],
+  };
+
+    //The right-facing animations
+    this.animations.right[IDLE] = new Animation(idleRight, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[MOVING] = new Animation(moveRight, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[ATTACKING] = new Animation(attackRight, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[DIGGING] = new Animation(digRight, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[FALLING] = new Animation(idleRight, SIZE, SIZE, 0, 0, 8);
+
+    //The left-facing animations
+    this.animations.right[IDLE] = new Animation(idleLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[MOVING] = new Animation(moveLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[ATTACKING] = new Animation(attackLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[DIGGING] = new Animation(digLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[FALLING] = new Animation(idleLeft, SIZE, SIZE, 0, 0, 8);
+
+  }
+
+  DemonicGroundHog.prototype = new Entity();
+
+  // Determines if the ground hog is on the ground
+  DemonicGroundHog.prototype.onGround = function(tilemap) {
+    var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (SIZE/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+};
+
+  // Moves the ground hog to the left
+  DemonicGroundHog.prototype.moveLeft = function(distance, tilemap) {
+    this.currentX -= distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.left/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.currentX = (Math.floor(this.currentX/64) + 1) * 64;
+  };
+
+  // Moves the groundhog to the right
+  DemonicGroundHog.prototype.moveRight = function(distance, tilemap) {
+    this.currentX += distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.right/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+  };
+
+  DemonicGroundHog.prototype.update = function(elapsedTime, tilemap, entityManager) {
+    var sprite = this;
+
+      // Process the different states
+      switch(sprite.state) {
+        case IDLE:
+			if(!sprite.onGround(tilemap)) {
+				sprite.state = FALLING;
+				sprite.velocityY = 0;
+				idleTimer = 0;
+				break;
+			}
+			else if(idleTimer > 1100){
+					sprite.state = MOVING;
+					idleTimer = 0;
+				}
+			else if (isPlayerColliding){
+				var player = entityManager.getEntity(0);
+				//inflict damage
+			}
+			else{
+				idleTimer++;
+			}
+			break;
+        case MOVING:
+		  if(!sprite.onGround(tilemap)) {
+            sprite.state = FALLING;
+            sprite.velocityY = 0;
+          }
+		  else {
+            if(movingTimer<500) {
+              sprite.state = MOVING;
+			  movingTimer++;
+			  if(sprite.isLeft){
+				 sprite.moveLeft(elapsedTime * SPEED, tilemap);
+			  }else{
+				 sprite.moveRight(elapsedTime * SPEED, tilemap);
+			  }
+            }
+			else{
+				movingTimer = 0;
+				sprite.isLeft = !sprite.isLeft;
+				sprite.state = IDLE;
+			}
+          }
+          break;
+
+	   case FALLING:
+          sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          sprite.currentY += sprite.velocityY * elapsedTime;
+          if(sprite.onGround(tilemap)) {
+            sprite.state = IDLE;
+            sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+          }
+			break;
+      }
+
+      // Swap input buffers
+      swapBuffers();
+
+    // Update animation
+    if(this.isLeft)
+      this.animations.left[this.state].update(elapsedTime);
+    else
+      this.animations.right[this.state].update(elapsedTime);
+  };
+
+  /* GroundHog Render Function */
+  DemonicGroundHog.prototype.render = function(ctx, debug) {
+    // Draw the Dwarf (and the correct animation)
+    if(this.isLeft)
+      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
+    else
+      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
+
+    if(this.state != DONE){
+		if(debug) renderDebug(this, ctx);
+	}
+};
+
+  // Draw debugging visual elements
+  function renderDebug(DemonicGroundHog, ctx) {
+    var bounds = DemonicGroundHog.boundingBox();
+    ctx.save();
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(tileX, tileY);
+    ctx.lineTo(tileX + 64, tileY);
+    ctx.lineTo(tileX + 64, tileY + 64);
+    ctx.lineTo(tileX, tileY + 64);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  DemonicGroundHog.prototype.collide = function(otherEntity){
+	  if(otherEntity.type == 'player'){
+		  this.isPlayerColliding = true;
+	  }
+  };
+
+  /* DemonicGroundHog BoundingBox Function
+   * returns: A bounding box representing the Dwarf
+   */
+  DemonicGroundHog.prototype.boundingBox = function() {
+    return {
+      left: this.currentX,
+      top: this.currentY,
+      right: this.currentX + SIZE,
+      bottom: this.currentY + SIZE
+    }
+};
+
+  DemonicGroundHog.prototype.boundingCircle = function() {
+     return {cx: this.currentX+SIZE/2, cy: this.currentY+SIZE/2, radius: SIZE/2};
+ };
+
+  return DemonicGroundHog;
+
+}());
+
+},{"./animation.js":3,"./entity.js":12}],2:[function(require,module,exports){
 /* Entity: Kakao(aka DiamondGroundhog) module
  * Implements the entity pattern and provides
  * the entity Kakao info.
@@ -260,23 +512,15 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":2,"./diamond.js":7,"./entity.js":11}],2:[function(require,module,exports){
+},{"./animation.js":3,"./diamond.js":8,"./entity.js":12}],3:[function(require,module,exports){
 module.exports = (function() {
 
   function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame, playItOnce) {
     this.frameIndex = 0,
-<<<<<<< HEAD
       this.time = 0,
       this.secondsPerFrame = secondsPerFrame || (1 / 16),
       this.numberOfFrames = numberOfFrames || 1;
 
-=======
-    this.time = 0,
->>>>>>> c8c0e9fc1a40f122033be568b8667981b676ee3f
-    this.secondsPerFrame = secondsPerFrame || (1/16),
-    this.numberOfFrames = numberOfFrames || 1;
-  
->>>>>>> origin/master
     this.width = width;
     this.height = height;
     this.image = image;
@@ -328,7 +572,7 @@ module.exports = (function() {
 
 }());
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 /* Class of the Barrel Skeleton entity
  *
  * Author:
@@ -793,7 +1037,7 @@ module.exports = (function(){
 }());
 
 
-},{"./animation.js":2,"./bone.js":4,"./entity-manager.js":10,"./entity.js":11,"./player.js":18}],4:[function(require,module,exports){
+},{"./animation.js":3,"./bone.js":5,"./entity-manager.js":11,"./entity.js":12,"./player.js":21}],5:[function(require,module,exports){
 /* Class of the Barrel Skeleton entity
  *
  * Author:
@@ -1002,7 +1246,7 @@ module.exports = (function(){
 }());
 
 
-},{"./animation.js":2,"./entity.js":11,"./player.js":18}],5:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":12,"./player.js":21}],6:[function(require,module,exports){
 module.exports = (function(){
 
 var Animation = require('./animation.js'),
@@ -1190,7 +1434,7 @@ Cannonball.prototype = new Entity();
 return Cannonball;
 	
 }())
-},{"./animation.js":2,"./entity.js":11,"./tilemap.js":20}],6:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":12,"./tilemap.js":23}],7:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -1262,7 +1506,7 @@ module.exports = (function (){
   }
   
 })();
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /* Entity: Diamond(added by Diamond) module
  * Implements the entity pattern and provides
  * the entity Diamond info.
@@ -1392,7 +1636,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":2,"./entity.js":11}],8:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":12}],9:[function(require,module,exports){
 /* Dynamite Dynamite module
  * Authors:
  * Alexander Duben
@@ -1630,7 +1874,7 @@ module.exports = (function(){
   return Dynamite;
 
 }());
-},{"./animation.js":2,"./entity.js":11}],9:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":12}],10:[function(require,module,exports){
 /* Dynamite Dwarf module
  * Authors:
  * Alexander Duben
@@ -1990,7 +2234,7 @@ module.exports = (function(){
   return Dwarf;
 
 }());
-},{"./animation.js":2,"./dynamite.js":8,"./entity.js":11}],10:[function(require,module,exports){
+},{"./animation.js":3,"./dynamite.js":9,"./entity.js":12}],11:[function(require,module,exports){
 /* The entity manager for the DiggyHole game
  * Currently it uses brute-force approaches
  * to its role - this needs to be refactored
@@ -2172,7 +2416,7 @@ module.exports = (function() {
 
 }());
 
-},{"./player.js":18}],11:[function(require,module,exports){
+},{"./player.js":21}],12:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -2250,18 +2494,18 @@ module.exports = (function(){
    return Entity;
   
 }());
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /* Game GameState module
  * Provides the main game logic for the Diggy Hole game.
  * Authors:
  * - Nathan Bean
  */
 module.exports = (function (){
-  
+
   // The width & height of the screen
   const SCREEN_WIDTH = 1280,
-        SCREEN_HEIGHT = 720;	
-	
+        SCREEN_HEIGHT = 720;
+
   // Module variables
   var Player = require('./player.js'),
       Octopus = require('./octopus.js'),
@@ -2269,6 +2513,7 @@ module.exports = (function (){
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
       StoneMonster = require('./stone-monster.js'),
+	  DemonicGroundHog = require('./DemonicGroundH.js'),
       Barrel = require('./barrel.js'),
 	  Turret = require('./turret.js'),
 	  DynamiteDwarf = require('./dynamiteDwarf.js'),
@@ -2276,39 +2521,36 @@ module.exports = (function (){
 	  kakao,
       GoblinMiner = require('./goblin-miner.js'),
       player,
-<<<<<<< HEAD
       octopus,
-=======
       stoneMonster,
->>>>>>> c8c0e9fc1a40f122033be568b8667981b676ee3f
       screenCtx,
       backBuffer,
       backBufferCtx,
       stateManager;
-  
+
   /* Loads the GameState, triggered by the StateManager
    * This function sets up the screen canvas, the tilemap,
    * and loads the entity.
    * arguments:
    * - sm, the state manager that loaded this game
-   */  
-  var load = function(sm) {
+   */
+var load = function(sm) {
     stateManager = sm;
-    
+
     // Set up the screen canvas
     var screen = document.createElement("canvas");
     screen.width = SCREEN_WIDTH;
     screen.height = SCREEN_HEIGHT;
     screenCtx = screen.getContext("2d");
     document.getElementById("game-screen-container").appendChild(screen);
-  
+
     // Set up the back buffer
     backBuffer = document.createElement("canvas");
     backBuffer.width = SCREEN_WIDTH;
     backBuffer.height = SCREEN_HEIGHT;
     backBufferCtx = backBuffer.getContext("2d");
-  
-    // Generate the tilemap 
+
+    // Generate the tilemap
     tilemap.generate(1000, 1000, {
       viewport: {
         width: 1028,
@@ -2329,41 +2571,37 @@ module.exports = (function (){
     // the entity manager
     player = new Player(64*6, 240, 0, inputManager);
     entityManager.add(player);
-<<<<<<< HEAD
 
     octopus = new Octopus(120, 240, 0);
     entityManager.add(octopus);
-  };
-=======
-	
+
 	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
 	entityManager.add(goblinMiner);
-	
+
 	// Spawn 10 barrels close to player
 	 // And some turrets
 	for(var i = 0; i < 10; i++){
-		if (i < 3) { 
+		if (i < 3) {
 			turret = new Turret(Math.random()*64*50, Math.random()*64*20, o);
 			entityManager.add(turret);
 		}
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
 		entityManager.add(barrel);
 	}
-	
+
 	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
 	entityManager.add(dynamiteDwarf);
-	
+
 	// Karenfang: Create a Kakao and add it to
     // the entity manager
     kakao = new Kakao(310,240,0);  //two tiles to the right of the player
     entityManager.add(kakao);
-  }
->>>>>>> c8c0e9fc1a40f122033be568b8667981b676ee3f
-   
+  };
+
   /* Updates the state of the game world
-   * arguments: 
+   * arguments:
    * - elapsedTime, the amount of time passed between
-   * this and the prior frame.   
+   * this and the prior frame.
    */
   var update = function(elapsedTime) {
     //player.update(elapsedTime, tilemap);
@@ -2372,33 +2610,33 @@ module.exports = (function (){
 
     octopus.getPlayerPosition(player.boundingBox());
   };
-  
+
   /* Renders the current state of the game world
    */
   var render = function() {
     // Clear the back buffer
     backBufferCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    
+
     // TODO: Calculate rubberbanding
     var bounds = player.boundingBox();
     var offsetX = SCREEN_WIDTH / 2,
         offsetY = SCREEN_HEIGHT / 2;
-    
+
     // Apply camera transforms
     backBufferCtx.save();backBufferCtx.translate(offsetX - bounds.left, offsetY - bounds.top);
     tilemap.setCameraPosition(bounds.left, bounds.top);
-    
+
     // Redraw the map & entities
     tilemap.render(backBufferCtx);
     entityManager.render(backBufferCtx, true);
     //player.render(backBufferCtx, true);
-    
+
     backBufferCtx.restore();
-    
+
     // Flip the back buffer
-    screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);    
-  }
-  
+    screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+  };
+
   /* Event handler for key down events
    * arguments:
    * - event, the key down event to process
@@ -2407,10 +2645,10 @@ module.exports = (function (){
     if(event.keyCode == 27) { // ESC
       var mainMenu = require('./main-menu.js');
       stateManager.pushState(mainMenu);
-    } 
+    }
     inputManager.keyDown(event);
   }
-  
+
   /* Event handler for key up events
    * arguments:
    * - event, the key up event to process
@@ -2418,10 +2656,10 @@ module.exports = (function (){
   function keyUp(event) {
     inputManager.keyUp(event);
   }
-  
+
   /* Exits the game */
   var exit = function() {}
-  
+
   return {
     load: load,
     exit: exit,
@@ -2430,10 +2668,10 @@ module.exports = (function (){
     keyDown: keyDown,
     keyUp: keyUp
   }
-  
+
 })();
 
-},{"./Kakao.js":1,"./barrel.js":3,"./dynamiteDwarf.js":9,"./entity-manager.js":10,"./goblin-miner.js":13,"./input-manager.js":14,"./main-menu.js":15,"./player.js":18,"./stone-monster.js":19,"./tilemap.js":20,"./turret.js":21}],13:[function(require,module,exports){
+},{"./DemonicGroundH.js":1,"./Kakao.js":2,"./barrel.js":4,"./dynamiteDwarf.js":10,"./entity-manager.js":11,"./goblin-miner.js":14,"./input-manager.js":15,"./main-menu.js":16,"./octopus.js":19,"./player.js":21,"./stone-monster.js":22,"./tilemap.js":23,"./turret.js":24}],14:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -2783,11 +3021,6 @@ module.exports = (function(){
   GoblinMiner.prototype.update = function(elapsedTime, tilemap) {
     var sprite = this;
     
-<<<<<<< HEAD
-    // Flip the back buffer
-    screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);    
-  };
-=======
 	var tileX = Math.floor(this.currentX/64);
 	var tileY = Math.floor(this.currentY/64);
 	
@@ -2868,7 +3101,6 @@ module.exports = (function(){
   
     this.animations.right[PASSIVE_STANDING].update(elapsedTime);
   }
->>>>>>> c8c0e9fc1a40f122033be568b8667981b676ee3f
   
   /* Goblin Miner Render Function
    * arguments:
@@ -2944,18 +3176,9 @@ module.exports = (function(){
    }
   return GoblinMiner;
   
-<<<<<<< HEAD
-})();
-},{"./entity-manager.js":3,"./input-manager.js":6,"./main-menu.js":7,"./octopus.js":10,"./player.js":12,"./tilemap.js":13}],6:[function(require,module,exports){
-=======
 }());
 
-},{"./animation.js":2,"./entity.js":11}],14:[function(require,module,exports){
-<<<<<<< HEAD
-=======
->>>>>>> refs/remotes/origin/master
->>>>>>> c8c0e9fc1a40f122033be568b8667981b676ee3f
->>>>>>> origin/master
+},{"./animation.js":3,"./entity.js":12}],15:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -3016,7 +3239,7 @@ module.exports = (function() {
   }
   
 })();
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -3141,7 +3364,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./credits-screen":6}],16:[function(require,module,exports){
+},{"./credits-screen":7}],17:[function(require,module,exports){
 
 
 // Wait for the window to load completely
@@ -3185,7 +3408,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":12,"./main-menu":15}],17:[function(require,module,exports){
+},{"./game":13,"./main-menu":16}],18:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -3311,11 +3534,7 @@ module.exports = (function(){
   }
 
 }());
-<<<<<<< HEAD
-},{}],18:[function(require,module,exports){
-=======
-<<<<<<< HEAD
-},{}],10:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -3422,7 +3641,6 @@ module.exports = function () {
                     this.velocityY = 0;
                 }
                 if (this.isLeft == true) {
-                    console.log("leftleftleftlelft");
                     this.moveLeft(elapsedTime * SPEED, tilemap);
                 } else {
                     this.moveRight(elapsedTime * SPEED, tilemap);
@@ -3513,7 +3731,7 @@ module.exports = function () {
 }();
 
 
-},{"./entity.js":4,"./octopus_animation.js":11}],11:[function(require,module,exports){
+},{"./entity.js":12,"./octopus_animation.js":20}],20:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -3576,15 +3794,7 @@ module.exports = (function() {
     return OctopusAnimation;
 
 }());
-},{}],12:[function(require,module,exports){
-=======
-<<<<<<< HEAD
-},{}],11:[function(require,module,exports){
-=======
-},{}],18:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
->>>>>>> c8c0e9fc1a40f122033be568b8667981b676ee3f
->>>>>>> origin/master
+},{}],21:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -3622,19 +3832,9 @@ module.exports = (function() {
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
-<<<<<<< HEAD
     this.inputManager = inputManager;
-=======
-<<<<<<< HEAD
-    this.inputManager = inputManager;
-    this.state = WALKING; 
-    this.dug = false; 
-=======
-    this.inputManager = inputManager
->>>>>>> origin/master
     this.state = WALKING;
     this.dug = false;
->>>>>>> c8c0e9fc1a40f122033be568b8667981b676ee3f
     this.downPressed = false;
     this.layerIndex = layerIndex;
     this.currentX = locationX;
@@ -3654,15 +3854,9 @@ module.exports = (function() {
     //The animations
     this.animations = {
       left: [],
-<<<<<<< HEAD
       right: []
     };
-    
-=======
-      right: [],
-    };
 
->>>>>>> c8c0e9fc1a40f122033be568b8667981b676ee3f
     //The right-facing animations
     this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 2, SIZE);
     this.animations.right[WALKING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
@@ -3712,21 +3906,8 @@ module.exports = (function() {
       tileY = Math.floor(box.bottom / 64) - 1,
       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     if (tile && tile.data.solid)
-      this.currentX = (Math.ceil(this.currentX / 64) - 1) * 64;
+      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
   };
-
-<<<<<<< HEAD
-  /*Player.prototype.playerState = function()
-  {
-    return {
-      state: this.state,
-      isLeft: this.isLeft
-    }
-  };*/
-
-  
-=======
->>>>>>> c8c0e9fc1a40f122033be568b8667981b676ee3f
   /* Player update function
    * arguments:
    * - elapsedTime, the time that has passed
@@ -3891,14 +4072,8 @@ module.exports = (function() {
   return Player;
 
 }());
-<<<<<<< HEAD
 
-=======
-<<<<<<< HEAD
-},{"./animation.js":1,"./entity.js":4}],13:[function(require,module,exports){
-=======
->>>>>>> origin/master
-},{"./animation.js":2,"./entity.js":11}],19:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":12}],22:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -4179,12 +4354,7 @@ module.exports = (function(){
 
     return StoneMonster;
 }());
-},{"./animation.js":2,"./entity.js":11,"./player.js":18}],20:[function(require,module,exports){
-<<<<<<< HEAD
-=======
->>>>>>> refs/remotes/origin/master
->>>>>>> c8c0e9fc1a40f122033be568b8667981b676ee3f
->>>>>>> origin/master
+},{"./animation.js":3,"./entity.js":12,"./player.js":21}],23:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -4722,7 +4892,7 @@ module.exports = (function (){
   
 })();
 
-},{"./noise.js":17}],21:[function(require,module,exports){
+},{"./noise.js":18}],24:[function(require,module,exports){
 
 
 
@@ -5114,4 +5284,4 @@ module.exports = (function(){
 	return Turret;
 	
 }())
-},{"./animation.js":2,"./cannonball.js":5,"./entity-manager.js":10,"./entity.js":11,"./player.js":18}]},{},[16]);
+},{"./animation.js":3,"./cannonball.js":6,"./entity-manager.js":11,"./entity.js":12,"./player.js":21}]},{},[17]);

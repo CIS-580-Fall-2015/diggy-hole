@@ -57,15 +57,9 @@ module.exports = (function() {
     //The animations
     this.animations = {
       left: [],
-<<<<<<< HEAD
       right: []
     };
-    
-=======
-      right: [],
-    };
 
->>>>>>> c8c0e9fc1a40f122033be568b8667981b676ee3f
     //The right-facing animations
     this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 2, SIZE);
     this.animations.right[WALKING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
@@ -115,24 +109,8 @@ module.exports = (function() {
       tileY = Math.floor(box.bottom / 64) - 1,
       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     if (tile && tile.data.solid)
-<<<<<<< HEAD
       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
-  }
-
-  /*Player.prototype.playerState = function()
-  {
-    return {
-      state: this.state,
-      isLeft: this.isLeft
-    }
-  };*/
-
-  
-=======
-      this.currentX = (Math.ceil(this.currentX / 64) - 1) * 64;
   };
-
->>>>>>> c8c0e9fc1a40f122033be568b8667981b676ee3f
   /* Player update function
    * arguments:
    * - elapsedTime, the time that has passed
