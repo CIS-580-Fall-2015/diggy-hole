@@ -223,7 +223,7 @@ module.exports = (function(){
           break;
        
         case DETONATING:
-			var player = entityManager.getEntity(0);//player entity
+			var player = entityManager.getPlayer();//player entity
 			if(settingChargesTimer < 150){
 				settingChargesTimer++;
 			}else{
