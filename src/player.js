@@ -52,7 +52,12 @@ module.exports = (function(){
     this.xSpeed = 10;
     this.ySpeed = 15;
     this.isLeft = false;
+<<<<<<< HEAD
 
+=======
+	this.type = "player";
+    
+>>>>>>> refs/remotes/origin/master
     //The animations
     this.animations = {
       left: [],
@@ -158,6 +163,11 @@ module.exports = (function(){
           }
           break;
         case DIGGING:
+		var box = this.boundingBox(),
+			tileX = Math.floor((box.left + (SIZE/2))/64),
+			tileY = Math.floor(box.bottom / 64);											
+			tilemap.setTileAt(7, tileX, tileY, 0);			
+			sprite.state = FALLING;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
           sprite.currentY += sprite.velocityY * elapsedTime;
@@ -262,7 +272,19 @@ module.exports = (function(){
       bottom: this.currentY + SIZE
     }
   }
+<<<<<<< HEAD
 
+=======
+  
+  Player.prototype.boundingCircle = function() {
+     return {
+		 cx: this.currentX + SIZE/2,
+		 cy: this.currentY + SIZE/2,
+		 radius: SIZE/2
+	 }
+   }
+  
+>>>>>>> refs/remotes/origin/master
   return Player;
 
 }());

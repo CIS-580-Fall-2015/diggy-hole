@@ -12,6 +12,11 @@ module.exports = (function (){
   var entities = [],
       entityCount = 0;
 
+<<<<<<< HEAD
+=======
+  var Player = require('./player.js');
+  
+>>>>>>> refs/remotes/origin/master
   /* Adds an entity to those managed.
    * Arguments:
    * - entity, the entity to add
@@ -127,11 +132,13 @@ module.exports = (function (){
       // Only check existing entities
       if(entities[i]) {
         var circ = entities[i].boundingCircle();
-        if( Math.pow(circ.radius, 2) + Math.pow(r, 2) >=
-            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.y, 2)
-        ) entitiesInRadius.push(entities[i]);
+        if( Math.pow(circ.radius + r, 2) >=
+            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.cy, 2)
+        ){
+		entitiesInRadius.push(entities[i]);
       }
     }
+	}
     return entitiesInRadius;
   }
 
@@ -166,6 +173,7 @@ module.exports = (function (){
       }
     }
   }
+<<<<<<< HEAD
 
     function getEntity(index){
 	  return entities[index];
@@ -186,14 +194,26 @@ module.exports = (function (){
     return false;
   }
 
+=======
+  
+    function getEntity(index){
+	  return entities[index];
+  }
+  
+>>>>>>> refs/remotes/origin/master
   return {
     add: add,
     remove: remove,
     queryRadius: queryRadius,
     update: update,
     render: render,
+<<<<<<< HEAD
     playerDistance: playerDistance,
     playerDirection: playerDirection
+=======
+    getPlayer: getPlayer,
+	getEntity: getEntity
+>>>>>>> refs/remotes/origin/master
   }
 
 }());

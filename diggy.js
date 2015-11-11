@@ -1,7 +1,264 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/* Entity: Kakao(aka DiamondGroundhog) module
+ * Implements the entity pattern and provides
+ * the entity Kakao info.
+ * Author:
+ * - Karen(Fei) Fang
+ * Image source: http://www.archjrc.com/clipart
+ */
+module.exports = (function(){
+  var Entity = require('./entity.js'),
+      Diamond = require('./diamond.js'),
+      Animation = require('./animation.js');
+
+  /* The following are Kakao States */
+  const WALKING = 0;
+  const FALLING  = 1;
+  const HURT = 2;
+
+  // The Sprite Size
+  const SIZE = 64;
+
+  // Movement constants
+  const SPEED = 150/7;   //SLOWER THAN PLAYER
+  const GRAVITY = -250;
+
+  //The Kakao spritesheet
+  var kakaoImage = new Image();
+  kakaoImage.src = 'img/Kakao-animation.png';
+
+
+  //The Kakao constructor
+  function Kakao(locationX, locationY, layerIndex) {
+    this.type = "Kakao";
+    //default state
+    this.state = WALKING;
+    this.layerIndex = layerIndex;
+    this.currentX = locationX;
+    this.currentY = locationY;
+
+    this.currentTileIndex = 0;
+    this.constSpeed = 15;
+    this.gravity = .5;
+    this.angle = 0;
+    this.xSpeed = 10;
+    this.ySpeed = 15;
+    this.isLeft = false;
+    this.hurtFrame =0;
+    this.hasDiamond = false;
+    this.moveDiamond = false;
+
+    //The animations
+    this.animations = {
+      left: [],
+      right: [],
+    }
+
+    //The right-facing animations
+    this.animations.right[WALKING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0, 4);
+    this.animations.right[FALLING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0);
+    this.animations.right[HURT] = new Animation(kakaoImage, SIZE, SIZE, 0, SIZE*2, 4, 1/4);
+
+    //The left-facing animations
+    this.animations.left[WALKING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0, 4);
+    this.animations.left[FALLING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0);
+    this.animations.left[HURT] = new Animation(kakaoImage, SIZE, SIZE, 0, SIZE*2, 4, 1/4);
+
+    console.log("Kakao: create diamond entity");
+    this.diamond = new Diamond(this.currentX, this.currentY, 0);
+  }
+
+  // Kakao inherits from Entity
+  Kakao.prototype = new Entity();
+
+  // Determines if the Kakao is on the ground
+  Kakao.prototype.onGround = function(tilemap) {
+    var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (SIZE/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+  }
+
+  // Moves the Kakao to the left, colliding with solid tiles
+  Kakao.prototype.moveLeft = function(distance, tilemap) {
+    this.currentX -= distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.left/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.isLeft = false;  // turn when collide
+  }
+
+  // Moves the Kakao to the right, colliding with solid tiles
+  Kakao.prototype.moveRight = function(distance, tilemap) {
+    this.currentX += distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.right/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.isLeft = true;  // turn when collide
+  }
+
+  /* Kakao update function
+   * arguments:
+   * - elapsedTime, the time that has passed
+   *   between this and the last frame.
+   * - tilemap, the tilemap that corresponds to
+   *   the current game world.
+   */
+  Kakao.prototype.update = function(elapsedTime, tilemap, entityManager) {
+    if(!this.hasDiamond){
+      console.log("Kakao: add diamond to entityManager");
+      entityManager.add(this.diamond);
+      this.hasDiamond = true;
+    }
+    var sprite = this;
+    // Process Kakao state
+    switch(sprite.state) {
+      case WALKING:
+      // If there is no ground underneath, fall
+      if(!sprite.onGround(tilemap)) {
+        sprite.state = FALLING;
+        sprite.velocityY = 0;
+      } else {
+        if(sprite.isLeft){  //is not passable, turn
+          sprite.moveLeft(elapsedTime * SPEED, tilemap);
+        }else{
+          sprite.moveRight(elapsedTime * SPEED, tilemap);
+        }
+      }
+      break;
+      case FALLING:
+      sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+      sprite.currentY += sprite.velocityY * elapsedTime;
+      if(sprite.onGround(tilemap)) {
+        sprite.state = WALKING;
+        sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+      }
+      break;
+      case HURT:
+        //1/elapsedTime is the number of frames per min
+        //Each frame of HURT state is 1/4 min, thus the total HURT animation takes 1 min
+        //Therefore, hurtFrame is 1/(1/elapsedTime) = (1/elapsedTime)
+        if(sprite.hurtFrame <= (1/elapsedTime)){
+          sprite.hurtFrame++;
+        }else {
+          /*
+           *PLAN A: Relocate after HURT
+          */
+          //sprite.hurtFrame = 0;  //for relocation
+          //sprite.currentX += 3*SIZE;  //for relocation
+          //console.log("Kakao: Relocating to "+"( "+sprite.currentX+" , "+sprite.currentY+" )...");
+          /*
+           *PLAN B: Remove after HURT
+          */
+          entityManager.remove(this);
+          console.log("Kakao: Entity Kakao removed.");
+        }
+      break;
+    }
+    //console.log("Kakao: State: "+this.state+" Direction: "+this.isLeft);
+
+    // Update animation
+    if(this.isLeft)
+      this.animations.left[this.state].update(elapsedTime);
+    else
+      this.animations.right[this.state].update(elapsedTime);
+
+  }
+
+  /* Kakao Render Function
+   * arguments:
+   * - ctx, the rendering context
+   * - debug, a flag that indicates turning on
+   * visual debugging
+   */
+  Kakao.prototype.render = function(ctx, debug) {
+    // Draw the Kakao (and the correct animation)
+    if(this.isLeft)
+      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
+    else
+      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
+
+    if(debug) renderDebug(this, ctx);
+  }
+
+  // Draw debugging visual elements
+  function renderDebug(Kakao, ctx) {
+    var bounds = Kakao.boundingBox();
+    ctx.save();
+
+    // Draw Kakao bounding box
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Outline tile underfoot
+    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(tileX, tileY);
+    ctx.lineTo(tileX + 64, tileY);
+    ctx.lineTo(tileX + 64, tileY + 64);
+    ctx.lineTo(tileX, tileY + 64);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  /* Kakao BoundingBox Function
+   * returns: A bounding box representing the Kakao
+   */
+  Kakao.prototype.boundingBox = function() {
+    return {
+      left: this.currentX,
+      top: this.currentY,
+      right: this.currentX + SIZE,
+      bottom: this.currentY + SIZE
+    }
+  }
+
+  Kakao.prototype.boundingCircle =function(){
+    return{
+      cx: this.currentX + SIZE/2,
+      cy: this.currentY + SIZE/2,
+      radius: SIZE/2
+    }
+  }
+
+  Kakao.prototype.collide = function(otherEntity){
+    //console.log("Kakao: otherEntity.type: " + otherEntity.type);
+    if(otherEntity.type!="Diamond"){
+      this.state = HURT;
+      this.diamond.state = 1; //DROPPED
+      if(!this.moveDiamond){
+        //console.log("Diamond: collide: "+this.currentX+" , "+this.currentY);
+        this.diamond.currentX += SIZE;
+        this.diamond.currentY -= SIZE;
+        this.moveDiamond = true;
+      }
+    }
+  }
+
+  return Kakao;
+
+}());
+
+},{"./animation.js":2,"./diamond.js":7,"./entity.js":11}],2:[function(require,module,exports){
 module.exports = (function() { 
   
-  function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame) {
+  function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame, playItOnce) {
     this.frameIndex = 0,
     this.time = 0,
     this.secondsPerFrame = secondsPerFrame || (1/16),
@@ -13,6 +270,8 @@ module.exports = (function() {
     
     this.drawLocationX = top || 0;
     this.drawLocationY = left || 0;
+
+    this.playItOnce = playItOnce;
   }
   
   Animation.prototype.setStats = function(frameCount, locationX, locationY){
@@ -31,7 +290,7 @@ module.exports = (function() {
       // If the current frame index is in range
       if (this.frameIndex < this.numberOfFrames - 1) {	
         this.frameIndex += 1;
-      } else {
+      } else if(!this.playItOnce) {
         this.frameIndex = 0;
       }
     }
@@ -56,7 +315,869 @@ module.exports = (function() {
   
 }());
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
+/* Class of the Barrel Skeleton entity
+ *
+ * Author:
+ * - Matej Petrlik 
+ */
+ 
+ 
+module.exports = (function(){
+  var Entity = require('./entity.js'),
+		Player = require('./player.js'),
+		Bone = require('./bone.js'),
+      Animation = require('./animation.js');
+	  entityManager = require('./entity-manager.js');
+  
+  
+  const DEBUG = true;
+  
+  
+  /* The following are barrel states */
+  const IDLE = 0;
+  const ATTACKING = 1;
+  const ROLLING = 2;
+  const FALLING = 3;
+  const SWIMMING = 4;
+  const DEAD = 5;
+
+  const PROJECTILE = 6;
+  
+  
+  // The Sprite Size
+  const SIZE = 64;
+
+  // Movement constants
+  const SPEED = 150;
+  const GRAVITY = -250;
+  const JUMP_VELOCITY = -600;
+  const MAX_BUMPS = 3;
+  
+  
+    var boneLeft = new Image();
+  boneLeft.src = 'img/BoneLeft.png';
+  
+  var barrelIdle = new Image();
+  barrelIdle.src = 'img/BarrelIdle.png';
+  
+    var barrelAttack = new Image();
+  barrelAttack.src = 'img/BarrelAttack.png';
+  
+      var barrelRollingLeft = new Image();
+  barrelRollingLeft.src = 'img/BarrelRollingLeft.png';
+  
+      var barrelRollingRight = new Image();
+  barrelRollingRight.src = 'img/BarrelRollingRight.png';
+  
+    var barrelDead = new Image();
+  barrelDead.src = 'img/BarrelBroken.png';
+
+  //The Barrel constructor
+  function Barrel(locationX, locationY, layerIndex) {
+    this.layerIndex = layerIndex;
+    this.currentX = locationX; 
+    this.currentY = locationY; 
+    this.nextX = 0; 
+    this.nextY = 0;
+    this.currentTileIndex = 0; 
+    this.nextTileIndex = 0;
+    this.constSpeed = 15; 
+    this.gravity = .5; 
+    this.angle = 0; 
+    this.xSpeed = 10; 
+    this.ySpeed = 15;
+    this.isLeft = false;
+	
+	this.type = "Barrel";
+	
+	this.range = 5*SIZE;
+	this.attackFrequency = 1.7;
+	this.lastAttack = 0;
+	this.lives = 5;
+	
+	this.state = IDLE;
+	this.playerInRange = false;
+	this.attacked = false;
+	this.recovered = true;
+	this.attackedFromLeft = false;
+	this.bumpCount = 0;
+    
+    //The animations
+    this.animations = {
+      left: [],
+      right: [],
+    }
+    
+    //The right-facing animations
+    this.animations.right[IDLE] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
+	this.animations.right[ATTACKING] = new Animation(barrelAttack, SIZE, SIZE, 0, 0, 12);
+    this.animations.right[ROLLING] = new Animation(barrelRollingRight, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[FALLING] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
+    this.animations.right[SWIMMING] = new Animation(barrelRollingRight, SIZE, SIZE, 0, 0, 8);
+	this.animations.right[DEAD] = new Animation(barrelDead, SIZE, SIZE, 0, 0, 1);
+    
+    //The left-facing animations
+    this.animations.left[IDLE] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
+	this.animations.left[ATTACKING] = new Animation(barrelAttack, SIZE, SIZE, 0, 0, 12);
+    this.animations.left[ROLLING] = new Animation(barrelRollingLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.left[FALLING] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
+    this.animations.left[SWIMMING] = new Animation(barrelRollingLeft, SIZE, SIZE, 0, 0, 8);
+	this.animations.left[DEAD] = new Animation(barrelDead, SIZE, SIZE, 0, 0, 1);
+  }
+  
+  // Barrel inherits from Entity
+  Barrel.prototype = new Entity();
+  
+  // Determines if the barrel is on the ground
+  Barrel.prototype.onGround = function(tilemap) {
+    var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (SIZE/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+  }
+  
+  // Moves the barrel to the left, colliding with solid tiles
+  Barrel.prototype.moveLeft = function(distance, tilemap) {
+    this.currentX -= distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.left/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid) {
+		this.attackedFromLeft = true;
+		if(++this.bumpCount>MAX_BUMPS){
+			this.state = IDLE;
+			this.bumpCount = 0;
+		}
+      this.currentX = (Math.floor(this.currentX/64) + 1) * 64;
+	}
+  }
+  
+  // Moves the barrel to the right, colliding with solid tiles
+  Barrel.prototype.moveRight = function(distance, tilemap) {
+    this.currentX += distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.right/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid){
+		this.attackedFromLeft = false;
+		if(++this.bumpCount>MAX_BUMPS){
+			this.state = IDLE;
+			this.bumpCount = 0;
+		}		
+      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+	}
+  }
+  
+  /* Barrel update function
+   * arguments:
+   * - elapsedTime, the time that has passed 
+   *   between this and the last frame.
+   * - tilemap, the tilemap that corresponds to
+   *   the current game world.
+   */
+  Barrel.prototype.update = function(elapsedTime, tilemap, entityManager) {
+	  if(this.state == DEAD){
+		 return;
+	  }
+    var sprite = this;
+    
+	var entities = entityManager.queryRadius(this.currentX, this.currentY, this.range);
+	this.playerInRange = false;
+		for(var i=0; i<entities.length;i++){
+			if(entities[i] instanceof Player){
+				this.playerInRange = true;
+				if(!this.recovered && Math.pow(entities[i].currentX-this.currentX,2)+Math.pow(entities[i].currentY-this.currentY,2)>Math.pow(SIZE,2)){
+					this.recovered = true;
+				}
+				break;
+			}
+		}
+    
+      // Process barrel state
+      switch(sprite.state) {
+		  
+        case IDLE:
+			if(!sprite.onGround(tilemap)) {
+            sprite.state = FALLING;
+            sprite.velocityY = 0;
+			if(DEBUG){
+				console.log("Barrel state: FALLING");
+			}
+          } else if(sprite.attacked){
+	  
+			if(!sprite.attackedFromLeft) {
+              sprite.isLeft = true;
+              sprite.state = ROLLING;
+              sprite.moveLeft(elapsedTime * SPEED, tilemap);
+			  if(DEBUG){
+				console.log("Barrel direction: left");
+			}
+            }
+            else if(sprite.attackedFromLeft) {
+              sprite.isLeft = false;
+              sprite.state = ROLLING;
+              sprite.moveRight(elapsedTime * SPEED, tilemap);
+			  
+			  if(DEBUG){
+				console.log("Barrel direction: right");
+			}
+            }
+		  }
+			else if(sprite.playerInRange){
+				this.lastAttack = this.attackFrequency;
+				sprite.state = ATTACKING;
+				
+				if(DEBUG){
+				console.log("Barrel state: ATTACKING");
+			}
+			}
+			break;
+          
+		
+		
+		case ATTACKING:
+			sprite.attack(elapsedTime, entities);
+			if(!sprite.onGround(tilemap)) {
+            sprite.state = FALLING;
+            sprite.velocityY = 0;
+			if(DEBUG){
+				console.log("Barrel state: FALLING");
+			}
+          } else if(sprite.attacked){
+			if(!sprite.attackedFromLeft) {
+              sprite.isLeft = true;
+              sprite.state = ROLLING;
+              sprite.moveLeft(elapsedTime * SPEED, tilemap);
+            }
+            else if(sprite.attackedFromLeft) {
+              sprite.isLeft = false;
+              sprite.state = ROLLING;
+              sprite.moveRight(elapsedTime * SPEED, tilemap);
+            }
+		  }
+			else if(!sprite.playerInRange){
+				sprite.state = IDLE;
+				
+				if(DEBUG){
+				console.log("Barrel state: IDLE");
+			}
+			}
+          
+		break;
+		
+        case ROLLING:
+          // If there is no ground underneath, fall
+          if(!sprite.onGround(tilemap)) {
+            sprite.state = FALLING;
+            sprite.velocityY = 0;
+			if(DEBUG){
+				console.log("Barrel state: FALLING");
+			}
+          } else {
+			if(sprite.playerInRange && !sprite.attackedFromLeft) {
+              sprite.isLeft = true;
+              sprite.state = ROLLING;
+              sprite.moveLeft(elapsedTime * SPEED, tilemap);
+			  this.attacked = false;
+            }
+            else if(sprite.playerInRange && sprite.attackedFromLeft) {
+              sprite.isLeft = false;
+              sprite.state = ROLLING;
+              sprite.moveRight(elapsedTime * SPEED, tilemap);
+			  this.attacked = false;
+            }
+            else {
+				sprite.attacked = false;
+				sprite.recovered = true;
+              sprite.state = IDLE;
+			  
+			  if(DEBUG){
+				console.log("Barrel state: ROLLING");
+			}
+            }
+          }
+          break;
+		  
+        case FALLING:
+          sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          sprite.currentY += sprite.velocityY * elapsedTime;
+		  if(sprite.onGround(tilemap)) {
+			  sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+		  if(sprite.playerInRange && !sprite.attackedFromLeft) {
+              sprite.isLeft = true;
+              sprite.state = ROLLING;
+              sprite.moveLeft(elapsedTime * SPEED, tilemap);
+            }
+            else if(sprite.playerInRange && sprite.attackedFromLeft) {
+              sprite.isLeft = false;
+              sprite.state = ROLLING;
+              sprite.moveRight(elapsedTime * SPEED, tilemap);
+            } else {
+            sprite.state = IDLE;
+            
+			
+			if(DEBUG){
+				console.log("Barrel state: IDLE");
+			}
+          }
+		}
+          break;
+		  
+		case DEAD:
+			
+		break;
+		  
+        case SWIMMING:
+          // NOT IMPLEMENTED YET
+      }
+	
+	  
+	    // Update animation
+    if(this.isLeft)
+      this.animations.left[this.state].update(elapsedTime);
+    else
+      this.animations.right[this.state].update(elapsedTime);
+	
+	} 
+  
+  
+  /* Barrel Render Function
+   * arguments:
+   * - ctx, the rendering context
+   * - debug, a flag that indicates turning on
+   * visual debugging
+   */
+  Barrel.prototype.render = function(ctx, debug) {
+    // Draw the barrel (and the correct animation)
+    if(this.isLeft)
+      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
+    else
+      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
+    
+    if(debug) renderDebug(this, ctx);
+  }
+  
+  // Draw debugging visual elements
+  function renderDebug(barrel, ctx) {
+    var bounds = barrel.boundingBox();
+    ctx.save();
+    
+    // Draw barrel bounding box
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+    
+    // Outline tile underfoot
+    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(tileX, tileY);
+    ctx.lineTo(tileX + 64, tileY);
+    ctx.lineTo(tileX + 64, tileY + 64);
+    ctx.lineTo(tileX, tileY + 64);
+    ctx.closePath();
+    ctx.stroke();
+    
+    ctx.restore();
+  }
+  
+  /* barrel BoundingBox Function
+   * returns: A bounding box representing the barrel 
+   */
+  Barrel.prototype.boundingBox = function() {
+    return {
+      left: this.currentX,
+      top: this.currentY,
+      right: this.currentX + SIZE,
+      bottom: this.currentY + SIZE
+    }
+  }
+  
+  
+    Barrel.prototype.boundingCircle = function() {
+     return {
+		 cx: this.currentX + SIZE/2,
+		 cy: this.currentY + SIZE/2,
+		 radius: SIZE/2
+	 }
+   }
+   
+      /* Collide function
+    * This function is called by the entityManager when it determines
+    * a possible collision.
+    * parameters:
+    * - otherEntity is the entity this enemy collided with
+    *   You will likely want to use 
+    *     'otherEntity instanceof <Type>' 
+    *   to determine what type it is to know what to 
+    *   do with it.
+    */
+   Barrel.prototype.collide = function(otherEntity) {
+	   if((this.state == ATTACKING || this.state == IDLE) && this.recovered && otherEntity instanceof Player){
+		   if(DEBUG){
+		   console.log("Collision with player");
+	   }
+		   if(--this.lives<=0){
+			   this.state = DEAD;
+			   if(DEBUG){
+				console.log("Barrel state: DEAD");
+			}
+			   
+		   } else {
+			   if(DEBUG){
+		   console.log(this.lives+" lives left");
+		   console.log("Barrel state: ROLLING");
+	   }
+			   this.attacked = true;
+			   this.recovered = false;
+			   this.state = ROLLING;
+			   if(otherEntity.currentX <= this.currentX){
+				   this.attackedFromLeft = true;
+			   } else {
+				   this.attackedFromLeft = false;
+			   }
+		   }
+	   }
+   }
+   
+   
+   Barrel.prototype.attack = function(elapsedTime, entities){
+		this.lastAttack += elapsedTime;
+		if(this.lastAttack >= this.attackFrequency){
+			
+			for(var i=0; i<entities.length;i++){
+				if(entities[i] instanceof Player){
+					var playerX = entities[i].currentX;
+					break;
+				}
+			}
+			if(playerX > this.currentX){
+				var isLeft = false;
+			} else {
+				var isLeft = true;
+			}
+			
+			this.lastAttack = 0;
+			bone = new Bone(this.currentX, this.currentY, 0, isLeft);
+			entityManager.add(bone);
+		}
+	   
+   }
+  
+  return Barrel;
+
+}());
+
+
+},{"./animation.js":2,"./bone.js":4,"./entity-manager.js":10,"./entity.js":11,"./player.js":18}],4:[function(require,module,exports){
+/* Class of the Barrel Skeleton entity
+ *
+ * Author:
+ * - Matej Petrlik 
+ */
+ 
+ 
+module.exports = (function(){
+  var Entity = require('./entity.js'),
+		Player = require('./player.js'),
+      Animation = require('./animation.js');
+  
+  
+  const DEBUG = true;
+  
+  const PROJECTILE = 0;
+  
+  // The Sprite Size
+  const SIZE = 64;
+
+  // Movement constants
+  
+    var boneLeft = new Image();
+  boneLeft.src = 'img/BoneLeft.png';
+  
+
+  //The Bone constructor
+  function Bone(locationX, locationY, layerIndex, isLeft) {
+    this.layerIndex = layerIndex;
+    this.currentX = locationX; 
+    this.currentY = locationY; 
+    this.xSpeed = 200; 
+    this.isLeft = isLeft;
+	
+	this.type = "Bone";
+	
+	this.range = 5*SIZE;
+	this.enabled = true;
+	this.distTraveled = 0;
+	this.size = SIZE/2;
+	this.playerHit = false;
+	
+    
+    //The animations
+    this.animations = {
+      left: [],
+      right: [],
+    }
+    
+    //The right-facing animations
+	this.animations.right[PROJECTILE] = new Animation(boneLeft, SIZE, SIZE, 0, 0, 8);
+    
+    //The left-facing animations
+	this.animations.left[PROJECTILE] = new Animation(boneLeft, SIZE, SIZE, 0, 0, 8);
+  }
+  
+  // Bone inherits from Entity
+	Bone.prototype = new Entity();
+  
+	Bone.prototype.onGround = function(tilemap) {
+    var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (SIZE/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+    return (tile && tile.data.solid) ? true : false;
+  }
+  
+  
+
+  Bone.prototype.update = function(elapsedTime, tilemap, entityManager) {
+    
+	var entities = entityManager.queryRadius(this.currentX, this.currentY, this.range);
+	  
+	// Update projectile
+	if(this.enabled){
+			if(this.isLeft){
+				this.currentX -= elapsedTime * this.xSpeed;
+			} else {
+				this.currentX += elapsedTime * this.xSpeed;
+			}
+			this.distTraveled += elapsedTime * this.xSpeed;	
+			
+			
+			if(this.distTraveled >= this.range){
+				this.distTraveled = 0;
+				this.enabled = false;
+			}
+			
+			if(this.isLeft){
+		var box = this.boundingBox(),
+        tileX = Math.floor(box.left/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid) 
+      this.enabled = false;
+
+			
+		
+	} else {
+		var box = this.boundingBox(),
+        tileX = Math.floor(box.right/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.enabled = false;
+	}  
+       
+	} 
+	
+	// Update projectile animation
+	if(this.isLeft){
+		this.animations.left[PROJECTILE].update(elapsedTime);
+	} else {
+		this.animations.right[PROJECTILE].update(elapsedTime);
+	}
+	
+	if(!this.enabled){
+		entityManager.remove(this);
+	}
+  }
+  
+  Bone.prototype.render = function(ctx, debug) {
+	if(this.enabled){
+		if(this.isLeft){
+			this.animations.left[PROJECTILE].render(ctx, this.currentX, this.currentY);
+		} else {
+			this.animations.right[PROJECTILE].render(ctx, this.currentX, this.currentY);
+		}
+	}
+	
+	   if(debug) renderDebug(this, ctx);
+  }
+  
+  // Draw debugging visual elements
+  function renderDebug(bone, ctx) {
+    var bounds = bone.boundingBox();
+    ctx.save();
+    
+    // Draw bone bounding box
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+    
+    // Outline tile underfoot
+    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(tileX, tileY);
+    ctx.lineTo(tileX + 64, tileY);
+    ctx.lineTo(tileX + 64, tileY + 64);
+    ctx.lineTo(tileX, tileY + 64);
+    ctx.closePath();
+    ctx.stroke();
+    
+    ctx.restore();
+  }
+  
+  
+  Bone.prototype.boundingBox = function() {
+    return {
+      left: this.currentX,
+      top: this.currentY,
+      right: this.currentX + this.size*2,
+      bottom: this.currentY + this.size*2
+    }
+  }
+  
+  
+    Bone.prototype.boundingCircle = function() {
+     return {
+		 cx: this.currentX + this.size/2,
+		 cy: this.currentY + this.size/2,
+		 radius: this.size/2
+	 }
+   }
+   
+      /* Collide function
+    * This function is called by the entityManager when it determines
+    * a possible collision.
+    * parameters:
+    * - otherEntity is the entity this enemy collided with
+    *   You will likely want to use 
+    *     'otherEntity instanceof <Type>' 
+    *   to determine what type it is to know what to 
+    *   do with it.
+    */
+   Bone.prototype.collide = function(otherEntity) {
+	   if( otherEntity instanceof Player){
+		   this.enabled = false;
+		   if(DEBUG){
+		   console.log("Player hit by bone");	 			   
+		   } 
+	   }
+   }
+   
+   
+  
+  return Bone;
+
+}());
+
+
+},{"./animation.js":2,"./entity.js":11,"./player.js":18}],5:[function(require,module,exports){
+module.exports = (function(){
+
+var Animation = require('./animation.js'),
+	Entity = require('./entity.js'),
+	Tilemap = require('./tilemap.js'),
+	cannonballImg = new Image();
+	cannonballImg.src = './img/turret/cannonball_small.png',
+	explosionImg = new Image(),
+	explosionImg.src = './img/turret/explosion_small.png';
+	
+	const IDLE = 0,
+		  ASCENDING = 1,
+		  DESCENDING = 2,
+		  EXPLODING = 3;
+		  
+	const BALL_SIZE = 20,
+	      EXPLOSION_SIZE = 64;
+		  
+	const TILE_WIDTH = 64,
+		  TILE_HEIGHT = 64,
+		  MAP_SIZE = 1000;
+
+function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, gravity, centerOffsetX, centerOffsetY) {
+	this.initPosX = locationX + centerOffsetX,
+	this.initPosY = locationY + centerOffsetY;
+	this.posX = locationX;
+	this.posY = locationY;
+	this.type = 'cannonball';
+	this.state = IDLE;
+	this.verticalV = verticalV;
+	this.horizontalV = horizontalV;
+	this.gravity = gravity;
+	this.projectileTime = 0;
+	this.projectileTimeExploding = 0;
+	this.explosionSound = new Audio('./sounds/explosion.wav');
+	
+	// constants
+	this.projectileTimeToReachTop = undefined;
+	
+	this.animations = [];
+	
+	this.animations[IDLE] = new Animation(explosionImg, BALL_SIZE, BALL_SIZE, 0, 0);
+	this.animations[ASCENDING] = new Animation(cannonballImg, BALL_SIZE, BALL_SIZE, 0, 0);
+	this.animations[DESCENDING] = new Animation(cannonballImg, BALL_SIZE, BALL_SIZE, 0, 0);
+	this.animations[EXPLODING] = new Animation(explosionImg, EXPLOSION_SIZE, EXPLOSION_SIZE, 0, 0, 10);
+	
+	// get position x of the projectile at a given time after it has been fired
+	this.getXAtTime = function() {
+		return this.initPosX + this.horizontalV * this.projectileTime;
+	}
+	
+	// get position y of the projectile at a given time after it has been fired
+	this.getYAtTime = function() {
+		return this.initPosY + this.verticalV * this.projectileTime + this.gravity * this.projectileTime * this.projectileTime / 2;
+	}
+	
+	this.reset = function(verticalV, horizontalV) {
+		this.posX = this.initPosX;
+		this.posY = this.initPosY;
+		this.horizontalV = horizontalV;
+		this.verticalV = verticalV;
+		this.projectileTime = 0;
+		this.state = ASCENDING;
+		this.projectileTimeToReachTop = -this.verticalV / gravity;
+		this.projectileTimeExploding = 0;
+	}
+	
+	this.checkCollisions = function(tile) {
+		if (tile && tile.data.solid) {
+			tilemap.destroyTileAt(1, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			this.state = EXPLODING;
+			this.offsetExploding();
+			this.explosionSound.play();
+		}
+	}
+	
+	this.offsetExploding = function() {
+		this.posX -= 20;
+		this.posY -= 20;
+	}
+	
+	this.getXFromCoords = function(x) {
+		return (x / TILE_WIDTH) | 0;
+	}
+	
+	this.getYFromCoords = function(y) {
+		return (y / TILE_HEIGHT) | 0;
+	}
+}
+
+Cannonball.prototype = new Entity();
+	
+	Cannonball.prototype.update = function(elapsedTime, tilemap, entityManager)
+	{
+		if (this.state == ASCENDING || this.state == DESCENDING) {
+			if (this.projectileTime > this.projectileTimeToReachTop) {
+				this.state = DESCENDING;
+			}
+			this.animations[this.state].update(elapsedTime);
+			this.posX = this.getXAtTime();
+			this.posY = this.getYAtTime();
+			this.projectileTime += 0.5;
+		}
+		
+		if (this.state == EXPLODING) {
+			this.animations[this.state].update(elapsedTime);
+			this.projectileTimeExploding += elapsedTime;
+			if (this.projectileTimeExploding > 2) {
+				this.state = IDLE;
+			}
+		}
+		
+		this.checkCollisions(Tilemap.tileAt(this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0));
+	}
+
+	Cannonball.prototype.render = function(context, debug)
+	{
+		this.animations[this.state].render(context, this.posX, this.posY);
+		if(debug) renderDebug(this, context);
+	}
+
+	Cannonball.prototype.collide = function(otherEntity)
+	{
+		if (otherEntity.type == 'turret' && this.state == DESCENDING) {
+			this.offsetExploding();
+			this.state = EXPLODING;
+			this.explosionSound.play();
+		}
+	}
+	
+	function renderDebug(cannonball, ctx) {
+		var bounds = cannonball.boundingBox();
+		var circle = cannonball.boundingCircle();
+		ctx.save();
+		
+		// Draw player bounding box
+		ctx.strokeStyle = "red";
+		ctx.beginPath();
+		ctx.moveTo(bounds.left, bounds.top);
+		ctx.lineTo(bounds.right, bounds.top);
+		ctx.lineTo(bounds.right, bounds.bottom);
+		ctx.lineTo(bounds.left, bounds.bottom);
+		ctx.closePath();
+		ctx.stroke();
+		
+		ctx.strokeStyle = "blue";
+		ctx.beginPath();
+		ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
+		ctx.stroke();
+		
+		// Outline tile underfoot
+		var tileX = 64 * Math.floor((bounds.left + (BALL_SIZE/2))/64),
+			tileY = 64 * (Math.floor(bounds.bottom / 64));
+		ctx.strokeStyle = "black";
+		ctx.beginPath();
+		ctx.moveTo(tileX, tileY);
+		ctx.lineTo(tileX + 64, tileY);
+		ctx.lineTo(tileX + 64, tileY + 64);
+		ctx.lineTo(tileX, tileY + 64);
+		ctx.closePath();
+		ctx.stroke();
+		
+		ctx.restore();
+  }
+
+	Cannonball.prototype.boundingBox = function()
+	{
+		return {
+			left: this.posX,
+			top: this.posY,
+			right: this.posX + BALL_SIZE,
+			bottom: this.posY + BALL_SIZE
+		}
+	}
+
+	Cannonball.prototype.boundingCircle = function()
+	{
+		return {
+			cx: this.posX + BALL_SIZE / 2,
+			cy: this.posY + BALL_SIZE / 2,
+			radius: BALL_SIZE * Math.sqrt(2) / 2
+		}
+	}
+
+return Cannonball;
+	
+}())
+},{"./animation.js":2,"./entity.js":11,"./tilemap.js":20}],6:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -128,7 +1249,735 @@ module.exports = (function (){
   }
   
 })();
-},{}],3:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
+/* Entity: Diamond(added by Diamond) module
+ * Implements the entity pattern and provides
+ * the entity Diamond info.
+ * Author:
+ * - Karen(Fei) Fang
+ * Image source: https://openclipart.org
+ */
+module.exports = (function(){
+  var Entity = require('./entity.js'),
+      Animation = require('./animation.js');
+
+  // The Sprite Size
+  const SIZE = 64;
+
+  /* The following are Diamond States */
+  const HOLD = 0;
+  const DROPPED = 1;
+  const PICKED = 2;
+
+  //The Diamond spritesheet
+  var diamondImage = new Image();
+  diamondImage .src = 'img/diamond-animation.png';
+
+  var pickFrame = 0;
+
+
+  //The Diamond constructor
+  function Diamond(locationX, locationY, layerIndex) {
+    this.type = "Diamond";
+
+    this.layerIndex = layerIndex;
+    this.currentX = locationX;
+    this.currentY = locationY;
+
+    //default state
+    this.state = HOLD;
+
+    this.currentTileIndex = 0;
+
+    //The animations
+    this.animations = [];
+    this.animations[DROPPED] = new Animation(diamondImage, SIZE, SIZE, 0, 0);
+    this.animations[PICKED] = new Animation(diamondImage, SIZE, SIZE, 0, 0, 4, 1/4);
+  }
+
+  // Diamond inherits from Entity
+  Diamond.prototype = new Entity();
+
+  /* Diamond update function
+   * arguments:
+   * - elapsedTime, the time that has passed
+   *   between this and the last frame.
+   * - tilemap, the tilemap that corresponds to
+   *   the current game world.
+   */
+  Diamond.prototype.update = function(elapsedTime, tilemap, entityManager) {
+    switch (this.state) {
+      case HOLD:
+        return;
+      case DROPPED:
+        break;
+      case PICKED:
+        if(this.pickFrame <= 3*(1/elapsedTime)){
+          this.pickFrame++;
+        }else {
+          entityManager.remove(this);
+          console.log("Diamond: Player picked up the diamond! Entity Diamond removed.");
+          return;
+        }
+        break;
+    }
+    this.animations[this.state].update(elapsedTime);
+
+  }
+
+  /* Diamond Render Function
+   * arguments:
+   * - ctx, the rendering context
+   * - debug, a flag that indicates turning on
+   * visual debugging
+   */
+  Diamond.prototype.render = function(ctx, debug) {
+    // Draw the Diamond (and the correct animation)
+    //console.log("Diamond: this.state: "+this.state);
+    if(this.state != HOLD){
+      //console.log("Diamond: this.currentX: "+this.currentX+" this.currentY: "+this.currentY);
+      this.animations[this.state].render(ctx, this.currentX, this.currentY);
+    }
+  }
+
+  /* Diamond BoundingBox Function
+   * returns: A bounding box representing the Diamond
+   */
+  Diamond.prototype.boundingBox = function() {
+    return {
+      left: this.currentX + 1/4*SIZE,
+      top: this.currentY,
+      right: this.currentX + 3/4*SIZE,
+      bottom: this.currentY + SIZE
+    }
+  }
+  
+  Diamond.prototype.boundingCircle =function(){
+    return{
+      cx: this.currentX + SIZE/2,
+      cy: this.currentY + SIZE/2,
+      radius: SIZE/2
+    }
+  }
+
+  Diamond.prototype.collide = function(otherEntity){
+    if(otherEntity.type === "Kakao"&& this.state===HOLD){
+      //console.log("Kakao: Update diamond position.");
+      this.currentX = otherEntity.currentX;
+      this.currentY = otherEntity.currentY;
+      return;
+    }
+    if(otherEntity.type!="player" && otherEntity.type!= "Kakao"){  //collides with other players
+      this.state = DROPPED;
+    }
+    if(otherEntity.type === "player"){  //collides with player
+      this.state = PICKED;
+    }
+  }
+
+  return Diamond;
+
+}());
+
+},{"./animation.js":2,"./entity.js":11}],8:[function(require,module,exports){
+/* Dynamite Dynamite module
+ * Authors:
+ * Alexander Duben
+ */
+module.exports = (function(){
+  var Entity = require('./entity.js');
+  Animation = require('./animation.js');
+  
+  //states
+  const COUNTDOWN = 0;
+  const DETONATE = 1;
+  const DONE = 2;
+  const FALLING = 3;
+
+  // The Sprite Size
+  const SIZE = 64;
+
+  // Movement constants
+  const SPEED = 50;
+  const GRAVITY = -250;
+  const JUMP_VELOCITY = -600;
+  
+  
+  var dynamiteImg = new Image();
+  dynamiteImg.src = './img/dynamiteSprite.png';
+  var explosionImg = new Image();
+  explosionImg.src = './img/explosionSpriteBig.png';
+  var detonationTimer = 0;
+  var explosionTimer = 0;
+
+  //The Dynamite constructor
+  function Dynamite(locationX, locationY, layerIndex, inputManager, sourceEntity) {
+    this.inputManager = inputManager
+    this.state = FALLING; 
+    this.dug = false; 
+    this.downPressed = false;
+    this.layerIndex = layerIndex;
+    this.currentX = locationX; 
+    this.currentY = locationY; 
+    this.nextX = 0; 
+    this.nextY = 0;
+    this.currentTileIndex = 0; 
+    this.nextTileIndex = 0;
+    this.constSpeed = 15; 
+    this.gravity = .5; 
+    this.angle = 0; 
+    this.xSpeed = 10; 
+    this.ySpeed = 15;
+    this.isLeft = false;
+	this.isPlayerColliding = false;
+	this.type = 'dynamite';
+	this.velocityY = -800;
+	this.source = sourceEntity;
+	
+       //The animations
+    this.animations = {
+      dynamite: [],
+    }
+    
+    //The right-facing animations
+    this.animations.dynamite[FALLING] = new Animation(dynamiteImg, SIZE, SIZE, 0, 0, 8);
+    this.animations.dynamite[DETONATE] = new Animation(explosionImg, 300, 300, 0, 0, 4);
+	this.animations.dynamite[COUNTDOWN] = new Animation(dynamiteImg, SIZE, SIZE, 0, 0);
+	this.animations.dynamite[DONE] = new Animation(explosionImg, SIZE, SIZE, 5*SIZE, 0);
+  }
+  // Dynamite inherits from Entity
+  Dynamite.prototype = new Entity();
+  
+  // Determines if the player is on the ground
+  Dynamite.prototype.onGround = function(tilemap) {
+    var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (SIZE/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+  }
+  
+  
+  
+  /* Dynamite update function
+   * arguments:
+   * - elapsedTime, the time that has passed 
+   *   between this and the last frame.
+   * - tilemap, the tilemap that corresponds to
+   *   the current game world.
+   */
+  Dynamite.prototype.update = function(elapsedTime, tilemap, entityManager) {
+    var sprite = this;
+    
+    // The "with" keyword allows us to change the
+    // current scope, i.e. 'this' becomes our 
+    // inputManager
+    with (this.inputManager) {	
+
+		switch(sprite.state) {
+        case FALLING:
+			sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+			sprite.currentY += sprite.velocityY * elapsedTime;
+			if(sprite.onGround(tilemap)) {
+				sprite.velocityY = 0;
+				sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+				sprite.state = COUNTDOWN;
+			}
+			detonationTimer++;
+			
+          break;
+		case COUNTDOWN:
+			detonationTimer++;
+			if(detonationTimer > 260){
+				sprite.state = DETONATE;
+			}
+		break;
+        case DETONATE:
+		  if(explosionTimer < 15){
+			  explosionTimer++;
+			  if(explosionTimer == 8){
+				  sprite.source.state = 6; //remove source body
+			  }
+		  }else{
+				var box = sprite.boundingBox(),
+				tileX = Math.floor((box.left + (SIZE/2))/64),
+				tileY = Math.floor(box.bottom / 64);
+				for(var i = tileX-3; i < tileX+3;i++){
+					for(var j = tileY -3; j < tileY+3;j++){
+						
+						tilemap.setTileAt(7, i, j, 0);
+					}	  
+				}
+				for(var i = tileX-5; i < tileX+5;i++){
+					for(var j = tileY -5; j < tileY+5;j++){
+						if(Math.random() < 0.4){
+							tilemap.setTileAt(7, i, j, 0);
+						}
+						
+					}	  
+				}
+				sprite.state = DONE;
+				
+				
+		  }
+		  
+          break;
+		  
+		  case DONE:
+		  //final state
+			break;
+		}
+		
+      
+      
+      // Swap input buffers
+      swapBuffers();
+    }
+       
+    // Update animation
+    
+      this.animations.dynamite[this.state].update(elapsedTime);
+    
+    
+  }
+  
+  /* Dynamite Render Function
+   * arguments:
+   * - ctx, the rendering context
+   * - debug, a flag that indicates turning on
+   * visual debugging
+   */
+  Dynamite.prototype.render = function(ctx, debug) {
+    // Draw the Dynamite (and the correct animation)
+    if(this.state == COUNTDOWN){
+		this.animations.dynamite[this.state].render(ctx, this.currentX, this.currentY+25); 
+	}
+	else if(this.state == DETONATE){
+		this.animations.dynamite[this.state].render(ctx, this.currentX-100, this.currentY-100);
+	}else{
+		this.animations.dynamite[this.state].render(ctx, this.currentX, this.currentY);
+	}
+    if(this.state != DONE){
+		if(debug) renderDebug(this, ctx);
+	}
+    
+  }
+  
+  // Draw debugging visual elements
+  function renderDebug(Dynamite, ctx) {
+    var bounds = Dynamite.boundingBox();
+    ctx.save();
+    
+    // Draw Dynamite bounding box
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+    
+    // Outline tile underfoot
+    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(tileX, tileY);
+    ctx.lineTo(tileX + 64, tileY);
+    ctx.lineTo(tileX + 64, tileY + 64);
+    ctx.lineTo(tileX, tileY + 64);
+    ctx.closePath();
+    ctx.stroke();
+    
+    ctx.restore();
+  }
+  
+  Dynamite.prototype.collide = function(otherEntity){
+	  
+  }
+  
+  /* Dynamite BoundingBox Function
+   * returns: A bounding box representing the Dynamite 
+   */
+  Dynamite.prototype.boundingBox = function() {
+    return {
+      left: this.currentX,
+      top: this.currentY,
+      right: this.currentX + SIZE,
+      bottom: this.currentY + SIZE
+    }
+  }
+  
+  Dynamite.prototype.boundingCircle = function() {
+     return {cx: this.currentX+SIZE/2, cy: this.currentY+SIZE/2, radius: SIZE/2}
+   }
+  
+  return Dynamite;
+
+}());
+},{"./animation.js":2,"./entity.js":11}],9:[function(require,module,exports){
+/* Dynamite Dwarf module
+ * Authors:
+ * Alexander Duben
+ */
+module.exports = (function(){
+  var Entity = require('./entity.js'),
+      Animation = require('./animation.js'),
+	  Dynamite = require('./dynamite.js');
+  
+  /* The following are Dwarf States (Swimming is not implemented) */
+  const STANDING = 0;
+  const WALKING = 1;
+  const DETONATING = 2;
+  const FALLING = 3;
+  const DYING = 4;
+  const DEAD = 5;
+  const DONE = 6;
+  
+  var GROUNDLVL = 10;
+
+  // The Sprite Size
+  const SIZE = 64;
+
+  // Movement constants
+  const SPEED = 50;
+  const GRAVITY = -250;
+  const JUMP_VELOCITY = -600;
+  
+  //The Right facing dwarf spritesheet
+  var dwarfRight = new Image();
+  dwarfRight.src = 'DwarfAnimatedRight.png';
+
+  //The left facing dwarf spritesheet
+  var dwarfLeft = new Image();
+  dwarfLeft.src = "DwarfAnimatedLeft.png";
+  
+  //walk sprites
+  var walkLeft = new Image();
+  walkLeft.src = "./img/dwarfWalkLeft.png";
+  var walkRight = new Image();
+  walkRight.src = "./img/dwarfWalkRight.png";
+  
+  //idle sprites
+  var idleLeft = new Image();
+  idleLeft.src = "./img/dwarfIdleLeft.png";
+  var idleRight = new Image();
+  idleRight.src = "./img/dwarfIdleRight.png";
+  
+  //fall sprites
+  var fallLeft = new Image();
+  fallLeft.src = "./img/dwarfFallLeft.png";
+  var fallRight = new Image();
+  fallRight.src = "./img/dwarfFallRight.png";
+  
+  //dying sprites
+  var dieLeft = new Image();
+  dieLeft.src = "./img/dwarfDyingLeft.png";
+  var dieRight = new Image();
+  dieRight.src = "./img/dwarfDyingRight.png";
+  
+  //dead sprites
+  var deadLeft = new Image();
+  deadLeft.src = "./img/dwarfDeadLeft.png";
+  var deadRight = new Image();
+  deadRight.src = "./img/dwarfDeadRight.png";
+  
+  //detonate sprite
+  var detonate = new Image();
+  detonate.src = "./img/dwarfDetonate.png";
+  
+  var walkTimer = 0,
+	idleTimer = 0,
+	settingChargesTimer = 0,
+	dyingTimer = 0;
+
+  //The Dwarf constructor
+  function Dwarf(locationX, locationY, layerIndex, inputManager) {
+    this.inputManager = inputManager
+    this.state = WALKING; 
+    this.dug = false; 
+    this.downPressed = false;
+    this.layerIndex = layerIndex;
+    this.currentX = locationX; 
+    this.currentY = locationY; 
+    this.nextX = 0; 
+    this.nextY = 0;
+    this.currentTileIndex = 0; 
+    this.nextTileIndex = 0;
+    this.constSpeed = 15; 
+    this.gravity = .5; 
+    this.angle = 0; 
+    this.xSpeed = 10; 
+    this.ySpeed = 15;
+    this.isLeft = false;
+	this.isPlayerColliding = false;
+	this.type = 'dynamiteDwarf';
+	//this.player = playerEntity;
+    
+    //The animations
+    this.animations = {
+      left: [],
+      right: [],
+    }
+    
+    //The right-facing animations
+    this.animations.right[STANDING] = new Animation(idleRight, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[WALKING] = new Animation(walkRight, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[DYING] = new Animation(dieRight, SIZE, SIZE, SIZE,0,7);
+    this.animations.right[DETONATING] = new Animation(detonate, SIZE, SIZE, 0, 0, 20, 1/8);
+    this.animations.right[FALLING] = new Animation(fallRight, SIZE, SIZE, 0, 0);
+	this.animations.right[DEAD] = new Animation(deadRight, SIZE, SIZE, 0, 0);
+	this.animations.right[DONE] = new Animation(dieRight,SIZE,SIZE,0,0);
+    
+    
+    //The left-facing animations
+    this.animations.left[STANDING] = new Animation(idleLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.left[WALKING] = new Animation(walkLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.left[DYING] = new Animation(dieLeft, SIZE, SIZE, 0,0,7);
+    this.animations.left[DETONATING] = new Animation(detonate, SIZE, SIZE, 0, 0, 20, 1/8);
+    this.animations.left[FALLING] = new Animation(fallLeft, SIZE, SIZE, 0, 0);
+	this.animations.left[DEAD] = new Animation(deadLeft, SIZE, SIZE, 0, 0);
+    this.animations.left[DONE] = new Animation(dieRight,SIZE,SIZE,0,0);
+  }
+  
+  // Dwarf inherits from Entity
+  Dwarf.prototype = new Entity();
+  
+  
+  // Determines if the Dwarf is on the ground
+  Dwarf.prototype.onGround = function(tilemap) {
+    var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (SIZE/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+  }
+  
+  // Moves the Dwarf to the left, colliding with solid tiles
+  Dwarf.prototype.moveLeft = function(distance, tilemap) {
+    this.currentX -= distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.left/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid) 
+      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
+  }
+  
+  // Moves the Dwarf to the right, colliding with solid tiles
+  Dwarf.prototype.moveRight = function(distance, tilemap) {
+    this.currentX += distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.right/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+  }
+  
+  /* Dwarf update function
+   * arguments:
+   * - elapsedTime, the time that has passed 
+   *   between this and the last frame.
+   * - tilemap, the tilemap that corresponds to
+   *   the current game world.
+   */
+  Dwarf.prototype.update = function(elapsedTime, tilemap, entityManager) {
+    var sprite = this;
+    GROUNDLVL = tilemap.surface;
+    // The "with" keyword allows us to change the
+    // current scope, i.e. 'this' becomes our 
+    // inputManager
+    with (this.inputManager) {
+	
+      // Process Dwarf state
+      switch(sprite.state) {
+        case STANDING:
+			sprite.isPlayerColliding = false;
+			if(isKeyDown(commands.ATTACK)){
+				sprite.state = DYING;
+			}
+			if(!sprite.onGround(tilemap)) {
+				sprite.state = FALLING;
+				sprite.velocityY = 0;
+				idleTimer = 0;
+				break;
+			}
+			if(idleTimer < 120){
+				idleTimer++;
+				if(isKeyDown(commands.PAY)) {
+					sprite.state = DETONATING;
+				}
+			}else{
+				idleTimer = 0;
+				sprite.state = WALKING;
+			}
+
+			break;
+        case WALKING:
+          // If there is no ground underneath, fall
+          if(sprite.isPlayerColliding){
+			  sprite.state = STANDING;
+			  walkTimer = 0;
+		  }else if(!sprite.onGround(tilemap)) {
+            sprite.state = FALLING;
+            sprite.velocityY = 0;
+          }
+		  else {                      
+            if(walkTimer<480) {
+              sprite.state = WALKING;
+			  walkTimer++;
+			  if(sprite.isLeft){
+				 sprite.moveLeft(elapsedTime * SPEED, tilemap); 
+			  }else{
+				 sprite.moveRight(elapsedTime * SPEED, tilemap); 
+			  }             
+            }else{
+				walkTimer = 0;
+				sprite.isLeft = !sprite.isLeft;
+			}
+          }
+          break;
+       
+        case DETONATING:
+			var player = entityManager.getPlayer();//player entity
+			if(settingChargesTimer < 150){
+				settingChargesTimer++;
+			}else{
+				settingChargesTimer = 0;
+				var box = sprite.boundingBox(),
+				tileX = Math.floor((box.left + (SIZE/2))/64),
+				tileY = Math.floor(box.bottom / 64);								
+				for(var j = tileY; j > GROUNDLVL;j--){
+					tilemap.setTileAt(7, tileX, j-1, 0);
+				}
+				player.currentX = tileX*64;
+				player.currentY = tileY*64;
+				//player.velocityY = -1500;		
+				player.velocityY = -Math.sqrt((tileY-GROUNDLVL)*64*10*(-GRAVITY));//shoot player above surface level
+				if((tileY-GROUNDLVL) <= 0){//if above surface just use just constant force
+					player.velocityY = -1500;
+				}
+				player.state = 2;//jumping
+				sprite.state = WALKING;
+			}
+          break;
+        case FALLING:
+          sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          sprite.currentY += sprite.velocityY * elapsedTime;
+          if(sprite.onGround(tilemap)) {
+            sprite.state = WALKING;
+            sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+          }
+          
+          break;
+        case DYING:
+			if(dyingTimer < 25){
+				dyingTimer++;
+			}else{
+				dyingTimer = 0;
+				var dynamite = new Dynamite(sprite.currentX,sprite.currentY,0, sprite.inputManager,sprite);
+				entityManager.add(dynamite);
+				sprite.state = DEAD;
+			}
+			break;
+		case DEAD:
+			//stays dead until body destroyed
+			break;
+		case DONE:
+			//final state
+			break;
+      }
+      
+      // Swap input buffers
+      swapBuffers();
+    }
+       
+    // Update animation
+    if(this.isLeft)
+      this.animations.left[this.state].update(elapsedTime);
+    else
+      this.animations.right[this.state].update(elapsedTime);
+    
+  }
+  
+  /* Dwarf Render Function
+   * arguments:
+   * - ctx, the rendering context
+   * - debug, a flag that indicates turning on
+   * visual debugging
+   */
+  Dwarf.prototype.render = function(ctx, debug) {
+    // Draw the Dwarf (and the correct animation)
+    if(this.isLeft)
+      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
+    else
+      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
+    
+    if(this.state != DONE){
+		if(debug) renderDebug(this, ctx);
+	}
+  }
+  
+  // Draw debugging visual elements
+  function renderDebug(Dwarf, ctx) {
+    var bounds = Dwarf.boundingBox();
+    ctx.save();
+    
+    // Draw Dwarf bounding box
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+    
+    // Outline tile underfoot
+    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(tileX, tileY);
+    ctx.lineTo(tileX + 64, tileY);
+    ctx.lineTo(tileX + 64, tileY + 64);
+    ctx.lineTo(tileX, tileY + 64);
+    ctx.closePath();
+    ctx.stroke();
+    
+    ctx.restore();
+  }
+  
+  Dwarf.prototype.collide = function(otherEntity){
+	  if(otherEntity.type == 'player'){
+		  this.isPlayerColliding = true;
+	  }
+  }
+  
+  /* Dwarf BoundingBox Function
+   * returns: A bounding box representing the Dwarf 
+   */
+  Dwarf.prototype.boundingBox = function() {
+    return {
+      left: this.currentX,
+      top: this.currentY,
+      right: this.currentX + SIZE,
+      bottom: this.currentY + SIZE
+    }
+  }
+  
+  Dwarf.prototype.boundingCircle = function() {
+     return {cx: this.currentX+SIZE/2, cy: this.currentY+SIZE/2, radius: SIZE/2};
+   }
+  
+  return Dwarf;
+
+}());
+},{"./animation.js":2,"./dynamite.js":8,"./entity.js":11}],10:[function(require,module,exports){
 /* The entity manager for the DiggyHole game
  * Currently it uses brute-force approaches
  * to its role - this needs to be refactored
@@ -146,6 +1995,11 @@ module.exports = (function (){
   var entities = [],
       entityCount = 0;
 
+<<<<<<< HEAD
+=======
+  var Player = require('./player.js');
+  
+>>>>>>> refs/remotes/origin/master
   /* Adds an entity to those managed.
    * Arguments:
    * - entity, the entity to add
@@ -206,6 +2060,9 @@ module.exports = (function (){
           // don't check for collisions with ourselves
           // and don't bother checking non-existing entities
           if(i != j && entities[j]) {
+			  if (entities[i] == undefined) {
+				  console.log("Undefined");
+			  }
             var boundsA = entities[i].boundingBox();
             var boundsB = entities[j].boundingBox();
             if( boundsA.left < boundsB.right &&
@@ -236,11 +2093,13 @@ module.exports = (function (){
       // Only check existing entities
       if(entities[i]) {
         var circ = entities[i].boundingCircle();
-        if( Math.pow(circ.radius, 2) + Math.pow(r, 2) >=
-            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.y, 2)
-        ) entitiesInRadius.push(entities[i]);
+        if( Math.pow(circ.radius + r, 2) >=
+            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.cy, 2)
+        ){
+		entitiesInRadius.push(entities[i]);
       }
     }
+	}
     return entitiesInRadius;
   }
 
@@ -268,6 +2127,7 @@ module.exports = (function (){
     }
   }
 
+<<<<<<< HEAD
 
   /* Gets distance between entity and player */
   function playerDistance(entity) {
@@ -284,19 +2144,42 @@ module.exports = (function (){
     return false;
   }
 
+=======
+  function getPlayer(){
+    for(var i = 0; i < entityCount; i++) {
+      if(entities[i] && entities[i] instanceof Player){
+        return entities[i];
+      }
+    }
+  }
+  
+    function getEntity(index){
+	  return entities[index];
+  }
+  
+>>>>>>> refs/remotes/origin/master
   return {
     add: add,
     remove: remove,
     queryRadius: queryRadius,
     update: update,
     render: render,
+<<<<<<< HEAD
     playerDistance: playerDistance,
     playerDirection: playerDirection
+=======
+    getPlayer: getPlayer,
+	getEntity: getEntity
+>>>>>>> refs/remotes/origin/master
   }
 
 }());
+<<<<<<< HEAD
 
 },{"./mud_golem.js":9}],4:[function(require,module,exports){
+=======
+},{"./player.js":18}],11:[function(require,module,exports){
+>>>>>>> refs/remotes/origin/master
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -349,7 +2232,7 @@ module.exports = (function(){
     *   do with it.
     */
    Entity.prototype.collide = function(otherEntity) {
-   }
+   } 
    
    /* BoundingBox function
     * This function returns an axis-aligned bounding
@@ -367,14 +2250,14 @@ module.exports = (function(){
     * the circle should contain your entity or at 
     * least the part that can be collided with.
     */
-   Entity.prototype.boundingBox = function() {
-     // Return a bounding box for your entity
+   Entity.prototype.boundingCircle = function() {
+     // Return a bounding circle for your entity
    }
    
    return Entity;
   
 }());
-},{}],5:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /* Game GameState module
  * Provides the main game logic for the Diggy Hole game.
  * Authors:
@@ -384,14 +2267,22 @@ module.exports = (function (){
   
   // The width & height of the screen
   const SCREEN_WIDTH = 1280,
-        SCREEN_HEIGHT = 720;
-
+        SCREEN_HEIGHT = 720;	
+	
   // Module variables
   var Player = require('./player.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
+      StoneMonster = require('./stone-monster.js'),
+      Barrel = require('./barrel.js'),
+	  Turret = require('./turret.js'),
+	  DynamiteDwarf = require('./dynamiteDwarf.js'),
+	  Kakao = require('./Kakao.js'),
+	  kakao,
+      GoblinMiner = require('./goblin-miner.js'),
       player,
+      stoneMonster,
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -430,11 +2321,38 @@ module.exports = (function (){
         tilemap.render(screenCtx);
       }
     });
-    
+
+    for (var i = 0; i < 35; i += 7){
+      stoneMonster = new StoneMonster(64*i, 0, 0);
+      entityManager.add(stoneMonster);
+    }
+
     // Create the player and add them to
     // the entity manager
-    player = new Player(180, 240, 0, inputManager);
+    player = new Player(64*6, 240, 0, inputManager);
     entityManager.add(player);
+	
+	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
+	entityManager.add(goblinMiner);
+	
+	// Spawn 10 barrels close to player
+	 // And some turrets
+	for(var i = 0; i < 10; i++){
+		if (i < 3) { 
+			turret = new Turret(Math.random()*64*50, Math.random()*64*20, o);
+			entityManager.add(turret);
+		}
+		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
+		entityManager.add(barrel);
+	}
+	
+	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
+	entityManager.add(dynamiteDwarf);
+	
+	// Karenfang: Create a Kakao and add it to
+    // the entity manager
+    kakao = new Kakao(310,240,0);  //two tiles to the right of the player
+    entityManager.add(kakao);
   }
    
   /* Updates the state of the game world
@@ -507,7 +2425,519 @@ module.exports = (function (){
   }
   
 })();
+<<<<<<< HEAD
 },{"./entity-manager.js":3,"./input-manager.js":6,"./main-menu.js":7,"./player.js":11,"./tilemap.js":12}],6:[function(require,module,exports){
+=======
+
+},{"./Kakao.js":1,"./barrel.js":3,"./dynamiteDwarf.js":9,"./entity-manager.js":10,"./goblin-miner.js":13,"./input-manager.js":14,"./main-menu.js":15,"./player.js":18,"./stone-monster.js":19,"./tilemap.js":20,"./turret.js":21}],13:[function(require,module,exports){
+/* Goblin Miner module
+ * Implements the entity pattern and provides
+ * the DiggyHole Goblin Miner info.
+ * Author:
+ * - Wyatt Watson
+ * - Nathan Bean
+ */
+module.exports = (function(){
+    var Entity = require('./entity.js'),
+	    Animation = require('./animation.js');
+	  
+    /* The following are Goblin Miner States */
+    const PASSIVE_STANDING = 0;
+    const WALKING = 1;
+    const JUMPING = 2;
+    const FALLING = 3;
+    const DIGGING = 4;
+    const CHARGING = 5;
+    const ATTACKING = 6;
+    const AGGRESSIVE_STANDING = 7;
+  
+
+    function GoblinMiner(locationX, locationY, layerIndex, entManager){
+	    this.data = {type: 'goblinMiner'};
+		this.entityManager = entManager;
+		this.state = PASSIVE_STANDING;
+	    this.layerIndex = layerIndex;
+	    this.currentX = locationX;
+	    this.currentY = locationY;
+	    this.nextX = 0;
+	    this.nextY = 0;
+	    this.currentTileIndex = 0;
+	    this.nextTileIndex = 0;
+	    this.constSpeed = 15;
+	    this.gravity = .5;
+	    this.angle = 0;
+	    this.xSpeed = 10;
+	    this.ySpeed = 15;
+		this.velocityY = 0;
+	    this.isLeft = false;
+		this.direction = 0;
+	  
+	    // The animations
+	    this.animations = {
+			left: [],
+			right: []
+	    }
+	  
+	    /* ADD CODE HERE */
+	    // The right-facing animations
+	    this.animations.right[PASSIVE_STANDING] = new Animation(goblinMinerRight, 354/8, 64, 354/8, 0, 0, 8);
+	    // the left-facing animations
+	    /* END ADD CODE HERE */
+    }  
+  
+    GoblinMiner.prototype = new Entity();
+	
+    // Determines if the Goblin Miner is on the ground
+    GoblinMiner.prototype.onGround = function(tilemap) {
+		var box = this.boundingBox(),
+			tileX = Math.floor((box.left + (SIZE/2))/64),
+			tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+    }
+	
+    /* Returns the entities in Sight
+     * - tileX, the x coordinate of our current tile location
+     * - tileY, the y coordinate of our current tile location
+     * - layerIndex, the layer we are in and interact with
+     * - tileMap, the tilemap
+     */
+    function vision(tileX, tileY, layerIndex, tileMap, goblin){
+	var entities = goblin.entityManager.queryRadius(tileX, tileY, 2);
+	/* for(i = -5; i <= 5; i++){
+		if(i == 0){}
+		else{
+			var temp = {
+				entity: tileMap.tileAt(tileX+i, tileY, layerIndex), 
+				direction: i};
+			if(tileX+i >= 0 && tileX+i <= 1000)
+				entities.push(temp);
+		}
+	} */
+	return entities;
+    }
+	  
+    /* Returns the entities in Hearing Range
+     * - tileX, the x coordinate of our current tile location
+     * - tileY, the y coordinate of our current tile location
+     * - layerIndex, the layer we are in and interact with
+     * - tileMap, the tilemap
+     */
+    function aggressionRadius(tileX, tileY, layerIndex, tileMap, goblin){
+	var entities = goblin.entityManager.queryRadius(tileX, tileY, 7);
+/* 	for(j = -5; j <= 5; j++){
+		for(i = -5; i <= 5; i++){
+			if(i == 0 && j == 0){}
+			else{
+				var temp = {
+					entity: tileMap.tileAt(tileX+i, tileY+j, layerIndex),
+				direction: i};
+				if(tileX+i >= 0 && tileX+i <= 1000 && tileY+j >= 0 && tileY+j <= 1000)
+					entities.push(tileMap.tileAt(tileX+i, tileY+j, layerIndex));
+			}
+		}
+	} */
+	return entities;
+    }
+	  
+    /* Returns a bool for if there is a large enough path to jump up
+     * - tileX, the x coordinate of our current tile location
+     * - tileY, the y coordinate of our current tile location
+     * - layerIndex, the layer we are in and interact with
+     * - tileMap, the tilemap
+     */
+    function checkAbovePath(tileX, tileY, layerIndex, tileMap){
+	var tile = tileMap.tileAt(tileX, tileY-1, layerIndex);
+	if(!(tile && tile.data.solid)){
+		tile = tileMap.tileAt(tileX, tileY-2, layerIndex);
+		if(!(tile && tile.data.solid))
+			return true;
+	}
+	return false;
+    }
+	  
+    /* Returns a bool for if the path above is open (false - solid, true - open)
+     * - tileX, the x coordinate of our current tile location
+     * - tileY, the y coordinate of our current tile location
+     * - layerIndex, the layer we are in and interact with
+     * - tileMap, the tilemap
+     */
+    function checkAbove(tileX, tileY, layerIndex, tileMap){
+	var tile = tileMap.tileAt(tileX, tileY-1, layerIndex);
+	if(tile && tile.data.solid)
+		return false;
+	return true;
+    }
+	  
+    /* Returns a bool for if the path to the right is open (false - solid, true - open)
+     * - tileX, the x coordinate of our current tile location
+     * - tileY, the y coordinate of our current tile location
+     * - layerIndex, the layer we are in and interact with
+     * - tileMap, the tilemap
+     */
+    function checkRight(tileX, tileY, layerIndex, tileMap){
+	var tile = tileMap.tileAt(tileX+1, tileY, layerIndex);
+	if(tile && tile.data.solid)
+		return false;
+	return true;
+    }
+
+    /* Returns a bool for if the path to the left is open (false - solid, true - open)
+     * - tileX, the x coordinate of our current tile location
+     * - tileY, the y coordinate of our current tile location
+     * - layerIndex, the layer we are in and interact with
+     * - tileMap, the tilemap
+     */  
+    function checkLeft(tileX, tileY, layerIndex, tileMap){
+	var tile = tileMap.tileAt(tileX-1, tileY, layerIndex);
+	if(tile && tile.data.solid)
+		return false;
+	return true;
+    }
+
+    /* Returns a bool for if the path below is open (false - solid, true - open)
+     * - tileX, the x coordinate of our current tile location
+     * - tileY, the y coordinate of our current tile location
+     * - layerIndex, the layer we are in and interact with
+     * - tileMap, the tilemap
+     */
+    function checkBelow (tileX, tileY, layerIndex, tileMap){
+	var tile = tileMap.tileAt(tileX, tileY+1, layerIndex);
+	if(tile && tile.data.solid)
+		return false;
+	return true;
+    }
+	  
+    /* Returns an array holding a command and possibly direction
+     * - tileX, the x coordinate of our current tile location
+     * - tileY, the y coordinate of our current tile location
+     * - layerIndex, the layer we are in and interact with
+     * - tileMap, the tilemap
+     * - currentState, the current state of the goblin miner
+     * - direction, the possible direction the goblin miner is moving
+     */
+    function command(tileX, tileY, layerIndex, tileMap, currentState, direction, goblin){  
+	if(!goblin.onGround(tilemap)){
+		return {command: FALLING, direction: 0};
+	}
+		  
+/* 	var visionEnts = vision(tileX, tileY, layerIndex, tileMap, goblin);
+	var aggroEnts = aggressionRadius(tileX, tileY, layerIndex, tileMap, goblin);
+		  
+	// Check for player in vision
+	for(i = 0; i < visionEnts.length; i++){
+		if(visionEnts[i].type == 'player'){
+			var temp;
+			if(visionEnts[i].direction == 1 || visionEnts[i].direction == -1)
+				temp = {command: ATTACKING, direction: visionEnts[i].direction};
+			else
+				temp = {command: CHARGING, direction: visionEnts[i].direction};
+			return temp;
+		}
+	} 
+		  
+	// Check for player in aggro range
+	for(i = 0; i < aggroEnts.length; i++){
+		if(aggroEnts[i].type == 'player'){
+			var temp = {command: AGGRESSIVE_STANDING, direction: aggroEnts[i].direction};
+			return temp;
+		}
+	}  */
+		  
+	// Player is not nearby, so need to find something to do
+	var randomNum = Math.random();
+		  
+	switch(currentState) {
+		case AGGRESSIVE_STANDING:
+		    return {command: PASSIVE_STANDING, direction: 0};
+			break;
+		case PASSIVE_STANDING:
+		    if(randomNum < .8)
+			    return {command: PASSIVE_STANDING, direction: 0};
+			if(randomNum > .4){
+				if(checkLeft(tileX, tileY, layerIndex, tileMap) && tileX-1 >= -1)
+					return {command: WALKING, direction: -1};
+				else{
+					if(randomNum > .7)
+						return {command: DIGGING, direction: -1};
+					else 
+						return {command: WALKING, direction: 1};
+				}
+			}
+			else{
+				if(checkRight(tileX, tileY, layerIndex, tileMap) && tileX+1 <= 1000)
+					return {command: WALKING, direction: 1};
+				else{
+					if(randomNum < .1)
+						return {command: DIGGING, direction: 1};
+					else
+						return {command: WALKING, direction: -1};
+				}
+			}
+			break;
+		case WALKING:
+		    /*if(randomNum < .05)
+			    return {command: PASSIVE_STANDING, direction: 0};
+			else*/ if(checkBelow(tileX, tileY, layerIndex, tileMap)){
+				if(randomNum > .1 && tileX+direction >= 0){
+					return {command: WALKING, direction: direction};
+				}
+				else
+					return {command: WALKING, direction: -direction};
+			}
+		    if(direction == 1){
+			    if(checkRight(tileX, tileY, layerIndex, tileMap))
+				    return {command: WALKING, direction: 1};
+				else if(randomNum < .9 && tileX-1 >= -1)
+					return {command: WALKING, direction: -1};
+			    else
+				    return {command: DIGGING, direction: 1}; 
+		    }
+		    else{
+			    if(checkLeft(tileX, tileY, layerIndex, tileMap) && tileX-1 >= -1)
+				    return {command: WALKING, direction: -1};
+				else if(randomNum < .9 && tileX+1 <= 1000)
+					return {command: WALKING, direction: 1};
+			    else
+				    return {command: DIGGING, direction: -1}; 
+		    }
+			break;
+		case DIGGING:
+		    if(direction >= 1 && checkRight(tileX, tileY, layerIndex, tileMap))
+			    return {command: WALKING, direction: 1};
+		    else if(direction <= -1 && checkLeft(tileX, tileY, layerIndex, tileMap))
+			    return {command: WALKING, direction: -1};
+			break;
+		case FALLING:
+			if(randomNum > .5){
+			    if(checkRight(tileX, tileY, layerIndex, tileMap) && tileX+1 <= 1000)
+					return {command: FALLING, direction: 1};
+			    else
+					return {command: FALLING, direction: 0};
+			}
+			else{
+			    if(checkLeft(tileX, tileY, layerIndex, tileMap) && tileX-1 >= 0)
+					return {command: FALLING, direction: -1};
+			    else
+				    return {command: FALLING, direction: 0};
+			}	 
+			break;
+        }
+		return {command: currentState, direction: direction};
+    } 
+  
+    // Movement constants
+    const SPEED = 150;
+    const GRAVITY = -250;
+    const JUMP_VELOCITY = -600;
+  
+    // Current stance (Passive, Aggressive)
+    var Passive = true;
+	
+	var SIZE = 64;
+  
+    /* ADD CODE HERE */
+    // The right facing goblin miner spritesheet(s)
+    var goblinMinerRight = new Image();
+    goblinMinerRight.src = 'img/Passive_Scratch.png';
+  
+    // The left facing goblin miner spritesheet(s)
+    var goblinMinerLeft = new Image();
+    goblinMinerLeft.src = '';
+    /* END ADD CODE HERE*/
+  
+    // Moves the Goblin Miner to the left, colliding with solid tiles
+    GoblinMiner.prototype.moveLeft = function(distance, tilemap) {
+    this.currentX -= distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.left/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid) 
+      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
+    }
+  
+  // Moves the Goblin Miner to the right, colliding with solid tiles
+  GoblinMiner.prototype.moveRight = function(distance, tilemap) {
+    this.currentX += distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.right/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+  }
+  
+  /* Goblin Miner update function
+   * arguments:
+   * - elapsedTime, the time that has passed 
+   *   between this and the last frame.
+   * - tilemap, the tilemap that corresponds to
+   *   the current game world.
+   */
+  GoblinMiner.prototype.update = function(elapsedTime, tilemap) {
+    var sprite = this;
+    
+	var tileX = Math.floor(this.currentX/64);
+	var tileY = Math.floor(this.currentY/64);
+	
+    var whatDo = command(Math.floor(this.currentX/64), Math.floor(this.currentY/64), this.layerIndex, tilemap, this.state, this.direction, this);
+    //var whatDo = {command: PASSIVE_STANDING, direction: 0};
+	this.state = whatDo.command;
+	this.direction = whatDo.direction;
+	
+	/* ADD CODE HERE */
+    // Process Goblin Miner state
+    switch(whatDo.command) {
+        case PASSIVE_STANDING:
+		  this.velocityY = 0;
+		  break;
+		case AGGRESSIVE_STANDING:
+		  this.velocityY = 0;
+		  break;
+        case WALKING:
+		  this.velocityY = 0;
+          if(whatDo.direction >= 0){
+			  this.isLeft = false;
+			  this.moveRight(elapsedTime * SPEED, tilemap);
+		  }
+		  else{
+			  this.isLeft = true;
+			  this.moveLeft(elapsedTime * SPEED, tilemap);
+		  }
+          break;
+		case CHARGING:
+          if(whatDo.direction > 0){
+			  this.isLeft = false;
+			  this.moveRight(elapsedTime * SPEED*2, tilemap);
+		  }
+		  else{
+			  this.isLeft = true;
+			  this.moveLeft(elapsedTime * SPEED*2, tilemap);
+		  }
+          break;
+        case DIGGING:
+		  if(whatDo.direction > 0){
+			  tilemap.removeTileAt(tileX+1, tileY, this.layerIndex);
+		  }
+		  else{
+			  tilemap.removeTileAt(tileX-1, tileY, this.layerIndex);
+		  }
+		case ATTACKING:
+		  if(whatDo.direction > 0){
+			  //attack right
+		  }
+		  else{
+			  //attack left
+		  }
+        case FALLING:
+          this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          this.currentY += sprite.velocityY * elapsedTime;
+          if(this.onGround(tilemap)) {
+            this.state = PASSIVE_STANDING;
+            this.currentY = 64 * Math.floor(sprite.currentY / 64);
+			this.velocityY = 0;
+          }   
+          if(whatDo.direction > 0){
+			  this.isLeft = false;
+			  this.moveRight(elapsedTime * SPEED, tilemap);
+		  }
+		  else if(whatDo.direction < 0){
+			  this.isLeft = true;
+			  this.moveLeft(elapsedTime * SPEED, tilemap);
+		  }
+          break;
+      }
+	  /* END ADD CODE HERE */
+       
+    // Update animation
+    /* if(this.isLeft)
+      this.animations.left[this.state].update(elapsedTime);
+    else
+      this.animations.right[this.state].update(elapsedTime); */
+  
+    this.animations.right[PASSIVE_STANDING].update(elapsedTime);
+  }
+  
+  /* Goblin Miner Render Function
+   * arguments:
+   * - ctx, the rendering context
+   * - debug, a flag that indicates turning on
+   * visual debugging
+   */
+  GoblinMiner.prototype.render = function(ctx, debug) {
+    // Draw the Goblin Miner (and the correct animation)
+    /* if(this.isLeft)
+      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
+    else
+      this.animations.right[this.state].render(ctx, this.currentX, this.currentY); */
+    
+	this.animations.right[PASSIVE_STANDING].render(ctx, this.currentX, this.currentY);
+	
+    if(debug) renderDebug(this, ctx);
+  }
+  
+  // Draw debugging visual elements
+  function renderDebug(goblinMiner, ctx) {
+    var bounds = goblinMiner.boundingBox();
+    ctx.save();
+    
+    // Draw Goblin Miner bounding box
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+    
+    // Outline tile underfoot
+    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(tileX, tileY);
+    ctx.lineTo(tileX + 64, tileY);
+    ctx.lineTo(tileX + 64, tileY + 64);
+    ctx.lineTo(tileX, tileY + 64);
+    ctx.closePath();
+    ctx.stroke();
+    
+    ctx.restore();
+  }
+  
+  GoblinMiner.prototype.collide = function(otherEntity) {
+  	if(otherEntity.type == "player"){
+  		return [ATTACKING, 0];
+  	}
+  }
+  
+  /* Goblin Miner BoundingBox Function
+   * returns: A bounding box representing the Goblin Miner 
+   */
+  GoblinMiner.prototype.boundingBox = function() {
+    return {
+      left: this.currentX,
+      top: this.currentY,
+      right: this.currentX + SIZE,
+      bottom: this.currentY + SIZE
+    }
+  }
+  GoblinMiner.prototype.boundingCircle = function() {
+     return {
+		 cx: this.currentX + SIZE/2,
+		 cy: this.currentY + SIZE/2,
+		 radius: SIZE/2
+	 }
+   }
+  return GoblinMiner;
+  
+}());
+
+},{"./animation.js":2,"./entity.js":11}],14:[function(require,module,exports){
+>>>>>>> refs/remotes/origin/master
 module.exports = (function() { 
 
   var commands = {	
@@ -516,6 +2946,8 @@ module.exports = (function() {
 	  UP: 38,
 	  DOWN: 40,
     DIG: 32,
+	PAY: 80,
+	ATTACK : 65
   }
   
   var oldKeys = [];
@@ -566,7 +2998,7 @@ module.exports = (function() {
   }
   
 })();
-},{}],7:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -691,7 +3123,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./credits-screen":2}],8:[function(require,module,exports){
+},{"./credits-screen":6}],16:[function(require,module,exports){
 
 
 // Wait for the window to load completely
@@ -735,6 +3167,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
+<<<<<<< HEAD
 },{"./game":5,"./main-menu":7}],9:[function(require,module,exports){
 /* A stationary mud golem creature with a powerful attack
    Built from player.js template
@@ -973,6 +3406,9 @@ module.exports = (function() {
 }());
 
 },{"./animation.js":1,"./entity.js":4}],10:[function(require,module,exports){
+=======
+},{"./game":12,"./main-menu":15}],17:[function(require,module,exports){
+>>>>>>> refs/remotes/origin/master
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -1098,7 +3534,11 @@ module.exports = (function(){
   }
 
 }());
+<<<<<<< HEAD
 },{}],11:[function(require,module,exports){
+=======
+},{}],18:[function(require,module,exports){
+>>>>>>> refs/remotes/origin/master
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -1153,8 +3593,13 @@ module.exports = (function(){
     this.xSpeed = 10;
     this.ySpeed = 15;
     this.isLeft = false;
+<<<<<<< HEAD
     this.entity_type = "Player";
 
+=======
+	this.type = "player";
+    
+>>>>>>> refs/remotes/origin/master
     //The animations
     this.animations = {
       left: [],
@@ -1260,6 +3705,11 @@ module.exports = (function(){
           }
           break;
         case DIGGING:
+		var box = this.boundingBox(),
+			tileX = Math.floor((box.left + (SIZE/2))/64),
+			tileY = Math.floor(box.bottom / 64);											
+			tilemap.setTileAt(7, tileX, tileY, 0);			
+			sprite.state = FALLING;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
           sprite.currentY += sprite.velocityY * elapsedTime;
@@ -1364,12 +3814,309 @@ module.exports = (function(){
       bottom: this.currentY + SIZE
     }
   }
+<<<<<<< HEAD
 
   return Player;
 
 }());
 
 },{"./animation.js":1,"./entity.js":4}],12:[function(require,module,exports){
+=======
+  
+  Player.prototype.boundingCircle = function() {
+     return {
+		 cx: this.currentX + SIZE/2,
+		 cy: this.currentY + SIZE/2,
+		 radius: SIZE/2
+	 }
+   }
+  
+  return Player;
+
+}());
+},{"./animation.js":2,"./entity.js":11}],19:[function(require,module,exports){
+/* Stone monster module
+ * Implements the entity pattern
+ * Authors:
+ * - Filip Stanek
+ */
+module.exports = (function(){
+    var Entity = require('./entity.js'),
+        Animation = require('./animation.js'),
+        Player = require('./player.js');
+
+    const SIZE = 64;
+    const GRAVITY = -250;
+    const SPEED = 50;
+
+    // StoneMonster States
+    const WAITING = 0;
+    const MOVING = 1;
+    const FALLING = 2;
+    const SMASHED = 3;
+    const STUCK = 4;
+
+    const SPRITE_WIDTH = 82;
+    const SPRITE_HEIGHT = 80;
+
+    const CLOSE_TO_PLAYER = SIZE * 4;
+    const WAIT_TIME = 3;
+
+    const TIME_TO_LIVE = 25;
+
+    function StoneMonster(locationX, locationY, layerIndex) {
+        this.type = "StoneMonster";
+        this.layerIndex = layerIndex;
+        this.currentX = locationX;
+        this.currentY = locationY;
+        this.speedY = 0;
+        this.state = MOVING;
+        this.isMovingRight = true;
+        this.bounced = false;
+        this.waitingTime = 0;
+        this.timeToLive = TIME_TO_LIVE;
+        this.renderBoundingCircle = false;
+
+        this.idle_image = new Image();
+        this.idle_image.src = './stone-monster-img/stone_monster_idle.png';
+
+
+        var moving_image_left = new Image();
+        moving_image_left.src = './stone-monster-img/stone-monster-moving-left.png';
+        var moving_image_right = new Image();
+        moving_image_right.src = './stone-monster-img/stone-monster-moving-right.png';
+        var destroyed_image = new Image();
+        destroyed_image.src = './stone-monster-img/stone_monster_destroyed.png';
+
+        this.animation_right = new Animation(moving_image_right, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
+        this.animation_left = new Animation(moving_image_left, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
+        this.animation_destroyed = new Animation(destroyed_image, SIZE, SIZE, 0, 0, 8, 0.05, true);
+    }
+
+    StoneMonster.prototype = new Entity();
+
+    StoneMonster.prototype.moveLeft = function(distance, tilemap) {
+        this.currentX -= distance;
+        var box = this.boundingBox(),
+            tileX = Math.floor(box.left/64),
+            tileY = Math.floor(box.bottom / 64) - 1,
+            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+        if (tile && tile.data.solid) {
+            this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
+            return true;
+        }
+        return false;
+    };
+
+    StoneMonster.prototype.moveRight = function(distance, tilemap) {
+        this.currentX += distance;
+        var box = this.boundingBox(),
+            tileX = Math.floor(box.right/64),
+            tileY = Math.floor(box.bottom / 64) - 1,
+            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+        if (tile && tile.data.solid) {
+            this.currentX = (Math.ceil(this.currentX / 64) - 1) * 64;
+            return true;
+        }
+        return false;
+    };
+
+    StoneMonster.prototype.move = function(elapsedTime, tilemap, entityManager){
+        var collided = false;
+        if(this.isMovingRight){
+            collided = this.moveRight(elapsedTime * SPEED, tilemap);
+        }
+        else{
+            collided = this.moveLeft(elapsedTime * SPEED, tilemap);
+        }
+        if(collided){
+            if(this.bounced){
+                this.state = STUCK;
+                return;
+            }
+            this.isMovingRight = !this.isMovingRight;
+            this.bounced = true;
+        }
+        else if(!this.bounced){
+            var player = entityManager.getPlayer();
+            if (player) {
+                if (this.currentX < player.currentX - CLOSE_TO_PLAYER) {
+                    this.isMovingRight = true;
+                }
+                else if (this.currentX > player.currentX + CLOSE_TO_PLAYER) {
+                    this.isMovingRight = false;
+                }
+                else if (this.currentY > player.currentY){
+                    this.state = WAITING;
+                }
+            }
+        }
+    };
+
+    StoneMonster.prototype.update = function(elapsedTime, tilemap, entityManager) {
+        switch (this.state) {
+            case WAITING:
+                this.waitingTime += elapsedTime;
+                if (this.waitingTime < WAIT_TIME) {
+                    break;
+                }
+                var player = entityManager.getPlayer();
+                if (player && (this.currentX <= 64*Math.floor((player.currentX - CLOSE_TO_PLAYER)/64)
+                    || this.currentX >= 64*Math.floor((player.currentX + CLOSE_TO_PLAYER)/64)
+                    || this.currentY < player.currentY )) {
+                    this.waitingTime = 0;
+                    this.state = MOVING;
+                }
+                break;
+            case MOVING:
+                if (!this.onGround(tilemap)) {
+                    this.state = FALLING;
+                    this.speedY = 0;
+                    break;
+                }
+                this.move(elapsedTime, tilemap, entityManager);
+                break;
+            case FALLING:
+                this.bounced = false;
+                this.speedY += Math.pow(GRAVITY * elapsedTime, 2);
+                this.currentY += this.speedY * elapsedTime;
+                if (this.onGround(tilemap)) {
+                    this.state = MOVING;
+                    this.currentY = 64 * Math.floor(this.currentY / 64);
+                }
+                break;
+            case SMASHED:
+                this.animation_destroyed.update(elapsedTime);
+                this.timeToLive -= elapsedTime;
+                if(this.timeToLive < 0){
+                    entityManager.remove(this);
+                }
+                break;
+            case STUCK:
+                var player = entityManager.getPlayer();
+                if (player && (this.currentX <= 64*Math.floor((player.currentX - CLOSE_TO_PLAYER)/64)
+                    || this.currentX >= 64*Math.floor((player.currentX + CLOSE_TO_PLAYER)/64)
+                    || this.currentY < player.currentY )) {
+                    this.timeToLive -= elapsedTime;
+                }
+                else{
+                    this.timeToLive = TIME_TO_LIVE;
+                }
+                if(this.timeToLive < 0){
+                    entityManager.remove(this);
+                }
+                break;
+        }
+        if (this.state == MOVING) {
+            if (this.isMovingRight) {
+                this.animation_right.update(elapsedTime);
+            }
+            else {
+                this.animation_left.update(elapsedTime);
+            }
+        }
+    };
+
+    StoneMonster.prototype.render = function(ctx, debug) {
+        if(this.state == WAITING || this.state == FALLING || this.state == STUCK) {
+            ctx.drawImage(this.idle_image, this.currentX, this.currentY);
+        }
+        else if(this.state == MOVING) {
+            if(this.isMovingRight){
+                this.animation_right.render(ctx, this.currentX - 19, this.currentY - 16);
+            }
+            else {
+                this.animation_left.render(ctx, this.currentX, this.currentY - 16);
+            }
+        }
+        else if(this.state == SMASHED){
+            this.animation_destroyed.render(ctx, this.currentX, this.currentY);
+        }
+        if(debug){
+            this.renderDebug(ctx);
+        }
+    };
+
+    StoneMonster.prototype.renderDebug = function(ctx) {
+        var bounds = this.boundingBox();
+        ctx.save();
+        ctx.strokeStyle = "purple";
+        ctx.beginPath();
+        ctx.moveTo(bounds.left, bounds.top);
+        ctx.lineTo(bounds.right, bounds.top);
+        ctx.lineTo(bounds.right, bounds.bottom);
+        ctx.lineTo(bounds.left, bounds.bottom);
+        ctx.closePath();
+        ctx.stroke();
+        if(this.renderBoundingCircle){
+            var boundingCircle = this.boundingCircle();
+            ctx.beginPath();
+            ctx.arc(boundingCircle.cx, boundingCircle.cy, boundingCircle.radius, 0, 2*Math.PI);
+            ctx.closePath();
+            ctx.stroke();
+        }
+        ctx.restore();
+    };
+
+    StoneMonster.prototype.onGround = function(tilemap) {
+        var box = this.boundingBox(),
+            tileX = Math.floor((box.left + (SIZE/3))/64),
+            tileY = Math.floor(box.bottom / 64),
+            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+        return (tile && tile.data.solid) ? true : false;
+    };
+
+    StoneMonster.prototype.boundingBox = function() {
+        return {
+            left: this.currentX,
+            top: this.currentY,
+            right: this.currentX + SIZE,
+            bottom: this.currentY + SIZE
+        }
+    };
+
+    StoneMonster.prototype.boundingCircle = function() {
+        return {
+            cx: this.currentX + SIZE/2,
+            cy: this.currentY + SIZE/2,
+            radius: Math.sqrt(2*SIZE*SIZE)/2
+        }
+    };
+
+    StoneMonster.prototype.collide = function(otherEntity){
+        if(!otherEntity || otherEntity instanceof StoneMonster){
+            return;
+        }
+        if(otherEntity instanceof Player && this.state != FALLING
+            && otherEntity.currentY + SIZE/2 <= this.currentY){
+            this.state = SMASHED;
+        }
+        var entityRect = otherEntity.boundingBox();
+        var thisRect = this.boundingBox();
+
+
+        if(entityRect.bottom > thisRect.top){
+            if(otherEntity instanceof Player) {
+                otherEntity.currentY = thisRect.top - SIZE - 2;
+                if (this.state == SMASHED) {
+                    //otherEntity.health -= DAMAGE;
+                    console.log("damage");
+                }
+            }
+        }
+        else if(entityRect.right - SIZE/3 >= thisRect.left){
+            otherEntity.currentX -= (entityRect.right - thisRect.left);
+        }
+        else if(entityRect.left - SIZE/3 <= thisRect.right){
+            console.log(thisRect.right - entityRect.left);
+            otherEntity.currentX = this.currentX + SIZE + 2;
+        }
+    };
+
+    return StoneMonster;
+}());
+},{"./animation.js":2,"./entity.js":11,"./player.js":18}],20:[function(require,module,exports){
+>>>>>>> refs/remotes/origin/master
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -1390,7 +4137,8 @@ module.exports = (function (){
       viewportHalfWidth = 0,
       viewportHalfHeight = 0,
       viewportTileWidth = 0,
-      viewportTileHeight = 0;
+      viewportTileHeight = 0,
+	  tileset;
    
   /* Clamps the provided value to the provided range
    * Arguments:
@@ -1453,7 +4201,7 @@ module.exports = (function (){
     // Load the tileset(s)
     mapData.tilesets.forEach( function(tilesetmapData, index) {
       // Load the tileset image
-      var tileset = new Image();
+      tileset = new Image();
       loading++;
       tileset.onload = function() {
         loading--;
@@ -1605,7 +4353,7 @@ module.exports = (function (){
     
     // Determines where the surface is (and end of the sky)
     var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));  
-    
+    this.surface = surface;
     // Determines where the crust layer of the earth ends
     var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
 	
@@ -1719,6 +4467,7 @@ module.exports = (function (){
             map[index] = 15;
           }
         }
+		
       }
     }
     
@@ -1850,16 +4599,455 @@ module.exports = (function (){
     return tiles[layers[layer].data[x + y*mapWidth] - 1];
   }
   
+  /*
+	Changes the type of tile at a given position
+	author: Alexander Duben
+  */
+  var setTileAt = function(newType, x,y, layer){
+	 if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){ 
+      return undefined; 
+	 }else{
+		 var tile = {
+          // Reference to the image, shared amongst all tiles in the tileset
+          image: tileset,
+          // Source x position.  i % colCount == col number (as we remove full rows)
+          sx: x,
+          // Source y position. i / colWidth (integer division) == row number 
+          sy: y,
+          // The tile's data (solid/liquid, etc.)
+          data: newType
+        }
+		layers[layer].data[x + y*mapWidth] = tile;
+	 }
+  }
+  
+  // Sets tile to skies
+  // author: Milan Zelenka
+  var destroyTileAt = function(newType, x,y, layer){
+	 if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){ 
+      return undefined; 
+	 }else{
+		layers[layer].data[x + y * mapWidth] = 1;
+	 }
+  }
+  
+  //Dig tile out at x, y
+  var removeTileAt = function(x, y, layer) {
+	if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight) 
+      return undefined;
+    layers[layer].data[x + y*mapWidth] =  16; 
+  }
+  
   // Expose the module's public API
   return {
     load: load,
     generate: generate,
     render: render,
     tileAt: tileAt,
+	setTileAt: setTileAt,
+	destroyTileAt: destroyTileAt,
+    removeTileAt: removeTileAt,
     setViewportSize: setViewportSize,
     setCameraPosition: setCameraPosition
   }
   
   
 })();
+<<<<<<< HEAD
 },{"./noise.js":10}]},{},[5,8]);
+=======
+
+},{"./noise.js":17}],21:[function(require,module,exports){
+
+
+
+module.exports = (function(){
+	var Animation = require('./animation.js'),
+		Player = require('./player.js'),
+		Entity = require('./entity.js'),
+		Cannonball = require('./cannonball.js'),
+		entityManager = require('./entity-manager.js'),
+		turret = new Image();
+		turret.src = './img/turret/turretMany.png';
+		destroyedTurret = new Image();
+		destroyedTurret.src = './img/turret/turretDestroyed2.png';
+		
+	const IDLE = 0,
+		  FIRING = 1,
+		  WAITING = 2,
+		  RELOADING = 3,
+		  DESTROYED = 4;
+		
+	const 	turretWidth = 88,
+			turretHeight = 86;
+			turretImgCount = 48,
+			turretVertical = 25,
+			turretDestroyedWidth = 88,
+			turretDestroyedHeight = 169,
+			// where to target from
+			centerOffsetX = 47,
+			centerOffsetY = 45,
+			// where to aim
+			playerOffsetX = 64/2,
+			playerOffsetY = playerOffsetX;
+			
+	const   cannonballNum = 3,
+			reloadTime = 5,
+			shootingDelay = 0.5,
+			optimizationDelay = 0.00;
+	
+	function Turret(locationX, locationY, mapLayer){
+		// computational constants
+		this.posX = locationX,
+		this.posY = locationY,
+		this.type = 'turret',
+		this.launchSpeed = 20,
+		this.gravity = 0.5,
+		this.angle = 91,
+		this.launchSpeedPow2 = this.launchSpeed * this.launchSpeed,
+		this.launchSpeedPow4 = this.launchSpeedPow2 * this.launchSpeedPow2,
+		this.gravityPow2 = this.gravity * this.gravity,
+		this.gravityTimesLSPow2 = this.gravity * this.launchSpeedPow2,
+		this.LSPow2TimesTwoTimesG = 2 * this.launchSpeedPow2 * this.gravity,
+		
+		this.player = null;
+		this.state = IDLE;
+		this.targeting = false;
+		this.falling = false;
+		this.fallingVelocity = 0;
+		this.time = 0;
+		this.optimizationTimer = 0;
+		// variables fro animations, turret animations, index of animation to render, coordinates of lines that approximate targetting parabola
+		this.animations = [],
+		this.layerIndex = 0,
+		this.destroyedAnimation = undefined;
+		this.renderIdx = 0;
+		this.parabolaSeries = [];
+		// highlight for laser
+		this.highlight = new Array(Math.round(Math.random()*255), Math.round(Math.random()*255), Math.round(Math.random()*255));
+		
+		this.cannonballs = [],
+		this.cnbsFired = 0;
+		this.shotSound = [];
+		
+		this.spawnCannonballs = function() {
+			for (var i = 0; i < cannonballNum; i ++) {
+				this.cannonballs[i] = new Cannonball(this.posX, this.posY, 0, 0, 0, this.gravity, centerOffsetX, centerOffsetY);
+				entityManager.add(this.cannonballs[i]);
+				this.shotSound[i] = new Audio('./sounds/shot.wav');
+			}
+		}
+		
+		// Loads animations to animations array
+		this.loadAnimations = function () {
+			for (var i = 0; i < turretImgCount; i ++) {
+				this.animations[i] = new Animation(turret, turretWidth, turretHeight, i * turretWidth, 0);
+			}
+			this.destroyedAnimation = new Animation(destroyedTurret, turretWidth, turretHeight, 0, 0, 10);
+		}
+		
+		// is called to aim the turret in a right angle
+		this.setAngleOfAnimation = function(angle) {
+			if (angle < 0) {
+				var angleToFrames = Math.round((angle * 180 / Math.PI + 90) / 5);
+				this.renderIdx = turretVertical - angleToFrames;
+			} else {
+				var angleToFrames = Math.round((angle * 180 / Math.PI - 90) / 5);
+				this.renderIdx = turretVertical - angleToFrames;
+			}
+		}
+		
+		// compute angle that is necessary for the turret to hit our target
+		this.getAngle = function (targetX, targetY) {
+			var position = this.getDistance(targetX, targetY);
+			
+			var rightPart =  Math.sqrt(this.launchSpeedPow4 - (this.gravityPow2 * position[0] * position[0] + this.LSPow2TimesTwoTimesG * position[1]));
+			var res1 = Math.atan((this.launchSpeedPow2 + rightPart) / (this.gravity * position[0])) /** (180 / 3.14159265)*/;
+			var res2 = Math.atan((this.launchSpeedPow2 - rightPart) / (this.gravity * position[0])) /** (180 / 3.14159265)*/;
+			// console.log(this.getVerticalVel());
+			// console.log(this.getHorizontalVel());
+			return res1;
+		}
+		
+		// get distance of the target relative to the turret which is at (0, 0)
+		this.getDistance = function (targetX, targetY) {
+			x = (targetX + playerOffsetX) - (this.posX + centerOffsetX);
+			y = (this.posY + centerOffsetY) - (targetY + playerOffsetY);
+			return [x, y];
+		}
+		
+		// computes initial vertical velocity of the projectile 
+		this.getVerticalVel = function () {
+			return -this.launchSpeed * Math.sin(Math.abs(this.angle) /** (3.14159265/180)*/);
+		}
+		
+		// computes horizontal velocity of the projectile
+		this.getHorizontalVel = function () {
+			if (this.angle > 0)
+				return this.launchSpeed * Math.cos(this.angle /** (3.14159265/180)*/);
+			else
+				return -this.launchSpeed * Math.cos(this.angle/* * (3.14159265/180)*/);
+		}
+		
+		// computes the time necessary for the projectile to reach the target
+		this.getTimeToReach = function(elevationDifference) {
+			var verticalVel = Math.abs(this.getVerticalVel());
+			var left = verticalVel / this.gravity;
+			var right = Math.sqrt(verticalVel * verticalVel / this.gravityPow2 - elevationDifference * 2 / this.gravity);
+			var x1 = left - right;
+			var x2 = left + right;
+			return [x1, x2];
+		}
+		
+		// is called when the target gets in the turret's query range
+		this.targetInRange = function(entitie) {
+			if (this.optimizationTimer < optimizationDelay) {
+				console.log("skipped");
+				return;
+			}
+			else
+				this.optimizationTimer = 0;
+			this.buildParabola(entitie);
+			this.setAngleOfAnimation(this.angle);
+		}
+		
+		// get position x of the projectile at a given time after it has been fired
+		this.getXAtTime = function(time) {
+			return this.getHorizontalVel() * time;
+		}
+		
+		// get position y of the projectile at a given time after it has been fired
+		this.getYAtTime = function(time) {
+			return this.getVerticalVel() * time + this.gravity * time * time / 2;
+		}
+		
+		// constructs the parabolaSeries array that is used to approximate a parabola by drawing lines
+		this.buildParabola = function(entitie) {
+			this.parabolaSeries = [];
+			var ttr = this.getTimeToReach((this.posY + centerOffsetY) - entitie.currentY);
+			// console.log(ttr);
+			var numOfLines = ttr[1];
+			var intervals = ttr[1] / numOfLines;
+			for (var i = 0; i < numOfLines; i ++) {
+				this.parabolaSeries[i] = { x: this.getXAtTime(intervals * i) + (this.posX + centerOffsetX), y : this.getYAtTime(intervals * i) + (this.posY + centerOffsetY)};
+			}
+		}
+		
+		// draws parabola looking like a laser
+		this.drawParabolaSeries = function(context) {
+			context.fillStyle = 'red';
+			context.lineWidth = 5;
+			context.strokeStyle = 'red';
+			
+			for (var j = 5; j >= 0; j --) {
+				context.beginPath();
+				context.lineWidth = (j+1)*4-2;
+				if	(j == 0)
+					context.strokeStyle = '#fff';
+				else
+				{
+					context.strokeStyle = 'rgba('+this.highlight[0]+','+this.highlight[1]+','+this.highlight[2]+',0.2)';
+				}
+				const parabolaOffset = 3;
+				context.moveTo(this.parabolaSeries[0+parabolaOffset].x, this.parabolaSeries[0+parabolaOffset].y)
+				for (var i = 1 + parabolaOffset; i < this.parabolaSeries.length; i ++) {
+					context.lineTo(this.parabolaSeries[i].x, this.parabolaSeries[i].y);
+				}
+				context.stroke();
+				}
+		}
+		
+		this.loadAnimations();
+		this.spawnCannonballs();
+	}
+	
+	Turret.prototype = new Entity();
+	
+	Turret.prototype.update = function(elapsedTime, tilemap, entityManager)
+	{
+		this.optimizationTimer += elapsedTime;
+		
+		if (this.onGround(tilemap) == false) {
+			this.falling = true;
+			this.fallingVelocity += elapsedTime * this.gravity * 12;
+			this.posY += this.fallingVelocity;
+			for (var i = 0; i < this.cannonballs.length; i ++) {
+				this.cannonballs[i].initPosY = this.posY;
+			}
+		} else {
+			this.falling = false;
+			this.fallingVelocity = 0;
+		}
+		
+		if (this.state == IDLE) {
+			// console.log("IDLE");
+			this.playerInRange = false;
+			var entitiesInRange = entityManager.queryRadius(this.posX, this.posY, 1500);
+			if (entitiesInRange.length > 0) {
+				for (var i = 0; i < entitiesInRange.length; i ++) {
+					if (entitiesInRange[i].type == 'player') {
+						// this.state = FIRING;
+						this.player = entitiesInRange[i];
+						this.playerInRange = true;
+						this.targeting = true;
+						playerIndex = i;
+						break;
+					}
+				}
+			}
+			if (this.playerInRange == false) {
+				// console.log("No player in range");
+				this.targeting = false;
+				this.parabolaSeries = [];
+				this.player = null;
+			}
+		}
+		
+		if (this.targeting == true) {
+			// entitiesInRange = entityManager.queryRadius(this.posX, this.posY, 1500);
+			var angle = this.getAngle(this.player.currentX, this.player.currentY);
+				if (isNaN(angle) == false) {
+					this.angle = angle;
+					this.targetInRange(this.player);
+					if (this.state == IDLE) {
+						this.state = FIRING;						
+					}
+				} else {
+					this.parabolaSeries = [];
+				}
+		} else {
+			this.parabolaSeries = [];
+		}
+		
+		if (this.state == FIRING) {
+			this.time = 0;
+			// this.shoot(this.getVerticalVel(), this.getHorizontalVel());
+			if (this.cnbsFired == cannonballNum) {
+				this.state = RELOADING;
+				this.targeting = false;
+			} else {
+				this.cannonballs[this.cnbsFired].reset(this.getVerticalVel(), this.getHorizontalVel());
+				this.shotSound[this.cnbsFired].play();
+				this.cnbsFired++;
+				this.state = WAITING;
+			}
+		}
+		
+		if (this.state == WAITING) {
+			this.time += elapsedTime;
+			if (this.time > shootingDelay) {
+				this.time = 0;
+				this.state = IDLE;
+			}
+		}
+		
+		if (this.state == RELOADING) {
+			this.time += elapsedTime;
+			if (this.time > reloadTime) {
+				this.time = 0;
+				this.state = IDLE;
+				this.cnbsFired = 0;
+			}
+		}
+		
+		if (this.state == DESTROYED) {
+			this.destroyedAnimation.update(elapsedTime);
+		}
+	}
+
+	Turret.prototype.render = function(context, debug)
+	{
+		if (this.state != DESTROYED) {
+			this.animations[this.renderIdx].render(context, this.posX, this.posY);
+			if (this.parabolaSeries.length > 0)
+				this.drawParabolaSeries(context);
+		}
+		else {
+			this.destroyedAnimation.render(context, this.posX, this.posY);
+		}
+		
+		
+		if(debug) renderDebug(this, context);
+	}
+	
+	Turret.prototype.onGround = function(tilemap) {
+		var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (turretWidth/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+    // find the tile we are standing on.
+		return (tile && tile.data.solid) ? true : false;
+	}
+	
+	function renderDebug(turret, ctx) {
+		var bounds = turret.boundingBox();
+		var circle = turret.boundingCircle();
+		ctx.save();
+		
+		// Draw player bounding box
+		ctx.strokeStyle = "red";
+		ctx.beginPath();
+		ctx.moveTo(bounds.left, bounds.top);
+		ctx.lineTo(bounds.right, bounds.top);
+		ctx.lineTo(bounds.right, bounds.bottom);
+		ctx.lineTo(bounds.left, bounds.bottom);
+		ctx.closePath();
+		ctx.stroke();
+		
+		ctx.strokeStyle = "blue";
+		ctx.beginPath();
+		ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
+		ctx.stroke();
+		
+		// Outline tile underfoot
+		var tileX = 64 * Math.floor((bounds.left + (turretWidth/2))/64),
+			tileY = 64 * (Math.floor(bounds.bottom / 64));
+		ctx.strokeStyle = "black";
+		ctx.beginPath();
+		ctx.moveTo(tileX, tileY);
+		ctx.lineTo(tileX + 64, tileY);
+		ctx.lineTo(tileX + 64, tileY + 64);
+		ctx.lineTo(tileX, tileY + 64);
+		ctx.closePath();
+		ctx.stroke();
+		
+		ctx.restore();
+  }
+
+	Turret.prototype.collide = function(otherEntity)
+	{
+		if (otherEntity.type == 'cannonball' && (otherEntity.state == 3 /*Cannonball.EXPLODING*/)) {
+			this.state = DESTROYED;
+			this.targeting = false;
+			for (var i = 0; i < this.cannonballs.length; i ++) {
+			// Entity manager doesn't work correctly when I remove an entity
+				// entityManager.remove(this.cannonballs[i]);
+				// this.cannonballs[i] = [];
+			}
+		}
+	}
+
+	Turret.prototype.boundingBox = function()
+	{
+		return {
+			left: this.posX + 30,
+			top: this.posY,
+			right: this.posX + turretWidth - 30,
+			bottom: this.posY + turretHeight
+		}
+	}
+
+	Turret.prototype.boundingCircle = function()
+	{
+		return {
+			cx: this.posX + 44,
+			cy: this.posY + 43 + 10,
+			radius: 45 - 15
+		}
+	}
+	
+	return Turret;
+	
+}())
+},{"./animation.js":2,"./cannonball.js":5,"./entity-manager.js":10,"./entity.js":11,"./player.js":18}]},{},[16]);
+>>>>>>> refs/remotes/origin/master
