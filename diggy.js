@@ -3600,11 +3600,13 @@ module.exports = (function(){
         var thisRect = this.boundingBox();
 
 
-        if(otherEntity instanceof  Player && entityRect.bottom > thisRect.top){
-            otherEntity.currentY = thisRect.top - SIZE - 2;
-            if(this.state == SMASHED){
-                //otherEntity.health -= DAMAGE;
-                console.log("damage");
+        if(entityRect.bottom > thisRect.top){
+            if(otherEntity instanceof Player ) {
+                otherEntity.currentY = thisRect.top - SIZE - 2;
+                if (this.state == SMASHED) {
+                    //otherEntity.health -= DAMAGE;
+                    console.log("damage");
+                }
             }
         }
         else if(entityRect.right - SIZE/3 >= thisRect.left){
