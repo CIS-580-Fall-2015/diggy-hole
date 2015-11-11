@@ -1150,7 +1150,7 @@ module.exports = (function(){
     const SPRITE_WIDTH = 82;
     const SPRITE_HEIGHT = 80;
 
-    const CLOSE_TO_PLAYER = SIZE*4;
+    const CLOSE_TO_PLAYER = SIZE * 4;
     const WAIT_TIME = 3;
 
     function StoneMonster(locationX, locationY, layerIndex) {
@@ -1163,6 +1163,7 @@ module.exports = (function(){
         this.isMovingRight = true;
         this.bounced = false;
         this.waitingTime = 0;
+        this.renderBoundingCircle = false;
 
         this.idle_image = new Image();
         this.idle_image.src = 'stone_monster_idle.png';
@@ -1318,6 +1319,13 @@ module.exports = (function(){
         ctx.lineTo(bounds.left, bounds.bottom);
         ctx.closePath();
         ctx.stroke();
+        if(this.renderBoundingCircle){
+            var boundingCircle = this.boundingCircle();
+            ctx.beginPath();
+            ctx.arc(boundingCircle.centerX, boundingCircle.centerY, boundingCircle.radius, 0, 2*Math.PI);
+            ctx.closePath();
+            ctx.stroke();
+        }
         ctx.restore();
     };
 
@@ -1339,8 +1347,11 @@ module.exports = (function(){
     };
 
     StoneMonster.prototype.boundingCircle = function() {
-
-
+        return {
+            centerX: this.currentX + SIZE/2,
+            centerY: this.currentY + SIZE/2,
+            radius: Math.sqrt(2*SIZE*SIZE)/2
+        }
     };
 
     StoneMonster.prototype.collide = function(otherEntity){
