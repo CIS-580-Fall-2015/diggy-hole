@@ -194,7 +194,7 @@ module.exports = (function(){
         if(this.renderBoundingCircle){
             var boundingCircle = this.boundingCircle();
             ctx.beginPath();
-            ctx.arc(boundingCircle.centerX, boundingCircle.centerY, boundingCircle.radius, 0, 2*Math.PI);
+            ctx.arc(boundingCircle.cx, boundingCircle.cy, boundingCircle.radius, 0, 2*Math.PI);
             ctx.closePath();
             ctx.stroke();
         }
@@ -220,8 +220,8 @@ module.exports = (function(){
 
     StoneMonster.prototype.boundingCircle = function() {
         return {
-            centerX: this.currentX + SIZE/2,
-            centerY: this.currentY + SIZE/2,
+            cx: this.currentX + SIZE/2,
+            cy: this.currentY + SIZE/2,
             radius: Math.sqrt(2*SIZE*SIZE)/2
         }
     };
