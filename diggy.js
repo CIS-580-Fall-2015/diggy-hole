@@ -1169,15 +1169,15 @@ module.exports = (function(){
         this.renderBoundingCircle = false;
 
         this.idle_image = new Image();
-        this.idle_image.src = 'stone_monster_idle.png';
+        this.idle_image.src = './stone-monster-img/stone_monster_idle.png';
 
 
         var moving_image_left = new Image();
-        moving_image_left.src = 'stone-monster-moving-left.png';
+        moving_image_left.src = './stone-monster-img/stone-monster-moving-left.png';
         var moving_image_right = new Image();
-        moving_image_right.src = 'stone-monster-moving-right.png';
+        moving_image_right.src = './stone-monster-img/stone-monster-moving-right.png';
         var destroyed_image = new Image();
-        destroyed_image.src = 'stone_monster_destroyed.png';
+        destroyed_image.src = './stone-monster-img/stone_monster_destroyed.png';
 
         this.animation_right = new Animation(moving_image_right, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
         this.animation_left = new Animation(moving_image_left, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
@@ -1289,6 +1289,9 @@ module.exports = (function(){
                     || this.currentX >= 64*Math.floor((player.currentX + CLOSE_TO_PLAYER)/64)
                     || this.currentY < player.currentY )) {
                     this.timeToLive -= elapsedTime;
+                }
+                else{
+                    this.timeToLive = TIME_TO_LIVE;
                 }
                 if(this.timeToLive < 0){
                     entityManager.remove(this);
