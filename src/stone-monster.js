@@ -25,6 +25,8 @@ module.exports = (function(){
     const CLOSE_TO_PLAYER = SIZE * 4;
     const WAIT_TIME = 3;
 
+    const TIME_TO_LIVE = 10;
+
     function StoneMonster(locationX, locationY, layerIndex) {
         this.type = "StoneMonster";
         this.layerIndex = layerIndex;
@@ -35,10 +37,12 @@ module.exports = (function(){
         this.isMovingRight = true;
         this.bounced = false;
         this.waitingTime = 0;
+        this.timeToLive = TIME_TO_LIVE;
         this.renderBoundingCircle = false;
 
         this.idle_image = new Image();
         this.idle_image.src = 'stone_monster_idle.png';
+
 
         var moving_image_left = new Image();
         moving_image_left.src = 'stone-monster-moving-left.png';
@@ -146,8 +150,24 @@ module.exports = (function(){
                 break;
             case SMASHED:
                 this.animation_destroyed.update(elapsedTime);
+                this.timeToLive -= elapsedTime;
+                if(this.timeToLive < 0){
+                    entityManager.remove(this);
+                }
                 break;
             case STUCK:
+                var player = entityManager.getPlayer();
+                if (player && (this.currentX <= 64*Math.floor((player.currentX - CLOSE_TO_PLAYER)/64)
+                    || this.currentX >= 64*Math.floor((player.currentX + CLOSE_TO_PLAYER)/64)
+                    || this.currentY < player.currentY )) {
+                    this.timeToLive -= elapsedTime;
+                }
+                else{
+                    this.timeToLive = TIME_TO_LIVE;
+                }
+                if(this.timeToLive < 0){
+                    entityManager.remove(this);
+                }
                 break;
         }
         if (this.state == MOVING) {
