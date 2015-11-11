@@ -308,7 +308,7 @@ module.exports = (function(){
     /* ADD CODE HERE */
     // The right facing goblin miner spritesheet(s)
     var goblinMinerRight = new Image();
-    goblinMinerRight.src = 'Passive_Scratch.png';
+    goblinMinerRight.src = 'img/Passive_Scratch.png';
   
     // The left facing goblin miner spritesheet(s)
     var goblinMinerLeft = new Image();
