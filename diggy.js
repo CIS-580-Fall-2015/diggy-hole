@@ -256,48 +256,48 @@ module.exports = (function(){
 }());
 
 },{"./animation.js":2,"./diamond.js":7,"./entity.js":11}],2:[function(require,module,exports){
-module.exports = (function() { 
-  
+module.exports = (function() {
+
   function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame, playItOnce) {
     this.frameIndex = 0,
-    this.time = 0,
-    this.secondsPerFrame = secondsPerFrame || (1/16),
-    this.numberOfFrames = numberOfFrames || 1;
-  
+      this.time = 0,
+      this.secondsPerFrame = secondsPerFrame || (1 / 16),
+      this.numberOfFrames = numberOfFrames || 1;
+
     this.width = width;
     this.height = height;
     this.image = image;
-    
+
     this.drawLocationX = top || 0;
     this.drawLocationY = left || 0;
 
     this.playItOnce = playItOnce;
   }
-  
-  Animation.prototype.setStats = function(frameCount, locationX, locationY){
+
+  Animation.prototype.setStats = function(frameCount, locationX, locationY) {
     this.numberOfFrames = frameCount;
-    this.drawLocationY = locationY; 
+    this.drawLocationY = locationY;
     this.drawLocationX = locationX;
-  } 
-		
-	Animation.prototype.update = function (elapsedTime, tilemap) {
+  };
+
+  Animation.prototype.update = function(elapsedTime, tilemap) {
     this.time += elapsedTime;
-    
+
     // Update animation
     if (this.time > this.secondsPerFrame) {
-      if(this.time > this.secondsPerFrame) this.time -= this.secondsPerFrame;
-      
+      if (this.time > this.secondsPerFrame) this.time -= this.secondsPerFrame;
+
       // If the current frame index is in range
-      if (this.frameIndex < this.numberOfFrames - 1) {	
+      if (this.frameIndex < this.numberOfFrames - 1) {
         this.frameIndex += 1;
-      } else if(!this.playItOnce) {
+      } else if (!this.playItOnce) {
         this.frameIndex = 0;
       }
     }
-  }
-		
-	Animation.prototype.render = function(ctx, x, y) {
-		
+  };
+
+  Animation.prototype.render = function(ctx, x, y) {
+
     // Draw the current frame
     ctx.drawImage(
       this.image,
@@ -309,10 +309,10 @@ module.exports = (function() {
       y,
       this.width,
       this.height);
-  }
-  
+  };
+
   return Animation;
-  
+
 }());
 
 },{}],3:[function(require,module,exports){
@@ -1985,27 +1985,21 @@ module.exports = (function(){
  * Authors:
  * - Nathan Bean
  */
-module.exports = (function (){
+module.exports = (function() {
   const MAX_ENTITIES = 100;
-
-  // entities
-  require('./mud_golem.js');
 
 
   var entities = [],
-      entityCount = 0;
+    entityCount = 0;
 
-<<<<<<< HEAD
-=======
   var Player = require('./player.js');
-  
->>>>>>> refs/remotes/origin/master
+
   /* Adds an entity to those managed.
    * Arguments:
    * - entity, the entity to add
    */
   function add(entity) {
-    if(entityCount < MAX_ENTITIES) {
+    if (entityCount < MAX_ENTITIES) {
       // Determine the entity's unique ID
       // (we simply use an auto-increment count)
       var id = entityCount;
@@ -2024,8 +2018,8 @@ module.exports = (function (){
       // yet we may have freed up some space within our
       // entity array when an entity was removed.
       // If so, let's co-opt it.
-      for(var i = 0; i < MAX_ENTITIES; i++) {
-        if(entities[i] == undefined) {
+      for (var i = 0; i < MAX_ENTITIES; i++) {
+        if (entities[i] === undefined) {
           entity._entity_id = i;
           entities[i] = entity;
           return i;
@@ -2053,23 +2047,20 @@ module.exports = (function (){
    * triggers the collide() event handler.
    */
   function checkCollisions() {
-    for(var i = 0; i < entityCount; i++) {
+    for (var i = 0; i < entityCount; i++) {
       // Don't check for nonexistant entities
-      if(entities[i]) {
-        for(var j = 0; j < entityCount; j++) {
+      if (entities[i]) {
+        for (var j = 0; j < entityCount; j++) {
           // don't check for collisions with ourselves
           // and don't bother checking non-existing entities
-          if(i != j && entities[j]) {
-			  if (entities[i] == undefined) {
-				  console.log("Undefined");
-			  }
+          if (i != j && entities[j]) {
             var boundsA = entities[i].boundingBox();
             var boundsB = entities[j].boundingBox();
-            if( boundsA.left < boundsB.right &&
-                boundsA.right > boundsB.left &&
-                boundsA.top < boundsB.bottom &&
-                boundsA.bottom > boundsB.top
-              ) {
+            if (boundsA.left < boundsB.right &&
+              boundsA.right > boundsB.left &&
+              boundsA.top < boundsB.bottom &&
+              boundsA.bottom > boundsB.top
+            ) {
               entities[i].collide(entities[j]);
               entities[j].collide(entities[i]);
             }
@@ -2089,17 +2080,17 @@ module.exports = (function (){
    */
   function queryRadius(x, y, r) {
     var entitiesInRadius = [];
-    for(var i = 0; i < entityCount; i++) {
+    for (var i = 0; i < entityCount; i++) {
       // Only check existing entities
-      if(entities[i]) {
+      if (entities[i]) {
         var circ = entities[i].boundingCircle();
-        if( Math.pow(circ.radius + r, 2) >=
-            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.cy, 2)
-        ){
-		entitiesInRadius.push(entities[i]);
+        if (Math.pow(circ.radius + r, 2) >=
+          Math.pow(x - circ.cx, 2) + Math.pow(y - circ.cy, 2)
+        ) {
+          entitiesInRadius.push(entities[i]);
+        }
       }
     }
-	}
     return entitiesInRadius;
   }
 
@@ -2110,8 +2101,8 @@ module.exports = (function (){
    * - tilemap, the current tilemap for the game.
    */
   function update(elapsedTime, tilemap) {
-    for(i = 0; i < entityCount; i++) {
-      if(entities[i]) entities[i].update(elapsedTime, tilemap, this);
+    for (i = 0; i < entityCount; i++) {
+      if (entities[i]) entities[i].update(elapsedTime, tilemap, this);
     }
     checkCollisions();
   }
@@ -2122,12 +2113,22 @@ module.exports = (function (){
    * - debug, the flag to trigger visual debugging
    */
   function render(ctx, debug) {
-    for(var i = 0; i < entityCount; i++) {
-      if(entities[i]) entities[i].render(ctx, debug);
+    for (var i = 0; i < entityCount; i++) {
+      if (entities[i]) entities[i].render(ctx, debug);
     }
   }
 
-<<<<<<< HEAD
+  function getPlayer() {
+    for (var i = 0; i < entityCount; i++) {
+      if (entities[i] && entities[i] instanceof Player) {
+        return entities[i];
+      }
+    }
+  }
+
+  function getEntity(index) {
+    return entities[index];
+  }
 
   /* Gets distance between entity and player */
   function playerDistance(entity) {
@@ -2144,42 +2145,21 @@ module.exports = (function (){
     return false;
   }
 
-=======
-  function getPlayer(){
-    for(var i = 0; i < entityCount; i++) {
-      if(entities[i] && entities[i] instanceof Player){
-        return entities[i];
-      }
-    }
-  }
-  
-    function getEntity(index){
-	  return entities[index];
-  }
-  
->>>>>>> refs/remotes/origin/master
   return {
     add: add,
     remove: remove,
     queryRadius: queryRadius,
     update: update,
     render: render,
-<<<<<<< HEAD
     playerDistance: playerDistance,
-    playerDirection: playerDirection
-=======
+    playerDirection: playerDirection,
     getPlayer: getPlayer,
-	getEntity: getEntity
->>>>>>> refs/remotes/origin/master
-  }
+    getEntity: getEntity
+  };
 
 }());
-<<<<<<< HEAD
 
-},{"./mud_golem.js":9}],4:[function(require,module,exports){
-=======
 },{"./player.js":18}],11:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -2425,9 +2405,6 @@ module.exports = (function (){
   }
   
 })();
-<<<<<<< HEAD
-},{"./entity-manager.js":3,"./input-manager.js":6,"./main-menu.js":7,"./player.js":11,"./tilemap.js":12}],6:[function(require,module,exports){
-=======
 
 },{"./Kakao.js":1,"./barrel.js":3,"./dynamiteDwarf.js":9,"./entity-manager.js":10,"./goblin-miner.js":13,"./input-manager.js":14,"./main-menu.js":15,"./player.js":18,"./stone-monster.js":19,"./tilemap.js":20,"./turret.js":21}],13:[function(require,module,exports){
 /* Goblin Miner module
@@ -2937,7 +2914,6 @@ module.exports = (function(){
 }());
 
 },{"./animation.js":2,"./entity.js":11}],14:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 module.exports = (function() { 
 
   var commands = {	
@@ -3167,248 +3143,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-<<<<<<< HEAD
-},{"./game":5,"./main-menu":7}],9:[function(require,module,exports){
-/* A stationary mud golem creature with a powerful attack
-   Built from player.js template
-   By Richard Petrie */
-
-module.exports = (function() {
-  var Entity = require('./entity.js'),
-    Animation = require('./animation.js');
-
-  const DORMANT = 0;
-  const RISING = 1;
-  const STANDING = 2;
-  const CHARGING = 3;
-  const ATTACK = 4;
-
-  // The Sprite Size
-  const SIZE = 64;
-  const ARMX = 128;
-  const ARMY = 32;
-
-  //Right
-  var golemRight = new Image();
-  golemRight.src = 'img/golem_right.png';
-
-  //Left
-  var golemLeft = new Image();
-  golemLeft.src = "img/golem_left.png";
-
-  //The Player constructor
-  function Golem(locationX, locationY, layerIndex) {
-    this.state = DORMANT;
-    this.layerIndex = layerIndex;
-    this.currentX = locationX;
-    this.currentY = locationY;
-    this.nextX = 0;
-    this.nextY = 0;
-    this.currentTileIndex = 0;
-    this.nextTileIndex = 0;
-    this.isLeft = false;
-    this.entity_type = "Golem";
-    this.arm = new Entity();
-    this.stateTime = 0;
-
-    //Arm proprerties
-    this.arm.currentY = this.currentY + 16;
-    this.arm.currentX = this.currentX;
-    this.arm.isLeft = false;
-    this.arm.entity_type = "Golem-arm";
-    this.arm.state = 0;
-
-    //Arm functions
-    this.arm.boundingBox = function(otherEntity) {
-      //TODO this or this.arm?
-      if (this.state === 0) {
-        return;
-      }
-      return {
-        left: this.currentX,
-        top: this.currentY,
-        right: this.currentX + ARMX,
-        bottom: this.currentY + ARMY
-      };
-    };
-
-    this.arm.render = function(context, debug) {
-      //TODO this
-    };
-
-    //Update handled by Golem
-
-    //The animations
-    this.animations = {
-      left: [],
-      right: [],
-    };
-
-    //The right-facing animations
-    this.animations.right[DORMANT] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 0);
-    this.animations.right[RISING] = new Animation(dwarfRight, SIZE, SIZE, 0, 64, 3);
-    this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, 128, 0, 0);
-    this.animations.right[CHARGING] = new Animation(dwarfRight, SIZE, SIZE, 64, 0, 4, 0.25);
-    this.animations.right[ATTACK] = new Animation(dwarfRight, SIZE, SIZE, 64, 192, 0);
-
-    //The left-facing animations
-    this.animations.left[DORMANT] = new Animation(dwarfleft, SIZE, SIZE, 0, 0, 0);
-    this.animations.left[RISING] = new Animation(dwarfleft, SIZE, SIZE, 0, 64, 3);
-    this.animations.left[STANDING] = new Animation(dwarfleft, SIZE, SIZE, 128, 0, 0);
-    this.animations.left[CHARGING] = new Animation(dwarfleft, SIZE, SIZE, 64, 0, 4, 0.25);
-    this.animations.left[ATTACK] = new Animation(dwarfleft, SIZE, SIZE, 64, 192, 0);
-  }
-
-  // Player inherits from Entity
-  Golem.prototype = new Entity();
-
-  // Determines if the player is on the ground
-  Golem.prototype.onGround = function(tilemap) {
-    var box = this.boundingBox(),
-      tileX = Math.floor((box.left + (SIZE / 2)) / 64),
-      tileY = Math.floor(box.bottom / 64),
-      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    // find the tile we are standing on.
-    return (tile && tile.data.solid) ? true : false;
-  };
-
-  /* Player update function
-   * arguments:
-   * - elapsedTime, the time that has passed
-   *   between this and the last frame.
-   * - tilemap, the tilemap that corresponds to
-   *   the current game world.
-   */
-  Golem.prototype.update = function(elapsedTime, tilemap) {
-    var sprite = this;
-    if (!sprite.onGround(tilemap)) {
-      // Kill if not on ground
-      entityManager.remove(this);
-    }
-    var pd = entityManager.playerDistance(this);
-    // Don't proccess the rest of the state if the player is too far away
-    if (pd > 20) {
-      return;
-    }
-    // Process player state
-    switch (sprite.state) {
-      case STANDING:
-        this.isLeft = entityManager.playerDirection(this);
-        if (pd < 320) {
-          this.state = CHARGING;
-          this.stateTime = 1;
-        }
-        break;
-      case DORMANT:
-        if (pd < 640) {
-          this.state = RISING;
-          this.stateTime = 0.1875;
-        }
-        break;
-      case CHARGING:
-        if (this.stateTime < 0) {
-          this.state = ATTACK;
-          this.stateTime = 0.25;
-        }
-        break;
-      case ATTACK:
-      case RISING:
-        if (this.stateTime < 0) {
-          this.state = STANDING;
-        }
-        break;
-
-    }
-
-    this.stateTime -= elapsedTime;
-
-    // Update animation
-    if (this.isLeft)
-      this.animations.left[this.state].update(elapsedTime);
-    else
-      this.animations.right[this.state].update(elapsedTime);
-
-  };
-
-  /* Player Render Function
-   * arguments:
-   * - ctx, the rendering context
-   * - debug, a flag that indicates turning on
-   * visual debugging
-   */
-  Golem.prototype.render = function(ctx, debug) {
-    // Draw the player (and the correct animation)
-    if (this.isLeft)
-      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
-    else
-      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
-
-    if (debug) renderDebug(this, ctx);
-  };
-
-  // Draw debugging visual elements
-  function renderDebug(player, ctx) {
-    var bounds = golem.boundingBox();
-    ctx.save();
-
-    // Draw player bounding box
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-    ctx.moveTo(bounds.left, bounds.top);
-    ctx.lineTo(bounds.right, bounds.top);
-    ctx.lineTo(bounds.right, bounds.bottom);
-    ctx.lineTo(bounds.left, bounds.bottom);
-    ctx.closePath();
-    ctx.stroke();
-
-    // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (SIZE / 2)) / 64),
-      tileY = 64 * (Math.floor(bounds.bottom / 64));
-    ctx.strokeStyle = "black";
-    ctx.beginPath();
-    ctx.moveTo(tileX, tileY);
-    ctx.lineTo(tileX + 64, tileY);
-    ctx.lineTo(tileX + 64, tileY + 64);
-    ctx.lineTo(tileX, tileY + 64);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-  /* Player BoundingBox Function
-   * returns: A bounding box representing the player
-   */
-  Golem.prototype.boundingBox = function() {
-    return {
-      left: this.currentX,
-      top: this.currentY,
-      right: this.currentX + SIZE,
-      bottom: this.currentY + SIZE
-    };
-  };
-
-  Golem.prototype.boundingCircle = function() {
-    //TODO bounding circle
-    return {};
-  };
-
-  Golem.prototype.collide = function(otherEntity) {
-    if (this.state == ATTACK) {
-      if (otherEntity.entity_type == "Player") {
-        //TODO kill player
-      }
-    }
-  };
-
-  return Golem;
-
-}());
-
-},{"./animation.js":1,"./entity.js":4}],10:[function(require,module,exports){
-=======
 },{"./game":12,"./main-menu":15}],17:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -3534,11 +3269,7 @@ module.exports = (function(){
   }
 
 }());
-<<<<<<< HEAD
-},{}],11:[function(require,module,exports){
-=======
 },{}],18:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -3546,9 +3277,9 @@ module.exports = (function(){
  * - Wyatt Watson
  * - Nathan Bean
  */
-module.exports = (function(){
+module.exports = (function() {
   var Entity = require('./entity.js'),
-      Animation = require('./animation.js');
+    Animation = require('./animation.js');
 
   /* The following are player States (Swimming is not implemented) */
   const STANDING = 0;
@@ -3576,7 +3307,7 @@ module.exports = (function(){
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
-    this.inputManager = inputManager
+    this.inputManager = inputManager;
     this.state = WALKING;
     this.dug = false;
     this.downPressed = false;
@@ -3588,37 +3319,32 @@ module.exports = (function(){
     this.currentTileIndex = 0;
     this.nextTileIndex = 0;
     this.constSpeed = 15;
-    this.gravity = .5;
+    this.gravity = 0.5;
     this.angle = 0;
     this.xSpeed = 10;
     this.ySpeed = 15;
     this.isLeft = false;
-<<<<<<< HEAD
-    this.entity_type = "Player";
+    this.type = "player";
 
-=======
-	this.type = "player";
-    
->>>>>>> refs/remotes/origin/master
     //The animations
     this.animations = {
       left: [],
       right: [],
-    }
+    };
 
     //The right-facing animations
-    this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, SIZE*2, SIZE);
+    this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 2, SIZE);
     this.animations.right[WALKING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
-    this.animations.right[JUMPING] = new Animation(dwarfRight, SIZE, SIZE, SIZE*3, 0);
-    this.animations.right[DIGGING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE*2, 4);
+    this.animations.right[JUMPING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 3, 0);
+    this.animations.right[DIGGING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE * 2, 4);
     this.animations.right[FALLING] = new Animation(dwarfRight, SIZE, SIZE, SIZE, SIZE);
     this.animations.right[SWIMMING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
 
     //The left-facing animations
-    this.animations.left[STANDING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE*2, SIZE);
+    this.animations.left[STANDING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE * 2, SIZE);
     this.animations.left[WALKING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
-    this.animations.left[JUMPING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE*3, 0);
-    this.animations.left[DIGGING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE*2, 4);
+    this.animations.left[JUMPING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE * 3, 0);
+    this.animations.left[DIGGING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE * 2, 4);
     this.animations.left[FALLING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE, SIZE);
     this.animations.left[SWIMMING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
   }
@@ -3629,34 +3355,34 @@ module.exports = (function(){
   // Determines if the player is on the ground
   Player.prototype.onGround = function(tilemap) {
     var box = this.boundingBox(),
-        tileX = Math.floor((box.left + (SIZE/2))/64),
-        tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+      tileX = Math.floor((box.left + (SIZE / 2)) / 64),
+      tileY = Math.floor(box.bottom / 64),
+      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     // find the tile we are standing on.
     return (tile && tile.data.solid) ? true : false;
-  }
+  };
 
   // Moves the player to the left, colliding with solid tiles
   Player.prototype.moveLeft = function(distance, tilemap) {
     this.currentX -= distance;
     var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+      tileX = Math.floor(box.left / 64),
+      tileY = Math.floor(box.bottom / 64) - 1,
+      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     if (tile && tile.data.solid)
-      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
-  }
+      this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
+  };
 
   // Moves the player to the right, colliding with solid tiles
   Player.prototype.moveRight = function(distance, tilemap) {
     this.currentX += distance;
     var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+      tileX = Math.floor(box.right / 64),
+      tileY = Math.floor(box.bottom / 64) - 1,
+      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     if (tile && tile.data.solid)
-      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
-  }
+      this.currentX = (Math.ceil(this.currentX / 64) - 1) * 64;
+  };
 
   /* Player update function
    * arguments:
@@ -3671,56 +3397,53 @@ module.exports = (function(){
     // The "with" keyword allows us to change the
     // current scope, i.e. 'this' becomes our
     // inputManager
-    with (this.inputManager) {
+    with(this.inputManager) {
 
       // Process player state
-      switch(sprite.state) {
+      switch (sprite.state) {
         case STANDING:
         case WALKING:
           // If there is no ground underneath, fall
-          if(!sprite.onGround(tilemap)) {
+          if (!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
             sprite.velocityY = 0;
           } else {
-            if(isKeyDown(commands.DIG)) {
+            if (isKeyDown(commands.DIG)) {
               sprite.state = DIGGING;
-            }
-            else if(isKeyDown(commands.UP)) {
+            } else if (isKeyDown(commands.UP)) {
               sprite.state = JUMPING;
               sprite.velocityY = JUMP_VELOCITY;
-            }
-            else if(isKeyDown(commands.LEFT)) {
+            } else if (isKeyDown(commands.LEFT)) {
               sprite.isLeft = true;
               sprite.state = WALKING;
               sprite.moveLeft(elapsedTime * SPEED, tilemap);
-            }
-            else if(isKeyDown(commands.RIGHT)) {
+            } else if (isKeyDown(commands.RIGHT)) {
               sprite.isLeft = false;
               sprite.state = WALKING;
               sprite.moveRight(elapsedTime * SPEED, tilemap);
-            }
-            else {
+            } else {
               sprite.state = STANDING;
             }
           }
           break;
         case DIGGING:
-		var box = this.boundingBox(),
-			tileX = Math.floor((box.left + (SIZE/2))/64),
-			tileY = Math.floor(box.bottom / 64);											
-			tilemap.setTileAt(7, tileX, tileY, 0);			
-			sprite.state = FALLING;
+          var box = this.boundingBox(),
+            tileX = Math.floor((box.left + (SIZE / 2)) / 64),
+            tileY = Math.floor(box.bottom / 64);
+          tilemap.setTileAt(7, tileX, tileY, 0);
+          sprite.state = FALLING;
+          break;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
           sprite.currentY += sprite.velocityY * elapsedTime;
-          if(sprite.velocityY > 0) {
+          if (sprite.velocityY > 0) {
             sprite.state = FALLING;
           }
-          if(isKeyDown(commands.LEFT)) {
+          if (isKeyDown(commands.LEFT)) {
             sprite.isLeft = true;
             sprite.moveLeft(elapsedTime * SPEED, tilemap);
           }
-          if(isKeyDown(commands.RIGHT)) {
+          if (isKeyDown(commands.RIGHT)) {
             sprite.isLeft = true;
             sprite.moveRight(elapsedTime * SPEED, tilemap);
           }
@@ -3728,15 +3451,13 @@ module.exports = (function(){
         case FALLING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
           sprite.currentY += sprite.velocityY * elapsedTime;
-          if(sprite.onGround(tilemap)) {
+          if (sprite.onGround(tilemap)) {
             sprite.state = STANDING;
             sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-          }
-          else if(isKeyDown(commands.LEFT)) {
+          } else if (isKeyDown(commands.LEFT)) {
             sprite.isLeft = true;
             sprite.moveLeft(elapsedTime * SPEED, tilemap);
-          }
-          else if(isKeyDown(commands.RIGHT)) {
+          } else if (isKeyDown(commands.RIGHT)) {
             sprite.isLeft = false;
             sprite.moveRight(elapsedTime * SPEED, tilemap);
           }
@@ -3750,12 +3471,12 @@ module.exports = (function(){
     }
 
     // Update animation
-    if(this.isLeft)
+    if (this.isLeft)
       this.animations.left[this.state].update(elapsedTime);
     else
       this.animations.right[this.state].update(elapsedTime);
 
-  }
+  };
 
   /* Player Render Function
    * arguments:
@@ -3765,13 +3486,13 @@ module.exports = (function(){
    */
   Player.prototype.render = function(ctx, debug) {
     // Draw the player (and the correct animation)
-    if(this.isLeft)
+    if (this.isLeft)
       this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
     else
       this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
 
-    if(debug) renderDebug(this, ctx);
-  }
+    if (debug) renderDebug(this, ctx);
+  };
 
   // Draw debugging visual elements
   function renderDebug(player, ctx) {
@@ -3789,8 +3510,8 @@ module.exports = (function(){
     ctx.stroke();
 
     // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
-        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    var tileX = 64 * Math.floor((bounds.left + (SIZE / 2)) / 64),
+      tileY = 64 * (Math.floor(bounds.bottom / 64));
     ctx.strokeStyle = "black";
     ctx.beginPath();
     ctx.moveTo(tileX, tileY);
@@ -3812,28 +3533,22 @@ module.exports = (function(){
       top: this.currentY,
       right: this.currentX + SIZE,
       bottom: this.currentY + SIZE
-    }
-  }
-<<<<<<< HEAD
+    };
+  };
 
-  return Player;
 
-}());
-
-},{"./animation.js":1,"./entity.js":4}],12:[function(require,module,exports){
-=======
-  
   Player.prototype.boundingCircle = function() {
-     return {
-		 cx: this.currentX + SIZE/2,
-		 cy: this.currentY + SIZE/2,
-		 radius: SIZE/2
-	 }
-   }
-  
+    return {
+      cx: this.currentX + SIZE / 2,
+      cy: this.currentY + SIZE / 2,
+      radius: SIZE / 2
+    };
+  };
+
   return Player;
 
 }());
+
 },{"./animation.js":2,"./entity.js":11}],19:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
@@ -4116,7 +3831,6 @@ module.exports = (function(){
     return StoneMonster;
 }());
 },{"./animation.js":2,"./entity.js":11,"./player.js":18}],20:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -4653,9 +4367,6 @@ module.exports = (function (){
   
   
 })();
-<<<<<<< HEAD
-},{"./noise.js":10}]},{},[5,8]);
-=======
 
 },{"./noise.js":17}],21:[function(require,module,exports){
 
@@ -5050,4 +4761,3 @@ module.exports = (function(){
 	
 }())
 },{"./animation.js":2,"./cannonball.js":5,"./entity-manager.js":10,"./entity.js":11,"./player.js":18}]},{},[16]);
->>>>>>> refs/remotes/origin/master

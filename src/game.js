@@ -15,6 +15,7 @@ module.exports = (function (){
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
       StoneMonster = require('./stone-monster.js'),
+	  DemonicGroundHog = require('./DemonicGroundH.js'),
       Barrel = require('./barrel.js'),
 	  Turret = require('./turret.js'),
 	  DynamiteDwarf = require('./dynamiteDwarf.js'),
@@ -74,6 +75,8 @@ module.exports = (function (){
 	
 	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
 	entityManager.add(goblinMiner);
+	
+	
 	
 	// Spawn 10 barrels close to player
 	 // And some turrets
