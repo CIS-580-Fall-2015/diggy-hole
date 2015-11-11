@@ -58,6 +58,9 @@ module.exports = (function (){
     // the entity manager
     player = new Player(180, 240, 0, inputManager);
     entityManager.add(player);
+	
+	enemy = new Enemy(180, 240, 0)
+	entityManager.add(enemy);
   }
    
   /* Updates the state of the game world
