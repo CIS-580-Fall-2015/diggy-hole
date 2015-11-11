@@ -108,102 +108,102 @@ var direction;//0 for left, 1 for right
     if (health == 0) {
       entityManager.remove(id);
     }
-    switch(state){
-      case IDLE:
-        if (health < 100) {
-          state = AGGRESSIVE;
-        }
-        else {
-          var chance = Math.random();
-          if (chance > .95) { //5% chance to change states
-            state = MOVING;
-          }
-        }
-        break;
-      case MOVING:
-        if (health < 100)
-        {
-          state = AGGRESSIVE;
-        }
-        else {
-          var chance = Math.random();
-          if (chance > 95) { //5% chance to change states
-            state = IDLE;
-          }
-          else if (chance > 92) { //Small chance to change direction
-            if (direction == 0) direction = 1;
-            else direction = 0;
+    else {
+      switch(state){
+        case IDLE:
+          if (health < 100) {
+            state = AGGRESSIVE;
           }
           else {
-            if (!this.onGround(tilemap)){
-              velocityY = -1;
-              currentY = currentY + velocityY;
+            var chance = Math.random();
+            if (chance > .95) { //5% chance to change states
+              state = MOVING;
             }
-            else velocityY = 0;
-            if (direction == 0) this.moveLeft(elapsedTime * PAS_SPEED, tilemap);
-            else this.moveRight(elapsedTime * PAS_SPEED)
           }
-        }
-        break;
-      case AGGRESSIVE:
-        if (this.health == 100) state = IDLE;
-        var Player = entityManager.getEntity(0);//Get the player entity so we know it's position
-        var PlayerX = Player.currentX;
-        var PlayerY = Player.currentY;
-        var dist = (PlayerX - currentX) * (PlayerX - currentX) + (PlayerY - currentY) * (PlayerY - currentY);
-        if (dist <= 40*40){
-          state = ATTACKING;
-          //We do not want to pause moving, so we always execute code below this
-        }
-        if (currentX > PlayerX) this.moveLeft(elapsedTime * AGR_SPEED, tilemap);
-        else this.moveRight(elapsedTime * AGR_SPEED, tilemap);
-        if (currentY > PlayerY) velocityY = -5;
-        else velocityY = 5;
-        currentY = currentY + velocityY;
-        break;
-      case ATTACKING:
-        if (this.health == 100) state = IDLE;
-        else {
+          break;
+        case MOVING:
+          if (health < 100)
+          {
+            state = AGGRESSIVE;
+          }
+          else {
+            var chance = Math.random();
+            if (chance > 95) { //5% chance to change states
+              state = IDLE;
+            }
+            else if (chance > 92) { //Small chance to change direction
+              if (direction == 0) direction = 1;
+              else direction = 0;
+            }
+            else {
+              if (!this.onGround(tilemap)){
+                velocityY = -1;
+                currentY = currentY + velocityY;
+              }
+              else velocityY = 0;
+              if (direction == 0) this.moveLeft(elapsedTime * PAS_SPEED, tilemap);
+              else this.moveRight(elapsedTime * PAS_SPEED)
+            }
+          }
+          break;
+        case AGGRESSIVE:
+          if (this.health == 100) state = IDLE;
           var Player = entityManager.getEntity(0);//Get the player entity so we know it's position
           var PlayerX = Player.currentX;
           var PlayerY = Player.currentY;
           var dist = (PlayerX - currentX) * (PlayerX - currentX) + (PlayerY - currentY) * (PlayerY - currentY);
-          if (dist > 40*40) {
-            state = AGGRESSIVE;
+          if (dist <= 40*40){
+            state = ATTACKING;
+            //We do not want to pause moving, so we always execute code below this
           }
+          if (currentX > PlayerX) this.moveLeft(elapsedTime * AGR_SPEED, tilemap);
+          else this.moveRight(elapsedTime * AGR_SPEED, tilemap);
+          if (currentY > PlayerY) velocityY = -5;
+          else velocityY = 5;
+          currentY = currentY + velocityY;
+          break;
+        case ATTACKING:
+          if (this.health == 100) state = IDLE;
           else {
-            if (currentX > PlayerX) this.moveLeft(elapsedTime * AGR_SPEED, tilemap);
-            else this.moveRight(elapsedTime * AGR_SPEED, tilemap);
-            if (currentY > PlayerY) velocityY = -5;
-            else velocityY = 5;
-            currentY = currentY + velocityY;
-            if (direction == 0) {
-              if (animations.left[ATTACKING].frameIndex == 3) {
-                Player.health -= 10;
-              }
+            var Player = entityManager.getEntity(0);//Get the player entity so we know it's position
+            var PlayerX = Player.currentX;
+            var PlayerY = Player.currentY;
+            var dist = (PlayerX - currentX) * (PlayerX - currentX) + (PlayerY - currentY) * (PlayerY - currentY);
+            if (dist > 40*40) {
+              state = AGGRESSIVE;
             }
-            else if (direction == 1) {
-              if (animations.right[ATTACKING].frameIndex == 3) {
-                Player.health -= 10;
+            else {
+              if (currentX > PlayerX) this.moveLeft(elapsedTime * AGR_SPEED, tilemap);
+              else this.moveRight(elapsedTime * AGR_SPEED, tilemap);
+              if (currentY > PlayerY) velocityY = -5;
+              else velocityY = 5;
+              currentY = currentY + velocityY;
+              if (direction == 0) {
+                if (animations.left[ATTACKING].frameIndex == 3) {
+                  Player.health -= 10;
+                }
+              }
+              else if (direction == 1) {
+                if (animations.right[ATTACKING].frameIndex == 3) {
+                  Player.health -= 10;
+                }
               }
             }
           }
+
+          break;
+        }
+        if (health < 100) {
+          health += Math.floor(elapsedTime / 100);
+          if (health > 100) health = 100;
         }
 
-        break;
-      }
-
-      if (health < 100) {
-        health += Math.floor(elapsedTime / 100);
-        if (health > 100) health = 100;
-      }
-
-      // Update animation
-      if(direction == 0)
-        this.animations.left[this.state].update(elapsedTime);
-      else
-        this.animations.right[this.state].update(elapsedTime);
-
+        // Update animation
+        if(direction == 0)
+          this.animations.left[this.state].update(elapsedTime);
+        else
+          this.animations.right[this.state].update(elapsedTime);
+    }
   }
 
   /* Ghost Render Function
