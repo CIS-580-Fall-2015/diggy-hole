@@ -63,6 +63,8 @@ module.exports = (function (){
     player = new Player(180, 240, 0, inputManager);
     entityManager.add(player);
 	
+	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
+	entityManager.add(goblinMiner);
 	
 	// Spawn 10 barrels close to player
 	for(var i = 0; i < 10; i++){
