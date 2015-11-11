@@ -16,7 +16,6 @@ module.exports = (function (){
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
       StoneMonster = require('./stone-monster.js'),
-	  DemonicGroundHog = require('./DemonicGroundH.js'),
       Barrel = require('./barrel.js'),
 	  Turret = require('./turret.js'),
 	  DynamiteDwarf = require('./dynamiteDwarf.js'),
