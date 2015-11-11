@@ -7,16 +7,24 @@ module.exports = (function (){
   
   // The width & height of the screen
   const SCREEN_WIDTH = 1280,
-        SCREEN_HEIGHT = 720;
-
+        SCREEN_HEIGHT = 720;	
+	
   // Module variables
   var Player = require('./player.js'),
       Octopus = require('./octopus.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
+      StoneMonster = require('./stone-monster.js'),
+      Barrel = require('./barrel.js'),
+	  Turret = require('./turret.js'),
+	  DynamiteDwarf = require('./dynamiteDwarf.js'),
+	  Kakao = require('./Kakao.js'),
+	  kakao,
+      GoblinMiner = require('./goblin-miner.js'),
       player,
       octopus,
+      stoneMonster,
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -55,15 +63,46 @@ module.exports = (function (){
         tilemap.render(screenCtx);
       }
     });
-    
+
+    for (var i = 0; i < 35; i += 7){
+      stoneMonster = new StoneMonster(64*i, 0, 0);
+      entityManager.add(stoneMonster);
+    }
+
     // Create the player and add them to
     // the entity manager
-    player = new Player(180, 240, 0, inputManager);
+    player = new Player(64*6, 240, 0, inputManager);
     entityManager.add(player);
+<<<<<<< HEAD
 
     octopus = new Octopus(120, 240, 0);
     entityManager.add(octopus);
   };
+=======
+	
+	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
+	entityManager.add(goblinMiner);
+	
+	// Spawn 10 barrels close to player
+	 // And some turrets
+	for(var i = 0; i < 10; i++){
+		if (i < 3) { 
+			turret = new Turret(Math.random()*64*50, Math.random()*64*20, o);
+			entityManager.add(turret);
+		}
+		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
+		entityManager.add(barrel);
+	}
+	
+	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
+	entityManager.add(dynamiteDwarf);
+	
+	// Karenfang: Create a Kakao and add it to
+    // the entity manager
+    kakao = new Kakao(310,240,0);  //two tiles to the right of the player
+    entityManager.add(kakao);
+  }
+>>>>>>> c8c0e9fc1a40f122033be568b8667981b676ee3f
    
   /* Updates the state of the game world
    * arguments: 

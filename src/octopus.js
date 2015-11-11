@@ -104,7 +104,6 @@ module.exports = function () {
                     this.velocityY = 0;
                 }
                 if (this.isLeft == true) {
-                    console.log("leftleftleftlelft");
                     this.moveLeft(elapsedTime * SPEED, tilemap);
                 } else {
                     this.moveRight(elapsedTime * SPEED, tilemap);
