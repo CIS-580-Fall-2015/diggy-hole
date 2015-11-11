@@ -255,7 +255,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":2,"./diamond.js":6,"./entity.js":10}],2:[function(require,module,exports){
+},{"./animation.js":2,"./diamond.js":7,"./entity.js":11}],2:[function(require,module,exports){
 module.exports = (function() { 
   
   function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame, playItOnce) {
@@ -780,7 +780,7 @@ module.exports = (function(){
 }());
 
 
-},{"./animation.js":2,"./bone.js":4,"./entity-manager.js":9,"./entity.js":10,"./player.js":17}],4:[function(require,module,exports){
+},{"./animation.js":2,"./bone.js":4,"./entity-manager.js":10,"./entity.js":11,"./player.js":18}],4:[function(require,module,exports){
 /* Class of the Barrel Skeleton entity
  *
  * Author:
@@ -989,7 +989,195 @@ module.exports = (function(){
 }());
 
 
-},{"./animation.js":2,"./entity.js":10,"./player.js":17}],5:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":11,"./player.js":18}],5:[function(require,module,exports){
+module.exports = (function(){
+
+var Animation = require('./animation.js'),
+	Entity = require('./entity.js'),
+	Tilemap = require('./tilemap.js'),
+	cannonballImg = new Image();
+	cannonballImg.src = './img/turret/cannonball_small.png',
+	explosionImg = new Image(),
+	explosionImg.src = './img/turret/explosion_small.png';
+	
+	const IDLE = 0,
+		  ASCENDING = 1,
+		  DESCENDING = 2,
+		  EXPLODING = 3;
+		  
+	const BALL_SIZE = 20,
+	      EXPLOSION_SIZE = 64;
+		  
+	const TILE_WIDTH = 64,
+		  TILE_HEIGHT = 64,
+		  MAP_SIZE = 1000;
+
+function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, gravity, centerOffsetX, centerOffsetY) {
+	this.initPosX = locationX + centerOffsetX,
+	this.initPosY = locationY + centerOffsetY;
+	this.posX = locationX;
+	this.posY = locationY;
+	this.type = 'cannonball';
+	this.state = IDLE;
+	this.verticalV = verticalV;
+	this.horizontalV = horizontalV;
+	this.gravity = gravity;
+	this.projectileTime = 0;
+	this.projectileTimeExploding = 0;
+	this.explosionSound = new Audio('./sounds/explosion.wav');
+	
+	// constants
+	this.projectileTimeToReachTop = undefined;
+	
+	this.animations = [];
+	
+	this.animations[IDLE] = new Animation(explosionImg, BALL_SIZE, BALL_SIZE, 0, 0);
+	this.animations[ASCENDING] = new Animation(cannonballImg, BALL_SIZE, BALL_SIZE, 0, 0);
+	this.animations[DESCENDING] = new Animation(cannonballImg, BALL_SIZE, BALL_SIZE, 0, 0);
+	this.animations[EXPLODING] = new Animation(explosionImg, EXPLOSION_SIZE, EXPLOSION_SIZE, 0, 0, 10);
+	
+	// get position x of the projectile at a given time after it has been fired
+	this.getXAtTime = function() {
+		return this.initPosX + this.horizontalV * this.projectileTime;
+	}
+	
+	// get position y of the projectile at a given time after it has been fired
+	this.getYAtTime = function() {
+		return this.initPosY + this.verticalV * this.projectileTime + this.gravity * this.projectileTime * this.projectileTime / 2;
+	}
+	
+	this.reset = function(verticalV, horizontalV) {
+		this.posX = this.initPosX;
+		this.posY = this.initPosY;
+		this.horizontalV = horizontalV;
+		this.verticalV = verticalV;
+		this.projectileTime = 0;
+		this.state = ASCENDING;
+		this.projectileTimeToReachTop = -this.verticalV / gravity;
+		this.projectileTimeExploding = 0;
+	}
+	
+	this.checkCollisions = function(tile) {
+		if (tile && tile.data.solid) {
+			tilemap.destroyTileAt(1, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			this.state = EXPLODING;
+			this.offsetExploding();
+			this.explosionSound.play();
+		}
+	}
+	
+	this.offsetExploding = function() {
+		this.posX -= 20;
+		this.posY -= 20;
+	}
+	
+	this.getXFromCoords = function(x) {
+		return (x / TILE_WIDTH) | 0;
+	}
+	
+	this.getYFromCoords = function(y) {
+		return (y / TILE_HEIGHT) | 0;
+	}
+}
+
+Cannonball.prototype = new Entity();
+	
+	Cannonball.prototype.update = function(elapsedTime, tilemap, entityManager)
+	{
+		if (this.state == ASCENDING || this.state == DESCENDING) {
+			if (this.projectileTime > this.projectileTimeToReachTop) {
+				this.state = DESCENDING;
+			}
+			this.animations[this.state].update(elapsedTime);
+			this.posX = this.getXAtTime();
+			this.posY = this.getYAtTime();
+			this.projectileTime += 0.5;
+		}
+		
+		if (this.state == EXPLODING) {
+			this.animations[this.state].update(elapsedTime);
+			this.projectileTimeExploding += elapsedTime;
+			if (this.projectileTimeExploding > 2) {
+				this.state = IDLE;
+			}
+		}
+		
+		this.checkCollisions(Tilemap.tileAt(this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0));
+	}
+
+	Cannonball.prototype.render = function(context, debug)
+	{
+		this.animations[this.state].render(context, this.posX, this.posY);
+		if(debug) renderDebug(this, context);
+	}
+
+	Cannonball.prototype.collide = function(otherEntity)
+	{
+		if (otherEntity.type == 'turret' && this.state == DESCENDING) {
+			this.offsetExploding();
+			this.state = EXPLODING;
+			this.explosionSound.play();
+		}
+	}
+	
+	function renderDebug(cannonball, ctx) {
+		var bounds = cannonball.boundingBox();
+		var circle = cannonball.boundingCircle();
+		ctx.save();
+		
+		// Draw player bounding box
+		ctx.strokeStyle = "red";
+		ctx.beginPath();
+		ctx.moveTo(bounds.left, bounds.top);
+		ctx.lineTo(bounds.right, bounds.top);
+		ctx.lineTo(bounds.right, bounds.bottom);
+		ctx.lineTo(bounds.left, bounds.bottom);
+		ctx.closePath();
+		ctx.stroke();
+		
+		ctx.strokeStyle = "blue";
+		ctx.beginPath();
+		ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
+		ctx.stroke();
+		
+		// Outline tile underfoot
+		var tileX = 64 * Math.floor((bounds.left + (BALL_SIZE/2))/64),
+			tileY = 64 * (Math.floor(bounds.bottom / 64));
+		ctx.strokeStyle = "black";
+		ctx.beginPath();
+		ctx.moveTo(tileX, tileY);
+		ctx.lineTo(tileX + 64, tileY);
+		ctx.lineTo(tileX + 64, tileY + 64);
+		ctx.lineTo(tileX, tileY + 64);
+		ctx.closePath();
+		ctx.stroke();
+		
+		ctx.restore();
+  }
+
+	Cannonball.prototype.boundingBox = function()
+	{
+		return {
+			left: this.posX,
+			top: this.posY,
+			right: this.posX + BALL_SIZE,
+			bottom: this.posY + BALL_SIZE
+		}
+	}
+
+	Cannonball.prototype.boundingCircle = function()
+	{
+		return {
+			cx: this.posX + BALL_SIZE / 2,
+			cy: this.posY + BALL_SIZE / 2,
+			radius: BALL_SIZE * Math.sqrt(2) / 2
+		}
+	}
+
+return Cannonball;
+	
+}())
+},{"./animation.js":2,"./entity.js":11,"./tilemap.js":20}],6:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -1061,7 +1249,7 @@ module.exports = (function (){
   }
   
 })();
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /* Entity: Diamond(added by Diamond) module
  * Implements the entity pattern and provides
  * the entity Diamond info.
@@ -1191,7 +1379,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":2,"./entity.js":10}],7:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":11}],8:[function(require,module,exports){
 /* Dynamite Dynamite module
  * Authors:
  * Alexander Duben
@@ -1429,7 +1617,7 @@ module.exports = (function(){
   return Dynamite;
 
 }());
-},{"./animation.js":2,"./entity.js":10}],8:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":11}],9:[function(require,module,exports){
 /* Dynamite Dwarf module
  * Authors:
  * Alexander Duben
@@ -1789,7 +1977,7 @@ module.exports = (function(){
   return Dwarf;
 
 }());
-},{"./animation.js":2,"./dynamite.js":7,"./entity.js":10}],9:[function(require,module,exports){
+},{"./animation.js":2,"./dynamite.js":8,"./entity.js":11}],10:[function(require,module,exports){
 /* The entity manager for the DiggyHole game
  * Currently it uses brute-force approaches
  * to its role - this needs to be refactored
@@ -1865,6 +2053,9 @@ module.exports = (function (){
           // don't check for collisions with ourselves
           // and don't bother checking non-existing entities
           if(i != j && entities[j]) {
+			  if (entities[i] == undefined) {
+				  console.log("Undefined");
+			  }
             var boundsA = entities[i].boundingBox();
             var boundsB = entities[j].boundingBox();
             if( boundsA.left < boundsB.right &&
@@ -1952,7 +2143,7 @@ module.exports = (function (){
   }
   
 }());
-},{"./player.js":17}],10:[function(require,module,exports){
+},{"./player.js":18}],11:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -2005,7 +2196,7 @@ module.exports = (function(){
     *   do with it.
     */
    Entity.prototype.collide = function(otherEntity) {
-   }
+   } 
    
    /* BoundingBox function
     * This function returns an axis-aligned bounding
@@ -2030,7 +2221,7 @@ module.exports = (function(){
    return Entity;
   
 }());
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /* Game GameState module
  * Provides the main game logic for the Diggy Hole game.
  * Authors:
@@ -2049,6 +2240,7 @@ module.exports = (function (){
       entityManager = require('./entity-manager.js'),
       StoneMonster = require('./stone-monster.js'),
       Barrel = require('./barrel.js'),
+	  Turret = require('./turret.js'),
 	  DynamiteDwarf = require('./dynamiteDwarf.js'),
 	  Kakao = require('./Kakao.js'),
 	  kakao,
@@ -2108,9 +2300,14 @@ module.exports = (function (){
 	entityManager.add(goblinMiner);
 	
 	// Spawn 10 barrels close to player
+	 // And some turrets
 	for(var i = 0; i < 10; i++){
+		if (i < 3) { 
+			turret = new Turret(Math.random()*64*50, Math.random()*64*20, o);
+			entityManager.add(turret);
+		}
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
-    entityManager.add(barrel);
+		entityManager.add(barrel);
 	}
 	
 	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
@@ -2193,7 +2390,7 @@ module.exports = (function (){
   
 })();
 
-},{"./Kakao.js":1,"./barrel.js":3,"./dynamiteDwarf.js":8,"./entity-manager.js":9,"./goblin-miner.js":12,"./input-manager.js":13,"./main-menu.js":14,"./player.js":17,"./stone-monster.js":18,"./tilemap.js":19}],12:[function(require,module,exports){
+},{"./Kakao.js":1,"./barrel.js":3,"./dynamiteDwarf.js":9,"./entity-manager.js":10,"./goblin-miner.js":13,"./input-manager.js":14,"./main-menu.js":15,"./player.js":18,"./stone-monster.js":19,"./tilemap.js":20,"./turret.js":21}],13:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -2700,7 +2897,7 @@ module.exports = (function(){
   
 }());
 
-},{"./animation.js":2,"./entity.js":10}],13:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":11}],14:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -2761,7 +2958,7 @@ module.exports = (function() {
   }
   
 })();
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -2886,7 +3083,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./credits-screen":5}],15:[function(require,module,exports){
+},{"./credits-screen":6}],16:[function(require,module,exports){
 
 
 // Wait for the window to load completely
@@ -2930,7 +3127,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":11,"./main-menu":14}],16:[function(require,module,exports){
+},{"./game":12,"./main-menu":15}],17:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -3056,7 +3253,7 @@ module.exports = (function(){
   }
 
 }());
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -3339,7 +3536,7 @@ module.exports = (function(){
   return Player;
 
 }());
-},{"./animation.js":2,"./entity.js":10}],18:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":11}],19:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -3620,7 +3817,7 @@ module.exports = (function(){
 
     return StoneMonster;
 }());
-},{"./animation.js":2,"./entity.js":10,"./player.js":17}],19:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":11,"./player.js":18}],20:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -4125,6 +4322,16 @@ module.exports = (function (){
 	 }
   }
   
+  // Sets tile to skies
+  // author: Milan Zelenka
+  var destroyTileAt = function(newType, x,y, layer){
+	 if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){ 
+      return undefined; 
+	 }else{
+		layers[layer].data[x + y * mapWidth] = 1;
+	 }
+  }
+  
   //Dig tile out at x, y
   var removeTileAt = function(x, y, layer) {
 	if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight) 
@@ -4139,6 +4346,7 @@ module.exports = (function (){
     render: render,
     tileAt: tileAt,
 	setTileAt: setTileAt,
+	destroyTileAt: destroyTileAt,
     removeTileAt: removeTileAt,
     setViewportSize: setViewportSize,
     setCameraPosition: setCameraPosition
@@ -4147,4 +4355,396 @@ module.exports = (function (){
   
 })();
 
-},{"./noise.js":16}]},{},[15]);
+},{"./noise.js":17}],21:[function(require,module,exports){
+
+
+
+module.exports = (function(){
+	var Animation = require('./animation.js'),
+		Player = require('./player.js'),
+		Entity = require('./entity.js'),
+		Cannonball = require('./cannonball.js'),
+		entityManager = require('./entity-manager.js'),
+		turret = new Image();
+		turret.src = './img/turret/turretMany.png';
+		destroyedTurret = new Image();
+		destroyedTurret.src = './img/turret/turretDestroyed2.png';
+		
+	const IDLE = 0,
+		  FIRING = 1,
+		  WAITING = 2,
+		  RELOADING = 3,
+		  DESTROYED = 4;
+		
+	const 	turretWidth = 88,
+			turretHeight = 86;
+			turretImgCount = 48,
+			turretVertical = 25,
+			turretDestroyedWidth = 88,
+			turretDestroyedHeight = 169,
+			// where to target from
+			centerOffsetX = 47,
+			centerOffsetY = 45,
+			// where to aim
+			playerOffsetX = 64/2,
+			playerOffsetY = playerOffsetX;
+			
+	const   cannonballNum = 3,
+			reloadTime = 5,
+			shootingDelay = 0.5,
+			optimizationDelay = 0.00;
+	
+	function Turret(locationX, locationY, mapLayer){
+		// computational constants
+		this.posX = locationX,
+		this.posY = locationY,
+		this.type = 'turret',
+		this.launchSpeed = 20,
+		this.gravity = 0.5,
+		this.angle = 91,
+		this.launchSpeedPow2 = this.launchSpeed * this.launchSpeed,
+		this.launchSpeedPow4 = this.launchSpeedPow2 * this.launchSpeedPow2,
+		this.gravityPow2 = this.gravity * this.gravity,
+		this.gravityTimesLSPow2 = this.gravity * this.launchSpeedPow2,
+		this.LSPow2TimesTwoTimesG = 2 * this.launchSpeedPow2 * this.gravity,
+		
+		this.player = null;
+		this.state = IDLE;
+		this.targeting = false;
+		this.falling = false;
+		this.fallingVelocity = 0;
+		this.time = 0;
+		this.optimizationTimer = 0;
+		// variables fro animations, turret animations, index of animation to render, coordinates of lines that approximate targetting parabola
+		this.animations = [],
+		this.layerIndex = 0,
+		this.destroyedAnimation = undefined;
+		this.renderIdx = 0;
+		this.parabolaSeries = [];
+		// highlight for laser
+		this.highlight = new Array(Math.round(Math.random()*255), Math.round(Math.random()*255), Math.round(Math.random()*255));
+		
+		this.cannonballs = [],
+		this.cnbsFired = 0;
+		this.shotSound = [];
+		
+		this.spawnCannonballs = function() {
+			for (var i = 0; i < cannonballNum; i ++) {
+				this.cannonballs[i] = new Cannonball(this.posX, this.posY, 0, 0, 0, this.gravity, centerOffsetX, centerOffsetY);
+				entityManager.add(this.cannonballs[i]);
+				this.shotSound[i] = new Audio('./sounds/shot.wav');
+			}
+		}
+		
+		// Loads animations to animations array
+		this.loadAnimations = function () {
+			for (var i = 0; i < turretImgCount; i ++) {
+				this.animations[i] = new Animation(turret, turretWidth, turretHeight, i * turretWidth, 0);
+			}
+			this.destroyedAnimation = new Animation(destroyedTurret, turretWidth, turretHeight, 0, 0, 10);
+		}
+		
+		// is called to aim the turret in a right angle
+		this.setAngleOfAnimation = function(angle) {
+			if (angle < 0) {
+				var angleToFrames = Math.round((angle * 180 / Math.PI + 90) / 5);
+				this.renderIdx = turretVertical - angleToFrames;
+			} else {
+				var angleToFrames = Math.round((angle * 180 / Math.PI - 90) / 5);
+				this.renderIdx = turretVertical - angleToFrames;
+			}
+		}
+		
+		// compute angle that is necessary for the turret to hit our target
+		this.getAngle = function (targetX, targetY) {
+			var position = this.getDistance(targetX, targetY);
+			
+			var rightPart =  Math.sqrt(this.launchSpeedPow4 - (this.gravityPow2 * position[0] * position[0] + this.LSPow2TimesTwoTimesG * position[1]));
+			var res1 = Math.atan((this.launchSpeedPow2 + rightPart) / (this.gravity * position[0])) /** (180 / 3.14159265)*/;
+			var res2 = Math.atan((this.launchSpeedPow2 - rightPart) / (this.gravity * position[0])) /** (180 / 3.14159265)*/;
+			// console.log(this.getVerticalVel());
+			// console.log(this.getHorizontalVel());
+			return res1;
+		}
+		
+		// get distance of the target relative to the turret which is at (0, 0)
+		this.getDistance = function (targetX, targetY) {
+			x = (targetX + playerOffsetX) - (this.posX + centerOffsetX);
+			y = (this.posY + centerOffsetY) - (targetY + playerOffsetY);
+			return [x, y];
+		}
+		
+		// computes initial vertical velocity of the projectile 
+		this.getVerticalVel = function () {
+			return -this.launchSpeed * Math.sin(Math.abs(this.angle) /** (3.14159265/180)*/);
+		}
+		
+		// computes horizontal velocity of the projectile
+		this.getHorizontalVel = function () {
+			if (this.angle > 0)
+				return this.launchSpeed * Math.cos(this.angle /** (3.14159265/180)*/);
+			else
+				return -this.launchSpeed * Math.cos(this.angle/* * (3.14159265/180)*/);
+		}
+		
+		// computes the time necessary for the projectile to reach the target
+		this.getTimeToReach = function(elevationDifference) {
+			var verticalVel = Math.abs(this.getVerticalVel());
+			var left = verticalVel / this.gravity;
+			var right = Math.sqrt(verticalVel * verticalVel / this.gravityPow2 - elevationDifference * 2 / this.gravity);
+			var x1 = left - right;
+			var x2 = left + right;
+			return [x1, x2];
+		}
+		
+		// is called when the target gets in the turret's query range
+		this.targetInRange = function(entitie) {
+			if (this.optimizationTimer < optimizationDelay) {
+				console.log("skipped");
+				return;
+			}
+			else
+				this.optimizationTimer = 0;
+			this.buildParabola(entitie);
+			this.setAngleOfAnimation(this.angle);
+		}
+		
+		// get position x of the projectile at a given time after it has been fired
+		this.getXAtTime = function(time) {
+			return this.getHorizontalVel() * time;
+		}
+		
+		// get position y of the projectile at a given time after it has been fired
+		this.getYAtTime = function(time) {
+			return this.getVerticalVel() * time + this.gravity * time * time / 2;
+		}
+		
+		// constructs the parabolaSeries array that is used to approximate a parabola by drawing lines
+		this.buildParabola = function(entitie) {
+			this.parabolaSeries = [];
+			var ttr = this.getTimeToReach((this.posY + centerOffsetY) - entitie.currentY);
+			// console.log(ttr);
+			var numOfLines = ttr[1];
+			var intervals = ttr[1] / numOfLines;
+			for (var i = 0; i < numOfLines; i ++) {
+				this.parabolaSeries[i] = { x: this.getXAtTime(intervals * i) + (this.posX + centerOffsetX), y : this.getYAtTime(intervals * i) + (this.posY + centerOffsetY)};
+			}
+		}
+		
+		// draws parabola looking like a laser
+		this.drawParabolaSeries = function(context) {
+			context.fillStyle = 'red';
+			context.lineWidth = 5;
+			context.strokeStyle = 'red';
+			
+			for (var j = 5; j >= 0; j --) {
+				context.beginPath();
+				context.lineWidth = (j+1)*4-2;
+				if	(j == 0)
+					context.strokeStyle = '#fff';
+				else
+				{
+					context.strokeStyle = 'rgba('+this.highlight[0]+','+this.highlight[1]+','+this.highlight[2]+',0.2)';
+				}
+				const parabolaOffset = 3;
+				context.moveTo(this.parabolaSeries[0+parabolaOffset].x, this.parabolaSeries[0+parabolaOffset].y)
+				for (var i = 1 + parabolaOffset; i < this.parabolaSeries.length; i ++) {
+					context.lineTo(this.parabolaSeries[i].x, this.parabolaSeries[i].y);
+				}
+				context.stroke();
+				}
+		}
+		
+		this.loadAnimations();
+		this.spawnCannonballs();
+	}
+	
+	Turret.prototype = new Entity();
+	
+	Turret.prototype.update = function(elapsedTime, tilemap, entityManager)
+	{
+		this.optimizationTimer += elapsedTime;
+		
+		if (this.onGround(tilemap) == false) {
+			this.falling = true;
+			this.fallingVelocity += elapsedTime * this.gravity * 12;
+			this.posY += this.fallingVelocity;
+			for (var i = 0; i < this.cannonballs.length; i ++) {
+				this.cannonballs[i].initPosY = this.posY;
+			}
+		} else {
+			this.falling = false;
+			this.fallingVelocity = 0;
+		}
+		
+		if (this.state == IDLE) {
+			// console.log("IDLE");
+			this.playerInRange = false;
+			var entitiesInRange = entityManager.queryRadius(this.posX, this.posY, 1500);
+			if (entitiesInRange.length > 0) {
+				for (var i = 0; i < entitiesInRange.length; i ++) {
+					if (entitiesInRange[i].type == 'player') {
+						// this.state = FIRING;
+						this.player = entitiesInRange[i];
+						this.playerInRange = true;
+						this.targeting = true;
+						playerIndex = i;
+						break;
+					}
+				}
+			}
+			if (this.playerInRange == false) {
+				// console.log("No player in range");
+				this.targeting = false;
+				this.parabolaSeries = [];
+				this.player = null;
+			}
+		}
+		
+		if (this.targeting == true) {
+			// entitiesInRange = entityManager.queryRadius(this.posX, this.posY, 1500);
+			var angle = this.getAngle(this.player.currentX, this.player.currentY);
+				if (isNaN(angle) == false) {
+					this.angle = angle;
+					this.targetInRange(this.player);
+					if (this.state == IDLE) {
+						this.state = FIRING;						
+					}
+				} else {
+					this.parabolaSeries = [];
+				}
+		} else {
+			this.parabolaSeries = [];
+		}
+		
+		if (this.state == FIRING) {
+			this.time = 0;
+			// this.shoot(this.getVerticalVel(), this.getHorizontalVel());
+			if (this.cnbsFired == cannonballNum) {
+				this.state = RELOADING;
+				this.targeting = false;
+			} else {
+				this.cannonballs[this.cnbsFired].reset(this.getVerticalVel(), this.getHorizontalVel());
+				this.shotSound[this.cnbsFired].play();
+				this.cnbsFired++;
+				this.state = WAITING;
+			}
+		}
+		
+		if (this.state == WAITING) {
+			this.time += elapsedTime;
+			if (this.time > shootingDelay) {
+				this.time = 0;
+				this.state = IDLE;
+			}
+		}
+		
+		if (this.state == RELOADING) {
+			this.time += elapsedTime;
+			if (this.time > reloadTime) {
+				this.time = 0;
+				this.state = IDLE;
+				this.cnbsFired = 0;
+			}
+		}
+		
+		if (this.state == DESTROYED) {
+			this.destroyedAnimation.update(elapsedTime);
+		}
+	}
+
+	Turret.prototype.render = function(context, debug)
+	{
+		if (this.state != DESTROYED) {
+			this.animations[this.renderIdx].render(context, this.posX, this.posY);
+			if (this.parabolaSeries.length > 0)
+				this.drawParabolaSeries(context);
+		}
+		else {
+			this.destroyedAnimation.render(context, this.posX, this.posY);
+		}
+		
+		
+		if(debug) renderDebug(this, context);
+	}
+	
+	Turret.prototype.onGround = function(tilemap) {
+		var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (turretWidth/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+    // find the tile we are standing on.
+		return (tile && tile.data.solid) ? true : false;
+	}
+	
+	function renderDebug(turret, ctx) {
+		var bounds = turret.boundingBox();
+		var circle = turret.boundingCircle();
+		ctx.save();
+		
+		// Draw player bounding box
+		ctx.strokeStyle = "red";
+		ctx.beginPath();
+		ctx.moveTo(bounds.left, bounds.top);
+		ctx.lineTo(bounds.right, bounds.top);
+		ctx.lineTo(bounds.right, bounds.bottom);
+		ctx.lineTo(bounds.left, bounds.bottom);
+		ctx.closePath();
+		ctx.stroke();
+		
+		ctx.strokeStyle = "blue";
+		ctx.beginPath();
+		ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
+		ctx.stroke();
+		
+		// Outline tile underfoot
+		var tileX = 64 * Math.floor((bounds.left + (turretWidth/2))/64),
+			tileY = 64 * (Math.floor(bounds.bottom / 64));
+		ctx.strokeStyle = "black";
+		ctx.beginPath();
+		ctx.moveTo(tileX, tileY);
+		ctx.lineTo(tileX + 64, tileY);
+		ctx.lineTo(tileX + 64, tileY + 64);
+		ctx.lineTo(tileX, tileY + 64);
+		ctx.closePath();
+		ctx.stroke();
+		
+		ctx.restore();
+  }
+
+	Turret.prototype.collide = function(otherEntity)
+	{
+		if (otherEntity.type == 'cannonball' && (otherEntity.state == 3 /*Cannonball.EXPLODING*/)) {
+			this.state = DESTROYED;
+			this.targeting = false;
+			for (var i = 0; i < this.cannonballs.length; i ++) {
+			// Entity manager doesn't work correctly when I remove an entity
+				// entityManager.remove(this.cannonballs[i]);
+				// this.cannonballs[i] = [];
+			}
+		}
+	}
+
+	Turret.prototype.boundingBox = function()
+	{
+		return {
+			left: this.posX + 30,
+			top: this.posY,
+			right: this.posX + turretWidth - 30,
+			bottom: this.posY + turretHeight
+		}
+	}
+
+	Turret.prototype.boundingCircle = function()
+	{
+		return {
+			cx: this.posX + 44,
+			cy: this.posY + 43 + 10,
+			radius: 45 - 15
+		}
+	}
+	
+	return Turret;
+	
+}())
+},{"./animation.js":2,"./cannonball.js":5,"./entity-manager.js":10,"./entity.js":11,"./player.js":18}]},{},[16]);
