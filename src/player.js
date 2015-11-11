@@ -52,7 +52,6 @@ module.exports = (function(){
     this.xSpeed = 10;
     this.ySpeed = 15;
     this.isLeft = false;
-    this.entity_type = "Player";
 
     //The animations
     this.animations = {

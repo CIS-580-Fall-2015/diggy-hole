@@ -32,8 +32,8 @@ module.exports = (function() {
     this.entity_type = "Golem-arm";
     this.state = 0;
     this.golem = golem;
-    this.r = new Animation(golem_right, SIZE * 2, SIZE, 128, 128, 0);
-    this.l = new Animation(golem_left, SIZE * 2, SIZE, 128, 128, 0);
+    this.r = new Animation(golem_right, ARMX, ARMY, 128, 128, 0);
+    this.l = new Animation(golem_left, ARMX, ARMY, 128, 128, 0);
 
     Arm.prototype.boundingBox = function(otherEntity) {
       if (this.state === 0) {
@@ -83,7 +83,10 @@ module.exports = (function() {
     this.isLeft = false;
     this.entity_type = "Golem";
     this.arm = new Arm(this);
+    entityManager.add(this.arm);
     this.stateTime = 0;
+
+
     //The animations
     this.animations = {
       left: [],

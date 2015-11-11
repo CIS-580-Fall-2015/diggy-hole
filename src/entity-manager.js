@@ -88,6 +88,31 @@ module.exports = (function (){
     }
   }
 
+
+  /* Returns all entities within the given radius.
+   * Arguments:
+   * - x, the x-coordinate of the center of the query circle
+   * - y, the y-coordinate of the center of the query circle
+   * - r, the radius of the center of the circle
+   * Returns:
+   *   An array of entity references
+   */
+  function queryRadius(x, y, r) {
+    var entitiesInRadius = [];
+    for(var i = 0; i < entityCount; i++) {
+      // Only check existing entities
+      if(entities[i]) {
+        var circ = entities[i].boundingCircle();
+        if( Math.pow(circ.radius + r, 2) >=
+            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.cy, 2)
+        ){
+		entitiesInRadius.push(entities[i]);
+      }
+    }
+	}
+    return entitiesInRadius;
+  }
+
   /* Returns all entities within the given radius.
    * Arguments:
    * - x, the x-coordinate of the center of the query circle
@@ -134,6 +159,17 @@ module.exports = (function (){
     }
   }
 
+  function getPlayer(){
+    for(var i = 0; i < entityCount; i++) {
+      if(entities[i] && entities[i] instanceof Player){
+        return entities[i];
+      }
+    }
+  }
+
+    function getEntity(index){
+	  return entities[index];
+  }
 
   /* Gets distance between entity and player */
   function playerDistance(entity) {
