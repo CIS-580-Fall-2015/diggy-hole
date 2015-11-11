@@ -296,7 +296,7 @@ module.exports = (function (){
 
 }());
 
-},{"./mud_golem.js":8}],4:[function(require,module,exports){
+},{"./mud_golem.js":9}],4:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -507,7 +507,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./entity-manager.js":3,"./input-manager.js":6,"./main-menu.js":7,"./player.js":10,"./tilemap.js":11}],6:[function(require,module,exports){
+},{"./entity-manager.js":3,"./input-manager.js":6,"./main-menu.js":7,"./player.js":11,"./tilemap.js":12}],6:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -692,6 +692,50 @@ module.exports = (function (){
   
 })();
 },{"./credits-screen":2}],8:[function(require,module,exports){
+
+
+// Wait for the window to load completely
+window.onload = function() {
+  
+  var gameTime = 0,
+      gameState = [];
+    
+  var pushState = function(state) {
+    state.load({pushState: pushState, popState: popState});
+    gameState.push(state);
+  }
+  
+  var popState = function() {
+    state = gameState.pop(); 
+    if(state) state.exit();
+    return state;
+  }
+  
+  var game = require('./game');
+  pushState(game);
+  
+  var mainMenu = require('./main-menu');
+  pushState(mainMenu);
+  
+  // Event handlers for key events
+  window.onkeydown = function(event) {
+    gameState[gameState.length-1].keyDown(event);
+  }
+  window.onkeyup = function(event) {
+    gameState[gameState.length-1].keyUp(event);
+  }
+  
+  function loop(newTime) {
+    var elapsedTime = (newTime - gameTime) / 1000;
+    gameTime = newTime;
+    gameState[gameState.length-1].update(elapsedTime);
+    gameState[gameState.length-1].render(elapsedTime);
+    window.requestAnimationFrame(loop);
+  }
+  window.requestAnimationFrame(loop);
+  
+};
+},{"./game":5,"./main-menu":7}],9:[function(require,module,exports){
 /* A stationary mud golem creature with a powerful attack
    Built from player.js template
    By Richard Petrie */
@@ -928,7 +972,7 @@ module.exports = (function() {
 
 }());
 
-},{"./animation.js":1,"./entity.js":4}],9:[function(require,module,exports){
+},{"./animation.js":1,"./entity.js":4}],10:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -1054,7 +1098,7 @@ module.exports = (function(){
   }
 
 }());
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -1325,7 +1369,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":1,"./entity.js":4}],11:[function(require,module,exports){
+},{"./animation.js":1,"./entity.js":4}],12:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -1818,4 +1862,4 @@ module.exports = (function (){
   
   
 })();
-},{"./noise.js":9}]},{},[5]);
+},{"./noise.js":10}]},{},[5,8]);

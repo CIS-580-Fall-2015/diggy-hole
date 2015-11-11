@@ -25,6 +25,51 @@ module.exports = (function() {
   var golemLeft = new Image();
   golemLeft.src = "img/golem_left.png";
 
+  function Arm(golem) {
+    this.currentY = golem.currentY + 16;
+    this.currentX = golem.currentX;
+    this.isLeft = false;
+    this.entity_type = "Golem-arm";
+    this.state = 0;
+    this.golem = golem;
+    this.r = new Animation(golem_right, SIZE * 2, SIZE, 128, 128, 0);
+    this.l = new Animation(golem_left, SIZE * 2, SIZE, 128, 128, 0);
+
+    Arm.prototype.boundingBox = function(otherEntity) {
+      if (this.state === 0) {
+        return;
+      }
+      return {
+        left: this.currentX,
+        top: this.currentY,
+        right: this.currentX + ARMX,
+        bottom: this.currentY + ARMY
+      };
+    };
+
+    Arm.prototype.render = function(context, debug) {
+      if (this.state === 0) {
+        return;
+      }
+      if (this.isLeft) {
+        this.l.render(context, this.currentX, this.currentY);
+      }
+      else
+      {
+        this.r.render(context, this.currentX, this.currentY);
+      }
+    };
+
+    Arm.prototype.collide = function(otherEntity) {
+      if (this.state == ATTACK) {
+        if (otherEntity.entity_type == "Player") {
+          //TODO kill player
+        }
+      }
+    };
+
+  }
+
   //The Player constructor
   function Golem(locationX, locationY, layerIndex) {
     this.state = DORMANT;
@@ -37,36 +82,8 @@ module.exports = (function() {
     this.nextTileIndex = 0;
     this.isLeft = false;
     this.entity_type = "Golem";
-    this.arm = new Entity();
+    this.arm = new Arm(this);
     this.stateTime = 0;
-
-    //Arm proprerties
-    this.arm.currentY = this.currentY + 16;
-    this.arm.currentX = this.currentX;
-    this.arm.isLeft = false;
-    this.arm.entity_type = "Golem-arm";
-    this.arm.state = 0;
-
-    //Arm functions
-    this.arm.boundingBox = function(otherEntity) {
-      //TODO this or this.arm?
-      if (this.state === 0) {
-        return;
-      }
-      return {
-        left: this.currentX,
-        top: this.currentY,
-        right: this.currentX + ARMX,
-        bottom: this.currentY + ARMY
-      };
-    };
-
-    this.arm.render = function(context, debug) {
-      //TODO this
-    };
-
-    //Update handled by Golem
-
     //The animations
     this.animations = {
       left: [],
@@ -74,18 +91,18 @@ module.exports = (function() {
     };
 
     //The right-facing animations
-    this.animations.right[DORMANT] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 0);
-    this.animations.right[RISING] = new Animation(dwarfRight, SIZE, SIZE, 0, 64, 3);
-    this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, 128, 0, 0);
-    this.animations.right[CHARGING] = new Animation(dwarfRight, SIZE, SIZE, 64, 0, 4, 0.25);
-    this.animations.right[ATTACK] = new Animation(dwarfRight, SIZE, SIZE, 64, 192, 0);
+    this.animations.right[DORMANT] = new Animation(golem_right, SIZE, SIZE, 0, 0, 0);
+    this.animations.right[RISING] = new Animation(golem_right, SIZE, SIZE, 0, 64, 3);
+    this.animations.right[STANDING] = new Animation(golem_right, SIZE, SIZE, 128, 0, 0);
+    this.animations.right[CHARGING] = new Animation(golem_right, SIZE, SIZE, 64, 0, 4, 0.25);
+    this.animations.right[ATTACK] = new Animation(golem_right, SIZE, SIZE, 64, 192, 0);
 
     //The left-facing animations
-    this.animations.left[DORMANT] = new Animation(dwarfleft, SIZE, SIZE, 0, 0, 0);
-    this.animations.left[RISING] = new Animation(dwarfleft, SIZE, SIZE, 0, 64, 3);
-    this.animations.left[STANDING] = new Animation(dwarfleft, SIZE, SIZE, 128, 0, 0);
-    this.animations.left[CHARGING] = new Animation(dwarfleft, SIZE, SIZE, 64, 0, 4, 0.25);
-    this.animations.left[ATTACK] = new Animation(dwarfleft, SIZE, SIZE, 64, 192, 0);
+    this.animations.left[DORMANT] = new Animation(golem_left, SIZE, SIZE, 0, 0, 0);
+    this.animations.left[RISING] = new Animation(golem_left, SIZE, SIZE, 0, 64, 3);
+    this.animations.left[STANDING] = new Animation(golem_left, SIZE, SIZE, 128, 0, 0);
+    this.animations.left[CHARGING] = new Animation(golem_left, SIZE, SIZE, 64, 0, 4, 0.25);
+    this.animations.left[ATTACK] = new Animation(golem_left, SIZE, SIZE, 64, 192, 0);
   }
 
   // Player inherits from Entity
@@ -112,11 +129,12 @@ module.exports = (function() {
     var sprite = this;
     if (!sprite.onGround(tilemap)) {
       // Kill if not on ground
+      entityManager.remove(this.arm);
       entityManager.remove(this);
     }
     var pd = entityManager.playerDistance(this);
     // Don't proccess the rest of the state if the player is too far away
-    if (pd > 20) {
+    if (pd > 1280) {
       return;
     }
     // Process player state
@@ -126,6 +144,9 @@ module.exports = (function() {
         if (pd < 320) {
           this.state = CHARGING;
           this.stateTime = 1;
+        }
+        if (pd > 640) {
+          this.state = DORMANT;
         }
         break;
       case DORMANT:
@@ -141,12 +162,23 @@ module.exports = (function() {
         }
         break;
       case ATTACK:
+        this.arm.state = 1;
+        if (this.stateTime < 0) {
+          this.state = STANDING;
+          this.arm.state = 0;
+        }
+        if (this.left) {
+          this.arm.currentX = this.currentX - 128;
+        }
+        else {
+          this.arm.currentX = this.currentX + SIZE;
+        }
+        break;
       case RISING:
         if (this.stateTime < 0) {
           this.state = STANDING;
         }
         break;
-
     }
 
     this.stateTime -= elapsedTime;
@@ -218,16 +250,11 @@ module.exports = (function() {
   };
 
   Golem.prototype.boundingCircle = function() {
-    //TODO bounding circle
-    return {};
-  };
-
-  Golem.prototype.collide = function(otherEntity) {
-    if (this.state == ATTACK) {
-      if (otherEntity.entity_type == "Player") {
-        //TODO kill player
-      }
-    }
+    return {
+      x: this.currentX + SIZE / 2,
+      y: this.currentY + SIZE / 2,
+      r: SIZE
+    };
   };
 
   return Golem;

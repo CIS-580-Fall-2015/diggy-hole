@@ -8,9 +8,6 @@
 module.exports = (function (){
   const MAX_ENTITIES = 100;
 
-  // entities
-  require('./mud_golem.js');
-
 
   var entities = [],
       entityCount = 0;
