@@ -5,9 +5,9 @@
  * - Wyatt Watson
  * - Nathan Bean
  */
-module.exports = (function(){
+module.exports = (function() {
   var Entity = require('./entity.js'),
-      Animation = require('./animation.js');
+    Animation = require('./animation.js');
 
   /* The following are player States (Swimming is not implemented) */
   const STANDING = 0;
@@ -35,7 +35,7 @@ module.exports = (function(){
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
-    this.inputManager = inputManager
+    this.inputManager = inputManager;
     this.state = WALKING;
     this.dug = false;
     this.downPressed = false;
@@ -47,12 +47,12 @@ module.exports = (function(){
     this.currentTileIndex = 0;
     this.nextTileIndex = 0;
     this.constSpeed = 15;
-    this.gravity = .5;
+    this.gravity = 0.5;
     this.angle = 0;
     this.xSpeed = 10;
     this.ySpeed = 15;
     this.isLeft = false;
-	  this.type = "player";
+    this.type = "player";
 
     //The animations
     this.animations = {
@@ -61,18 +61,18 @@ module.exports = (function(){
     };
 
     //The right-facing animations
-    this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, SIZE*2, SIZE);
+    this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 2, SIZE);
     this.animations.right[WALKING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
-    this.animations.right[JUMPING] = new Animation(dwarfRight, SIZE, SIZE, SIZE*3, 0);
-    this.animations.right[DIGGING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE*2, 4);
+    this.animations.right[JUMPING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 3, 0);
+    this.animations.right[DIGGING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE * 2, 4);
     this.animations.right[FALLING] = new Animation(dwarfRight, SIZE, SIZE, SIZE, SIZE);
     this.animations.right[SWIMMING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
 
     //The left-facing animations
-    this.animations.left[STANDING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE*2, SIZE);
+    this.animations.left[STANDING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE * 2, SIZE);
     this.animations.left[WALKING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
-    this.animations.left[JUMPING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE*3, 0);
-    this.animations.left[DIGGING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE*2, 4);
+    this.animations.left[JUMPING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE * 3, 0);
+    this.animations.left[DIGGING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE * 2, 4);
     this.animations.left[FALLING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE, SIZE);
     this.animations.left[SWIMMING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
   }
@@ -83,34 +83,34 @@ module.exports = (function(){
   // Determines if the player is on the ground
   Player.prototype.onGround = function(tilemap) {
     var box = this.boundingBox(),
-        tileX = Math.floor((box.left + (SIZE/2))/64),
-        tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+      tileX = Math.floor((box.left + (SIZE / 2)) / 64),
+      tileY = Math.floor(box.bottom / 64),
+      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     // find the tile we are standing on.
     return (tile && tile.data.solid) ? true : false;
-  }
+  };
 
   // Moves the player to the left, colliding with solid tiles
   Player.prototype.moveLeft = function(distance, tilemap) {
     this.currentX -= distance;
     var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+      tileX = Math.floor(box.left / 64),
+      tileY = Math.floor(box.bottom / 64) - 1,
+      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     if (tile && tile.data.solid)
-      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
-  }
+      this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
+  };
 
   // Moves the player to the right, colliding with solid tiles
   Player.prototype.moveRight = function(distance, tilemap) {
     this.currentX += distance;
     var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+      tileX = Math.floor(box.right / 64),
+      tileY = Math.floor(box.bottom / 64) - 1,
+      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     if (tile && tile.data.solid)
-      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
-  }
+      this.currentX = (Math.ceil(this.currentX / 64) - 1) * 64;
+  };
 
   /* Player update function
    * arguments:
@@ -125,56 +125,53 @@ module.exports = (function(){
     // The "with" keyword allows us to change the
     // current scope, i.e. 'this' becomes our
     // inputManager
-    with (this.inputManager) {
+    with(this.inputManager) {
 
       // Process player state
-      switch(sprite.state) {
+      switch (sprite.state) {
         case STANDING:
         case WALKING:
           // If there is no ground underneath, fall
-          if(!sprite.onGround(tilemap)) {
+          if (!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
             sprite.velocityY = 0;
           } else {
-            if(isKeyDown(commands.DIG)) {
+            if (isKeyDown(commands.DIG)) {
               sprite.state = DIGGING;
-            }
-            else if(isKeyDown(commands.UP)) {
+            } else if (isKeyDown(commands.UP)) {
               sprite.state = JUMPING;
               sprite.velocityY = JUMP_VELOCITY;
-            }
-            else if(isKeyDown(commands.LEFT)) {
+            } else if (isKeyDown(commands.LEFT)) {
               sprite.isLeft = true;
               sprite.state = WALKING;
               sprite.moveLeft(elapsedTime * SPEED, tilemap);
-            }
-            else if(isKeyDown(commands.RIGHT)) {
+            } else if (isKeyDown(commands.RIGHT)) {
               sprite.isLeft = false;
               sprite.state = WALKING;
               sprite.moveRight(elapsedTime * SPEED, tilemap);
-            }
-            else {
+            } else {
               sprite.state = STANDING;
             }
           }
           break;
         case DIGGING:
-		var box = this.boundingBox(),
-			tileX = Math.floor((box.left + (SIZE/2))/64),
-			tileY = Math.floor(box.bottom / 64);
-			tilemap.setTileAt(7, tileX, tileY, 0);
-			sprite.state = FALLING;
+          var box = this.boundingBox(),
+            tileX = Math.floor((box.left + (SIZE / 2)) / 64),
+            tileY = Math.floor(box.bottom / 64);
+          tilemap.setTileAt(7, tileX, tileY, 0);
+          sprite.state = FALLING;
+          break;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
           sprite.currentY += sprite.velocityY * elapsedTime;
-          if(sprite.velocityY > 0) {
+          if (sprite.velocityY > 0) {
             sprite.state = FALLING;
           }
-          if(isKeyDown(commands.LEFT)) {
+          if (isKeyDown(commands.LEFT)) {
             sprite.isLeft = true;
             sprite.moveLeft(elapsedTime * SPEED, tilemap);
           }
-          if(isKeyDown(commands.RIGHT)) {
+          if (isKeyDown(commands.RIGHT)) {
             sprite.isLeft = true;
             sprite.moveRight(elapsedTime * SPEED, tilemap);
           }
@@ -182,15 +179,13 @@ module.exports = (function(){
         case FALLING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
           sprite.currentY += sprite.velocityY * elapsedTime;
-          if(sprite.onGround(tilemap)) {
+          if (sprite.onGround(tilemap)) {
             sprite.state = STANDING;
             sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-          }
-          else if(isKeyDown(commands.LEFT)) {
+          } else if (isKeyDown(commands.LEFT)) {
             sprite.isLeft = true;
             sprite.moveLeft(elapsedTime * SPEED, tilemap);
-          }
-          else if(isKeyDown(commands.RIGHT)) {
+          } else if (isKeyDown(commands.RIGHT)) {
             sprite.isLeft = false;
             sprite.moveRight(elapsedTime * SPEED, tilemap);
           }
@@ -204,12 +199,12 @@ module.exports = (function(){
     }
 
     // Update animation
-    if(this.isLeft)
+    if (this.isLeft)
       this.animations.left[this.state].update(elapsedTime);
     else
       this.animations.right[this.state].update(elapsedTime);
 
-  }
+  };
 
   /* Player Render Function
    * arguments:
@@ -219,13 +214,13 @@ module.exports = (function(){
    */
   Player.prototype.render = function(ctx, debug) {
     // Draw the player (and the correct animation)
-    if(this.isLeft)
+    if (this.isLeft)
       this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
     else
       this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
 
-    if(debug) renderDebug(this, ctx);
-  }
+    if (debug) renderDebug(this, ctx);
+  };
 
   // Draw debugging visual elements
   function renderDebug(player, ctx) {
@@ -243,8 +238,8 @@ module.exports = (function(){
     ctx.stroke();
 
     // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
-        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    var tileX = 64 * Math.floor((bounds.left + (SIZE / 2)) / 64),
+      tileY = 64 * (Math.floor(bounds.bottom / 64));
     ctx.strokeStyle = "black";
     ctx.beginPath();
     ctx.moveTo(tileX, tileY);
@@ -266,17 +261,17 @@ module.exports = (function(){
       top: this.currentY,
       right: this.currentX + SIZE,
       bottom: this.currentY + SIZE
-    }
-  }
+    };
+  };
 
 
   Player.prototype.boundingCircle = function() {
-     return {
-		 cx: this.currentX + SIZE/2,
-		 cy: this.currentY + SIZE/2,
-		 radius: SIZE/2
-	 }
-   }
+    return {
+      cx: this.currentX + SIZE / 2,
+      cy: this.currentY + SIZE / 2,
+      radius: SIZE / 2
+    };
+  };
 
   return Player;
 

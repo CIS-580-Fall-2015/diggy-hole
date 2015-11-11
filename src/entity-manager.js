@@ -5,12 +5,12 @@
  * Authors:
  * - Nathan Bean
  */
-module.exports = (function (){
+module.exports = (function() {
   const MAX_ENTITIES = 100;
 
 
   var entities = [],
-      entityCount = 0;
+    entityCount = 0;
 
   var Player = require('./player.js');
 
@@ -19,7 +19,7 @@ module.exports = (function (){
    * - entity, the entity to add
    */
   function add(entity) {
-    if(entityCount < MAX_ENTITIES) {
+    if (entityCount < MAX_ENTITIES) {
       // Determine the entity's unique ID
       // (we simply use an auto-increment count)
       var id = entityCount;
@@ -38,8 +38,8 @@ module.exports = (function (){
       // yet we may have freed up some space within our
       // entity array when an entity was removed.
       // If so, let's co-opt it.
-      for(var i = 0; i < MAX_ENTITIES; i++) {
-        if(entities[i] == undefined) {
+      for (var i = 0; i < MAX_ENTITIES; i++) {
+        if (entities[i] === undefined) {
           entity._entity_id = i;
           entities[i] = entity;
           return i;
@@ -67,20 +67,20 @@ module.exports = (function (){
    * triggers the collide() event handler.
    */
   function checkCollisions() {
-    for(var i = 0; i < entityCount; i++) {
+    for (var i = 0; i < entityCount; i++) {
       // Don't check for nonexistant entities
-      if(entities[i]) {
-        for(var j = 0; j < entityCount; j++) {
+      if (entities[i]) {
+        for (var j = 0; j < entityCount; j++) {
           // don't check for collisions with ourselves
           // and don't bother checking non-existing entities
-          if(i != j && entities[j]) {
+          if (i != j && entities[j]) {
             var boundsA = entities[i].boundingBox();
             var boundsB = entities[j].boundingBox();
-            if( boundsA.left < boundsB.right &&
-                boundsA.right > boundsB.left &&
-                boundsA.top < boundsB.bottom &&
-                boundsA.bottom > boundsB.top
-              ) {
+            if (boundsA.left < boundsB.right &&
+              boundsA.right > boundsB.left &&
+              boundsA.top < boundsB.bottom &&
+              boundsA.bottom > boundsB.top
+            ) {
               entities[i].collide(entities[j]);
               entities[j].collide(entities[i]);
             }
@@ -100,17 +100,17 @@ module.exports = (function (){
    */
   function queryRadius(x, y, r) {
     var entitiesInRadius = [];
-    for(var i = 0; i < entityCount; i++) {
+    for (var i = 0; i < entityCount; i++) {
       // Only check existing entities
-      if(entities[i]) {
+      if (entities[i]) {
         var circ = entities[i].boundingCircle();
-        if( Math.pow(circ.radius + r, 2) >=
-            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.cy, 2)
-        ){
-		entitiesInRadius.push(entities[i]);
+        if (Math.pow(circ.radius + r, 2) >=
+          Math.pow(x - circ.cx, 2) + Math.pow(y - circ.cy, 2)
+        ) {
+          entitiesInRadius.push(entities[i]);
+        }
       }
     }
-	}
     return entitiesInRadius;
   }
 
@@ -121,8 +121,8 @@ module.exports = (function (){
    * - tilemap, the current tilemap for the game.
    */
   function update(elapsedTime, tilemap) {
-    for(i = 0; i < entityCount; i++) {
-      if(entities[i]) entities[i].update(elapsedTime, tilemap, this);
+    for (i = 0; i < entityCount; i++) {
+      if (entities[i]) entities[i].update(elapsedTime, tilemap, this);
     }
     checkCollisions();
   }
@@ -133,21 +133,21 @@ module.exports = (function (){
    * - debug, the flag to trigger visual debugging
    */
   function render(ctx, debug) {
-    for(var i = 0; i < entityCount; i++) {
-      if(entities[i]) entities[i].render(ctx, debug);
+    for (var i = 0; i < entityCount; i++) {
+      if (entities[i]) entities[i].render(ctx, debug);
     }
   }
 
-  function getPlayer(){
-    for(var i = 0; i < entityCount; i++) {
-      if(entities[i] && entities[i] instanceof Player){
+  function getPlayer() {
+    for (var i = 0; i < entityCount; i++) {
+      if (entities[i] && entities[i] instanceof Player) {
         return entities[i];
       }
     }
   }
 
-function getEntity(index){
-	  return entities[index];
+  function getEntity(index) {
+    return entities[index];
   }
 
   /* Gets distance between entity and player */
@@ -174,7 +174,7 @@ function getEntity(index){
     playerDistance: playerDistance,
     playerDirection: playerDirection,
     getPlayer: getPlayer,
-	  getEntity: getEntity
+    getEntity: getEntity
   };
 
 }());
