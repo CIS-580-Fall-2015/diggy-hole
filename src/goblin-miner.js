@@ -245,9 +245,9 @@ module.exports = (function(){
 			}
 			break;
 		case WALKING:
-		    if(randomNum < .05)
+		    /*if(randomNum < .05)
 			    return {command: PASSIVE_STANDING, direction: 0};
-			else if(checkBelow(tileX, tileY, layerIndex, tileMap)){
+			else*/ if(checkBelow(tileX, tileY, layerIndex, tileMap)){
 				if(randomNum > .1 && tileX+direction >= 0){
 					return {command: WALKING, direction: direction};
 				}
