@@ -18,6 +18,7 @@ module.exports = (function (){
 	  DynamiteDwarf = require('./dynamiteDwarf.js'),
 	  Kakao = require('./Kakao.js'),
 	  kakao,
+      GoblinMiner = require('./goblin-miner.js'),
       player,
       screenCtx,
       backBuffer,
