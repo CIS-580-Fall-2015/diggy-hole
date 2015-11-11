@@ -526,7 +526,7 @@ module.exports = (function (){
     render: render,
     tileAt: tileAt,
 	setTileAt: setTileAt,
-	removeTileAt: removeTileAt,
+	destroyTileAt: destroyTileAt,
     removeTileAt: removeTileAt,
     setViewportSize: setViewportSize,
     setCameraPosition: setCameraPosition
