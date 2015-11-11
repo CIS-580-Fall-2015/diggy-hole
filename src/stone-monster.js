@@ -5,7 +5,8 @@
  */
 module.exports = (function(){
     var Entity = require('./entity.js'),
-        Animation = require('./animation.js');
+        Animation = require('./animation.js'),
+        Player = require('./player.js');
 
     const SIZE = 64;
     const GRAVITY = -250;
@@ -47,7 +48,7 @@ module.exports = (function(){
 
         this.animation_right = new Animation(moving_image_right, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
         this.animation_left = new Animation(moving_image_left, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
-        this.animation_destroyed = new Animation(destroyed_image, SIZE, SIZE, 0, 0, 8, 0.05);
+        this.animation_destroyed = new Animation(destroyed_image, SIZE, SIZE, 0, 0, 8, 0.035, true);
     }
 
     StoneMonster.prototype = new Entity();
@@ -181,7 +182,7 @@ module.exports = (function(){
     StoneMonster.prototype.renderDebug = function(ctx) {
         var bounds = this.boundingBox();
         ctx.save();
-        ctx.strokeStyle = "red";
+        ctx.strokeStyle = "purple";
         ctx.beginPath();
         ctx.moveTo(bounds.left, bounds.top);
         ctx.lineTo(bounds.right, bounds.top);
@@ -210,7 +211,36 @@ module.exports = (function(){
     };
 
     StoneMonster.prototype.boundingCircle = function() {
-        
+
+
+    };
+
+    StoneMonster.prototype.collide = function(otherEntity){
+        if(!otherEntity){
+            return;
+        }
+        if(otherEntity instanceof Player && this.state != FALLING
+            && otherEntity.currentY + SIZE/2 <= this.currentY){
+            this.state = SMASHED;
+        }
+        var entityRect = otherEntity.boundingBox();
+        var thisRect = this.boundingBox();
+
+
+        if(entityRect.bottom > thisRect.top){
+            otherEntity.currentY = thisRect.top - SIZE - 2;
+            if(otherEntity instanceof  Player && this.state == SMASHED){
+                //otherEntity.health -= DAMAGE;
+                console.log("damage");
+            }
+        }
+        else if(entityRect.right - SIZE/3 >= thisRect.left){
+            otherEntity.currentX -= (entityRect.right - thisRect.left);
+        }
+        else if(entityRect.left - SIZE/3 <= thisRect.right){
+            console.log(thisRect.right - entityRect.left);
+            otherEntity.currentX = this.currentX + SIZE + 2;
+        }
     };
 
     return StoneMonster;

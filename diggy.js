@@ -1,7 +1,7 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 module.exports = (function() { 
   
-  function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame) {
+  function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame, playItOnce) {
     this.frameIndex = 0,
     this.time = 0,
     this.secondsPerFrame = secondsPerFrame || (1/16),
@@ -13,6 +13,8 @@ module.exports = (function() {
     
     this.drawLocationX = top || 0;
     this.drawLocationY = left || 0;
+
+    this.playItOnce = playItOnce;
   }
   
   Animation.prototype.setStats = function(frameCount, locationX, locationY){
@@ -31,7 +33,7 @@ module.exports = (function() {
       // If the current frame index is in range
       if (this.frameIndex < this.numberOfFrames - 1) {	
         this.frameIndex += 1;
-      } else {
+      } else if(!this.playItOnce) {
         this.frameIndex = 0;
       }
     }
@@ -1131,7 +1133,8 @@ module.exports = (function(){
  */
 module.exports = (function(){
     var Entity = require('./entity.js'),
-        Animation = require('./animation.js');
+        Animation = require('./animation.js'),
+        Player = require('./player.js');
 
     const SIZE = 64;
     const GRAVITY = -250;
@@ -1173,7 +1176,7 @@ module.exports = (function(){
 
         this.animation_right = new Animation(moving_image_right, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
         this.animation_left = new Animation(moving_image_left, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
-        this.animation_destroyed = new Animation(destroyed_image, SIZE, SIZE, 0, 0, 8, 0.05);
+        this.animation_destroyed = new Animation(destroyed_image, SIZE, SIZE, 0, 0, 8, 0.035, true);
     }
 
     StoneMonster.prototype = new Entity();
@@ -1214,7 +1217,7 @@ module.exports = (function(){
         }
         if(collided){
             if(this.bounced){
-                this.state = SMASHED;
+                this.state = STUCK;
                 return;
             }
             this.isMovingRight = !this.isMovingRight;
@@ -1307,7 +1310,7 @@ module.exports = (function(){
     StoneMonster.prototype.renderDebug = function(ctx) {
         var bounds = this.boundingBox();
         ctx.save();
-        ctx.strokeStyle = "red";
+        ctx.strokeStyle = "purple";
         ctx.beginPath();
         ctx.moveTo(bounds.left, bounds.top);
         ctx.lineTo(bounds.right, bounds.top);
@@ -1337,11 +1340,40 @@ module.exports = (function(){
 
     StoneMonster.prototype.boundingCircle = function() {
 
+
+    };
+
+    StoneMonster.prototype.collide = function(otherEntity){
+        if(!otherEntity){
+            return;
+        }
+        if(otherEntity instanceof Player && this.state != FALLING
+            && otherEntity.currentY + SIZE/2 <= this.currentY){
+            this.state = SMASHED;
+        }
+        var entityRect = otherEntity.boundingBox();
+        var thisRect = this.boundingBox();
+
+
+        if(entityRect.bottom > thisRect.top){
+            otherEntity.currentY = thisRect.top - SIZE - 2;
+            if(otherEntity instanceof  Player && this.state == SMASHED){
+                //otherEntity.health -= DAMAGE;
+                console.log("damage");
+            }
+        }
+        else if(entityRect.right - SIZE/3 >= thisRect.left){
+            otherEntity.currentX -= (entityRect.right - thisRect.left);
+        }
+        else if(entityRect.left - SIZE/3 <= thisRect.right){
+            console.log(thisRect.right - entityRect.left);
+            otherEntity.currentX = this.currentX + SIZE + 2;
+        }
     };
 
     return StoneMonster;
 }());
-},{"./animation.js":1,"./entity.js":4}],12:[function(require,module,exports){
+},{"./animation.js":1,"./entity.js":4,"./player.js":10}],12:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
