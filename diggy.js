@@ -745,11 +745,12 @@ module.exports = (function(){
 			}
 			break;
 		case WALKING:
-		    if(randomNum > .9){
+		    /* if(randomNum > .9){
 			    if(checkAbovePath(tileX, tileY, layerIndex, tileMap))
 					return {command: JUMPING, direction: 0};
 		    }
 		    if(randomNum < .05)
+<<<<<<< HEAD
 			    return {command: PASSIVE_STANDING, direction: 0};
 			else if(checkBelow(tileX, tileY, layerIndex, tileMap)){
 				if(randomNum > .1 && tileX+direction >= 0){
@@ -760,6 +761,11 @@ module.exports = (function(){
 			}
 		    else if(direction >= 1){
 			    if(checkRight(tileX, tileY, layerIndex, tileMap) && tileX+1 <= 1000)
+=======
+			    return {command: PASSIVE_STANDING, direction: 0}; */
+		    if(direction == 1){
+			    if(checkRight(tileX, tileY, layerIndex, tileMap))
+>>>>>>> origin/WyattWatson
 				    return {command: WALKING, direction: 1};
 				else if(randomNum < .9 && tileX-1 >= -1)
 					return {command: WALKING, direction: -1};
@@ -832,6 +838,53 @@ module.exports = (function(){
     var goblinMinerLeft = new Image();
     goblinMinerLeft.src = '';
     /* END ADD CODE HERE*/
+<<<<<<< HEAD
+=======
+
+    function GoblinMiner(locationX, locationY, layerIndex){
+	    this.data = {type: 'goblinMiner'};
+		this.state = PASSIVE_STANDING;
+	    this.layerIndex = layerIndex;
+	    this.currentX = locationX;
+	    this.currentY = locationY;
+	    this.nextX = 0;
+	    this.nextY = 0;
+	    this.currentTileIndex = 0;
+	    this.nextTileIndex = 0;
+	    this.constSpeed = 15;
+	    this.gravity = .5;
+	    this.angle = 0;
+	    this.xSpeed = 10;
+	    this.ySpeed = 15;
+		this.velocityY = 0;
+	    this.isLeft = false;
+		this.direction = 0;
+	  
+	    // The animations
+	    this.animations = {
+			left: [],
+			right: []
+	    }
+	  
+	    /* ADD CODE HERE */
+	    // The right-facing animations
+	    this.animations.right[PASSIVE_STANDING] = new Animation(goblinMinerRight, 354/8, 64, 354/8, 0, 0, 1);
+	    // the left-facing animations
+	    /* END ADD CODE HERE */
+    }  
+  
+    GoblinMiner.prototype = new Entity();
+  
+    // Determines if the Goblin Miner is on the ground
+    GoblinMiner.prototype.onGround = function(tilemap) {
+		var box = this.boundingBox(),
+			tileX = Math.floor((box.left + (SIZE/2))/64),
+			tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+    }
+>>>>>>> origin/WyattWatson
   
     // Moves the Goblin Miner to the left, colliding with solid tiles
     GoblinMiner.prototype.moveLeft = function(distance, tilemap) {
@@ -886,7 +939,11 @@ module.exports = (function(){
 		  break;
         case WALKING:
 		  this.velocityY = 0;
+<<<<<<< HEAD
           if(whatDo.direction >= 0){
+=======
+          if(whatDo.direction > 0){
+>>>>>>> origin/WyattWatson
 			  this.isLeft = false;
 			  this.moveRight(elapsedTime * SPEED, tilemap);
 		  }

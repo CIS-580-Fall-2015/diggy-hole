@@ -251,11 +251,12 @@ module.exports = (function(){
 			}
 			break;
 		case WALKING:
-		    if(randomNum > .9){
+		    /* if(randomNum > .9){
 			    if(checkAbovePath(tileX, tileY, layerIndex, tileMap))
 					return {command: JUMPING, direction: 0};
 		    }
 		    if(randomNum < .05)
+<<<<<<< HEAD
 			    return {command: PASSIVE_STANDING, direction: 0};
 			else if(checkBelow(tileX, tileY, layerIndex, tileMap)){
 				if(randomNum > .1 && tileX+direction >= 0){
@@ -266,6 +267,11 @@ module.exports = (function(){
 			}
 		    else if(direction >= 1){
 			    if(checkRight(tileX, tileY, layerIndex, tileMap) && tileX+1 <= 1000)
+=======
+			    return {command: PASSIVE_STANDING, direction: 0}; */
+		    if(direction == 1){
+			    if(checkRight(tileX, tileY, layerIndex, tileMap))
+>>>>>>> origin/WyattWatson
 				    return {command: WALKING, direction: 1};
 				else if(randomNum < .9 && tileX-1 >= -1)
 					return {command: WALKING, direction: -1};
@@ -392,7 +398,11 @@ module.exports = (function(){
 		  break;
         case WALKING:
 		  this.velocityY = 0;
+<<<<<<< HEAD
           if(whatDo.direction >= 0){
+=======
+          if(whatDo.direction > 0){
+>>>>>>> origin/WyattWatson
 			  this.isLeft = false;
 			  this.moveRight(elapsedTime * SPEED, tilemap);
 		  }
