@@ -11,15 +11,21 @@ module.exports = (function (){
 	
   // Module variables
   var Player = require('./player.js'),
+      Octopus = require('./octopus.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
+      StoneMonster = require('./stone-monster.js'),
+	  DemonicGroundHog = require('./DemonicGroundH.js'),
       Barrel = require('./barrel.js'),
+	  Turret = require('./turret.js'),
 	  DynamiteDwarf = require('./dynamiteDwarf.js'),
 	  Kakao = require('./Kakao.js'),
 	  kakao,
       GoblinMiner = require('./goblin-miner.js'),
       player,
+      octopus,
+      stoneMonster,
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -58,19 +64,37 @@ module.exports = (function (){
         tilemap.render(screenCtx);
       }
     });
-    
+
+    for (var i = 0; i < 35; i += 7){
+      stoneMonster = new StoneMonster(64*i, 0, 0);
+      entityManager.add(stoneMonster);
+    }
+
     // Create the player and add them to
     // the entity manager
-    player = new Player(180, 240, 0, inputManager);
+    player = new Player(64*6, 240, 0, inputManager);
     entityManager.add(player);
+<<<<<<< HEAD
+
+    octopus = new Octopus(120, 240, 0);
+    entityManager.add(octopus);
+  };
+=======
 	
 	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
 	entityManager.add(goblinMiner);
 	
+	
+	
 	// Spawn 10 barrels close to player
+	 // And some turrets
 	for(var i = 0; i < 10; i++){
+		if (i < 3) { 
+			turret = new Turret(Math.random()*64*50, Math.random()*64*20, o);
+			entityManager.add(turret);
+		}
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
-    entityManager.add(barrel);
+		entityManager.add(barrel);
 	}
 	
 	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
@@ -81,6 +105,7 @@ module.exports = (function (){
     kakao = new Kakao(310,240,0);  //two tiles to the right of the player
     entityManager.add(kakao);
   }
+>>>>>>> c8c0e9fc1a40f122033be568b8667981b676ee3f
    
   /* Updates the state of the game world
    * arguments: 
@@ -91,7 +116,9 @@ module.exports = (function (){
     //player.update(elapsedTime, tilemap);
     entityManager.update(elapsedTime, tilemap);
     inputManager.swapBuffers();
-  }
+
+    octopus.getPlayerPosition(player.boundingBox());
+  };
   
   /* Renders the current state of the game world
    */
@@ -117,7 +144,7 @@ module.exports = (function (){
     
     // Flip the back buffer
     screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);    
-  }
+  };
   
   /* Event handler for key down events
    * arguments:

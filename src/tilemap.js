@@ -502,6 +502,16 @@ module.exports = (function (){
 	 }
   }
   
+  // Sets tile to skies
+  // author: Milan Zelenka
+  var destroyTileAt = function(newType, x,y, layer){
+	 if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){ 
+      return undefined; 
+	 }else{
+		layers[layer].data[x + y * mapWidth] = 1;
+	 }
+  }
+  
   //Dig tile out at x, y
   var removeTileAt = function(x, y, layer) {
 	if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight) 
@@ -516,6 +526,7 @@ module.exports = (function (){
     render: render,
     tileAt: tileAt,
 	setTileAt: setTileAt,
+	destroyTileAt: destroyTileAt,
     removeTileAt: removeTileAt,
     setViewportSize: setViewportSize,
     setCameraPosition: setCameraPosition

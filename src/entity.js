@@ -50,7 +50,7 @@ module.exports = (function(){
     *   do with it.
     */
    Entity.prototype.collide = function(otherEntity) {
-   }
+   } 
    
    /* BoundingBox function
     * This function returns an axis-aligned bounding
