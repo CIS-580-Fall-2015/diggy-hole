@@ -1655,7 +1655,7 @@ module.exports = (function(){
           break;
        
         case DETONATING:
-			var player = entityManager.getEntity(0);//player entity
+			var player = entityManager.getPlayer();//player entity
 			if(settingChargesTimer < 150){
 				settingChargesTimer++;
 			}else{
@@ -3601,7 +3601,7 @@ module.exports = (function(){
 
 
         if(entityRect.bottom > thisRect.top){
-            if(otherEntity instanceof Player ) {
+            if(otherEntity instanceof Player) {
                 otherEntity.currentY = thisRect.top - SIZE - 2;
                 if (this.state == SMASHED) {
                     //otherEntity.health -= DAMAGE;
