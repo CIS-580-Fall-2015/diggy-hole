@@ -103,11 +103,13 @@ module.exports = (function (){
       // Only check existing entities
       if(entities[i]) {
         var circ = entities[i].boundingCircle();
-        if( Math.pow(circ.radius, 2) + Math.pow(r, 2) >=
-            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.y, 2)
-        ) entitiesInRadius.push(entities[i]);
+        if( Math.pow(circ.radius + r, 2) >=
+            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.cy, 2)
+        ){
+		entitiesInRadius.push(entities[i]);
       }
     }
+	}
     return entitiesInRadius;
   }
   
@@ -143,13 +145,18 @@ module.exports = (function (){
     }
   }
   
+    function getEntity(index){
+	  return entities[index];
+  }
+  
   return {
     add: add,
     remove: remove,
     queryRadius: queryRadius,
     update: update,
     render: render,
-    getPlayer: getPlayer
+    getPlayer: getPlayer,
+	getEntity: getEntity
   }
   
 }());

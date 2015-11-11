@@ -7,14 +7,19 @@ module.exports = (function (){
   
   // The width & height of the screen
   const SCREEN_WIDTH = 1280,
-        SCREEN_HEIGHT = 720;
-
+        SCREEN_HEIGHT = 720;	
+	
   // Module variables
   var Player = require('./player.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
       StoneMonster = require('./stone-monster.js'),
+      Barrel = require('./barrel.js'),
+	  DynamiteDwarf = require('./dynamiteDwarf.js'),
+	  Kakao = require('./Kakao.js'),
+	  kakao,
+      GoblinMiner = require('./goblin-miner.js'),
       player,
       stoneMonster,
       screenCtx,
@@ -65,6 +70,23 @@ module.exports = (function (){
     // the entity manager
     player = new Player(64*6, 240, 0, inputManager);
     entityManager.add(player);
+	
+	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
+	entityManager.add(goblinMiner);
+	
+	// Spawn 10 barrels close to player
+	for(var i = 0; i < 10; i++){
+		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
+    entityManager.add(barrel);
+	}
+	
+	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
+	entityManager.add(dynamiteDwarf);
+	
+	// Karenfang: Create a Kakao and add it to
+    // the entity manager
+    kakao = new Kakao(310,240,0);  //two tiles to the right of the player
+    entityManager.add(kakao);
   }
    
   /* Updates the state of the game world

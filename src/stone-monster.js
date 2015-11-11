@@ -258,9 +258,9 @@ module.exports = (function(){
         var thisRect = this.boundingBox();
 
 
-        if(entityRect.bottom > thisRect.top){
+        if(otherEntity instanceof  Player && entityRect.bottom > thisRect.top){
             otherEntity.currentY = thisRect.top - SIZE - 2;
-            if(otherEntity instanceof  Player && this.state == SMASHED){
+            if(this.state == SMASHED){
                 //otherEntity.health -= DAMAGE;
                 console.log("damage");
             }

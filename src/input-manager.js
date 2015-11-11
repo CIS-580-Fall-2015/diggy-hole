@@ -6,6 +6,8 @@ module.exports = (function() {
 	  UP: 38,
 	  DOWN: 40,
     DIG: 32,
+	PAY: 80,
+	ATTACK : 65
   }
   
   var oldKeys = [];
