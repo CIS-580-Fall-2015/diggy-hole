@@ -225,7 +225,7 @@ module.exports = (function(){
 			var entitiesInRange = entityManager.queryRadius(this.posX, this.posY, 1500);
 			if (entitiesInRange.length > 0) {
 				for (var i = 0; i < entitiesInRange.length; i ++) {
-					if (entitiesInRange[i].type == undefined) {
+					if (entitiesInRange[i].type == 'player') {
 						// this.state = FIRING;
 						this.player = entitiesInRange[i];
 						this.playerInRange = true;
@@ -360,8 +360,9 @@ module.exports = (function(){
 			this.state = DESTROYED;
 			this.targeting = false;
 			for (var i = 0; i < this.cannonballs.length; i ++) {
-				entityManager.remove(this.cannonballs[i]);
-				this.cannonballs[i] = [];
+			// Entity manager doesn't work correctly when I remove an entity
+				// entityManager.remove(this.cannonballs[i]);
+				// this.cannonballs[i] = [];
 			}
 		}
 	}

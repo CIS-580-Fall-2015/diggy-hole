@@ -16,6 +16,7 @@ module.exports = (function (){
       entityManager = require('./entity-manager.js'),
       StoneMonster = require('./stone-monster.js'),
       Barrel = require('./barrel.js'),
+	  Turret = require('./turret.js'),
 	  DynamiteDwarf = require('./dynamiteDwarf.js'),
 	  Kakao = require('./Kakao.js'),
 	  kakao,
@@ -75,9 +76,14 @@ module.exports = (function (){
 	entityManager.add(goblinMiner);
 	
 	// Spawn 10 barrels close to player
+	 // And some turrets
 	for(var i = 0; i < 10; i++){
+		if (i < 3) { 
+			turret = new Turret(Math.random()*64*50, Math.random()*64*20, o);
+			entityManager.add(turret);
+		}
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
-    entityManager.add(barrel);
+		entityManager.add(barrel);
 	}
 	
 	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
