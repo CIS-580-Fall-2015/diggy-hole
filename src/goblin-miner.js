@@ -48,7 +48,7 @@ module.exports = (function(){
 	  
 	    /* ADD CODE HERE */
 	    // The right-facing animations
-	    this.animations.right[PASSIVE_STANDING] = new Animation(goblinMinerRight, 354/8, 64, 354/8, 0, 0, 1);
+	    this.animations.right[PASSIVE_STANDING] = new Animation(goblinMinerRight, 354/8, 64, 354/8, 0, 0, 8);
 	    // the left-facing animations
 	    /* END ADD CODE HERE */
     }  
