@@ -878,6 +878,12 @@ module.exports = (function(){
   //The left facing dwarf spritesheet
   var dwarfLeft = new Image();
   dwarfLeft.src = "DwarfAnimatedLeft.png";
+  
+   var ratRight = new Image();
+  ratRight.src = 'img/ratRight2.png';
+
+  var ratLeft = new Image();
+  ratLeft.src = "img/ratLeft2.png";
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
@@ -1121,7 +1127,7 @@ module.exports = (function(){
   var Entity = require('./entity.js'),
       Animation = require('./animation.js');
   
-  /* The following are enemy States (Swimming is not implemented) */
+  /* The following are enemy States */
   const STANDING = 0;
   const WALKING = 1;
   const FALLING = 2;
@@ -1173,16 +1179,16 @@ module.exports = (function(){
     }
     
     //The right-facing animations
-    this.animations.right[STANDING] = new Animation(ratRight, SIZE, SIZE, SIZE*2, SIZE);
-    this.animations.right[WALKING] = new Animation(ratRight, SIZE, SIZE, 0, 0, 4);
-    this.animations.right[FALLING] = new Animation(ratIdleRight, SIZE, SIZE, SIZE, SIZE);
-	this.animations.right[ATTACKING] = new Animation(ratRight, SIZE, SIZE, 0, 0, 4);
+    this.animations.right[STANDING] = new Animation(ratIdleRight, SIZE, SIZE, SIZE*2, SIZE);
+    this.animations.right[WALKING] = new Animation(ratRight, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[FALLING] = new Animation(ratIdleRight, SIZE, SIZE, 0, 0, 8);
+	this.animations.right[ATTACKING] = new Animation(ratRight, SIZE, SIZE, 0, 0, 8);
     
     //The left-facing animations
-    this.animations.left[STANDING] = new Animation(ratLeft, SIZE, SIZE, SIZE*2, SIZE);
-    this.animations.left[WALKING] = new Animation(ratLeft, SIZE, SIZE, 0, 0, 4);
-    this.animations.left[FALLING] = new Animation(ratIdleLeft, SIZE, SIZE, SIZE, SIZE);
-	this.animations.left[ATTACKING] = new Animation(ratLeft, SIZE, SIZE, 0, 0, 4);
+    this.animations.left[STANDING] = new Animation(ratIdleLeft, SIZE, SIZE, SIZE*2, SIZE);
+    this.animations.left[WALKING] = new Animation(ratLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.left[FALLING] = new Animation(ratIdleLeft, SIZE, SIZE, 0, 0, 8);
+	this.animations.left[ATTACKING] = new Animation(ratLeft, SIZE, SIZE, 0, 0, 8);
   }
   
   // Player inherits from Entity
@@ -1263,13 +1269,13 @@ module.exports = (function(){
           } 
 		  else 
 		  {            
-            if(sprite.onGround(tilemap) && !sprite.checkLeft(tilemap)) 
+            if(sprite.onGround(tilemap) && sprite.checkLeft(tilemap)) 
 			{				
               sprite.isLeft = false;
               sprite.state = WALKING;
               sprite.moveRight(elapsedTime * SPEED, tilemap);
             }
-            else if(sprite.onGround(tilemap) && !sprite.checkRight(tilemap)) 
+            else if(sprite.onGround(tilemap) && sprite.checkRight(tilemap)) 
 			{
               sprite.isLeft = true;
               sprite.state = WALKING;
@@ -1285,14 +1291,15 @@ module.exports = (function(){
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
           sprite.currentY += sprite.velocityY * elapsedTime;
           if(sprite.onGround(tilemap)) {
-            sprite.state = WALKING;
+            sprite.state = STANDING;
             sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
           }          
           break;
         //case SWIMMING:
           // NOT IMPLEMENTED YET
 		case ATTACKING:
-		  // NOT IMPLEMENTED YET
+		  sprite.state = STANDING;
+		  //TODO: attack player
       }   
 	  
     // Update animation
