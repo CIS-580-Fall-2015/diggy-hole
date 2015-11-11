@@ -49,7 +49,7 @@ module.exports = (function(){
 
         this.animation_right = new Animation(moving_image_right, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
         this.animation_left = new Animation(moving_image_left, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
-        this.animation_destroyed = new Animation(destroyed_image, SIZE, SIZE, 0, 0, 8, 0.035, true);
+        this.animation_destroyed = new Animation(destroyed_image, SIZE, SIZE, 0, 0, 8, 0.05, true);
     }
 
     StoneMonster.prototype = new Entity();
@@ -120,8 +120,8 @@ module.exports = (function(){
                     break;
                 }
                 var player = entityManager.getPlayer();
-                if (player && (this.currentX < player.currentX - CLOSE_TO_PLAYER
-                    || this.currentX > player.currentX + CLOSE_TO_PLAYER
+                if (player && (this.currentX <= 64*Math.floor((player.currentX - CLOSE_TO_PLAYER)/64)
+                    || this.currentX >= 64*Math.floor((player.currentX + CLOSE_TO_PLAYER)/64)
                     || this.currentY < player.currentY )) {
                     this.waitingTime = 0;
                     this.state = MOVING;
