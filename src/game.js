@@ -55,13 +55,15 @@ module.exports = (function (){
         tilemap.render(screenCtx);
       }
     });
-    
+
+    for (var i = 0; i < 35; i += 7){
+      stoneMonster = new StoneMonster(64*i, 0, 0);
+      entityManager.add(stoneMonster);
+    }
+
     // Create the player and add them to
     // the entity manager
     player = new Player(64*6, 240, 0, inputManager);
-    stoneMonster = new StoneMonster(0, 0, 0);
-
-    entityManager.add(stoneMonster);
     entityManager.add(player);
   }
    
