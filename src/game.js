@@ -69,15 +69,17 @@ var load = function(sm) {
       }
     });
 
-    for (var i = 0; i < 35; i += 7){
-      stoneMonster = new StoneMonster(64*i, 0, 0);
-      entityManager.add(stoneMonster);
-    }
+    
 
     // Create the player and add them to
     // the entity manager
     player = new Player(400, 240, 0, inputManager);
     entityManager.add(player);
+	
+	for (var i = 0; i < 35; i += 7){
+      stoneMonster = new StoneMonster(64*i, 0, 0);
+      entityManager.add(stoneMonster);
+    }
 	
 	rat = new Rat(500, 360, 0);
 	entityManager.add(rat);
@@ -91,7 +93,7 @@ var load = function(sm) {
 	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
 	entityManager.add(goblinMiner);
 	
-	goblinSorcerer = new GoblinSorcerer(420, 240, 0, entityManager);
+	goblinSorcerer = new GoblinSorcerer(400, 240, 0, entityManager);
 	entityManager.add(goblinSorcerer);
 
 	// Spawn 10 barrels close to player

@@ -19,6 +19,7 @@ module.exports = (function(){
    const SIZE_X = 45;
    const SPEED = 150;
    const GRAVITY = -250;
+   const DONE = 42;
    
   function GoblinSorcerer(locationX, locationY, mapLayer){
 	this.type = "GoblinSorcerer";
@@ -33,6 +34,7 @@ module.exports = (function(){
 	this.movingLeft = false;
 	this.counter = 0;
 	this.leavesLava = true;
+	this.gravity = .5;
 	
 	this.animations = {
       left: [],
@@ -44,6 +46,10 @@ module.exports = (function(){
 	 
 	 this.animations.right[WALKING] = new Animation(GoblinSorcerer, SIZE_X, SIZE_Y, 0,0,20);
 	 this.animations.left[WALKING] = new Animation(GoblinSorcerer, SIZE_X, SIZE_Y, 0,0,20);
+	 this.animations.right[FALLING] = new Animation(GoblinSorcerer, SIZE_X, SIZE_Y, 0,0,20);
+	 this.animations.left[FALLING] = new Animation(GoblinSorcerer, SIZE_X, SIZE_Y, 0,0,20);
+	 this.animations.right[IDLE] = new Animation(GoblinSorcerer, SIZE_X, SIZE_Y, 0,0,20);
+	 this.animations.left[IDLE] = new Animation(GoblinSorcerer, SIZE_X, SIZE_Y, 0,0,20);
   }
   
   
@@ -51,33 +57,33 @@ module.exports = (function(){
  
 	GoblinSorcerer.prototype.isGrounded = function(tilemap) {
     var box = this.boundingBox(),
-      tileX = Math.floor((box.left + (SIZE / 2)) / 64),
+      tileX = Math.floor((box.left + (SIZE_X / 2)) / 64),
       tileY = Math.floor(box.bottom / 64),
-      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+      tile = tilemap.tileAt(tileX, tileY, this.mapLayer);
     // find the tile we are standing on.
     return (tile && tile.data.solid) ? true : false;
   };
 
   // Moves the player to the left, colliding with solid tiles
   GoblinSorcerer.prototype.moveLeft = function(distance, tilemap) {
-    this.currentX -= distance;
+    this.x -= distance;
     var box = this.boundingBox(),
       tileX = Math.floor(box.left / 64),
       tileY = Math.floor(box.bottom / 64) - 1,
-      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+      tile = tilemap.tileAt(tileX, tileY, this.mapLayer);
     if (tile && tile.data.solid)
-      this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
+      this.x = (Math.floor(this.x / 64) + 1) * 64;
   };
 
   // Moves the player to the right, colliding with solid tiles
   GoblinSorcerer.prototype.moveRight = function(distance, tilemap) {
-    this.currentX += distance;
+    this.x += distance;
     var box = this.boundingBox(),
       tileX = Math.floor(box.right / 64),
       tileY = Math.floor(box.bottom / 64) - 1,
-      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+      tile = tilemap.tileAt(tileX, tileY, this.mapLayer);
     if (tile && tile.data.solid)
-      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+      this.x = (Math.ceil(this.x/64)-1) * 64;
   };
  
   /* Update function
@@ -98,37 +104,37 @@ module.exports = (function(){
 			
 	  switch(sprite.state){
 		  case IDLE:
-			if(!sprite.isGrounded(tileMap))
+			if(!sprite.isGrounded(tilemap))
 			{
 				sprite.state = FALLING;
 				sprite.yVelocity = 0;
 			}
-			else if(Math.abs(player.currentX - sprite.currentX) < 512)
+			else if(Math.abs(player.x - sprite.x) < 512)
 			{
 				sprite.state = WALKING;
 			}
 			break;
 		  case FALLING:
-			if(sprite.isGrounded(tileMap))
+			if(sprite.isGrounded(tilemap))
 			{
-				sprite.state = IDLE;
+				sprite.state = WALKING;
 				sprite.y = 64* Math.floor(sprite.y/64);
 			}
-			sprite.yVelocity += sprite.gravity * elapsedTime;
+			sprite.yVelocity += Math.pow(GRAVITY * elapsedTime, 2);
 			sprite.y += sprite.yVelocity * elapsedTime;
 			break;
 		  case WALKING:
-			if(!sprite.isGrounded(tileMap))
+			if(!sprite.isGrounded(tilemap))
 			{
 				sprite.state = FALLING;
 				sprite.yVelocity = 0;
 			}
-			else if(player.moveLeft && player.state == WALKING)
+			else if(player.isLeft && player.state == WALKING)
 			{
 				sprite.movingLeft = true;
 				sprite.state = WALKING;
 				//Determine if we are moving towards or away from the player
-				if(player.currentX > sprite.x)//moving away from player
+				if(player.x > sprite.x)//moving away from player
 				{
 					sprite.moveLeft(elapsedTime*sprite.moveAwaySpeed, tilemap);
 				}
@@ -142,12 +148,12 @@ module.exports = (function(){
 					tilemap.setTileAt(13, tileX+1, tileY, mapLayer)
 				}
 			}
-			else if(player.moveRight && player.state == WALKING)
+			else if(!(player.isLeft) && player.state == WALKING)
 			{
 				sprite.movingLeft = true;
 				sprite.state = WALKING;
 				//Determine if we are moving towards or away from the player
-				if(player.currentX > sprite.x)//moving away from player
+				if(player.x > sprite.x)//moving away from player
 				{
 					sprite.moveRight(elapsedTime*sprite.moveTowardSpeed, tilemap);
 				}
@@ -165,21 +171,22 @@ module.exports = (function(){
 			
 			break;
 	  }
+  }
   
   /* Render function
    * parameters:
    *  - context is the rendering context.  It may be transformed
    *    to account for the camera 
    */
-   GoblinSorcerer.prototype.render = function(context) {
+   GoblinSorcerer.prototype.render = function(context, debug) {
      // TODO: Draw your entity sprite
 	 if(this.isLeft)
-      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
+      this.animations.left[this.state].render(context, this.x, this.y);
     else
-      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
+      this.animations.right[this.state].render(context, this.x, this.y);
 
     if(this.state != DONE){
-		if(debug) renderDebug(this, ctx);
+		if(debug) renderDebug(this, context);
 	}
    }
    
@@ -198,7 +205,7 @@ module.exports = (function(){
     ctx.stroke();
 
     // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (SIZE / 2)) / 64),
+    var tileX = 64 * Math.floor((bounds.left + (SIZE_X / 2)) / 64),
       tileY = 64 * (Math.floor(bounds.bottom / 64));
     ctx.strokeStyle = "black";
     ctx.beginPath();
@@ -244,7 +251,7 @@ module.exports = (function(){
       right: this.x + SIZE_X,
       bottom: this.y + SIZE_Y
     };
-   }
+   };
    
    /* BoundingCircle function
     * This function returns a bounding circle, i.e.
@@ -255,12 +262,12 @@ module.exports = (function(){
    GoblinSorcerer.prototype.boundingCircle = function() {
      // Return a bounding circle for your entity
 	 return {
-      cx: this.currentX + SIZE_X / 2,
-      cy: this.currentY + SIZE_Y / 2,
-      radius: SIZE / 2
+      cx: this.x + SIZE_X / 2,
+      cy: this.y + SIZE_Y / 2,
+      radius: SIZE_Y / 2
     };
   };
-   }
+   
    
    return GoblinSorcerer;
   
