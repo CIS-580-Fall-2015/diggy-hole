@@ -19,16 +19,15 @@ module.exports = (function(){
     var gravity = -250;
 
 
-    var shaman = function(x, y, layer, entityManager) {
+    var shaman = function(x, y, layer) {
         this.score = 1;
         this.type = "shaman";
         this.maxhp = 100;
         this.hp = this.maxhp;
         this.state = this.idleState;
-        this.entityManager = entityManager;
         this.layerIndex = layer;
         this.reverse = false;
-        //Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame, playItOnce) {
+        this.dead = false;
         this.walkingAnimation = new Animation(walkingSpriteSheet, frameSize.x, frameSize.y, 0, 0, 4, 1.0 / 4, false);
         this.attackingAnimation = new Animation(attackSpriteSheet, frameSize.x, frameSize.y, 0, 0, 6, 1.0 / 4, false);
         this.renderAnimation = null;
@@ -39,10 +38,12 @@ module.exports = (function(){
 
     shaman.prototype = new Entity();
 
-    shaman.prototype.update = function(elapsedTime, tilemap) {
+    shaman.prototype.update = function(elapsedTime, tilemap, entityManager) {
         if(this.state === null) this.state = this.idleState;
 
-        this.state(elapsedTime, tilemap);
+        if(this.dead) entityManager.remove(this);
+
+        this.state(elapsedTime, tilemap, entityManager);
     };
 
     shaman.prototype.render = function(ctx, debug) {
@@ -105,8 +106,8 @@ module.exports = (function(){
         return (tile && !tile.data.solid) ? true : false;
     };
 
-    shaman.prototype.isPlayerNearby = function() {
-        var entitiesInRange = this.entityManager.queryRadius(this.position.x, this.position.y, 200);
+    shaman.prototype.isPlayerNearby = function(entityManager) {
+        var entitiesInRange = entityManager.queryRadius(this.position.x, this.position.y, 200);
         if (entitiesInRange.length > 0) {
             for (var i = 0; i < entitiesInRange.length; i ++) {
                 if (entitiesInRange[i].type == 'player') {
@@ -117,7 +118,7 @@ module.exports = (function(){
         return false;
     };
 
-    shaman.prototype.idleState = function(elapsedTime, tilemap) {
+    shaman.prototype.idleState = function(elapsedTime, tilemap, entityManager) {
         if(!this.onGround(tilemap)) {
             this.velocity.y += (gravity * elapsedTime) * (gravity * elapsedTime);
 
@@ -125,7 +126,7 @@ module.exports = (function(){
         else {
             this.velocity.y = 0;
             this.position.y = Math.floor(this.position.y / 64) * 64;
-            if(this.isPlayerNearby()) {
+            if(this.isPlayerNearby(entityManager)) {
                 this.state = this.attackState;
             }
         }
@@ -141,8 +142,8 @@ module.exports = (function(){
         this.renderAnimation = this.walkingAnimation;
     };
 
-    shaman.prototype.attackState = function(elapsedTime, tilemap) {
-        if(!this.isPlayerNearby() || !this.onGround(tilemap)) {
+    shaman.prototype.attackState = function(elapsedTime, tilemap, entityManager) {
+        if(!this.isPlayerNearby(entityManager) || !this.onGround(tilemap)) {
             this.state = this.idleState;
         }
         this.attackingAnimation.update(elapsedTime);
@@ -169,7 +170,8 @@ module.exports = (function(){
     shaman.prototype.collide = function(ent) {
         if(ent.type == "player")
         {
-            this.entityManager.remove(this);
+            //check if attacking once attacking is fixed.
+            this.dead = true;
         }
         if(ent.type == "goblinMiner")
         {
