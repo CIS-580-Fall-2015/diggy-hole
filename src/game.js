@@ -12,7 +12,6 @@ module.exports = (function (){
   // Module variables
   var Player = require('./player.js'),
 	  Rat = require('./rat.js'),
-	  Wolf = require('./wolf.js'),
       Octopus = require('./octopus.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
@@ -23,12 +22,9 @@ module.exports = (function (){
 	  Turret = require('./turret.js'),
 	  DynamiteDwarf = require('./dynamiteDwarf.js'),
 	  Kakao = require('./Kakao.js'),
-    Bird = require('./bird.js'),
-    bird,
 	  kakao,
-	wolf,
       GoblinMiner = require('./goblin-miner.js'),
-      Shaman = require('./goblin-shaman.js'),
+	  Pixie = require('./code.js'),
       player,
 	  rat,
       octopus,
@@ -36,6 +32,7 @@ module.exports = (function (){
       screenCtx,
       backBuffer,
       backBufferCtx,
+	  pixie,
       stateManager;
 
   /* Loads the GameState, triggered by the StateManager
@@ -81,32 +78,21 @@ var load = function(sm) {
     // the entity manager
     player = new Player(400, 240, 0, inputManager);
     entityManager.add(player);
-    //add wolf to
-    // the entity manager
-    wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
-    entityManager.add(wolf);
-    
-    bird = new Bird(425, 240);
-    entityManager.add(bird);
-
+	
 	rat = new Rat(500, 360, 0);
 	entityManager.add(rat);
-
-    player = new Player(64*6, 240, 0, inputManager);
-    entityManager.add(player);
+	
+	pixie = new Pixie(640, 640);
+	entityManager.add(pixie);
 
     octopus = new Octopus(120, 240, 0);
     entityManager.add(octopus);
-
-	DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
-	entityManager.add(DemonicGroundHog);
 
 	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
 	entityManager.add(goblinMiner);
 
 	// Spawn 10 barrels close to player
 	 // And some turrets
-    // and some shamans
 	for(var i = 0; i < 10; i++){
 		if (i < 3) {
 			turret = new Turret(Math.random()*64*50, Math.random()*64*20, o);
@@ -114,8 +100,6 @@ var load = function(sm) {
 		}
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
 		entityManager.add(barrel);
-        entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
-
 	}
 
 	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
@@ -126,6 +110,7 @@ var load = function(sm) {
     kakao = new Kakao(310,240,0);  //two tiles to the right of the player
     entityManager.add(kakao);
   };
+
   /* Updates the state of the game world
    * arguments:
    * - elapsedTime, the amount of time passed between
