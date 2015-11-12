@@ -32,6 +32,12 @@ module.exports = (function() {
   //The left facing dwarf spritesheet
   var dwarfLeft = new Image();
   dwarfLeft.src = "DwarfAnimatedLeft.png";
+  
+   var ratRight = new Image();
+  ratRight.src = 'img/ratRight2.png';
+
+  var ratLeft = new Image();
+  ratLeft.src = "img/ratLeft2.png";
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {

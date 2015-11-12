@@ -11,6 +11,7 @@ module.exports = (function (){
 
   // Module variables
   var Player = require('./player.js'),
+	  Rat = require('./rat.js'),
       Octopus = require('./octopus.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
@@ -25,6 +26,7 @@ module.exports = (function (){
       GoblinMiner = require('./goblin-miner.js'),
       Shawman = require('./goblin-shaman.js'),
       player,
+	  rat,
       octopus,
       stoneMonster,
       screenCtx,
@@ -73,11 +75,20 @@ var load = function(sm) {
 
     // Create the player and add them to
     // the entity manager
+    player = new Player(400, 240, 0, inputManager);
+    entityManager.add(player);
+	
+	rat = new Rat(500, 360, 0);
+	entityManager.add(rat);
+   
     player = new Player(64*6, 240, 0, inputManager);
     entityManager.add(player);
 
     octopus = new Octopus(120, 240, 0);
     entityManager.add(octopus);
+	
+	DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
+	entityManager.add(DemonicGroundHog);
 
 	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
 	entityManager.add(goblinMiner);

@@ -1,6 +1,8 @@
 /* DemonicGroundHog
  * Authors:
 	Nathan Bean
+	Alexander Duben
+	Josh Vander Leest
 
  */
 module.exports = (function(){
@@ -16,10 +18,10 @@ module.exports = (function(){
 
   // The Sprite Size
   const SIZE = 64;
-
+  
   // Movement constants
-  const SPEED = 30;
-  const GRAVITY = -250;
+  const SPEED = 100;
+  const GRAVITY = -150;
 
   //DG (Demonic GroundHog)IDLE sprite sheetS
   var idleLeft = new Image();
@@ -75,17 +77,17 @@ module.exports = (function(){
 
     //The right-facing animations
     this.animations.right[IDLE] = new Animation(idleRight, SIZE, SIZE, 0, 0, 8);
-    this.animations.right[MOVING] = new Animation(moveRight, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[MOVING] = new Animation(attackRight, SIZE, SIZE, 0, 0, 8);
     this.animations.right[ATTACKING] = new Animation(attackRight, SIZE, SIZE, 0, 0, 8);
     this.animations.right[DIGGING] = new Animation(digRight, SIZE, SIZE, 0, 0, 8);
     this.animations.right[FALLING] = new Animation(idleRight, SIZE, SIZE, 0, 0, 8);
 
     //The left-facing animations
-    this.animations.right[IDLE] = new Animation(idleLeft, SIZE, SIZE, 0, 0, 8);
-    this.animations.right[MOVING] = new Animation(moveLeft, SIZE, SIZE, 0, 0, 8);
-    this.animations.right[ATTACKING] = new Animation(attackLeft, SIZE, SIZE, 0, 0, 8);
-    this.animations.right[DIGGING] = new Animation(digLeft, SIZE, SIZE, 0, 0, 8);
-    this.animations.right[FALLING] = new Animation(idleLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.left[IDLE] = new Animation(idleLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.left[MOVING] = new Animation(moveLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.left[ATTACKING] = new Animation(attackLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.left[DIGGING] = new Animation(digLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.left[FALLING] = new Animation(idleLeft, SIZE, SIZE, 0, 0, 8);
 
   }
 
@@ -122,24 +124,35 @@ module.exports = (function(){
     if (tile && tile.data.solid)
       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
   };
+  DemonicGroundHog.prototype.getPlayerPosition = function(playerPosition) {
+	  if (playerPosition.left > this.currentX + 64) {
+            this.isLeft = false;
+        } else if (playerPosition.left < this.currentX - 64) {
+            this.isLeft = true;
+        }
 
+    }
   DemonicGroundHog.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
 
       // Process the different states
       switch(sprite.state) {
         case IDLE:
-			if(!sprite.onGround(tilemap)) {
+			if(idleTimer > 100){
+					sprite.state = MOVING;
+					idleTimer = 0;
+				}
+			else if(!sprite.onGround(tilemap)) {
 				sprite.state = FALLING;
 				sprite.velocityY = 0;
 				idleTimer = 0;
 				break;
 			}
-			else if(idleTimer > 1100){
+			else if(idleTimer > 50){
 					sprite.state = MOVING;
 					idleTimer = 0;
 				}
-			else if (isPlayerColliding){
+			else if (sprite.isPlayerColliding){
 				var player = entityManager.getEntity(0);
 				//inflict damage
 			}
@@ -164,7 +177,6 @@ module.exports = (function(){
             }
 			else{
 				movingTimer = 0;
-				sprite.isLeft = !sprite.isLeft;
 				sprite.state = IDLE;
 			}
           }
@@ -180,25 +192,21 @@ module.exports = (function(){
 			break;
       }
 
-      // Swap input buffers
-      swapBuffers();
-
     // Update animation
     if(this.isLeft)
       this.animations.left[this.state].update(elapsedTime);
     else
       this.animations.right[this.state].update(elapsedTime);
-  };
+  }
 
   /* GroundHog Render Function */
   DemonicGroundHog.prototype.render = function(ctx, debug) {
-    // Draw the Dwarf (and the correct animation)
     if(this.isLeft)
       this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
     else
       this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
 
-    if(this.state != DONE){
+    if(this.state != IDLE){
 		if(debug) renderDebug(this, ctx);
 	}
 };
@@ -235,7 +243,6 @@ module.exports = (function(){
   };
 
   /* DemonicGroundHog BoundingBox Function
-   * returns: A bounding box representing the Dwarf
    */
   DemonicGroundHog.prototype.boundingBox = function() {
     return {
