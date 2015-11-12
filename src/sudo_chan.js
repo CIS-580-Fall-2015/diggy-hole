@@ -77,6 +77,14 @@ module.exports = (function(){
             bottom: this.positionY + SIZE
         }
     };
+    
+     Sudo_Chan.prototype.boundingCircle = function() {
+    return {
+      cx: this.positionX + SIZE / 2,
+      cy: this.positionY + SIZE / 2,
+      radius: SIZE / 2
+    };
+  };
 
     // Draw Player
     Sudo_Chan.prototype.render = function(ctx, debug) {
