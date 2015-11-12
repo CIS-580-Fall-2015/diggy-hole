@@ -12,11 +12,13 @@ module.exports = (function (){
   // Module variables
   var Player = require('./player.js'),
       Kakao = require('./Kakao.js'),
+	  Wolf = require('./wolf.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
       player,
       kakao,
+	  wolf,
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -65,6 +67,11 @@ module.exports = (function (){
     // the entity manager
     kakao = new Kakao(310,240,0);  //two tiles to the right of the player
     entityManager.add(kakao);
+	
+	//add wolf to
+    // the entity manager
+    wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
+    entityManager.add(wolf);
   }
 
   /* Updates the state of the game world
