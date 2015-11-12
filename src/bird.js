@@ -4,6 +4,7 @@
 module.exports = (function(){
 	var Entity = require('./entity.js');
 	var Animation = require('./animation.js');
+	var Player = require('./player.js');
 
 	//states
 	const FLYING = 0;
@@ -48,7 +49,7 @@ module.exports = (function(){
 
 		switch(this.state) {
 			case FLYING:
-				this.animators.birdimations[this.state].update(elapsedTime, tilemap);
+				animators.birdimations[this.state].update(elapsedTime, tilemap);
 				this.x += this.velocityX;
 				this.y += this.velocityY;
 
@@ -68,7 +69,7 @@ module.exports = (function(){
 				}
 				break;
 			case COLLIDED:
-				this.animators.birdimations[this.state].update(elapsedTime, tilemap);
+				animators.birdimations[this.state].update(elapsedTime, tilemap);
 				if(this.velocityTime >= EXPLOSION_TIME)
 					this.state = EXPLODED;
 				break;
@@ -80,10 +81,10 @@ module.exports = (function(){
 	Bird.prototype.render = function(context, debug){
 		switch(this.state) {
 			case FLYING:
-				this.animators.birdimations[this.state].render(context, this.x - (SIZE / 2), this.y - (SIZE / 2));
+				animators.birdimations[this.state].render(context, this.x - (SIZE / 2), this.y - (SIZE / 2));
 				break;
 			case COLLIDED:
-				this.animators.birdimations[this.state].render(context, this.x - (SIZE / 2), this.y - (SIZE / 2));
+				animators.birdimations[this.state].render(context, this.x - (SIZE / 2), this.y - (SIZE / 2));
 				break;
 			default:
 				//dont draw anything if in a done state
@@ -93,7 +94,7 @@ module.exports = (function(){
 		if(debug) {
 			if(this.state != EXPLODED) {
 				///draw a box around the bird if it hasnt exploded
-				var boundary = Bird.boundingBox();
+				var boundary = this.boundingBox();
 				context.save();
 
 				context.strokeStyle = "red";

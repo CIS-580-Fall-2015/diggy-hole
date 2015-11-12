@@ -1051,6 +1051,7 @@ module.exports = (function(){
 module.exports = (function(){
 	var Entity = require('./entity.js');
 	var Animation = require('./animation.js');
+	var Player = require('./player.js');
 
 	//states
 	const FLYING = 0;
@@ -1095,7 +1096,7 @@ module.exports = (function(){
 
 		switch(this.state) {
 			case FLYING:
-				this.animators.birdimations[this.state].update(elapsedTime, tilemap);
+				animators.birdimations[this.state].update(elapsedTime, tilemap);
 				this.x += this.velocityX;
 				this.y += this.velocityY;
 
@@ -1115,7 +1116,7 @@ module.exports = (function(){
 				}
 				break;
 			case COLLIDED:
-				this.animators.birdimations[this.state].update(elapsedTime, tilemap);
+				animators.birdimations[this.state].update(elapsedTime, tilemap);
 				if(this.velocityTime >= EXPLOSION_TIME)
 					this.state = EXPLODED;
 				break;
@@ -1127,10 +1128,10 @@ module.exports = (function(){
 	Bird.prototype.render = function(context, debug){
 		switch(this.state) {
 			case FLYING:
-				this.animators.birdimations[this.state].render(context, this.x - (SIZE / 2), this.y - (SIZE / 2));
+				animators.birdimations[this.state].render(context, this.x - (SIZE / 2), this.y - (SIZE / 2));
 				break;
 			case COLLIDED:
-				this.animators.birdimations[this.state].render(context, this.x - (SIZE / 2), this.y - (SIZE / 2));
+				animators.birdimations[this.state].render(context, this.x - (SIZE / 2), this.y - (SIZE / 2));
 				break;
 			default:
 				//dont draw anything if in a done state
@@ -1140,7 +1141,7 @@ module.exports = (function(){
 		if(debug) {
 			if(this.state != EXPLODED) {
 				///draw a box around the bird if it hasnt exploded
-				var boundary = Bird.boundingBox();
+				var boundary = this.boundingBox();
 				context.save();
 
 				context.strokeStyle = "red";
@@ -1189,7 +1190,7 @@ module.exports = (function(){
 	return Bird;
 
 }());
-},{"./animation.js":3,"./entity.js":13}],6:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":13,"./player.js":23}],6:[function(require,module,exports){
 /* Class of the Barrel Skeleton entity
  *
  * Author:
@@ -6533,15 +6534,15 @@ module.exports = (function(){
   
   //The Right facing wolf spritesheet
   var WolfRight = new Image();
-  WolfRight.src = './img/Wolf_walkright.png';
+  //WolfRight.src = './img/Wolf_walkright.png';
 
   //The left facing wolf spritesheet
   var WolfLeft = new Image();
-  WolfLeft.src = "./img/Wolf_walkleft.png";
+  //WolfLeft.src = "./img/Wolf_walkleft.png";
   
    //The IDLE wolf spritesheet
   var WolfIdle = new Image();
-  WolfIdle.src = "./img/Wolf_idle.png";
+  //WolfIdle.src = "./img/Wolf_idle.png";
 
   //The Wolf constructor
   function Wolf(locationX, locationY, layerIndex, inputManager) {
