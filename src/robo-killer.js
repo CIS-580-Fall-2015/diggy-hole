@@ -1,22 +1,83 @@
-/* Entity: robo-killer module
+/* Entity: Robo-Killer module
  * Implements the entity pattern, provides specific robo-killer constructs.
  *
  * Author: Christian Hughes
  *
  * Image labled for reuse. Source: http://4.bp.blogspot.com/-iu9fsSz_L5I/T9X-dz3AFhI/AAAAAAAAAfQ/bG6hvI_eKzo/s1600/robotboy.png
  */
-module.exports = (function(){
+module.exports = (function() {
+  var Entity = require('./entity.js'),
+  Animation = require('./animation.js');
 
-  /* Constructor
-   * Generally speaking, you'll want to set
-   * the X and Y position, as well as the layerX
-   * of the map the entity is located on
-   */
-  function Entity(locationX, locationY, mapLayer){
-    this.x = locationX;
-    this.y = locationY;
-    this.mapLayer = mapLayer;
+  // States for the robo-killer
+  const PATROLING = 0;
+  const ATTACKING = 1;
+  const IDLE = 2;
+  const FALLING = 3;
+
+  // The sprite size (It's a square 64 pixels x 64 pixels)
+  const SIZE = 64;
+
+  // Movement constants, which are in line with that of the player (player.js)
+  const SPEED = 150;
+  const GRAVITY = -250;
+  const JUMP_VELOCITY = -600;
+
+  // The right walking robo-killer spritesheet
+  var roboKillerWalkRight = new Image();
+  roboKillerWalkRight.src = 'img/robo-killer_walk_right.png';
+
+  // The left walking robo-killer spritesheet
+  var roboKillerWalkLeft = new Image();
+  roboKillerWalkLeft.src = "img/robo-killer_walk_left.png";
+
+  // The right attacking robo-killer spritesheet
+  var roboKillerAttackRight = new Image();
+  roboKillerWalkLeft.src = "img/robo-killer_attack_right.png";
+
+  // The left attacking robo-killer spritesheet
+  var roboKillerAttackLeft = new Image();
+  roboKillerWalkLeft.src = "img/robo-killer_attack_left.png";
+
+
+  // Constructor for the robo-killer enemy. It inherits from entity (entity.js).
+  function Robo_Killer(locationX, locationY, layerIndex){
+    // Establish entity type.
+    this.type = "robo-killer";
+
+    // Establish visual layer.
+    this.layerIndex = layerIndex;
+
+    // Establish current position.
+    this.currentX = locationX;
+    this.currentY = locationY;
+
+    // The default state is patrolling. Set the state accordingly.
+    this.state  = PATROLING;
+
+    //There is more to set here.
+
+    // Create an animations property, with arrays for each direction of animations.
+    this.animations = {
+      left: [],
+      right: []
+    };
+
+    // The right-facing animations.
+    this.animations.right[PATORLING] = new Animation(roboKillerWalkRight, SIZE, SIZE, 0, 0, 3);
+    this.animations.right[ATTACKING] = new Animation(roboKillerAttackRight, SIZE, SIZE, 0, 0, 3);
+    this.animations.right[IDLE] = new Animation(roboKillerWalkRight, SIZE, SIZE, 0, 0, 1);
+    this.animations.right[FALLING] = new Animation(roboKillerWalkRight, SIZE, SIZE, 0, 0, 1);
+
+    //The left-facing animations
+    this.animations.left[PATORLING] = new Animation(roboKillerWalkLeft, SIZE, SIZE, 0, 0, 3);
+    this.animations.left[ATTACKING] = new Animation(roboKillerAttackLeft, SIZE, SIZE, 0, 0, 3;
+    this.animations.left[IDLE] = new Animation(roboKillerWalkLeft, SIZE, SIZE, 0, 0, 1));
+    this.animations.left[FALLING] = new Animation(roboKillerWalkLeft, SIZE, SIZE, 0, 0, 1));
+
   }
+  // Robo-Killer inherits from Entity
+  Robo_Killer.prototype = new Entity();
 
   /* Update function
    * parameters:
