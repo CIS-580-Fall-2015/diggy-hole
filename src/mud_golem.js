@@ -32,9 +32,10 @@ module.exports = (function() {
     this.entity_type = "Golem-arm";
     this.state = 0;
     this.golem = golem;
-    this.r = new Animation(golem_right, ARMX, ARMY, 128, 128, 0);
-    this.l = new Animation(golem_left, ARMX, ARMY, 128, 128, 0);
+    this.r = new Animation(golem_right, ARMX, ARMY, 128, 144, 0);
+    this.l = new Animation(golem_left, ARMX, ARMY, 128, 144, 0);
 
+    //Bounding box for arm.
     Arm.prototype.boundingBox = function(otherEntity) {
       if (this.state === 0) {
         return;
@@ -47,6 +48,7 @@ module.exports = (function() {
       };
     };
 
+    //Render the arm
     Arm.prototype.render = function(context, debug) {
       if (this.state === 0) {
         return;
@@ -60,10 +62,15 @@ module.exports = (function() {
       }
     };
 
+    //If hits the player while attacking, push the player back. No collection checks.
     Arm.prototype.collide = function(otherEntity) {
       if (this.state == ATTACK) {
         if (otherEntity.entity_type == "Player") {
-          //TODO kill player
+          if (this.isLeft) {
+            otherEntity.currentX = this.currentX - otherEntity.SIZE;
+          } else {
+            otherEntity.currentX = this.currentX;
+          }
         }
       }
     };
@@ -144,6 +151,7 @@ module.exports = (function() {
     switch (sprite.state) {
       case STANDING:
         this.isLeft = entityManager.playerDirection(this);
+        this.arm.isLeft = this.isLeft;
         if (pd < 320) {
           this.state = CHARGING;
           this.stateTime = 1;
@@ -252,6 +260,7 @@ module.exports = (function() {
     };
   };
 
+  //Bounding circle
   Golem.prototype.boundingCircle = function() {
     return {
       x: this.currentX + SIZE / 2,
@@ -259,6 +268,8 @@ module.exports = (function() {
       r: SIZE
     };
   };
+
+  //Colission handled by arm.
 
   return Golem;
 
