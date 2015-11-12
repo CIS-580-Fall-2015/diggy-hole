@@ -5,12 +5,14 @@
  * - Karen(Fei) Fang
  * Image source: http://www.archjrc.com/clipart
  */
+/*
 module.exports = (function(){
   var Entity = require('./entity.js'),
       Diamond = require('./diamond.js'),
       Animation = require('./animation.js');
 
   /* The following are Kakao States */
+/*
   const WALKING = 0;
   const FALLING  = 1;
   const HURT = 2;
@@ -109,6 +111,7 @@ module.exports = (function(){
    * - tilemap, the tilemap that corresponds to
    *   the current game world.
    */
+/*
   Kakao.prototype.update = function(elapsedTime, tilemap, entityManager) {
     if(!this.hasDiamond){
       console.log("Kakao: add diamond to entityManager");
@@ -155,6 +158,7 @@ module.exports = (function(){
           /*
            *PLAN B: Remove after HURT
           */
+/*
           entityManager.remove(this);
           console.log("Kakao: Entity Kakao removed.");
         }
@@ -176,6 +180,7 @@ module.exports = (function(){
    * - debug, a flag that indicates turning on
    * visual debugging
    */
+/*
   Kakao.prototype.render = function(ctx, debug) {
     // Draw the Kakao (and the correct animation)
     if(this.isLeft)
@@ -219,6 +224,7 @@ module.exports = (function(){
   /* Kakao BoundingBox Function
    * returns: A bounding box representing the Kakao
    */
+/*
   Kakao.prototype.boundingBox = function() {
     return {
       left: this.currentX,

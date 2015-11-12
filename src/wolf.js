@@ -1,9 +1,11 @@
+
 /* Wolf module
  * Implements the entity pattern and provides
  * the DiggyHole Wolf info.
  * Authors:
  * Ryan Ward
  */
+
 module.exports = (function(){
   var Entity = require('./entity.js'),
       Animation = require('./animation.js');
@@ -251,3 +253,4 @@ module.exports = (function(){
   return Wolf;
 
 }());
+

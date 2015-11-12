@@ -262,264 +262,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":3,"./entity.js":12}],2:[function(require,module,exports){
-/* Entity: Kakao(aka DiamondGroundhog) module
- * Implements the entity pattern and provides
- * the entity Kakao info.
- * Author:
- * - Karen(Fei) Fang
- * Image source: http://www.archjrc.com/clipart
- */
-module.exports = (function(){
-  var Entity = require('./entity.js'),
-      Diamond = require('./diamond.js'),
-      Animation = require('./animation.js');
-
-  /* The following are Kakao States */
-  const WALKING = 0;
-  const FALLING  = 1;
-  const HURT = 2;
-
-  // The Sprite Size
-  const SIZE = 64;
-
-  // Movement constants
-  const SPEED = 150/7;   //SLOWER THAN PLAYER
-  const GRAVITY = -250;
-
-  //The Kakao spritesheet
-  var kakaoImage = new Image();
-  kakaoImage.src = 'img/Kakao-animation.png';
-
-
-  //The Kakao constructor
-  function Kakao(locationX, locationY, layerIndex) {
-    this.type = "Kakao";
-    //default state
-    this.state = WALKING;
-    this.layerIndex = layerIndex;
-    this.currentX = locationX;
-    this.currentY = locationY;
-
-    this.currentTileIndex = 0;
-    this.constSpeed = 15;
-    this.gravity = .5;
-    this.angle = 0;
-    this.xSpeed = 10;
-    this.ySpeed = 15;
-    this.isLeft = false;
-    this.hurtFrame =0;
-    this.hasDiamond = false;
-    this.moveDiamond = false;
-
-    //The animations
-    this.animations = {
-      left: [],
-      right: [],
-    }
-
-    //The right-facing animations
-    this.animations.right[WALKING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0, 4);
-    this.animations.right[FALLING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0);
-    this.animations.right[HURT] = new Animation(kakaoImage, SIZE, SIZE, 0, SIZE*2, 4, 1/4);
-
-    //The left-facing animations
-    this.animations.left[WALKING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0, 4);
-    this.animations.left[FALLING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0);
-    this.animations.left[HURT] = new Animation(kakaoImage, SIZE, SIZE, 0, SIZE*2, 4, 1/4);
-
-    console.log("Kakao: create diamond entity");
-    this.diamond = new Diamond(this.currentX, this.currentY, 0);
-  }
-
-  // Kakao inherits from Entity
-  Kakao.prototype = new Entity();
-
-  // Determines if the Kakao is on the ground
-  Kakao.prototype.onGround = function(tilemap) {
-    var box = this.boundingBox(),
-        tileX = Math.floor((box.left + (SIZE/2))/64),
-        tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    // find the tile we are standing on.
-    return (tile && tile.data.solid) ? true : false;
-  }
-
-  // Moves the Kakao to the left, colliding with solid tiles
-  Kakao.prototype.moveLeft = function(distance, tilemap) {
-    this.currentX -= distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.isLeft = false;  // turn when collide
-  }
-
-  // Moves the Kakao to the right, colliding with solid tiles
-  Kakao.prototype.moveRight = function(distance, tilemap) {
-    this.currentX += distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.isLeft = true;  // turn when collide
-  }
-
-  /* Kakao update function
-   * arguments:
-   * - elapsedTime, the time that has passed
-   *   between this and the last frame.
-   * - tilemap, the tilemap that corresponds to
-   *   the current game world.
-   */
-  Kakao.prototype.update = function(elapsedTime, tilemap, entityManager) {
-    if(!this.hasDiamond){
-      console.log("Kakao: add diamond to entityManager");
-      entityManager.add(this.diamond);
-      this.hasDiamond = true;
-    }
-    var sprite = this;
-    // Process Kakao state
-    switch(sprite.state) {
-      case WALKING:
-      // If there is no ground underneath, fall
-      if(!sprite.onGround(tilemap)) {
-        sprite.state = FALLING;
-        sprite.velocityY = 0;
-      } else {
-        if(sprite.isLeft){  //is not passable, turn
-          sprite.moveLeft(elapsedTime * SPEED, tilemap);
-        }else{
-          sprite.moveRight(elapsedTime * SPEED, tilemap);
-        }
-      }
-      break;
-      case FALLING:
-      sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-      sprite.currentY += sprite.velocityY * elapsedTime;
-      if(sprite.onGround(tilemap)) {
-        sprite.state = WALKING;
-        sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-      }
-      break;
-      case HURT:
-        //1/elapsedTime is the number of frames per min
-        //Each frame of HURT state is 1/4 min, thus the total HURT animation takes 1 min
-        //Therefore, hurtFrame is 1/(1/elapsedTime) = (1/elapsedTime)
-        if(sprite.hurtFrame <= (1/elapsedTime)){
-          sprite.hurtFrame++;
-        }else {
-          /*
-           *PLAN A: Relocate after HURT
-          */
-          //sprite.hurtFrame = 0;  //for relocation
-          //sprite.currentX += 3*SIZE;  //for relocation
-          //console.log("Kakao: Relocating to "+"( "+sprite.currentX+" , "+sprite.currentY+" )...");
-          /*
-           *PLAN B: Remove after HURT
-          */
-          entityManager.remove(this);
-          console.log("Kakao: Entity Kakao removed.");
-        }
-      break;
-    }
-    //console.log("Kakao: State: "+this.state+" Direction: "+this.isLeft);
-
-    // Update animation
-    if(this.isLeft)
-      this.animations.left[this.state].update(elapsedTime);
-    else
-      this.animations.right[this.state].update(elapsedTime);
-
-  }
-
-  /* Kakao Render Function
-   * arguments:
-   * - ctx, the rendering context
-   * - debug, a flag that indicates turning on
-   * visual debugging
-   */
-  Kakao.prototype.render = function(ctx, debug) {
-    // Draw the Kakao (and the correct animation)
-    if(this.isLeft)
-      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
-    else
-      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
-
-    if(debug) renderDebug(this, ctx);
-  }
-
-  // Draw debugging visual elements
-  function renderDebug(Kakao, ctx) {
-    var bounds = Kakao.boundingBox();
-    ctx.save();
-
-    // Draw Kakao bounding box
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-    ctx.moveTo(bounds.left, bounds.top);
-    ctx.lineTo(bounds.right, bounds.top);
-    ctx.lineTo(bounds.right, bounds.bottom);
-    ctx.lineTo(bounds.left, bounds.bottom);
-    ctx.closePath();
-    ctx.stroke();
-
-    // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
-        tileY = 64 * (Math.floor(bounds.bottom / 64));
-    ctx.strokeStyle = "black";
-    ctx.beginPath();
-    ctx.moveTo(tileX, tileY);
-    ctx.lineTo(tileX + 64, tileY);
-    ctx.lineTo(tileX + 64, tileY + 64);
-    ctx.lineTo(tileX, tileY + 64);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-  /* Kakao BoundingBox Function
-   * returns: A bounding box representing the Kakao
-   */
-  Kakao.prototype.boundingBox = function() {
-    return {
-      left: this.currentX,
-      top: this.currentY,
-      right: this.currentX + SIZE,
-      bottom: this.currentY + SIZE
-    }
-  }
-
-  Kakao.prototype.boundingCircle =function(){
-    return{
-      cx: this.currentX + SIZE/2,
-      cy: this.currentY + SIZE/2,
-      radius: SIZE/2
-    }
-  }
-
-  Kakao.prototype.collide = function(otherEntity){
-    //console.log("Kakao: otherEntity.type: " + otherEntity.type);
-    if(otherEntity.type!="Diamond"){
-      this.state = HURT;
-      this.diamond.state = 1; //DROPPED
-      if(!this.moveDiamond){
-        //console.log("Diamond: collide: "+this.currentX+" , "+this.currentY);
-        this.diamond.currentX += SIZE;
-        this.diamond.currentY -= SIZE;
-        this.moveDiamond = true;
-      }
-    }
-  }
-
-  return Kakao;
-
-}());
-
-},{"./animation.js":3,"./diamond.js":8,"./entity.js":12}],3:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":10}],2:[function(require,module,exports){
 module.exports = (function() {
 
   function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame, playItOnce) {
@@ -579,7 +322,7 @@ module.exports = (function() {
 
 }());
 
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 /* Class of the Barrel Skeleton entity
  *
  * Author:
@@ -1044,7 +787,7 @@ module.exports = (function(){
 }());
 
 
-},{"./animation.js":3,"./bone.js":5,"./entity-manager.js":11,"./entity.js":12,"./player.js":22}],5:[function(require,module,exports){
+},{"./animation.js":2,"./bone.js":4,"./entity-manager.js":9,"./entity.js":10,"./player.js":20}],4:[function(require,module,exports){
 /* Class of the Barrel Skeleton entity
  *
  * Author:
@@ -1253,7 +996,7 @@ module.exports = (function(){
 }());
 
 
-},{"./animation.js":3,"./entity.js":12,"./player.js":22}],6:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":10,"./player.js":20}],5:[function(require,module,exports){
 module.exports = (function(){
 
 var Animation = require('./animation.js'),
@@ -1441,7 +1184,7 @@ Cannonball.prototype = new Entity();
 return Cannonball;
 	
 }())
-},{"./animation.js":3,"./entity.js":12,"./tilemap.js":28}],7:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":10,"./tilemap.js":26}],6:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -1513,137 +1256,7 @@ module.exports = (function (){
   }
   
 })();
-},{}],8:[function(require,module,exports){
-/* Entity: Diamond(added by Diamond) module
- * Implements the entity pattern and provides
- * the entity Diamond info.
- * Author:
- * - Karen(Fei) Fang
- * Image source: https://openclipart.org
- */
-module.exports = (function(){
-  var Entity = require('./entity.js'),
-      Animation = require('./animation.js');
-
-  // The Sprite Size
-  const SIZE = 64;
-
-  /* The following are Diamond States */
-  const HOLD = 0;
-  const DROPPED = 1;
-  const PICKED = 2;
-
-  //The Diamond spritesheet
-  var diamondImage = new Image();
-  diamondImage .src = 'img/diamond-animation.png';
-
-  var pickFrame = 0;
-
-
-  //The Diamond constructor
-  function Diamond(locationX, locationY, layerIndex) {
-    this.type = "Diamond";
-
-    this.layerIndex = layerIndex;
-    this.currentX = locationX;
-    this.currentY = locationY;
-
-    //default state
-    this.state = HOLD;
-
-    this.currentTileIndex = 0;
-
-    //The animations
-    this.animations = [];
-    this.animations[DROPPED] = new Animation(diamondImage, SIZE, SIZE, 0, 0);
-    this.animations[PICKED] = new Animation(diamondImage, SIZE, SIZE, 0, 0, 4, 1/4);
-  }
-
-  // Diamond inherits from Entity
-  Diamond.prototype = new Entity();
-
-  /* Diamond update function
-   * arguments:
-   * - elapsedTime, the time that has passed
-   *   between this and the last frame.
-   * - tilemap, the tilemap that corresponds to
-   *   the current game world.
-   */
-  Diamond.prototype.update = function(elapsedTime, tilemap, entityManager) {
-    switch (this.state) {
-      case HOLD:
-        return;
-      case DROPPED:
-        break;
-      case PICKED:
-        if(this.pickFrame <= 3*(1/elapsedTime)){
-          this.pickFrame++;
-        }else {
-          entityManager.remove(this);
-          console.log("Diamond: Player picked up the diamond! Entity Diamond removed.");
-          return;
-        }
-        break;
-    }
-    this.animations[this.state].update(elapsedTime);
-
-  }
-
-  /* Diamond Render Function
-   * arguments:
-   * - ctx, the rendering context
-   * - debug, a flag that indicates turning on
-   * visual debugging
-   */
-  Diamond.prototype.render = function(ctx, debug) {
-    // Draw the Diamond (and the correct animation)
-    //console.log("Diamond: this.state: "+this.state);
-    if(this.state != HOLD){
-      //console.log("Diamond: this.currentX: "+this.currentX+" this.currentY: "+this.currentY);
-      this.animations[this.state].render(ctx, this.currentX, this.currentY);
-    }
-  }
-
-  /* Diamond BoundingBox Function
-   * returns: A bounding box representing the Diamond
-   */
-  Diamond.prototype.boundingBox = function() {
-    return {
-      left: this.currentX + 1/4*SIZE,
-      top: this.currentY,
-      right: this.currentX + 3/4*SIZE,
-      bottom: this.currentY + SIZE
-    }
-  }
-  
-  Diamond.prototype.boundingCircle =function(){
-    return{
-      cx: this.currentX + SIZE/2,
-      cy: this.currentY + SIZE/2,
-      radius: SIZE/2
-    }
-  }
-
-  Diamond.prototype.collide = function(otherEntity){
-    if(otherEntity.type === "Kakao"&& this.state===HOLD){
-      //console.log("Kakao: Update diamond position.");
-      this.currentX = otherEntity.currentX;
-      this.currentY = otherEntity.currentY;
-      return;
-    }
-    if(otherEntity.type!="player" && otherEntity.type!= "Kakao"){  //collides with other players
-      this.state = DROPPED;
-    }
-    if(otherEntity.type === "player"){  //collides with player
-      this.state = PICKED;
-    }
-  }
-
-  return Diamond;
-
-}());
-
-},{"./animation.js":3,"./entity.js":12}],9:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /* Dynamite Dynamite module
  * Authors:
  * Alexander Duben
@@ -1881,7 +1494,7 @@ module.exports = (function(){
   return Dynamite;
 
 }());
-},{"./animation.js":3,"./entity.js":12}],10:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":10}],8:[function(require,module,exports){
 /* Dynamite Dwarf module
  * Authors:
  * Alexander Duben
@@ -2241,7 +1854,7 @@ module.exports = (function(){
   return Dwarf;
 
 }());
-},{"./animation.js":3,"./dynamite.js":9,"./entity.js":12}],11:[function(require,module,exports){
+},{"./animation.js":2,"./dynamite.js":7,"./entity.js":10}],9:[function(require,module,exports){
 /* The entity manager for the DiggyHole game
  * Currently it uses brute-force approaches
  * to its role - this needs to be refactored
@@ -2423,7 +2036,7 @@ module.exports = (function() {
 
 }());
 
-},{"./player.js":22}],12:[function(require,module,exports){
+},{"./player.js":20}],10:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -2501,7 +2114,7 @@ module.exports = (function(){
    return Entity;
   
 }());
-},{}],13:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /* Game GameState module
  * Provides the main game logic for the Diggy Hole game.
  * Authors:
@@ -2516,7 +2129,7 @@ module.exports = (function (){
   // Module variables
   var Player = require('./player.js'),
 	  Rat = require('./rat.js'),
-	  Wolf = require('./wolf.js'),
+	  //Wolf = require('./wolf.js'),
       Octopus = require('./octopus.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
@@ -2526,11 +2139,11 @@ module.exports = (function (){
       Barrel = require('./barrel.js'),
 	  Turret = require('./turret.js'),
 	  DynamiteDwarf = require('./dynamiteDwarf.js'),
-	  Kakao = require('./Kakao.js'),
+	  //Kakao = require('./Kakao.js'),
     //Bird = require('./bird.js'),
-    bird,
+    //bird,
 	  kakao,
-	wolf,
+	//wolf,
       GoblinMiner = require('./goblin-miner.js'),
       Shaman = require('./goblin-shaman.js'),
       player,
@@ -2590,17 +2203,17 @@ var load = function(sm) {
     entityManager.add(player);
     //add wolf to
     // the entity manager
-    wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
-    entityManager.add(wolf);
+    //wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
+    //entityManager.add(wolf);
     
-    bird = new Bird(425, 240);
-    entityManager.add(bird);
+    //bird = new Bird(425, 240);
+    //entityManager.add(bird);
 
 	rat = new Rat(500, 360, 0);
 	entityManager.add(rat);
 	
-	slime = new Slime(400, 20, 0);
-	entityManager.add(slime);
+	//slime = new Slime(400, 20, 0);
+	//entityManager.add(slime);
 
     sudo_chan = new Sudo_Chan(490, 240, 0);
     entityManager.add(sudo_chan);
@@ -2636,8 +2249,8 @@ var load = function(sm) {
 
 	// Karenfang: Create a Kakao and add it to
     // the entity manager
-    kakao = new Kakao(310,240,0);  //two tiles to the right of the player
-    entityManager.add(kakao);
+    //kakao = new Kakao(310,240,0);  //two tiles to the right of the player
+    //entityManager.add(kakao);
   };
   /* Updates the state of the game world
    * arguments:
@@ -2712,7 +2325,7 @@ var load = function(sm) {
 
 })();
 
-},{"./DemonicGroundH.js":1,"./Kakao.js":2,"./barrel.js":4,"./dynamiteDwarf.js":10,"./entity-manager.js":11,"./goblin-miner.js":14,"./goblin-shaman.js":15,"./input-manager.js":16,"./main-menu.js":17,"./octopus.js":20,"./player.js":22,"./rat.js":23,"./slime.js":24,"./stone-monster.js":25,"./sudo_chan.js":27,"./tilemap.js":28,"./turret.js":29,"./wolf.js":30}],14:[function(require,module,exports){
+},{"./DemonicGroundH.js":1,"./barrel.js":3,"./dynamiteDwarf.js":8,"./entity-manager.js":9,"./goblin-miner.js":12,"./goblin-shaman.js":13,"./input-manager.js":14,"./main-menu.js":15,"./octopus.js":18,"./player.js":20,"./rat.js":21,"./slime.js":22,"./stone-monster.js":23,"./sudo_chan.js":25,"./tilemap.js":26,"./turret.js":27}],12:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -3219,7 +2832,7 @@ module.exports = (function(){
   
 }());
 
-},{"./animation.js":3,"./entity.js":12}],15:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":10}],13:[function(require,module,exports){
 /* Richard Habeeb */
 
 module.exports = (function(){
@@ -3407,7 +3020,7 @@ module.exports = (function(){
     return shaman;
 })();
 
-},{"./animation.js":3,"./entity.js":12}],16:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":10}],14:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -3468,7 +3081,7 @@ module.exports = (function() {
   }
   
 })();
-},{}],17:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -3593,7 +3206,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./credits-screen":7}],18:[function(require,module,exports){
+},{"./credits-screen":6}],16:[function(require,module,exports){
 
 
 // Wait for the window to load completely
@@ -3637,7 +3250,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":13,"./main-menu":17}],19:[function(require,module,exports){
+},{"./game":11,"./main-menu":15}],17:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -3763,7 +3376,7 @@ module.exports = (function(){
   }
 
 }());
-},{}],20:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -3960,7 +3573,7 @@ module.exports = function () {
 }();
 
 
-},{"./entity.js":12,"./octopus_animation.js":21}],21:[function(require,module,exports){
+},{"./entity.js":10,"./octopus_animation.js":19}],19:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -4023,7 +3636,7 @@ module.exports = (function() {
     return OctopusAnimation;
 
 }());
-},{}],22:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -4308,7 +3921,7 @@ module.exports = (function() {
 
 }());
 
-},{"./animation.js":3,"./entity.js":12}],23:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":10}],21:[function(require,module,exports){
 /* Enemy module
  * Authors:
  * Kien Le
@@ -4577,7 +4190,7 @@ module.exports = (function(){
   return Rat;
 
 }());
-},{"./animation.js":3,"./entity.js":12}],24:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":10}],22:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -4585,7 +4198,7 @@ module.exports = (function(){
  * - Nathan Bean 
  */
 module.exports = (function(){
-  var entity = require('./entity.js'),
+  var Entity = require('./entity.js'),
 	  animation = require('./animation.js');
 	  
   // SLime States
@@ -4829,7 +4442,7 @@ module.exports = (function(){
    return Slime;
   
 }());
-},{"./animation.js":3,"./entity.js":12}],25:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":10}],23:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -5110,7 +4723,7 @@ module.exports = (function(){
 
     return StoneMonster;
 }());
-},{"./animation.js":3,"./entity.js":12,"./player.js":22}],26:[function(require,module,exports){
+},{"./animation.js":2,"./entity.js":10,"./player.js":20}],24:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -5180,7 +4793,7 @@ module.exports = (function() {
     return Sudo_Animation;
 
 }());
-},{}],27:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -5419,7 +5032,7 @@ module.exports = (function(){
 
     return Sudo_Chan;
 }());
-},{"./entity.js":12,"./sudo-chan-animation.js":26}],28:[function(require,module,exports){
+},{"./entity.js":10,"./sudo-chan-animation.js":24}],26:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -5957,7 +5570,7 @@ module.exports = (function (){
   
 })();
 
-},{"./noise.js":19}],29:[function(require,module,exports){
+},{"./noise.js":17}],27:[function(require,module,exports){
 
 
 
@@ -6349,259 +5962,4 @@ module.exports = (function(){
 	return Turret;
 	
 }())
-},{"./animation.js":3,"./cannonball.js":6,"./entity-manager.js":11,"./entity.js":12,"./player.js":22}],30:[function(require,module,exports){
-/* Wolf module
- * Implements the entity pattern and provides
- * the DiggyHole Wolf info.
- * Authors:
- * Ryan Ward
- */
-module.exports = (function(){
-  var Entity = require('./entity.js'),
-      Animation = require('./animation.js');
-  
-  /* The following are Wolf States  */
-  const IDLE = 0;
-  const RIGHT = 1;
-  const LEFT = 2;
-  const SMELL = 3;
-  const AGRO = 4;
-  const FALLING = 5;
-
-  // The Sprite HEIGHT
-  const HEIGHT = 62;
-  const WIDTH = 37;
-
-  // Movement constants
-  const SPEED = 100;
-  const GRAVITY = -250;
-  const JUMP_VELOCITY = -600;
-  
-  //The Right facing wolf spritesheet
-  var WolfRight = new Image();
-  WolfRight.src = './img/Wolf_walkright.png';
-
-  //The left facing wolf spritesheet
-  var WolfLeft = new Image();
-  WolfLeft.src = "./img/Wolf_walkleft.png";
-  
-   //The IDLE wolf spritesheet
-  var WolfIdle = new Image();
-  WolfIdle.src = "./img/Wolf_idle.png";
-
-  //The Wolf constructor
-  function Wolf(locationX, locationY, layerIndex, inputManager) {
-	  console.log('WolfCreated');
-    this.inputManager = inputManager;
-    this.state = RIGHT; 
-    this.layerIndex = layerIndex;
-    this.currentX = locationX; 
-    this.currentY = locationY; 
-    this.nextX = 0; 
-    this.nextY = 0;
-    this.currentTileIndex = 0; 
-    this.nextTileIndex = 0;
-    this.constSpeed = 15; 
-    this.gravity = .5; 
-    this.angle = 0; 
-    this.xSpeed = 10; 
-    this.ySpeed = 15;
-    this.isLeft = false;
-    this.type = "Wolf";
-    
-    //The animations
-    this.animations = {
-      left: [],
-      right: [],
-    }
-    
-    //The right-facing animations
-    this.animations.right[RIGHT] = new Animation(WolfRight, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.right[IDLE] = new Animation(WolfIdle, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.right[FALLING] = new Animation(WolfIdle, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.right[SMELL]= new Animation(WolfIdle, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.right[AGRO] =  new Animation(WolfRight, WIDTH, HEIGHT, 0, 0, 8);
-    //this.animations.right[SWIMMING] = new Animation(WolfRight, HEIGHT, HEIGHT, 0, 0, 4);
-    
-    //The left-facing animations
-    this.animations.left[LEFT] = new Animation(WolfLeft, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.left[IDLE] = new Animation(WolfIdle, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.left[FALLING] = new Animation(WolfIdle, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.left[SMELL]= new Animation(WolfIdle, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.left[AGRO] = new Animation(WolfLeft, WIDTH, HEIGHT, 0, 0, 8);
-    //this.animations.left[SWIMMING] = new Animation(WolfLeft, HEIGHT, HEIGHT, 0, 0, 4);
-  }
-  
-  // Wolf inherits from Entity
-  Wolf.prototype = new Entity();
-  
-  // Determines if the Wolf is on the ground
-  Wolf.prototype.onGround = function(tilemap) {
-    var box = this.boundingBox(),
-        tileX = Math.floor((box.left + (WIDTH/2))/64),
-        tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
-    // find the tile we are standing on.
-    return (tile && tile.data.solid) ? true : false;
-  }
-  
-  // Moves the Wolf to the left, colliding with solid tiles
-  Wolf.prototype.moveLeft = function(distance, tilemap) {
-    this.currentX -= distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid) 
-      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
-  }
-  
-  // Moves the Wolf to the right, colliding with solid tiles
-  Wolf.prototype.moveRight = function(distance, tilemap) {
-    this.currentX += distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
-  }
-  
-  /* Wolf update function
-   * arguments:
-   * - elapsedTime, the time that has passed 
-   *   between this and the last frame.
-   * - tilemap, the tilemap that corresponds to
-   *   the current game world.
-   */
-  Wolf.prototype.update = function(elapsedTime, tilemap, entityManager) {
-    var sprite = this;
-    
-    // The "with" keyword allows us to change the
-    // current scope, i.e. 'this' becomes our 
-    // inputManager
-    //with (this.inputManager) {
-    
-      // Process Wolf state
-       switch(sprite.state) {
-       case RIGHT:
-          // If there is no ground underneath, fall
-          if(!sprite.onGround(tilemap)) {
-            sprite.state = FALLING;
-            sprite.velocityY = 0;
-          } else {
-              sprite.isLeft = false;
-              sprite.moveRight(elapsedTime * SPEED, tilemap);
-			  //var i = Math.floor((Math.random() * 100) + 1);
-			  //if(i < 50) sprite.state = RIGHT;
-			  //else if( i < 75) sprite.state = LEFT;
-			  //else if( i < 100) sprite.sate = SMELL;
-            }
-          break; 
-		/*case LEFT:
-          // If there is no ground underneath, fall
-          if(!sprite.onGround(tilemap)) {
-            sprite.state = FALLING;
-            sprite.velocityY = 0;
-          } else {
-              sprite.isLeft = true;
-              sprite.moveLeft(elapsedTime * SPEED, tilemap);
-			  var i = Math.floor((Math.random() * 100) + 1);
-			  if(i < 50) sprite.state = LEFT;
-			  else if( i < 75) sprite.state = RIGHT;
-			  else if( i < 100) sprite.sate = SMELL;
-            }
-         break; */
-		case FALLING:
-			sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-			sprite.currentY += sprite.velocityY * elapsedTime;
-			if(sprite.onGround(tilemap)) {
-				sprite.isLeft = false;
-				sprite.state = RIGHT;
-				sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-			}
-			break;
-          }
-       
-    // Update animation
-    if(this.isLeft)
-      this.animations.left[this.state].update(elapsedTime);
-    else
-      this.animations.right[this.state].update(elapsedTime);
-    
-  }
-  
-  /* Wolf Render Function
-   * arguments:
-   * - ctx, the rendering context
-   * - debug, a flag that indicates turning on
-   * visual debugging
-   */
-  Wolf.prototype.render = function(ctx, debug) {
-    // Draw the Wolf (and the correct animation)
-    if(this.isLeft)
-      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
-    else
-      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
-    
-    if(debug) renderDebug(this, ctx);
-  }
-  
-  // Draw debugging visual elements
-  function renderDebug(Wolf, ctx) {
-    var bounds = Wolf.boundingBox();
-    ctx.save();
-    
-    // Draw Wolf bounding box
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-    ctx.moveTo(bounds.left, bounds.top);
-    ctx.lineTo(bounds.right, bounds.top);
-    ctx.lineTo(bounds.right, bounds.bottom);
-    ctx.lineTo(bounds.left, bounds.bottom);
-    ctx.closePath();
-    ctx.stroke();
-    
-    // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (WIDTH/2))/64),
-        tileY = 64 * (Math.floor(bounds.bottom / 64));
-    ctx.strokeStyle = "black";
-    ctx.beginPath();
-    ctx.moveTo(tileX, tileY);
-    ctx.lineTo(tileX + 64, tileY);
-    ctx.lineTo(tileX + 64, tileY + 64);
-    ctx.lineTo(tileX, tileY + 64);
-    ctx.closePath();
-    ctx.stroke();
-    
-    ctx.restore();
-  }
-  
-  /* Wolf BoundingBox Function
-   * returns: A bounding box representing the Wolf 
-   */
-  Wolf.prototype.boundingBox = function() {
-    return {
-      left: this.currentX,
-      top: this.currentY,
-      right: this.currentX + WIDTH,
-      bottom: this.currentY + HEIGHT
-    }
-  }
-  
-    Wolf.prototype.boundingCircle =function(){
-    return{
-      cx: this.currentX + WIDTH/2,
-      cy: this.currentY + HEIGHT/2,
-      radius: WIDTH/2
-    }
-  }
-  
-   Wolf.prototype.collide = function(otherEntity){
-      this.state = AGRO;
-    }
-  return Wolf;
-
-}());
-
-},{"./animation.js":3,"./entity.js":12}]},{},[18]);
+},{"./animation.js":2,"./cannonball.js":5,"./entity-manager.js":9,"./entity.js":10,"./player.js":20}]},{},[16]);

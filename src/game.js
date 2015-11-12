@@ -12,7 +12,7 @@ module.exports = (function (){
   // Module variables
   var Player = require('./player.js'),
 	  Rat = require('./rat.js'),
-	  Wolf = require('./wolf.js'),
+	  //Wolf = require('./wolf.js'),
       Octopus = require('./octopus.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
@@ -22,11 +22,11 @@ module.exports = (function (){
       Barrel = require('./barrel.js'),
 	  Turret = require('./turret.js'),
 	  DynamiteDwarf = require('./dynamiteDwarf.js'),
-	  Kakao = require('./Kakao.js'),
-    Bird = require('./bird.js'),
-    bird,
+	  //Kakao = require('./Kakao.js'),
+    //Bird = require('./bird.js'),
+    //bird,
 	  kakao,
-	wolf,
+	//wolf,
       GoblinMiner = require('./goblin-miner.js'),
       Shaman = require('./goblin-shaman.js'),
       player,
@@ -86,17 +86,17 @@ var load = function(sm) {
     entityManager.add(player);
     //add wolf to
     // the entity manager
-    wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
-    entityManager.add(wolf);
+    //wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
+    //entityManager.add(wolf);
     
-    bird = new Bird(425, 240);
-    entityManager.add(bird);
+    //bird = new Bird(425, 240);
+    //entityManager.add(bird);
 
 	rat = new Rat(500, 360, 0);
 	entityManager.add(rat);
 	
-	slime = new Slime(400, 20, 0);
-	entityManager.add(slime);
+	//slime = new Slime(400, 20, 0);
+	//entityManager.add(slime);
 
     sudo_chan = new Sudo_Chan(490, 240, 0);
     entityManager.add(sudo_chan);
@@ -132,8 +132,8 @@ var load = function(sm) {
 
 	// Karenfang: Create a Kakao and add it to
     // the entity manager
-    kakao = new Kakao(310,240,0);  //two tiles to the right of the player
-    entityManager.add(kakao);
+    //kakao = new Kakao(310,240,0);  //two tiles to the right of the player
+    //entityManager.add(kakao);
   };
   /* Updates the state of the game world
    * arguments:

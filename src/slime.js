@@ -5,7 +5,7 @@
  * - Nathan Bean 
  */
 module.exports = (function(){
-  var entity = require('./entity.js'),
+  var Entity = require('./entity.js'),
 	  animation = require('./animation.js');
 	  
   // SLime States
