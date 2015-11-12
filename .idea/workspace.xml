@@ -2,13 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4be4fa0a-8dbf-417f-800b-bcf043ecf520" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Kakao.js" afterPath="$PROJECT_DIR$/src/Kakao.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/bird.js" afterPath="$PROJECT_DIR$/src/bird.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/diggy_test.js" afterPath="$PROJECT_DIR$/diggy_test.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/game.js" afterPath="$PROJECT_DIR$/src/game.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/slime.js" afterPath="$PROJECT_DIR$/src/slime.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/wolf.js" afterPath="$PROJECT_DIR$/src/wolf.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/robo-killer.js" afterPath="$PROJECT_DIR$/src/robo-killer.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/sudo_chan.js" afterPath="$PROJECT_DIR$/src/sudo_chan.js" />
     </list>
     <ignored path="diggy-hole.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -65,18 +61,6 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="slime.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/slime.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="7" column="7" selection-start-line="7" selection-start-column="7" selection-end-line="7" selection-end-column="7" />
-              <folding>
-                <element signature="n#!!doc" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="stone-monster.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/stone-monster.js">
           <provider selected="true" editor-type-id="text-editor">
@@ -101,10 +85,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="entity-manager.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="entity-manager.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/entity-manager.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.89686096">
+            <state vertical-scroll-proportion="0.0">
               <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
@@ -113,20 +97,8 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="bird.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/bird.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="57.88889">
-              <caret line="3" column="2" selection-start-line="3" selection-start-column="2" selection-end-line="3" selection-end-column="2" />
-              <folding>
-                <element signature="n#!!doc" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="entity.js" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/entity.js">
+      <file leaf-file-name="robo-killer.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/robo-killer.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
               <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
@@ -141,8 +113,32 @@
         <entry file="file://$PROJECT_DIR$/src/sudo_chan.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="237" column="5" selection-start-line="237" selection-start-column="5" selection-end-line="237" selection-end-column="5" />
+              <caret line="246" column="0" selection-start-line="246" selection-start-column="0" selection-end-line="246" selection-end-column="0" />
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="bird.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/bird.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.06726457">
+              <caret line="3" column="2" selection-start-line="3" selection-start-column="2" selection-end-line="3" selection-end-column="2" />
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="tilemap.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/tilemap.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -504,28 +500,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/sudo_chan.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="237" column="5" selection-start-line="237" selection-start-column="5" selection-end-line="237" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/slime.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="7" column="7" selection-start-line="7" selection-start-column="7" selection-end-line="7" selection-end-column="7" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/bird.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="57.88889">
-          <caret line="3" column="2" selection-start-line="3" selection-start-column="2" selection-end-line="3" selection-end-column="2" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
@@ -594,8 +572,46 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/entity-manager.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.89686096">
+        <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/tilemap.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/robo-killer.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/sudo_chan.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="246" column="0" selection-start-line="246" selection-start-column="0" selection-end-line="246" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/bird.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.06726457">
+          <caret line="3" column="2" selection-start-line="3" selection-start-column="2" selection-end-line="3" selection-end-column="2" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
