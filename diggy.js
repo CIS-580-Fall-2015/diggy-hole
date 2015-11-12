@@ -1044,7 +1044,7 @@ module.exports = (function(){
 }());
 
 
-},{"./animation.js":3,"./bone.js":6,"./entity-manager.js":12,"./entity.js":13,"./player.js":22}],5:[function(require,module,exports){
+},{"./animation.js":3,"./bone.js":6,"./entity-manager.js":12,"./entity.js":13,"./player.js":23}],5:[function(require,module,exports){
 /* Bird Module
 	Authors: Josh Benard
 */
@@ -1398,7 +1398,7 @@ module.exports = (function(){
 }());
 
 
-},{"./animation.js":3,"./entity.js":13,"./player.js":22}],7:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":13,"./player.js":23}],7:[function(require,module,exports){
 module.exports = (function(){
 
 var Animation = require('./animation.js'),
@@ -1586,7 +1586,7 @@ Cannonball.prototype = new Entity();
 return Cannonball;
 	
 }())
-},{"./animation.js":3,"./entity.js":13,"./tilemap.js":28}],8:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":13,"./tilemap.js":29}],8:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -2568,7 +2568,7 @@ module.exports = (function() {
 
 }());
 
-},{"./player.js":22}],13:[function(require,module,exports){
+},{"./player.js":23}],13:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -2682,7 +2682,7 @@ module.exports = (function (){
 	  rat,
       octopus,
       stoneMonster,
-	  slime = require('./slime.js'),
+	  Slime = require('./slime.js'),
       Sudo_Chan = require('./sudo_chan.js'),
       sudo_chan,
       screenCtx,
@@ -2857,7 +2857,7 @@ var load = function(sm) {
 
 })();
 
-},{"./DemonicGroundH.js":1,"./Kakao.js":2,"./barrel.js":4,"./bird.js":5,"./dynamiteDwarf.js":11,"./entity-manager.js":12,"./goblin-miner.js":15,"./goblin-shaman.js":16,"./input-manager.js":17,"./main-menu.js":18,"./octopus.js":20,"./player.js":22,"./rat.js":23,"./slime.js":24,"./stone-monster.js":25,"./sudo_chan.js":27,"./tilemap.js":28,"./turret.js":29,"./wolf.js":30}],15:[function(require,module,exports){
+},{"./DemonicGroundH.js":1,"./Kakao.js":2,"./barrel.js":4,"./bird.js":5,"./dynamiteDwarf.js":11,"./entity-manager.js":12,"./goblin-miner.js":15,"./goblin-shaman.js":16,"./input-manager.js":17,"./main-menu.js":18,"./octopus.js":21,"./player.js":23,"./rat.js":24,"./slime.js":25,"./stone-monster.js":26,"./sudo_chan.js":28,"./tilemap.js":29,"./turret.js":30,"./wolf.js":31}],15:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -3739,6 +3739,50 @@ module.exports = (function (){
   
 })();
 },{"./credits-screen":8}],19:[function(require,module,exports){
+
+
+// Wait for the window to load completely
+window.onload = function() {
+  
+  var gameTime = 0,
+      gameState = [];
+    
+  var pushState = function(state) {
+    state.load({pushState: pushState, popState: popState});
+    gameState.push(state);
+  }
+  
+  var popState = function() {
+    state = gameState.pop(); 
+    if(state) state.exit();
+    return state;
+  }
+  
+  var game = require('./game');
+  pushState(game);
+  
+  var mainMenu = require('./main-menu');
+  pushState(mainMenu);
+  
+  // Event handlers for key events
+  window.onkeydown = function(event) {
+    gameState[gameState.length-1].keyDown(event);
+  }
+  window.onkeyup = function(event) {
+    gameState[gameState.length-1].keyUp(event);
+  }
+  
+  function loop(newTime) {
+    var elapsedTime = (newTime - gameTime) / 1000;
+    gameTime = newTime;
+    gameState[gameState.length-1].update(elapsedTime);
+    gameState[gameState.length-1].render(elapsedTime);
+    window.requestAnimationFrame(loop);
+  }
+  window.requestAnimationFrame(loop);
+  
+};
+},{"./game":14,"./main-menu":18}],20:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -3864,7 +3908,7 @@ module.exports = (function(){
   }
 
 }());
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -4061,7 +4105,7 @@ module.exports = function () {
 }();
 
 
-},{"./entity.js":13,"./octopus_animation.js":21}],21:[function(require,module,exports){
+},{"./entity.js":13,"./octopus_animation.js":22}],22:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -4124,7 +4168,7 @@ module.exports = (function() {
     return OctopusAnimation;
 
 }());
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -4409,7 +4453,7 @@ module.exports = (function() {
 
 }());
 
-},{"./animation.js":3,"./entity.js":13}],23:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":13}],24:[function(require,module,exports){
 /* Enemy module
  * Authors:
  * Kien Le
@@ -4678,7 +4722,7 @@ module.exports = (function(){
   return Rat;
 
 }());
-},{"./animation.js":3,"./entity.js":13}],24:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":13}],25:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -4930,7 +4974,7 @@ module.exports = (function(){
    return Slime;
   
 }());
-},{"./animation.js":3,"./entity.js":13}],25:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":13}],26:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -5211,7 +5255,7 @@ module.exports = (function(){
 
     return StoneMonster;
 }());
-},{"./animation.js":3,"./entity.js":13,"./player.js":22}],26:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":13,"./player.js":23}],27:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -5281,7 +5325,7 @@ module.exports = (function() {
     return Sudo_Animation;
 
 }());
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -5529,7 +5573,7 @@ module.exports = (function(){
     return Sudo_Chan;
 }());
 
-},{"./entity.js":13,"./sudo-chan-animation.js":26}],28:[function(require,module,exports){
+},{"./entity.js":13,"./sudo-chan-animation.js":27}],29:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -6067,7 +6111,7 @@ module.exports = (function (){
   
 })();
 
-},{"./noise.js":19}],29:[function(require,module,exports){
+},{"./noise.js":20}],30:[function(require,module,exports){
 
 
 
@@ -6459,7 +6503,7 @@ module.exports = (function(){
 	return Turret;
 	
 }())
-},{"./animation.js":3,"./cannonball.js":7,"./entity-manager.js":12,"./entity.js":13,"./player.js":22}],30:[function(require,module,exports){
+},{"./animation.js":3,"./cannonball.js":7,"./entity-manager.js":12,"./entity.js":13,"./player.js":23}],31:[function(require,module,exports){
 /* Wolf module
  * Implements the entity pattern and provides
  * the DiggyHole Wolf info.
@@ -6714,4 +6758,4 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":3,"./entity.js":13}]},{},[14]);
+},{"./animation.js":3,"./entity.js":13}]},{},[19]);

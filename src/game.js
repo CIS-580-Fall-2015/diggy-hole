@@ -33,7 +33,7 @@ module.exports = (function (){
 	  rat,
       octopus,
       stoneMonster,
-	  slime = require('./slime.js'),
+	  Slime = require('./slime.js'),
       Sudo_Chan = require('./sudo_chan.js'),
       sudo_chan,
       screenCtx,
