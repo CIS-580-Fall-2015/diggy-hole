@@ -1434,7 +1434,7 @@ Cannonball.prototype = new Entity();
 return Cannonball;
 	
 }())
-},{"./animation.js":3,"./entity.js":12,"./tilemap.js":23}],7:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":12,"./tilemap.js":24}],7:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -2508,11 +2508,8 @@ module.exports = (function (){
 
   // Module variables
   var Player = require('./player.js'),
-<<<<<<< HEAD
 	  Rat = require('./rat.js'),
-=======
       Octopus = require('./octopus.js'),
->>>>>>> refs/remotes/origin/master
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
@@ -2525,12 +2522,9 @@ module.exports = (function (){
 	  kakao,
       GoblinMiner = require('./goblin-miner.js'),
       player,
-<<<<<<< HEAD
 	  rat,
-=======
       octopus,
       stoneMonster,
->>>>>>> refs/remotes/origin/master
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -2577,15 +2571,12 @@ var load = function(sm) {
 
     // Create the player and add them to
     // the entity manager
-<<<<<<< HEAD
     player = new Player(400, 240, 0, inputManager);
     entityManager.add(player);
 	
 	rat = new Rat(500, 360, 0);
 	entityManager.add(rat);
-  }
    
-=======
     player = new Player(64*6, 240, 0, inputManager);
     entityManager.add(player);
 
@@ -2615,7 +2606,6 @@ var load = function(sm) {
     entityManager.add(kakao);
   };
 
->>>>>>> refs/remotes/origin/master
   /* Updates the state of the game world
    * arguments:
    * - elapsedTime, the amount of time passed between
@@ -2688,11 +2678,8 @@ var load = function(sm) {
   }
 
 })();
-<<<<<<< HEAD
-},{"./entity-manager.js":3,"./input-manager.js":6,"./main-menu.js":7,"./player.js":10,"./rat.js":11,"./tilemap.js":12}],6:[function(require,module,exports){
-=======
 
-},{"./DemonicGroundH.js":1,"./Kakao.js":2,"./barrel.js":4,"./dynamiteDwarf.js":10,"./entity-manager.js":11,"./goblin-miner.js":14,"./input-manager.js":15,"./main-menu.js":16,"./octopus.js":19,"./player.js":21,"./stone-monster.js":22,"./tilemap.js":23,"./turret.js":24}],14:[function(require,module,exports){
+},{"./DemonicGroundH.js":1,"./Kakao.js":2,"./barrel.js":4,"./dynamiteDwarf.js":10,"./entity-manager.js":11,"./goblin-miner.js":14,"./input-manager.js":15,"./main-menu.js":16,"./octopus.js":19,"./player.js":21,"./rat.js":22,"./stone-monster.js":23,"./tilemap.js":24,"./turret.js":25}],14:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -3200,7 +3187,6 @@ module.exports = (function(){
 }());
 
 },{"./animation.js":3,"./entity.js":12}],15:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 module.exports = (function() { 
 
   var commands = {	
@@ -4100,8 +4086,8 @@ module.exports = (function() {
   return Player;
 
 }());
-<<<<<<< HEAD
-},{"./animation.js":1,"./entity.js":4}],11:[function(require,module,exports){
+
+},{"./animation.js":3,"./entity.js":12}],22:[function(require,module,exports){
 /* Enemy module
  * Authors:
  * Kien Le
@@ -4370,10 +4356,7 @@ module.exports = (function(){
   return Rat;
 
 }());
-},{"./animation.js":1,"./entity.js":4}],12:[function(require,module,exports){
-=======
-
-},{"./animation.js":3,"./entity.js":12}],22:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":12}],23:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -4654,8 +4637,7 @@ module.exports = (function(){
 
     return StoneMonster;
 }());
-},{"./animation.js":3,"./entity.js":12,"./player.js":21}],23:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
+},{"./animation.js":3,"./entity.js":12,"./player.js":21}],24:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -5193,7 +5175,7 @@ module.exports = (function (){
   
 })();
 
-},{"./noise.js":18}],24:[function(require,module,exports){
+},{"./noise.js":18}],25:[function(require,module,exports){
 
 
 
