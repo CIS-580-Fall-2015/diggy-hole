@@ -11,29 +11,29 @@ module.exports = (function (){
 
   // Module variables
   var Player = require('./player.js'),
-	  Rat = require('./rat.js'),
+	  //Rat = require('./rat.js'),
 	  //Wolf = require('./wolf.js'),
-      Octopus = require('./octopus.js'),
+      //Octopus = require('./octopus.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
       StoneMonster = require('./stone-monster.js'),
-	  DemonicGroundHog = require('./DemonicGroundH.js'),
-      Barrel = require('./barrel.js'),
-	  Turret = require('./turret.js'),
-	  DynamiteDwarf = require('./dynamiteDwarf.js'),
+	  //DemonicGroundHog = require('./DemonicGroundH.js'),
+      //Barrel = require('./barrel.js'),
+	  //Turret = require('./turret.js'),
+	  //DynamiteDwarf = require('./dynamiteDwarf.js'),
 	  //Kakao = require('./Kakao.js'),
-    //Bird = require('./bird.js'),
-    //bird,
+      //Bird = require('./bird.js'),
+      bird,
 	  kakao,
-	//wolf,
-      GoblinMiner = require('./goblin-miner.js'),
-      Shaman = require('./goblin-shaman.js'),
+	  //wolf,
+      //GoblinMiner = require('./goblin-miner.js'),
+      //Shaman = require('./goblin-shaman.js'),
       player,
-	  rat,
-      octopus,
+	  //rat,
+      //octopus,
       stoneMonster,
-	  slime = require('./slime.js'),
+	  //slime = require('./slime.js'),
       Sudo_Chan = require('./sudo_chan.js'),
       sudo_chan,
       screenCtx,
@@ -92,8 +92,8 @@ var load = function(sm) {
     //bird = new Bird(425, 240);
     //entityManager.add(bird);
 
-	rat = new Rat(500, 360, 0);
-	entityManager.add(rat);
+	//rat = new Rat(500, 360, 0);
+	//entityManager.add(rat);
 	
 	//slime = new Slime(400, 20, 0);
 	//entityManager.add(slime);
@@ -104,18 +104,19 @@ var load = function(sm) {
     player = new Player(64*6, 240, 0, inputManager);
     entityManager.add(player);
 
-    octopus = new Octopus(120, 240, 0);
-    entityManager.add(octopus);
+    //octopus = new Octopus(120, 240, 0);
+    //entityManager.add(octopus);
 
-	DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
-	entityManager.add(DemonicGroundHog);
+	//DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
+	//entityManager.add(DemonicGroundHog);
 
-	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
-	entityManager.add(goblinMiner);
+	//goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
+	//entityManager.add(goblinMiner);
 
 	// Spawn 10 barrels close to player
 	 // And some turrets
     // and some shamans
+    /*
 	for(var i = 0; i < 10; i++){
 		if (i < 3) {
 			turret = new Turret(Math.random()*64*50, Math.random()*64*20, o);
@@ -126,9 +127,10 @@ var load = function(sm) {
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
 
 	}
+	*/
 
-	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
-	entityManager.add(dynamiteDwarf);
+	//dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
+	//entityManager.add(dynamiteDwarf);
 
 	// Karenfang: Create a Kakao and add it to
     // the entity manager
@@ -145,7 +147,7 @@ var load = function(sm) {
     entityManager.update(elapsedTime, tilemap);
     inputManager.swapBuffers();
 
-    octopus.getPlayerPosition(player.boundingBox());
+    //octopus.getPlayerPosition(player.boundingBox());
   };
 
   /* Renders the current state of the game world
