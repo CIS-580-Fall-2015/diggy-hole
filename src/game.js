@@ -33,6 +33,7 @@ module.exports = (function (){
 	  rat,
       octopus,
       stoneMonster,
+	  slime = require('./slime.js'),
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -91,6 +92,9 @@ var load = function(sm) {
 
 	rat = new Rat(500, 360, 0);
 	entityManager.add(rat);
+	
+	slime = new Slime(400, 20, 0);
+	entityManager.add(slime);
 
     player = new Player(64*6, 240, 0, inputManager);
     entityManager.add(player);
