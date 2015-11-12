@@ -22,6 +22,8 @@ module.exports = (function (){
 	  Turret = require('./turret.js'),
 	  DynamiteDwarf = require('./dynamiteDwarf.js'),
 	  Kakao = require('./Kakao.js'),
+    Bird = require('./bird.js'),
+    bird,
 	  kakao,
       GoblinMiner = require('./goblin-miner.js'),
       Shaman = require('./goblin-shaman.js'),
@@ -77,6 +79,9 @@ var load = function(sm) {
     // the entity manager
     player = new Player(400, 240, 0, inputManager);
     entityManager.add(player);
+    
+    bird = new Bird(425, 240);
+    entityManager.add(bird);
 
 	rat = new Rat(500, 360, 0);
 	entityManager.add(rat);
@@ -115,7 +120,6 @@ var load = function(sm) {
     kakao = new Kakao(310,240,0);  //two tiles to the right of the player
     entityManager.add(kakao);
   };
-
   /* Updates the state of the game world
    * arguments:
    * - elapsedTime, the amount of time passed between
