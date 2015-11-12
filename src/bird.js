@@ -37,11 +37,11 @@ module.exports = (function(){
 
 	Bird.prototype = new Entity();
 
-	this.animators = { birdimations: [] }
+	this.animators = { birdimations: [] };
 
 	//loop this animation
-	this.animators.bridimations[FLYING] = new Animation(birdImage, SIZE, SIZE, 0, 0, 8, 1, false);
-	this.animators.bridimations[COLLIDED] = new Animation(birdExplodeImage, SIZE, SIZE, 0, 0, 8, 1, true);
+	this.animators.birdimations[FLYING] = new Animation(birdImage, SIZE, SIZE, 0, 0, 8, 1, false);
+	this.animators.birdimations[COLLIDED] = new Animation(birdExplodeImage, SIZE, SIZE, 0, 0, 8, 1, true);
 
 	Bird.prototype.update = function(elapsedTime, tilemap, entityManager){
 		this.velocityTime += elapsedTime;
@@ -83,7 +83,7 @@ module.exports = (function(){
 				this.animators.birdimations[this.state].render(context, this.x - (SIZE / 2), this.y - (SIZE / 2));
 				break;
 			case COLLIDED:
-				this.animators.bridimations[this.state].render(context, this.x - (SIZE / 2), this.y - (SIZE / 2));
+				this.animators.birdimations[this.state].render(context, this.x - (SIZE / 2), this.y - (SIZE / 2));
 				break;
 			default:
 				//dont draw anything if in a done state
@@ -123,19 +123,19 @@ module.exports = (function(){
 		var halfSize = SIZE /2;
 
 		return {
-			left: this.x - halfSize;
-			right: this.x + halfSize;
-			top: this.y - halfSize;
-			bottom: this.y + halfSize;
-		}
+			left: this.x - halfSize,
+			right: this.x + halfSize,
+			top: this.y - halfSize,
+			bottom: this.y + halfSize,
+		};
 	}
 
 	Bird.prototype.boundingCircle = function(){
 		return {
-			cx: this.x;
-			cy: this.y;
-			radius: SIZE / 2;
-		}
+			cx: this.x,
+			cy: this.y,
+			radius: SIZE / 2,
+		};
 	}
 
 
