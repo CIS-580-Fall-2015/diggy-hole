@@ -25,19 +25,19 @@ module.exports = (function() {
 
   // The right walking robo-killer spritesheet
   var roboKillerWalkRight = new Image();
-  roboKillerWalkRight.src = 'img/robo-killer_walk_right.png';
+  roboKillerWalkRight.src = './img/robo-killer_walk_right.png';
 
   // The left walking robo-killer spritesheet
   var roboKillerWalkLeft = new Image();
-  roboKillerWalkLeft.src = "img/robo-killer_walk_left.png";
+  roboKillerWalkLeft.src = "./img/robo-killer_walk_left.png";
 
   // The right attacking robo-killer spritesheet
   var roboKillerAttackRight = new Image();
-  roboKillerWalkLeft.src = "img/robo-killer_attack_right.png";
+  roboKillerAttackRight.src = "./img/robo-killer_attack_right.png";
 
   // The left attacking robo-killer spritesheet
   var roboKillerAttackLeft = new Image();
-  roboKillerWalkLeft.src = "img/robo-killer_attack_left.png";
+  roboKillerAttackLeft.src = "./img/robo-killer_attack_left.png";
 
 
   // Constructor for the robo-killer enemy. It inherits from entity (entity.js).
@@ -52,8 +52,8 @@ module.exports = (function() {
     this.currentX = locationX;
     this.currentY = locationY;
 
-    // The default state is patrolling. Set the state accordingly.
-    this.state  = PATROLING;
+    this.state  = PATROLING; // The default state is patrolling. Set the state accordingly.
+    this.isLeft = false; // The robo-killer begins facing to the right.
 
     //There is more to set here.
 
@@ -64,16 +64,16 @@ module.exports = (function() {
     };
 
     // The right-facing animations.
-    this.animations.right[PATORLING] = new Animation(roboKillerWalkRight, SIZE, SIZE, 0, 0, 3);
-    this.animations.right[ATTACKING] = new Animation(roboKillerAttackRight, SIZE, SIZE, 0, 0, 3);
+    this.animations.right[PATROLING] = new Animation(roboKillerWalkRight, SIZE, SIZE, 0, 0, 3, .2);
+    this.animations.right[ATTACKING] = new Animation(roboKillerAttackRight, SIZE, SIZE, 0, 0, 3, .2);
     this.animations.right[IDLE] = new Animation(roboKillerWalkRight, SIZE, SIZE, 0, 0, 1);
     this.animations.right[FALLING] = new Animation(roboKillerWalkRight, SIZE, SIZE, 0, 0, 1);
 
     //The left-facing animations
-    this.animations.left[PATORLING] = new Animation(roboKillerWalkLeft, SIZE, SIZE, 0, 0, 3);
-    this.animations.left[ATTACKING] = new Animation(roboKillerAttackLeft, SIZE, SIZE, 0, 0, 3;
-    this.animations.left[IDLE] = new Animation(roboKillerWalkLeft, SIZE, SIZE, 0, 0, 1));
-    this.animations.left[FALLING] = new Animation(roboKillerWalkLeft, SIZE, SIZE, 0, 0, 1));
+    this.animations.left[PATROLING] = new Animation(roboKillerWalkLeft, SIZE, SIZE, 0, 0, 3, .2);
+    this.animations.left[ATTACKING] = new Animation(roboKillerAttackLeft, SIZE, SIZE, 0, 0, 3, .2);
+    this.animations.left[IDLE] = new Animation(roboKillerWalkLeft, SIZE, SIZE, 0, 0, 1);
+    this.animations.left[FALLING] = new Animation(roboKillerWalkLeft, SIZE, SIZE, 0, 0, 1);
 
   }
   // Robo-Killer inherits from Entity
@@ -89,52 +89,124 @@ module.exports = (function() {
    *   keeps track of where all game entities are.
    *   you can call its query functions
    */
-  Entity.prototype.update = function(elapsedTime, tilemap, entityManager) {
-      // TODO: Determine what your entity will do
+  Robo_Killer.prototype.update = function(elapsedTime, tilemap, entityManager) {
+      // Determine what your entity will do
+
+      // Update animation
+      if(this.isLeft)
+        this.animations.left[this.state].update(elapsedTime);
+      else
+        this.animations.right[this.state].update(elapsedTime);
   }
 
   /* Render function
-   * parameters:
-   *  - context is the rendering context.  It may be transformed
-   *    to account for the camera
+   *
+   * Renders the character based on state (direction facing/if debugging is enabled).
+   *
+   * params:
+   * context - The context from the canvas being drawn to.
+   * debug - A binary flag denoting whether debug mode is on (draws bounding box around Robo-Killer).
    */
-   Entity.prototype.render = function(context) {
-     // TODO: Draw your entity sprite
+   Robo_Killer.prototype.render = function(context, debug) {
+     // Draw the Robo-Killer (and the correct animation).
+     if (this.isLeft)
+     {
+       this.animations.left[this.state].render(context, this.currentX, this.currentY);
+     }
+     else
+     {
+       this.animations.right[this.state].render(context, this.currentX, this.currentY);
+     }
+
+     if (debug)
+     {
+       renderDebug(this, context);
+     }
+   };
+
+   // Draws debugging visual elements. Same method used in player.js.
+   function renderDebug(robo_killer, ctx) {
+     var bounds = robo_killer.boundingBox();
+     ctx.save();
+
+     // Draw player bounding box
+     ctx.strokeStyle = "red";
+     ctx.beginPath();
+     ctx.moveTo(bounds.left, bounds.top);
+     ctx.lineTo(bounds.right, bounds.top);
+     ctx.lineTo(bounds.right, bounds.bottom);
+     ctx.lineTo(bounds.left, bounds.bottom);
+     ctx.closePath();
+     ctx.stroke();
+
+     // Outline tile underneath the robo-killer.
+     var tileX = 64 * Math.floor((bounds.left + (SIZE / 2)) / 64),
+       tileY = 64 * (Math.floor(bounds.bottom / 64));
+     ctx.strokeStyle = "black";
+     ctx.beginPath();
+     ctx.moveTo(tileX, tileY);
+     ctx.lineTo(tileX + 64, tileY);
+     ctx.lineTo(tileX + 64, tileY + 64);
+     ctx.lineTo(tileX, tileY + 64);
+     ctx.closePath();
+     ctx.stroke();
+
+     ctx.restore();
    }
 
    /* Collide function
-    * This function is called by the entityManager when it determines
-    * a possible collision.
-    * parameters:
-    * - otherEntity is the entity this enemy collided with
-    *   You will likely want to use
-    *     'otherEntity instanceof <Type>'
-    *   to determine what type it is to know what to
-    *   do with it.
+    *
+    * This robot hates slime. He will telport away from the slime as soon as contact is made.
+    *
+    * params:
+    * otherEntity - The entity being colided with.
     */
-   Entity.prototype.collide = function(otherEntity) {
+   Robo_Killer.prototype.collide = function(otherEntity) {
+     // The robo-killer is terrifed of slime. He will teleport in the opposite direction upon touching the slime.
+     if (otherEntity.type == "Slime")
+     {
+       if (this.isLeft)
+       {
+         // If hit from the left, teleport to the right.
+         this.CurrentX += SIZE * 3;
+       }
+       else
+       {
+         //If hit from the right, teleport to the left.
+         this.CurrentX += SIZE * 3;
+       }
+     }
    }
 
    /* BoundingBox function
-    * This function returns an axis-aligned bounding
-    * box, i.e {top: 0, left: 0, right: 20, bottom: 50}
-    * the box should contain your entity or at least the
-    * part that can be collided with.
+    *
+    * Returns a bounding box (which is 64 x 64 pixels) denoting the bounds
+    * of the Robo-Killer.
     */
-   Entity.prototype.boundingBox = function() {
-     // Return a bounding box for your entity
-   }
+   Robo_Killer.prototype.boundingBox = function() {
+     // Return a bounding box for Robo-Killer
+     return {
+       left: this.currentX,
+       top: this.currentY,
+       right: this.currentX + SIZE,
+       bottom: this.currentY + SIZE
+     };
+   };
 
    /* BoundingCircle function
-    * This function returns a bounding circle, i.e.
-    * {cx: 0, cy: 0, radius: 20}
-    * the circle should contain your entity or at
-    * least the part that can be collided with.
+    *
+    * Returns a bouding circle that surrounds the Robo-Killer.
+    * The cirlce has a radius of 32 pixels, and a diameter of 64 pixels.
     */
-   Entity.prototype.boundingCircle = function() {
-     // Return a bounding circle for your entity
-   }
+   Robo_Killer.prototype.boundingCircle = function() {
+     // Return a bounding circle Robo-Killer
+     return {
+       cx: this.currentX + SIZE / 2,
+       cy: this.currentY + SIZE / 2,
+       radius: SIZE / 2
+     };
+   };
 
-   return Entity;
+   return Robo_Killer;
 
 }());
