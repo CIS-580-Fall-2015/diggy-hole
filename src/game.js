@@ -85,6 +85,9 @@ var load = function(sm) {
 
     octopus = new Octopus(120, 240, 0);
     entityManager.add(octopus);
+	
+	DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
+	entityManager.add(DemonicGroundHog);
 
 	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
 	entityManager.add(goblinMiner);
