@@ -35,6 +35,9 @@ module.exports = (function() {
     this.r = new Animation(golem_right, ARMX, ARMY, 128, 144, 0);
     this.l = new Animation(golem_left, ARMX, ARMY, 128, 144, 0);
 
+    //For score engine
+    this.score = 10;
+
     //Bounding box for arm.
     Arm.prototype.boundingBox = function(otherEntity) {
       if (this.state === 0) {
