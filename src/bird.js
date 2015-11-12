@@ -1,7 +1,7 @@
 /* Bird Module
 	Authors: Josh Benard
 */
-/*
+
 module.exports = (function(){
 	var Entity = require('./entity.js');
 	var Animation = require('./animation.js');

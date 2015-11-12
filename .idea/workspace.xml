@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4be4fa0a-8dbf-417f-800b-bcf043ecf520" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/diggy_test.js" afterPath="$PROJECT_DIR$/diggy_test.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/robo-killer.js" afterPath="$PROJECT_DIR$/src/robo-killer.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/sudo_chan.js" afterPath="$PROJECT_DIR$/src/sudo_chan.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/bird.js" afterPath="$PROJECT_DIR$/src/bird.js" />
     </list>
     <ignored path="diggy-hole.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -49,10 +47,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Kakao.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="Kakao.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Kakao.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-1.0">
+            <state vertical-scroll-proportion="5.280374">
               <caret line="226" column="2" selection-start-line="226" selection-start-column="2" selection-end-line="226" selection-end-column="2" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
@@ -119,11 +117,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="bird.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="bird.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/bird.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.06726457">
-              <caret line="3" column="2" selection-start-line="3" selection-start-column="2" selection-end-line="3" selection-end-column="2" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="3" column="0" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -166,10 +164,10 @@
         <option value="$PROJECT_DIR$/src/sudo-chan-animation.js" />
         <option value="$PROJECT_DIR$/index.html" />
         <option value="$PROJECT_DIR$/src/wolf.js" />
-        <option value="$PROJECT_DIR$/src/bird.js" />
         <option value="$PROJECT_DIR$/src/slime.js" />
         <option value="$PROJECT_DIR$/src/Kakao.js" />
         <option value="$PROJECT_DIR$/src/game.js" />
+        <option value="$PROJECT_DIR$/src/bird.js" />
       </list>
     </option>
   </component>
@@ -520,16 +518,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Kakao.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-1.0">
-          <caret line="226" column="2" selection-start-line="226" selection-start-column="2" selection-end-line="226" selection-end-column="2" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/game.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-10.555555">
@@ -610,8 +598,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/bird.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.06726457">
-          <caret line="3" column="2" selection-start-line="3" selection-start-column="2" selection-end-line="3" selection-end-column="2" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="3" column="0" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Kakao.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="5.280374">
+          <caret line="226" column="2" selection-start-line="226" selection-start-column="2" selection-end-line="226" selection-end-column="2" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
