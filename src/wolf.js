@@ -27,15 +27,15 @@ module.exports = (function(){
   
   //The Right facing wolf spritesheet
   var WolfRight = new Image();
-  //WolfRight.src = './img/Wolf_walkright.png';
+  WolfRight.src = './img/Wolf_walkright.png';
 
   //The left facing wolf spritesheet
   var WolfLeft = new Image();
-  //WolfLeft.src = "./img/Wolf_walkleft.png";
+  WolfLeft.src = "./img/Wolf_walkleft.png";
   
    //The IDLE wolf spritesheet
   var WolfIdle = new Image();
-  //WolfIdle.src = "./img/Wolf_idle.png";
+  WolfIdle.src = "./img/Wolf_idle.png";
 
   //The Wolf constructor
   function Wolf(locationX, locationY, layerIndex, inputManager) {
