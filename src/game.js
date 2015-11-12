@@ -34,6 +34,8 @@ module.exports = (function (){
       octopus,
       stoneMonster,
 	  slime = require('./slime.js'),
+      Sudo_Chan = require('./sudo_chan.js'),
+      sudo_chan,
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -95,6 +97,9 @@ var load = function(sm) {
 	
 	slime = new Slime(400, 20, 0);
 	entityManager.add(slime);
+
+    sudo_chan = new Sudo_Chan(490, 240, 0);
+    entityManager.add(sudo_chan);
 
     player = new Player(64*6, 240, 0, inputManager);
     entityManager.add(player);
