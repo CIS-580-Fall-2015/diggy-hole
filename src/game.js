@@ -11,6 +11,7 @@ module.exports = (function (){
 
   // Module variables
   var Player = require('./player.js'),
+      GoblinSorcerer = require('./goblin_sorcerer.js'),
 	  Rat = require('./rat.js'),
       Octopus = require('./octopus.js'),
       inputManager = require('./input-manager.js'),
@@ -24,6 +25,7 @@ module.exports = (function (){
 	  Kakao = require('./Kakao.js'),
 	  kakao,
       GoblinMiner = require('./goblin-miner.js'),
+	  goblinSorcerer,
       player,
 	  rat,
       octopus,
@@ -88,6 +90,9 @@ var load = function(sm) {
 
 	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
 	entityManager.add(goblinMiner);
+	
+	goblinSorcerer = new GoblinSorcerer(420, 240, 0, entityManager);
+	entityManager.add(goblinSorcerer);
 
 	// Spawn 10 barrels close to player
 	 // And some turrets
