@@ -1062,9 +1062,10 @@ module.exports = (function(){
 	const SPRITE_NUM = 8;
 
 	//how often the bird changes directions
-	const RAND_VELOCITY_TIME = 15;
+	const RAND_VELOCITY_TIME = 2;
 	const MAX_VELOCITY = 20;
-	const EXPLOSION_TIME = 25;
+	const EXPLOSION_TIME = 1;
+	const SPEED_FACTOR = 5;
 
 	var birdImage = new Image();
 	birdImage.src = './img/birdsheet.png';
@@ -1088,8 +1089,8 @@ module.exports = (function(){
 	this.animators = { birdimations: [] };
 
 	//loop this animation
-	this.animators.birdimations[FLYING] = new Animation(birdImage, SIZE, SIZE, 0, 0, 8, 1, false);
-	this.animators.birdimations[COLLIDED] = new Animation(birdExplodeImage, SIZE, SIZE, 0, 0, 8, 1, true);
+	this.animators.birdimations[FLYING] = new Animation(birdImage, SIZE, SIZE, 0, 0, SPRITE_NUM, 0.1, false);
+	this.animators.birdimations[COLLIDED] = new Animation(birdExplodeImage, SIZE, SIZE, 0, 0, SPRITE_NUM, 0.125, true);
 
 	Bird.prototype.update = function(elapsedTime, tilemap, entityManager){
 		this.velocityTime += elapsedTime;
@@ -1097,8 +1098,8 @@ module.exports = (function(){
 		switch(this.state) {
 			case FLYING:
 				animators.birdimations[this.state].update(elapsedTime, tilemap);
-				this.x += this.velocityX;
-				this.y += this.velocityY;
+				this.x += this.velocityX / SPEED_FACTOR;
+				this.y += this.velocityY / SPEED_FACTOR;
 
 				//after a specified period, randomize bird velocity
 				if(this.velocityTime >= RAND_VELOCITY_TIME) {
@@ -2686,6 +2687,8 @@ module.exports = (function (){
 	  Slime = require('./slime.js'),
       Sudo_Chan = require('./sudo_chan.js'),
       sudo_chan,
+      slime,
+      goblinMiner,
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -2739,7 +2742,7 @@ var load = function(sm) {
     wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
     entityManager.add(wolf);
     
-    bird = new Bird(425, 240);
+    bird = new Bird(400, 100);
     entityManager.add(bird);
 
 	rat = new Rat(500, 360, 0);
@@ -2750,9 +2753,6 @@ var load = function(sm) {
 
     sudo_chan = new Sudo_Chan(490, 240, 0);
     entityManager.add(sudo_chan);
-
-    player = new Player(64*6, 240, 0, inputManager);
-    entityManager.add(player);
 
     octopus = new Octopus(120, 240, 0);
     entityManager.add(octopus);

@@ -36,6 +36,8 @@ module.exports = (function (){
 	  Slime = require('./slime.js'),
       Sudo_Chan = require('./sudo_chan.js'),
       sudo_chan,
+      slime,
+      goblinMiner,
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -89,7 +91,7 @@ var load = function(sm) {
     wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
     entityManager.add(wolf);
     
-    bird = new Bird(425, 240);
+    bird = new Bird(400, 100);
     entityManager.add(bird);
 
 	rat = new Rat(500, 360, 0);
@@ -100,9 +102,6 @@ var load = function(sm) {
 
     sudo_chan = new Sudo_Chan(490, 240, 0);
     entityManager.add(sudo_chan);
-
-    player = new Player(64*6, 240, 0, inputManager);
-    entityManager.add(player);
 
     octopus = new Octopus(120, 240, 0);
     entityManager.add(octopus);

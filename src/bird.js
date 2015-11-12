@@ -15,9 +15,10 @@ module.exports = (function(){
 	const SPRITE_NUM = 8;
 
 	//how often the bird changes directions
-	const RAND_VELOCITY_TIME = 15;
+	const RAND_VELOCITY_TIME = 2;
 	const MAX_VELOCITY = 20;
-	const EXPLOSION_TIME = 25;
+	const EXPLOSION_TIME = 1;
+	const SPEED_FACTOR = 5;
 
 	var birdImage = new Image();
 	birdImage.src = './img/birdsheet.png';
@@ -41,8 +42,8 @@ module.exports = (function(){
 	this.animators = { birdimations: [] };
 
 	//loop this animation
-	this.animators.birdimations[FLYING] = new Animation(birdImage, SIZE, SIZE, 0, 0, 8, 1, false);
-	this.animators.birdimations[COLLIDED] = new Animation(birdExplodeImage, SIZE, SIZE, 0, 0, 8, 1, true);
+	this.animators.birdimations[FLYING] = new Animation(birdImage, SIZE, SIZE, 0, 0, SPRITE_NUM, 0.1, false);
+	this.animators.birdimations[COLLIDED] = new Animation(birdExplodeImage, SIZE, SIZE, 0, 0, SPRITE_NUM, 0.125, true);
 
 	Bird.prototype.update = function(elapsedTime, tilemap, entityManager){
 		this.velocityTime += elapsedTime;
@@ -50,8 +51,8 @@ module.exports = (function(){
 		switch(this.state) {
 			case FLYING:
 				animators.birdimations[this.state].update(elapsedTime, tilemap);
-				this.x += this.velocityX;
-				this.y += this.velocityY;
+				this.x += this.velocityX / SPEED_FACTOR;
+				this.y += this.velocityY / SPEED_FACTOR;
 
 				//after a specified period, randomize bird velocity
 				if(this.velocityTime >= RAND_VELOCITY_TIME) {
