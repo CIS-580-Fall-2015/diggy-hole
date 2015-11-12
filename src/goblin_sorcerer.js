@@ -5,7 +5,8 @@
  */
 module.exports = (function(){
       var Entity = require('./entity.js'),
-	    Animation = require('./animation.js');
+	    Animation = require('./animation.js'),
+		entityManager = require('./entity-manager.js');
   /* Constructor
    * Generally speaking, you'll want to set
    * the X and Y position, as well as the layerX
@@ -89,7 +90,7 @@ module.exports = (function(){
    *   keeps track of where all game entities are.
    *   you can call its query functions
    */
-  Entity.prototype.update = function(elapsedTime, tilemap, entityManager) {
+  GoblinSorcerer.prototype.update = function(elapsedTime, tilemap, entityManager) {
       var 	sprite = this,
 			tileX = Math.floor(this.boundingBox.right/64),
 			tileY = Math.floor(this.boundingBox.bottom/64),
@@ -170,7 +171,7 @@ module.exports = (function(){
    *  - context is the rendering context.  It may be transformed
    *    to account for the camera 
    */
-   Entity.prototype.render = function(context) {
+   GoblinSorcerer.prototype.render = function(context) {
      // TODO: Draw your entity sprite
 	 if(this.isLeft)
       this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
@@ -221,7 +222,7 @@ module.exports = (function(){
     *   to determine what type it is to know what to 
     *   do with it.
     */
-   Entity.prototype.collide = function(otherEntity) {
+   GoblinSorcerer.prototype.collide = function(otherEntity) {
 	   player =  entityManager.getEntity(0);
 	   if (otherEntity.type == player.type)
 	   {
@@ -235,7 +236,7 @@ module.exports = (function(){
     * the box should contain your entity or at least the
     * part that can be collided with.
     */
-   Entity.prototype.boundingBox = function() {
+   GoblinSorcerer.prototype.boundingBox = function() {
      // Return a bounding box for your entity
 	 return {
       left: this.x,
@@ -251,7 +252,7 @@ module.exports = (function(){
     * the circle should contain your entity or at 
     * least the part that can be collided with.
     */
-   Entity.prototype.boundingCircle = function() {
+   GoblinSorcerer.prototype.boundingCircle = function() {
      // Return a bounding circle for your entity
 	 return {
       cx: this.currentX + SIZE_X / 2,
@@ -261,6 +262,6 @@ module.exports = (function(){
   };
    }
    
-   return Entity;
+   return GoblinSorcerer;
   
 }());
