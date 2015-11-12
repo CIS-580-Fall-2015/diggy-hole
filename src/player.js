@@ -32,6 +32,12 @@ module.exports = (function() {
   //The left facing dwarf spritesheet
   var dwarfLeft = new Image();
   dwarfLeft.src = "DwarfAnimatedLeft.png";
+  
+   var ratRight = new Image();
+  ratRight.src = 'img/ratRight2.png';
+
+  var ratLeft = new Image();
+  ratLeft.src = "img/ratLeft2.png";
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
@@ -57,7 +63,7 @@ module.exports = (function() {
     //The animations
     this.animations = {
       left: [],
-      right: [],
+      right: []
     };
 
     //The right-facing animations
@@ -109,9 +115,8 @@ module.exports = (function() {
       tileY = Math.floor(box.bottom / 64) - 1,
       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     if (tile && tile.data.solid)
-      this.currentX = (Math.ceil(this.currentX / 64) - 1) * 64;
+      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
   };
-
   /* Player update function
    * arguments:
    * - elapsedTime, the time that has passed
