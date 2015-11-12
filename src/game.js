@@ -11,11 +11,8 @@ module.exports = (function (){
 
   // Module variables
   var Player = require('./player.js'),
-<<<<<<< HEAD
 	  Rat = require('./rat.js'),
-=======
       Octopus = require('./octopus.js'),
->>>>>>> refs/remotes/origin/master
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
       entityManager = require('./entity-manager.js'),
@@ -28,12 +25,9 @@ module.exports = (function (){
 	  kakao,
       GoblinMiner = require('./goblin-miner.js'),
       player,
-<<<<<<< HEAD
 	  rat,
-=======
       octopus,
       stoneMonster,
->>>>>>> refs/remotes/origin/master
       screenCtx,
       backBuffer,
       backBufferCtx,
@@ -80,15 +74,12 @@ var load = function(sm) {
 
     // Create the player and add them to
     // the entity manager
-<<<<<<< HEAD
     player = new Player(400, 240, 0, inputManager);
     entityManager.add(player);
 	
 	rat = new Rat(500, 360, 0);
 	entityManager.add(rat);
-  }
    
-=======
     player = new Player(64*6, 240, 0, inputManager);
     entityManager.add(player);
 
@@ -118,7 +109,6 @@ var load = function(sm) {
     entityManager.add(kakao);
   };
 
->>>>>>> refs/remotes/origin/master
   /* Updates the state of the game world
    * arguments:
    * - elapsedTime, the amount of time passed between
