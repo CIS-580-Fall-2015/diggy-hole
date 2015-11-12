@@ -12,6 +12,7 @@ module.exports = (function (){
   // Module variables
   var Player = require('./player.js'),
 	  Rat = require('./rat.js'),
+	  Wolf = require('./wolf.js'),
       Octopus = require('./octopus.js'),
       inputManager = require('./input-manager.js'),
       tilemap = require('./tilemap.js'),
@@ -25,6 +26,7 @@ module.exports = (function (){
     Bird = require('./bird.js'),
     bird,
 	  kakao,
+	wolf,
       GoblinMiner = require('./goblin-miner.js'),
       Shaman = require('./goblin-shaman.js'),
       player,
@@ -79,6 +81,10 @@ var load = function(sm) {
     // the entity manager
     player = new Player(400, 240, 0, inputManager);
     entityManager.add(player);
+    //add wolf to
+    // the entity manager
+    wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
+    entityManager.add(wolf);
     
     bird = new Bird(425, 240);
     entityManager.add(bird);
