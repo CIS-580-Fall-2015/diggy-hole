@@ -23,6 +23,7 @@ module.exports = (function (){
 	  Kakao = require('./Kakao.js'),
 	  kakao,
       GoblinMiner = require('./goblin-miner.js'),
+      Shawman = require('./goblin-shaman.js'),
       player,
       octopus,
       stoneMonster,
@@ -83,6 +84,7 @@ var load = function(sm) {
 
 	// Spawn 10 barrels close to player
 	 // And some turrets
+    // and some shawmans
 	for(var i = 0; i < 10; i++){
 		if (i < 3) {
 			turret = new Turret(Math.random()*64*50, Math.random()*64*20, o);
@@ -90,6 +92,8 @@ var load = function(sm) {
 		}
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
 		entityManager.add(barrel);
+        entityManager.add(new Shawman(Math.random()*64*50, Math.random()*64*20, 0, entityManager));
+
 	}
 
 	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
