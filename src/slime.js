@@ -6,8 +6,8 @@
  */
 module.exports = (function(){
   var Entity = require('./entity.js'),
-	  animation = require('./animation.js');
-	  
+	  Animation = require('./animation.js');
+
   // SLime States
   const IDLE = 0;
   const MOVING = 1;
@@ -44,18 +44,18 @@ module.exports = (function(){
 	}
 	
 	//Slime Moving Left
-	this.animation.left[MOVING] = Animation(slimage, SIZE, SIZE, 0, SIZE, 3);
+	this.animations.left[MOVING] = new Animation(slimage, SIZE, SIZE, 0, SIZE, 3);
 	
 	//Slime Moving Right
-	this.animation.right[MOVING] = Animation(slimage, SIZE, SIZE, 0, SIZE*2, 3);
+	this.animations.right[MOVING] = new Animation(slimage, SIZE, SIZE, 0, SIZE*2, 3);
 	
 	//Slime Idling
-	this.animation.left[IDLE] = Animation(slimage, SIZE, SIZE, 0, 0, 3);
-	this.animation.right[IDLE] = Animation(slimage, SIZE, SIZE, 0, 0, 3);
+	this.animations.left[IDLE] = new Animation(slimage, SIZE, SIZE, 0, 0, 3);
+	this.animations.right[IDLE] = new Animation(slimage, SIZE, SIZE, 0, 0, 3);
 	
 	//Slime falling
-	this.animation.left[FALLING] = Animation(slimage, SIZE, SIZE, 0, 0, 3);
-	this.animation.right[FALLING] = Animation(slimage, SIZE, SIZE, 0, 0, 3);
+	this.animations.left[FALLING] = new Animation(slimage, SIZE, SIZE, 0, 0, 3);
+	this.animations.right[FALLING] = new Animation(slimage, SIZE, SIZE, 0, 0, 3);
   }
   
   Slime.prototype = new Entity();
