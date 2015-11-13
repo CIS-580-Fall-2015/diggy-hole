@@ -161,19 +161,26 @@ module.exports = (function() {
           }
           break;
         case DIGGING:
-          var box = this.boundingBox(),
-            tileX = Math.floor((box.left + (SIZE / 2)) / 64),
-            tileY = Math.floor(box.bottom / 64);
-            var layerType = tilemap.returnTileLayer(tileX, tileY, this.layerIndex);
-            if (layerType == 0) {
-              tilemap.setTileAt2(1, tileX, tileY, this.layerIndex);
-            } else if (layerType == 1) {
-              tilemap.setTileAt2(12, tileX, tileY, this.layerIndex);
-            } else if (layerType == 2) {
-              tilemap.setTileAt2(14, tileX, tileY, this.layerIndex);
-            }
-
-          sprite.state = FALLING;
+            var currentPlayer = this;
+            var digComplete = function() {
+              var box = currentPlayer.boundingBox(),
+                tileX = Math.floor((box.left + (SIZE / 2)) / 64),
+                tileY = Math.floor(box.bottom / 64);
+                var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
+                if (layerType == 0) {
+                  tilemap.setTileAt2(1, tileX, tileY, currentPlayer.layerIndex);
+                } else if (layerType == 1) {
+                  tilemap.setTileAt2(12, tileX, tileY, currentPlayer.layerIndex);
+                } else if (layerType == 2) {
+                  tilemap.setTileAt2(14, tileX, tileY, currentPlayer.layerIndex);
+                }
+                sprite.state = FALLING;
+                sprite.velocityY = 0;
+                currentPlayer.animations.left[currentPlayer.state].donePlayingCallback = function() {};
+                currentPlayer.animations.right[currentPlayer.state].donePlayingCallback = function() {};
+            };
+            this.animations.left[this.state].donePlayingCallback = digComplete;
+            this.animations.right[this.state].donePlayingCallback = digComplete;
           break;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);

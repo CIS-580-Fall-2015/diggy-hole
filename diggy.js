@@ -522,7 +522,7 @@ module.exports = (function(){
 },{"./animation.js":3,"./diamond.js":9,"./entity.js":13}],3:[function(require,module,exports){
 module.exports = (function() {
 
-  function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame, playItOnce) {
+  function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame, playItOnce, donePlayingCallback) {
     this.frameIndex = 0,
       this.time = 0,
       this.secondsPerFrame = secondsPerFrame || (1 / 16),
@@ -536,6 +536,7 @@ module.exports = (function() {
     this.drawLocationY = left || 0;
 
     this.playItOnce = playItOnce;
+    this.donePlayingCallback = donePlayingCallback;
   }
 
   Animation.prototype.setStats = function(frameCount, locationX, locationY) {
@@ -554,8 +555,16 @@ module.exports = (function() {
       // If the current frame index is in range
       if (this.frameIndex < this.numberOfFrames - 1) {
         this.frameIndex += 1;
-      } else if (!this.playItOnce) {
-        this.frameIndex = 0;
+      } else {
+        if (!this.playItOnce)
+          this.frameIndex = 0;
+
+        if(this.donePlayingCallback) {
+          this.donePlayingCallback();
+
+          //once we call the callback, destroy it so it cannot be called again
+          this.donePlayingCallback = null;
+        }
       }
     }
   };
@@ -4339,19 +4348,26 @@ module.exports = (function() {
           }
           break;
         case DIGGING:
-          var box = this.boundingBox(),
-            tileX = Math.floor((box.left + (SIZE / 2)) / 64),
-            tileY = Math.floor(box.bottom / 64);
-            var layerType = tilemap.returnTileLayer(tileX, tileY, this.layerIndex);
-            if (layerType == 0) {
-              tilemap.setTileAt2(1, tileX, tileY, this.layerIndex);
-            } else if (layerType == 1) {
-              tilemap.setTileAt2(12, tileX, tileY, this.layerIndex);
-            } else if (layerType == 2) {
-              tilemap.setTileAt2(14, tileX, tileY, this.layerIndex);
-            }
-
-          sprite.state = FALLING;
+            var currentPlayer = this;
+            var digComplete = function() {
+              var box = currentPlayer.boundingBox(),
+                tileX = Math.floor((box.left + (SIZE / 2)) / 64),
+                tileY = Math.floor(box.bottom / 64);
+                var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
+                if (layerType == 0) {
+                  tilemap.setTileAt2(1, tileX, tileY, currentPlayer.layerIndex);
+                } else if (layerType == 1) {
+                  tilemap.setTileAt2(12, tileX, tileY, currentPlayer.layerIndex);
+                } else if (layerType == 2) {
+                  tilemap.setTileAt2(14, tileX, tileY, currentPlayer.layerIndex);
+                }
+                sprite.state = FALLING;
+                sprite.velocityY = 0;
+                currentPlayer.animations.left[currentPlayer.state].donePlayingCallback = function() {};
+                currentPlayer.animations.right[currentPlayer.state].donePlayingCallback = function() {};
+            };
+            this.animations.left[this.state].donePlayingCallback = digComplete;
+            this.animations.right[this.state].donePlayingCallback = digComplete;
           break;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
