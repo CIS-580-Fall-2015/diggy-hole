@@ -2875,7 +2875,7 @@ var load = function(sm) {
 module.exports = (function(){
     var Entity = require('./entity.js'),
 	    Animation = require('./animation.js');
-	  
+
     /* The following are Goblin Miner States */
     const PASSIVE_STANDING = 0;
     const WALKING = 1;
@@ -2885,7 +2885,7 @@ module.exports = (function(){
     const CHARGING = 5;
     const ATTACKING = 6;
     const AGGRESSIVE_STANDING = 7;
-  
+
 
     function GoblinMiner(locationX, locationY, layerIndex, entManager){
 	    this.data = {type: 'goblinMiner'};
@@ -2906,32 +2906,32 @@ module.exports = (function(){
 		this.velocityY = 0;
 	    this.isLeft = false;
 		this.direction = 0;
-	  
+
 	    // The animations
 	    this.animations = {
 			left: [],
 			right: []
 	    }
-	  
+
 	    /* ADD CODE HERE */
 	    // The right-facing animations
 	    this.animations.right[PASSIVE_STANDING] = new Animation(goblinMinerRight, 354/8, 64, 354/8, 0, 0, 8);
 	    // the left-facing animations
 	    /* END ADD CODE HERE */
-    }  
-  
+    }
+
     GoblinMiner.prototype = new Entity();
-	
+
     // Determines if the Goblin Miner is on the ground
     GoblinMiner.prototype.onGround = function(tilemap) {
 		var box = this.boundingBox(),
 			tileX = Math.floor((box.left + (SIZE/2))/64),
 			tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     // find the tile we are standing on.
     return (tile && tile.data.solid) ? true : false;
     }
-	
+
     /* Returns the entities in Sight
      * - tileX, the x coordinate of our current tile location
      * - tileY, the y coordinate of our current tile location
@@ -2944,7 +2944,7 @@ module.exports = (function(){
 		if(i == 0){}
 		else{
 			var temp = {
-				entity: tileMap.tileAt(tileX+i, tileY, layerIndex), 
+				entity: tileMap.tileAt(tileX+i, tileY, layerIndex),
 				direction: i};
 			if(tileX+i >= 0 && tileX+i <= 1000)
 				entities.push(temp);
@@ -2952,7 +2952,7 @@ module.exports = (function(){
 	} */
 	return entities;
     }
-	  
+
     /* Returns the entities in Hearing Range
      * - tileX, the x coordinate of our current tile location
      * - tileY, the y coordinate of our current tile location
@@ -2975,7 +2975,7 @@ module.exports = (function(){
 	} */
 	return entities;
     }
-	  
+
     /* Returns a bool for if there is a large enough path to jump up
      * - tileX, the x coordinate of our current tile location
      * - tileY, the y coordinate of our current tile location
@@ -2991,7 +2991,7 @@ module.exports = (function(){
 	}
 	return false;
     }
-	  
+
     /* Returns a bool for if the path above is open (false - solid, true - open)
      * - tileX, the x coordinate of our current tile location
      * - tileY, the y coordinate of our current tile location
@@ -3004,7 +3004,7 @@ module.exports = (function(){
 		return false;
 	return true;
     }
-	  
+
     /* Returns a bool for if the path to the right is open (false - solid, true - open)
      * - tileX, the x coordinate of our current tile location
      * - tileY, the y coordinate of our current tile location
@@ -3023,7 +3023,7 @@ module.exports = (function(){
      * - tileY, the y coordinate of our current tile location
      * - layerIndex, the layer we are in and interact with
      * - tileMap, the tilemap
-     */  
+     */
     function checkLeft(tileX, tileY, layerIndex, tileMap){
 	var tile = tileMap.tileAt(tileX-1, tileY, layerIndex);
 	if(tile && tile.data.solid)
@@ -3043,7 +3043,7 @@ module.exports = (function(){
 		return false;
 	return true;
     }
-	  
+
     /* Returns an array holding a command and possibly direction
      * - tileX, the x coordinate of our current tile location
      * - tileY, the y coordinate of our current tile location
@@ -3052,14 +3052,14 @@ module.exports = (function(){
      * - currentState, the current state of the goblin miner
      * - direction, the possible direction the goblin miner is moving
      */
-    function command(tileX, tileY, layerIndex, tileMap, currentState, direction, goblin){  
+    function command(tileX, tileY, layerIndex, tileMap, currentState, direction, goblin){
 	if(!goblin.onGround(tilemap)){
 		return {command: FALLING, direction: 0};
 	}
-		  
+
 /* 	var visionEnts = vision(tileX, tileY, layerIndex, tileMap, goblin);
 	var aggroEnts = aggressionRadius(tileX, tileY, layerIndex, tileMap, goblin);
-		  
+
 	// Check for player in vision
 	for(i = 0; i < visionEnts.length; i++){
 		if(visionEnts[i].type == 'player'){
@@ -3070,8 +3070,8 @@ module.exports = (function(){
 				temp = {command: CHARGING, direction: visionEnts[i].direction};
 			return temp;
 		}
-	} 
-		  
+	}
+
 	// Check for player in aggro range
 	for(i = 0; i < aggroEnts.length; i++){
 		if(aggroEnts[i].type == 'player'){
@@ -3079,10 +3079,10 @@ module.exports = (function(){
 			return temp;
 		}
 	}  */
-		  
+
 	// Player is not nearby, so need to find something to do
 	var randomNum = Math.random();
-		  
+
 	switch(currentState) {
 		case AGGRESSIVE_STANDING:
 		    return {command: PASSIVE_STANDING, direction: 0};
@@ -3096,7 +3096,7 @@ module.exports = (function(){
 				else{
 					if(randomNum > .7)
 						return {command: DIGGING, direction: -1};
-					else 
+					else
 						return {command: WALKING, direction: 1};
 				}
 			}
@@ -3127,7 +3127,7 @@ module.exports = (function(){
 				else if(randomNum < .9 && tileX-1 >= -1)
 					return {command: WALKING, direction: -1};
 			    else
-				    return {command: DIGGING, direction: 1}; 
+				    return {command: DIGGING, direction: 1};
 		    }
 		    else{
 			    if(checkLeft(tileX, tileY, layerIndex, tileMap) && tileX-1 >= -1)
@@ -3135,7 +3135,7 @@ module.exports = (function(){
 				else if(randomNum < .9 && tileX+1 <= 1000)
 					return {command: WALKING, direction: 1};
 			    else
-				    return {command: DIGGING, direction: -1}; 
+				    return {command: DIGGING, direction: -1};
 		    }
 			break;
 		case DIGGING:
@@ -3156,32 +3156,32 @@ module.exports = (function(){
 					return {command: FALLING, direction: -1};
 			    else
 				    return {command: FALLING, direction: 0};
-			}	 
+			}
 			break;
         }
 		return {command: currentState, direction: direction};
-    } 
-  
+    }
+
     // Movement constants
     const SPEED = 150;
     const GRAVITY = -250;
     const JUMP_VELOCITY = -600;
-  
+
     // Current stance (Passive, Aggressive)
     var Passive = true;
-	
+
 	var SIZE = 64;
-  
+
     /* ADD CODE HERE */
     // The right facing goblin miner spritesheet(s)
     var goblinMinerRight = new Image();
     goblinMinerRight.src = 'img/Passive_Scratch.png';
-  
+
     // The left facing goblin miner spritesheet(s)
     var goblinMinerLeft = new Image();
     goblinMinerLeft.src = '';
     /* END ADD CODE HERE*/
-  
+
     // Moves the Goblin Miner to the left, colliding with solid tiles
     GoblinMiner.prototype.moveLeft = function(distance, tilemap) {
     this.currentX -= distance;
@@ -3189,10 +3189,10 @@ module.exports = (function(){
         tileX = Math.floor(box.left/64),
         tileY = Math.floor(box.bottom / 64) - 1,
         tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid) 
+    if (tile && tile.data.solid)
       this.currentX = (Math.floor(this.currentX/64) + 1) * 64
     }
-  
+
   // Moves the Goblin Miner to the right, colliding with solid tiles
   GoblinMiner.prototype.moveRight = function(distance, tilemap) {
     this.currentX += distance;
@@ -3203,25 +3203,25 @@ module.exports = (function(){
     if (tile && tile.data.solid)
       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
   }
-  
+
   /* Goblin Miner update function
    * arguments:
-   * - elapsedTime, the time that has passed 
+   * - elapsedTime, the time that has passed
    *   between this and the last frame.
    * - tilemap, the tilemap that corresponds to
    *   the current game world.
    */
   GoblinMiner.prototype.update = function(elapsedTime, tilemap) {
     var sprite = this;
-    
+
 	var tileX = Math.floor(this.currentX/64);
 	var tileY = Math.floor(this.currentY/64);
-	
+
     var whatDo = command(Math.floor(this.currentX/64), Math.floor(this.currentY/64), this.layerIndex, tilemap, this.state, this.direction, this);
     //var whatDo = {command: PASSIVE_STANDING, direction: 0};
 	this.state = whatDo.command;
 	this.direction = whatDo.direction;
-	
+
 	/* ADD CODE HERE */
     // Process Goblin Miner state
     switch(whatDo.command) {
@@ -3273,7 +3273,7 @@ module.exports = (function(){
             this.state = PASSIVE_STANDING;
             this.currentY = 64 * Math.floor(sprite.currentY / 64);
 			this.velocityY = 0;
-          }   
+          }
           if(whatDo.direction > 0){
 			  this.isLeft = false;
 			  this.moveRight(elapsedTime * SPEED, tilemap);
@@ -3285,16 +3285,16 @@ module.exports = (function(){
           break;
       }
 	  /* END ADD CODE HERE */
-       
+
     // Update animation
     /* if(this.isLeft)
       this.animations.left[this.state].update(elapsedTime);
     else
       this.animations.right[this.state].update(elapsedTime); */
-  
+
     this.animations.right[PASSIVE_STANDING].update(elapsedTime);
   }
-  
+
   /* Goblin Miner Render Function
    * arguments:
    * - ctx, the rendering context
@@ -3307,17 +3307,17 @@ module.exports = (function(){
       this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
     else
       this.animations.right[this.state].render(ctx, this.currentX, this.currentY); */
-    
+
 	this.animations.right[PASSIVE_STANDING].render(ctx, this.currentX, this.currentY);
-	
+
     if(debug) renderDebug(this, ctx);
   }
-  
+
   // Draw debugging visual elements
   function renderDebug(goblinMiner, ctx) {
     var bounds = goblinMiner.boundingBox();
     ctx.save();
-    
+
     // Draw Goblin Miner bounding box
     ctx.strokeStyle = "red";
     ctx.beginPath();
@@ -3327,7 +3327,7 @@ module.exports = (function(){
     ctx.lineTo(bounds.left, bounds.bottom);
     ctx.closePath();
     ctx.stroke();
-    
+
     // Outline tile underfoot
     var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
         tileY = 64 * (Math.floor(bounds.bottom / 64));
@@ -3339,18 +3339,18 @@ module.exports = (function(){
     ctx.lineTo(tileX, tileY + 64);
     ctx.closePath();
     ctx.stroke();
-    
+
     ctx.restore();
   }
-  
+
   GoblinMiner.prototype.collide = function(otherEntity) {
   	if(otherEntity.type == "player"){
   		return [ATTACKING, 0];
   	}
   }
-  
+
   /* Goblin Miner BoundingBox Function
-   * returns: A bounding box representing the Goblin Miner 
+   * returns: A bounding box representing the Goblin Miner
    */
   GoblinMiner.prototype.boundingBox = function() {
     return {
@@ -3368,7 +3368,7 @@ module.exports = (function(){
 	 }
    }
   return GoblinMiner;
-  
+
 }());
 
 },{"./animation.js":3,"./entity.js":13}],16:[function(require,module,exports){
@@ -4211,7 +4211,7 @@ module.exports = (function() {
   //The left facing dwarf spritesheet
   var dwarfLeft = new Image();
   dwarfLeft.src = "DwarfAnimatedLeft.png";
-  
+
    var ratRight = new Image();
   ratRight.src = 'img/ratRight2.png';
 
@@ -4471,7 +4471,7 @@ module.exports = (function() {
 module.exports = (function(){
   var Entity = require('./entity.js'),
       Animation = require('./animation.js');
-  
+
   /* The following are enemy States */
   const STANDING = 0;
   const WALKING = 1;
@@ -4485,13 +4485,13 @@ module.exports = (function(){
   const SPEED = 100;
   const GRAVITY = -250;
   const JUMP_VELOCITY = -600;
-  
+
   var ratIdleRight = new Image();
   ratIdleRight.src = 'img/ratIdleRight.png';
-  
+
   var ratIdleLeft = new Image();
   ratIdleLeft.src = 'img/ratIdleLeft.png';
-  
+
   var ratRight = new Image();
   ratRight.src = 'img/ratRight2.png';
 
@@ -4499,89 +4499,89 @@ module.exports = (function(){
   ratLeft.src = "img/ratLeft2.png";
 
   //The enemy constructor
-  function Rat(locationX, locationY, layerIndex) 
-  {  
-    this.state = WALKING; 
+  function Rat(locationX, locationY, layerIndex)
+  {
+    this.state = WALKING;
     this.layerIndex = layerIndex;
-    this.currentX = locationX; 
-    this.currentY = locationY; 
-    this.nextX = 0; 
+    this.currentX = locationX;
+    this.currentY = locationY;
+    this.nextX = 0;
     this.nextY = 0;
-    this.currentTileIndex = 0; 
+    this.currentTileIndex = 0;
     this.nextTileIndex = 0;
-    this.constSpeed = 15; 
-    this.gravity = .5; 
-    this.angle = 0; 
-    this.xSpeed = 10; 
+    this.constSpeed = 15;
+    this.gravity = .5;
+    this.angle = 0;
+    this.xSpeed = 10;
     this.ySpeed = 15;
     this.isLeft = false;
 	this.type = "rat";
-    
+
     //The animations
     this.animations = {
       left: [],
       right: [],
     }
-    
+
     //The right-facing animations
     this.animations.right[STANDING] = new Animation(ratIdleRight, SIZE, SIZE, SIZE*2, SIZE);
     this.animations.right[WALKING] = new Animation(ratRight, SIZE, SIZE, 0, 0, 8);
     this.animations.right[FALLING] = new Animation(ratIdleRight, SIZE, SIZE, 0, 0, 8);
 	this.animations.right[ATTACKING] = new Animation(ratRight, SIZE, SIZE, 0, 0, 8);
-    
+
     //The left-facing animations
     this.animations.left[STANDING] = new Animation(ratIdleLeft, SIZE, SIZE, SIZE*2, SIZE);
     this.animations.left[WALKING] = new Animation(ratLeft, SIZE, SIZE, 0, 0, 8);
     this.animations.left[FALLING] = new Animation(ratIdleLeft, SIZE, SIZE, 0, 0, 8);
 	this.animations.left[ATTACKING] = new Animation(ratLeft, SIZE, SIZE, 0, 0, 8);
   }
-  
+
   // Player inherits from Entity
   Rat.prototype = new Entity();
-  
+
   // Determines if the player is on the ground
-  Rat.prototype.onGround = function(tilemap) 
+  Rat.prototype.onGround = function(tilemap)
   {
     var box = this.boundingBox(),
         tileX = Math.floor((box.left + (SIZE/2))/64),
         tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     // find the tile we are standing on.
     return (tile && tile.data.solid) ? true : false;
   }
-  
-  Rat.prototype.checkLeft = function(tilemap) 
+
+  Rat.prototype.checkLeft = function(tilemap)
   {
     var box = this.boundingBox(),
         tileX = Math.floor(box.left/64),
         tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     return (tile && tile.data.solid) ? true : false;
   }
-  
-  Rat.prototype.checkRight = function(tilemap) 
+
+  Rat.prototype.checkRight = function(tilemap)
   {
     var box = this.boundingBox(),
         tileX = Math.floor(box.right/64),
         tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     return (tile && tile.data.solid) ? true : false;
   }
-  
+
   // Moves the enemy to the left, colliding with solid tiles
-  Rat.prototype.moveLeft = function(distance, tilemap) 
+  Rat.prototype.moveLeft = function(distance, tilemap)
   {
     this.currentX -= distance;
     var box = this.boundingBox(),
         tileX = Math.floor(box.left/64),
         tileY = Math.floor(box.bottom / 64) - 1,
         tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid) 
+    if (tile && tile.data.solid)
       this.currentX = (Math.floor(this.currentX/64) + 1) * 64
   }
-  
+
   // Moves the enemy to the right, colliding with solid tiles
-  Rat.prototype.moveRight = function(distance, tilemap) 
+  Rat.prototype.moveRight = function(distance, tilemap)
   {
     this.currentX += distance;
     var box = this.boundingBox(),
@@ -4591,70 +4591,70 @@ module.exports = (function(){
     if (tile && tile.data.solid)
       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
   }
-  
+
   /* Enemy update function
    * arguments:
-   * - elapsedTime, the time that has passed 
+   * - elapsedTime, the time that has passed
    *   between this and the last frame.
    * - tilemap, the tilemap that corresponds to
    *   the current game world.
    */
   Rat.prototype.update = function(elapsedTime, tilemap) {
     var sprite = this;
-        
+
       // Process enemy state
       switch(sprite.state) {
         case STANDING:
         case WALKING:
           // If there is no ground underneath, fall
-          if(!sprite.onGround(tilemap)) 
+          if(!sprite.onGround(tilemap))
 		  {
             sprite.state = FALLING;
             sprite.velocityY = 0;
-          } 
-		  else 
-		  {            
-            if(sprite.onGround(tilemap) && sprite.checkLeft(tilemap)) 
-			{				
+          }
+		  else
+		  {
+            if(sprite.onGround(tilemap) && sprite.checkLeft(tilemap))
+			{
               sprite.isLeft = false;
               sprite.state = WALKING;
               sprite.moveRight(elapsedTime * SPEED, tilemap);
             }
-            else if(sprite.onGround(tilemap) && sprite.checkRight(tilemap)) 
+            else if(sprite.onGround(tilemap) && sprite.checkRight(tilemap))
 			{
               sprite.isLeft = true;
               sprite.state = WALKING;
               sprite.moveLeft(elapsedTime * SPEED, tilemap);
             }
-            else 
+            else
 			{
               sprite.state = STANDING;
             }
           }
-          break;  
+          break;
         case FALLING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
           sprite.currentY += sprite.velocityY * elapsedTime;
           if(sprite.onGround(tilemap)) {
             sprite.state = STANDING;
             sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-          }          
+          }
           break;
         //case SWIMMING:
           // NOT IMPLEMENTED YET
 		case ATTACKING:
 		  sprite.state = STANDING;
 		  //TODO: attack player
-      }   
-	  
+      }
+
     // Update animation
     if(this.isLeft)
       this.animations.left[this.state].update(elapsedTime);
     else
       this.animations.right[this.state].update(elapsedTime);
-    
+
   }
-  
+
   /* Enemy Render Function
    * arguments:
    * - ctx, the rendering context
@@ -4667,15 +4667,15 @@ module.exports = (function(){
       this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
     else
       this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
-    
+
     if(debug) renderDebug(this, ctx);
   }
-  
+
   // Draw debugging visual elements
   function renderDebug(player, ctx) {
     var bounds = player.boundingBox();
     ctx.save();
-    
+
     // Draw player bounding box
     ctx.strokeStyle = "red";
     ctx.beginPath();
@@ -4685,7 +4685,7 @@ module.exports = (function(){
     ctx.lineTo(bounds.left, bounds.bottom);
     ctx.closePath();
     ctx.stroke();
-    
+
     // Outline tile underfoot
     var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
         tileY = 64 * (Math.floor(bounds.bottom / 64));
@@ -4697,11 +4697,11 @@ module.exports = (function(){
     ctx.lineTo(tileX, tileY + 64);
     ctx.closePath();
     ctx.stroke();
-    
+
     ctx.restore();
    }
-  
-   Rat.prototype.collide = function (otherEntity) 
+
+   Rat.prototype.collide = function (otherEntity)
    {
         if (otherEntity.type != "player") {
             if (this.onGround(tilemap)) {
@@ -4709,8 +4709,8 @@ module.exports = (function(){
             }
         }
     };
-  
-  Rat.prototype.boundingBox = function() 
+
+  Rat.prototype.boundingBox = function()
   {
     return {
       left: this.currentX,
@@ -4719,8 +4719,8 @@ module.exports = (function(){
       bottom: this.currentY + SIZE
     }
   }
-  
-  Rat.prototype.boundingCircle = function () 
+
+  Rat.prototype.boundingCircle = function ()
   {
         return {
             cx: this.currentX + SIZE / 2,
@@ -4728,10 +4728,11 @@ module.exports = (function(){
             radius: SIZE / 2
         }
     };
-  
+
   return Rat;
 
 }());
+
 },{"./animation.js":3,"./entity.js":13}],25:[function(require,module,exports){
 /* Entity: Robo-Killer module
  * Implements the entity pattern, provides specific robo-killer constructs.
@@ -4790,7 +4791,9 @@ module.exports = (function() {
     this.state  = PATROLING; // The default state is patrolling. Set the state accordingly.
     this.isLeft = false; // The robo-killer begins facing to the right.
 
-    //There is more to set here.
+    this.patrolDirectionCounter = 0; // A counter denoting how long the robo-killer should patrol in one direction. 0-100 by deafault.
+    this.attackCounter = 0; // Determines how long the robo-killer will attack for upon seeing the player. 0-10 by default.
+
 
     // Create an animations property, with arrays for each direction of animations.
     this.animations = {
@@ -4814,24 +4817,86 @@ module.exports = (function() {
   // Robo-Killer inherits from Entity
   Robo_Killer.prototype = new Entity();
 
-  /* Update function
-   * parameters:
-   * - elapsedTime is the time that has passed since the
-   *   previous frame
-   * - tilemap is the currently loaded tilemap; you'll
-   *   probably want to call its tileAt and setTile methods.
-   * - entityManager is the game's entity manager, and
-   *   keeps track of where all game entities are.
-   *   you can call its query functions
+  /* Update function for Robo_Killer
+   *
+   * The robot patrols a fixed distance. He will attack the player if the player comes near.
+   * He will fall off ledges, and contine patrolling upon landing on solid ground.
    */
   Robo_Killer.prototype.update = function(elapsedTime, tilemap, entityManager) {
-      // Determine what your entity will do
+      // Determins what the robo-killer will do.
+      var sprite = this;
 
-      // Update animation
+      switch (sprite.state)
+      {
+          case PATROLING:
+            // If there is no ground underneath, fall down.
+            if(!sprite.onGround(tilemap))
+            {
+              sprite.state = FALLING;
+              sprite.velocityY = 0;
+            }
+            else // Otherwise, begin the patrolling sequence.
+            {
+              if(sprite.isLeft) // Patrols to the left for a specified period.
+              {
+                sprite.moveLeft(elapsedTime * SPEED, tilemap);
+                sprite.patrolDirectionCounter++;
+                if (sprite.patrolDirectionCounter === 100)
+                {
+                  sprite.patrolDirectionCounter = 0;
+                  sprite.isLeft = false;
+                }
+              }
+              else // Patrols to the right for a specified duration.
+              {
+                sprite.moveRight(elapsedTime * SPEED, tilemap);
+                sprite.patrolDirectionCounter++;
+                if (sprite.patrolDirectionCounter === 100)
+                {
+                  sprite.patrolDirectionCounter = 0;
+                  sprite.isLeft = true;
+                }
+              }
+            }
+            break;
+          case ATTACKING:
+            // Trigger attack animation upon contact with the Player.
+            // Possibly implement some sort of damage later on.
+            sprite.attackCounter++;
+            if (sprite.attackCounter === 20)
+            {
+              sprite.attackCounter = 0;
+              sprite.state = PATROLING;
+            }
+            break;
+          // I may implement an idle state later. For the time being, the entity will simply attack the player if the player ends up in the patrol zone.
+          // In my opinion, the lack of idle behavior may be more fitting
+          // case IDLE: // Goes to idle state if the robo-killer loses site of the player. He will stay there for several seconds.
+          //   // If he sees the player, he will chase after them.
+          //
+          //   // Otherwise he will return back to patrolling.
+          //
+          //   break;
+          case FALLING: // Fall down at an accelerating speed until solid ground is hit. He will fall straight down, then continue to patrol at the landing zone.
+            sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+            sprite.currentY += sprite.velocityY * elapsedTime;
+            if (sprite.onGround(tilemap))
+            {
+              sprite.state = PATROLING;
+              sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+            }
+            break;
+      };
+
+      // Update animation each time the update() function runs.
       if(this.isLeft)
+      {
         this.animations.left[this.state].update(elapsedTime);
+      }
       else
+      {
         this.animations.right[this.state].update(elapsedTime);
+      }
   }
 
   /* Render function
@@ -4889,6 +4954,38 @@ module.exports = (function() {
      ctx.restore();
    }
 
+   // Determines if the robo killer is on the ground (method copied from player.js).
+   Robo_Killer.prototype.onGround = function(tilemap) {
+     var box = this.boundingBox(),
+       tileX = Math.floor((box.left + (SIZE / 2)) / 64),
+       tileY = Math.floor(box.bottom / 64),
+       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+     // find the tile we are standing on.
+     return (tile && tile.data.solid) ? true : false;
+   };
+
+   // Moves the robo-killer to the left, colliding with solid tiles (method copied from player.js).
+   Robo_Killer.prototype.moveLeft = function(distance, tilemap) {
+     this.currentX -= distance;
+     var box = this.boundingBox(),
+       tileX = Math.floor(box.left / 64),
+       tileY = Math.floor(box.bottom / 64) - 1,
+       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+     if (tile && tile.data.solid)
+       this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
+   };
+
+   // Moves the robo-killer to the right, colliding with solid tiles (method copied from player.js).
+   Robo_Killer.prototype.moveRight = function(distance, tilemap) {
+     this.currentX += distance;
+     var box = this.boundingBox(),
+       tileX = Math.floor(box.right / 64),
+       tileY = Math.floor(box.bottom / 64) - 1,
+       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+     if (tile && tile.data.solid)
+       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+   };
+
    /* Collide function
     *
     * This robot hates slime. He will telport away from the slime as soon as contact is made.
@@ -4908,8 +5005,12 @@ module.exports = (function() {
        else
        {
          //If hit from the right, teleport to the left.
-         this.CurrentX += SIZE * 3;
+         this.CurrentX -= SIZE * 3;
        }
+     }
+     else if (otherEntity.type == "player") // If we touch the player, begin attacking.
+     {
+       this.state = ATTACKING;
      }
    }
 
