@@ -55,7 +55,9 @@ module.exports = (function() {
     this.state  = PATROLING; // The default state is patrolling. Set the state accordingly.
     this.isLeft = false; // The robo-killer begins facing to the right.
 
-    //There is more to set here.
+    this.patrolDirectionCounter = 0; // A counter denoting how long the robo-killer should patrol in one direction. 0-100 by deafault.
+    this.attackCounter = 0; // Determines how long the robo-killer will attack for upon seeing the player. 0-10 by default.
+
 
     // Create an animations property, with arrays for each direction of animations.
     this.animations = {
@@ -79,24 +81,86 @@ module.exports = (function() {
   // Robo-Killer inherits from Entity
   Robo_Killer.prototype = new Entity();
 
-  /* Update function
-   * parameters:
-   * - elapsedTime is the time that has passed since the
-   *   previous frame
-   * - tilemap is the currently loaded tilemap; you'll
-   *   probably want to call its tileAt and setTile methods.
-   * - entityManager is the game's entity manager, and
-   *   keeps track of where all game entities are.
-   *   you can call its query functions
+  /* Update function for Robo_Killer
+   *
+   * The robot patrols a fixed distance. He will attack the player if the player comes near.
+   * He will fall off ledges, and contine patrolling upon landing on solid ground.
    */
   Robo_Killer.prototype.update = function(elapsedTime, tilemap, entityManager) {
-      // Determine what your entity will do
+      // Determins what the robo-killer will do.
+      var sprite = this;
 
-      // Update animation
+      switch (sprite.state)
+      {
+          case PATROLING:
+            // If there is no ground underneath, fall down.
+            if(!sprite.onGround(tilemap))
+            {
+              sprite.state = FALLING;
+              sprite.velocityY = 0;
+            }
+            else // Otherwise, begin the patrolling sequence.
+            {
+              if(sprite.isLeft) // Patrols to the left for a specified period.
+              {
+                sprite.moveLeft(elapsedTime * SPEED, tilemap);
+                sprite.patrolDirectionCounter++;
+                if (sprite.patrolDirectionCounter === 100)
+                {
+                  sprite.patrolDirectionCounter = 0;
+                  sprite.isLeft = false;
+                }
+              }
+              else // Patrols to the right for a specified duration.
+              {
+                sprite.moveRight(elapsedTime * SPEED, tilemap);
+                sprite.patrolDirectionCounter++;
+                if (sprite.patrolDirectionCounter === 100)
+                {
+                  sprite.patrolDirectionCounter = 0;
+                  sprite.isLeft = true;
+                }
+              }
+            }
+            break;
+          case ATTACKING:
+            // Trigger attack animation upon contact with the Player.
+            // Possibly implement some sort of damage later on.
+            sprite.attackCounter++;
+            if (sprite.attackCounter === 20)
+            {
+              sprite.attackCounter = 0;
+              sprite.state = PATROLING;
+            }
+            break;
+          // I may implement an idle state later. For the time being, the entity will simply attack the player if the player ends up in the patrol zone.
+          // In my opinion, the lack of idle behavior may be more fitting
+          // case IDLE: // Goes to idle state if the robo-killer loses site of the player. He will stay there for several seconds.
+          //   // If he sees the player, he will chase after them.
+          //
+          //   // Otherwise he will return back to patrolling.
+          //
+          //   break;
+          case FALLING: // Fall down at an accelerating speed until solid ground is hit. He will fall straight down, then continue to patrol at the landing zone.
+            sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+            sprite.currentY += sprite.velocityY * elapsedTime;
+            if (sprite.onGround(tilemap))
+            {
+              sprite.state = PATROLING;
+              sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+            }
+            break;
+      };
+
+      // Update animation each time the update() function runs.
       if(this.isLeft)
+      {
         this.animations.left[this.state].update(elapsedTime);
+      }
       else
+      {
         this.animations.right[this.state].update(elapsedTime);
+      }
   }
 
   /* Render function
@@ -154,6 +218,38 @@ module.exports = (function() {
      ctx.restore();
    }
 
+   // Determines if the robo killer is on the ground (method copied from player.js).
+   Robo_Killer.prototype.onGround = function(tilemap) {
+     var box = this.boundingBox(),
+       tileX = Math.floor((box.left + (SIZE / 2)) / 64),
+       tileY = Math.floor(box.bottom / 64),
+       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+     // find the tile we are standing on.
+     return (tile && tile.data.solid) ? true : false;
+   };
+
+   // Moves the robo-killer to the left, colliding with solid tiles (method copied from player.js).
+   Robo_Killer.prototype.moveLeft = function(distance, tilemap) {
+     this.currentX -= distance;
+     var box = this.boundingBox(),
+       tileX = Math.floor(box.left / 64),
+       tileY = Math.floor(box.bottom / 64) - 1,
+       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+     if (tile && tile.data.solid)
+       this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
+   };
+
+   // Moves the robo-killer to the right, colliding with solid tiles (method copied from player.js).
+   Robo_Killer.prototype.moveRight = function(distance, tilemap) {
+     this.currentX += distance;
+     var box = this.boundingBox(),
+       tileX = Math.floor(box.right / 64),
+       tileY = Math.floor(box.bottom / 64) - 1,
+       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+     if (tile && tile.data.solid)
+       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+   };
+
    /* Collide function
     *
     * This robot hates slime. He will telport away from the slime as soon as contact is made.
@@ -173,8 +269,12 @@ module.exports = (function() {
        else
        {
          //If hit from the right, teleport to the left.
-         this.CurrentX += SIZE * 3;
+         this.CurrentX -= SIZE * 3;
        }
+     }
+     else if (otherEntity.type == "player") // If we touch the player, begin attacking.
+     {
+       this.state = ATTACKING;
      }
    }
 
