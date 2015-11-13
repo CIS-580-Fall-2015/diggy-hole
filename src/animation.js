@@ -37,8 +37,12 @@ module.exports = (function() {
         if (!this.playItOnce)
           this.frameIndex = 0;
 
-        if(this.donePlayingCallback)
+        if(this.donePlayingCallback) {
           this.donePlayingCallback();
+
+          //once we call the callback, destroy it so it cannot be called again
+          this.donePlayingCallback = null;
+        }
       }
     }
   };
