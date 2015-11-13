@@ -4,6 +4,7 @@
 module.exports = (function(){
 	var Entity = require('./entity.js');
 	var Animation = require('./animation.js');
+	var Player = require('./player.js');
 
 	//states
 	const FLYING = 0;
@@ -14,9 +15,10 @@ module.exports = (function(){
 	const SPRITE_NUM = 8;
 
 	//how often the bird changes directions
-	const RAND_VELOCITY_TIME = 15;
+	const RAND_VELOCITY_TIME = 2;
 	const MAX_VELOCITY = 20;
-	const EXPLOSION_TIME = 25;
+	const EXPLOSION_TIME = 1;
+	const SPEED_FACTOR = 5;
 
 	var birdImage = new Image();
 	birdImage.src = './img/birdsheet.png';
@@ -40,17 +42,17 @@ module.exports = (function(){
 	this.animators = { birdimations: [] };
 
 	//loop this animation
-	this.animators.birdimations[FLYING] = new Animation(birdImage, SIZE, SIZE, 0, 0, 8, 1, false);
-	this.animators.birdimations[COLLIDED] = new Animation(birdExplodeImage, SIZE, SIZE, 0, 0, 8, 1, true);
+	this.animators.birdimations[FLYING] = new Animation(birdImage, SIZE, SIZE, 0, 0, SPRITE_NUM, 0.1, false);
+	this.animators.birdimations[COLLIDED] = new Animation(birdExplodeImage, SIZE, SIZE, 0, 0, SPRITE_NUM, 0.125, true);
 
 	Bird.prototype.update = function(elapsedTime, tilemap, entityManager){
 		this.velocityTime += elapsedTime;
 
 		switch(this.state) {
 			case FLYING:
-				this.animators.birdimations[this.state].update(elapsedTime, tilemap);
-				this.x += this.velocityX;
-				this.y += this.velocityY;
+				animators.birdimations[this.state].update(elapsedTime, tilemap);
+				this.x += this.velocityX / SPEED_FACTOR;
+				this.y += this.velocityY / SPEED_FACTOR;
 
 				//after a specified period, randomize bird velocity
 				if(this.velocityTime >= RAND_VELOCITY_TIME) {
@@ -68,7 +70,7 @@ module.exports = (function(){
 				}
 				break;
 			case COLLIDED:
-				this.animators.birdimations[this.state].update(elapsedTime, tilemap);
+				animators.birdimations[this.state].update(elapsedTime, tilemap);
 				if(this.velocityTime >= EXPLOSION_TIME)
 					this.state = EXPLODED;
 				break;
@@ -80,10 +82,10 @@ module.exports = (function(){
 	Bird.prototype.render = function(context, debug){
 		switch(this.state) {
 			case FLYING:
-				this.animators.birdimations[this.state].render(context, this.x - (SIZE / 2), this.y - (SIZE / 2));
+				animators.birdimations[this.state].render(context, this.x - (SIZE / 2), this.y - (SIZE / 2));
 				break;
 			case COLLIDED:
-				this.animators.birdimations[this.state].render(context, this.x - (SIZE / 2), this.y - (SIZE / 2));
+				animators.birdimations[this.state].render(context, this.x - (SIZE / 2), this.y - (SIZE / 2));
 				break;
 			default:
 				//dont draw anything if in a done state
@@ -93,7 +95,7 @@ module.exports = (function(){
 		if(debug) {
 			if(this.state != EXPLODED) {
 				///draw a box around the bird if it hasnt exploded
-				var boundary = Bird.boundingBox();
+				var boundary = this.boundingBox();
 				context.save();
 
 				context.strokeStyle = "red";

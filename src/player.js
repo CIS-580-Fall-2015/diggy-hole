@@ -23,6 +23,7 @@ module.exports = (function() {
   // Movement constants
   const SPEED = 150;
   const GRAVITY = -250;
+  const TERMINAL_VELOCITY = GRAVITY * -8;
   const JUMP_VELOCITY = -600;
 
   //The Right facing dwarf spritesheet
@@ -32,7 +33,7 @@ module.exports = (function() {
   //The left facing dwarf spritesheet
   var dwarfLeft = new Image();
   dwarfLeft.src = "DwarfAnimatedLeft.png";
-  
+
    var ratRight = new Image();
   ratRight.src = 'img/ratRight2.png';
 
@@ -182,7 +183,9 @@ module.exports = (function() {
           }
           break;
         case FALLING:
-          sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          if(sprite.velocityY < TERMINAL_VELOCITY) {
+            sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          }
           sprite.currentY += sprite.velocityY * elapsedTime;
           if (sprite.onGround(tilemap)) {
             sprite.state = STANDING;
