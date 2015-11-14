@@ -23,17 +23,17 @@ module.exports = (function(){
     const JUMPING_VELOCITY = -600;
     //The right face sudo-chan spritesheet
     var sudo_chan_right_idle = new Image();
-    sudo_chan_right_idle.src = 'sudo-chan-images/idle_sudo_chan.png';
+    sudo_chan_right_idle.src = 'img/sudo-chan-images/idle_sudo_chan.png';
     var sudo_chan_right_walk = new Image();
-    sudo_chan_right_walk.src = 'sudo-chan-images/walking_sudo_chan.png';
+    sudo_chan_right_walk.src = 'img/sudo-chan-images/walking_sudo_chan.png';
     var sudo_chan_right_jump = new Image();
-    sudo_chan_right_jump.src = 'sudo-chan-images/jumping_sudo_chan.png';
+    sudo_chan_right_jump.src = 'img/sudo-chan-images/jumping_sudo_chan.png';
     var sudo_chan_right_punch = new Image();
-    sudo_chan_right_punch.src = 'sudo-chan-images/celebrating_sudo_chan.png';
+    sudo_chan_right_punch.src = 'img/sudo-chan-images/celebrating_sudo_chan.png';
     var sudo_chan_right_fall = new Image();
-    sudo_chan_right_fall.src = 'sudo-chan-images/falling_sudo_chan.png';
+    sudo_chan_right_fall.src = 'img/sudo-chan-images/falling_sudo_chan.png';
     var sudo_chan_right_hit =  new Image();
-    sudo_chan_right_hit.src = 'sudo-chan-images/hurt_sudo_chan.png';
+    sudo_chan_right_hit.src = 'img/sudo-chan-images/hurt_sudo_chan.png';
 
     function Sudo_Chan(locationX, locationY, mapLayer) {
         this.positionX = locationX;
