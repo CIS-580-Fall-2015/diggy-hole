@@ -2,12 +2,12 @@
  *
  * Title: knight.js
  *
- * Description: implementation of an AI enemy for 
+ * Description: implementation of an AI enemy for
  * 		DiggyHole.
- * 
+ *
  *
  * History:
- * 		November 04, 2015: 
+ * 		November 04, 2015:
  *  		-Date Created
  */
 
@@ -17,8 +17,8 @@ module.exports = (function()
 	///////////////
 	// Constants //
 	///////////////
-	
-	var States = 
+
+	var States =
 	{
 		WALKING_RIGHT = 0,
 		WALKING_LEFT = 1,
@@ -26,10 +26,10 @@ module.exports = (function()
 		RUNNING_LEFT = 3,
 		STOPPED = 4
 	}
-	Object.freeze(States); 
+	Object.freeze(States);
 	// Prevents any changes to States object
 	// essentially creating an enum or constant
-	
+
 	var Directions =
 	{
 		UP: 1,
@@ -42,7 +42,7 @@ module.exports = (function()
 	var DEBUG_COLOR = "#E60000";
 
 	// =-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-	
+
 	//////////////////////
 	// Class Definition //
 	//////////////////////
@@ -52,7 +52,7 @@ module.exports = (function()
 		// Type Info
 		this.type = "knight";
 		// Layer info
-		this.layer = layer; 
+		this.layer = layer;
 		// State variable
 		this.state = States.STOPPED;
 		// Movement vectors
@@ -81,7 +81,7 @@ module.exports = (function()
 		this.walkingLeftFrames = [15, 16, 17, 18, 19];
 		this.attackingRightFrames = [0, 1, 2, 3, 4];
 		this.attackingLeftFrames = [5, 6, 7, 8, 9];
-		this.facing = 1; 
+		this.facing = 1;
 		this.frameIndex = 0;
 		this.ticksPerFrame = 7;
 		this.tickCount = 0;
@@ -91,7 +91,7 @@ module.exports = (function()
 
 	Knight.prototype = require('./entity.js');
 
-	
+
 	/**
 	 * Function: update
 	 * 		performs all the logic to update position, animation, and state
@@ -178,7 +178,7 @@ module.exports = (function()
 	Knight.boundingCircle = function()
 	{
 		return {
-			cx: this.center[0], 
+			cx: this.center[0],
 			cy: this.center[1],
 			radius: this.width / 2;
 		};
@@ -228,7 +228,7 @@ module.exports = (function()
 		}
 	}
 
-	
+
 
 	return Knight;
 

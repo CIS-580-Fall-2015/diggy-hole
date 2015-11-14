@@ -3,14 +3,14 @@
  * to its role - this needs to be refactored
  * into a spatial data structure approach.
  * Authors:
- * - Nathan Bean 
+ * - Nathan Bean
  */
 module.exports = (function (){
   const MAX_ENTITIES = 100;
   
   var entities = [],
       entityCount = 0;
-  
+
   /* Adds an entity to those managed.
    * Arguments:
    * - entity, the entity to add
@@ -21,16 +21,16 @@ module.exports = (function (){
       // (we simply use an auto-increment count)
       var id = entityCount;
       entityCount++;
-      
+
       // Set the entity's id on the entity itself
-      // as a property.  Due to the dynamic nature of 
+      // as a property.  Due to the dynamic nature of
       // JavaScript, this is easy
       entity._entity_id = id;
-      
+
       // Store the entity in the entities array
       entities[id] = entity;
       return true;
-    } else { 
+    } else {
       // We've hit the max number of allowable entities,
       // yet we may have freed up some space within our
       // entity array when an entity was removed.
@@ -49,9 +49,9 @@ module.exports = (function (){
       return undefined;
     }
   }
-  
+
   /* Removes an entity from those managed
-   * Arguments: 
+   * Arguments:
    * - entity, the entity to remove
    */
   function remove(entity) {
@@ -59,7 +59,7 @@ module.exports = (function (){
     // indicating an open slot
     entities[entity._entity_id] = undefined;
   }
-  
+
   /* Checks for collisions between entities, and
    * triggers the collide() event handler.
    */
@@ -86,9 +86,9 @@ module.exports = (function (){
       }
     }
   }
-  
+
   /* Returns all entities within the given radius.
-   * Arguments: 
+   * Arguments:
    * - x, the x-coordinate of the center of the query circle
    * - y, the y-coordinate of the center of the query circle
    * - r, the radius of the center of the circle
@@ -110,7 +110,7 @@ module.exports = (function (){
 	}
     return entitiesInRadius;
   }
-  
+
   /* Updates all managed entities
    * Arguments:
    * - elapsedTime, how much time has passed between the prior frameElement
@@ -123,7 +123,7 @@ module.exports = (function (){
     }
     checkCollisions();
   }
-  
+
   /* Renders the managed entities
    * Arguments:
    * - ctx, the rendering contextual
@@ -134,11 +134,11 @@ module.exports = (function (){
       if(entities[i]) entities[i].render(ctx, debug);
     }
   }
-  
+
     function getEntity(index){
 	  return entities[index];
   }
-  
+
   return {
     add: add,
     remove: remove,
@@ -147,5 +147,5 @@ module.exports = (function (){
 	getEntity: getEntity,
     render: render
   }
-  
+
 }());
