@@ -3942,7 +3942,7 @@ module.exports = function () {
     const IMG_HEIGH = 309;
 
     var oct = new Image();
-    oct.src = 'octopus.png';
+    oct.src = './img/octopus.png';
 
     function Octopus(locationX, locationY, layerIndex) {
         this.state = WALKING;
@@ -4342,7 +4342,15 @@ module.exports = (function() {
           var box = this.boundingBox(),
             tileX = Math.floor((box.left + (SIZE / 2)) / 64),
             tileY = Math.floor(box.bottom / 64);
-          tilemap.setTileAt(7, tileX, tileY, 0);
+            var layerType = tilemap.returnTileLayer(tileX, tileY, this.layerIndex);
+            if (layerType == 0) {
+              tilemap.setTileAt2(1, tileX, tileY, this.layerIndex);
+            } else if (layerType == 1) {
+              tilemap.setTileAt2(12, tileX, tileY, this.layerIndex);
+            } else if (layerType == 2) {
+              tilemap.setTileAt2(14, tileX, tileY, this.layerIndex);
+            }
+
           sprite.state = FALLING;
           break;
         case JUMPING:
@@ -5343,15 +5351,15 @@ module.exports = (function(){
         this.renderBoundingCircle = false;
 
         this.idle_image = new Image();
-        this.idle_image.src = './stone-monster-img/stone_monster_idle.png';
+        this.idle_image.src = 'img/stone-monster-img/stone_monster_idle.png';
 
 
         var moving_image_left = new Image();
-        moving_image_left.src = './stone-monster-img/stone-monster-moving-left.png';
+        moving_image_left.src = 'img/stone-monster-img/stone-monster-moving-left.png';
         var moving_image_right = new Image();
-        moving_image_right.src = './stone-monster-img/stone-monster-moving-right.png';
+        moving_image_right.src = 'img/stone-monster-img/stone-monster-moving-right.png';
         var destroyed_image = new Image();
-        destroyed_image.src = './stone-monster-img/stone_monster_destroyed.png';
+        destroyed_image.src = 'img/stone-monster-img/stone_monster_destroyed.png';
 
         this.animation_right = new Animation(moving_image_right, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
         this.animation_left = new Animation(moving_image_left, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
@@ -5676,17 +5684,17 @@ module.exports = (function(){
     const JUMPING_VELOCITY = -600;
     //The right face sudo-chan spritesheet
     var sudo_chan_right_idle = new Image();
-    sudo_chan_right_idle.src = 'sudo-chan-images/idle_sudo_chan.png';
+    sudo_chan_right_idle.src = 'img/sudo-chan-images/idle_sudo_chan.png';
     var sudo_chan_right_walk = new Image();
-    sudo_chan_right_walk.src = 'sudo-chan-images/walking_sudo_chan.png';
+    sudo_chan_right_walk.src = 'img/sudo-chan-images/walking_sudo_chan.png';
     var sudo_chan_right_jump = new Image();
-    sudo_chan_right_jump.src = 'sudo-chan-images/jumping_sudo_chan.png';
+    sudo_chan_right_jump.src = 'img/sudo-chan-images/jumping_sudo_chan.png';
     var sudo_chan_right_punch = new Image();
-    sudo_chan_right_punch.src = 'sudo-chan-images/celebrating_sudo_chan.png';
+    sudo_chan_right_punch.src = 'img/sudo-chan-images/celebrating_sudo_chan.png';
     var sudo_chan_right_fall = new Image();
-    sudo_chan_right_fall.src = 'sudo-chan-images/falling_sudo_chan.png';
+    sudo_chan_right_fall.src = 'img/sudo-chan-images/falling_sudo_chan.png';
     var sudo_chan_right_hit =  new Image();
-    sudo_chan_right_hit.src = 'sudo-chan-images/hurt_sudo_chan.png';
+    sudo_chan_right_hit.src = 'img/sudo-chan-images/hurt_sudo_chan.png';
 
     function Sudo_Chan(locationX, locationY, mapLayer) {
         this.positionX = locationX;
@@ -6138,7 +6146,7 @@ module.exports = (function (){
     this.surface = surface;
     // Determines where the crust layer of the earth ends
     var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
-	
+	this.midEarth = midEarth;
     // Used to help clump up the sky islands
     var skyEarthCount = 0;
     var cloudCount = 0;
@@ -6419,6 +6427,28 @@ module.exports = (function (){
       return undefined;
     layers[layer].data[x + y*mapWidth] =  16; 
   }
+
+  //return current tile layer, 0: sky, 1: crust 2: magma
+  //author: Shanshan Wu
+  var returnTileLayer = function(x, y, layer) {
+    if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
+      return undefined;
+    if (y < this.surface) {
+      return 0;
+    } else if ( y >= this.surface && y < this.midEarth) {
+      return 1;
+    } else {
+      return 2;
+    }
+  };
+
+  //change the type of tile in a given position
+  //author: Shanshan Wu
+  var setTileAt2 = function(newType, x, y, layer) {
+    if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
+      return undefined;
+    layers[layer].data[x + y * mapWidth] = newType;
+  };
   
   // Expose the module's public API
   return {
@@ -6430,7 +6460,9 @@ module.exports = (function (){
 	destroyTileAt: destroyTileAt,
     removeTileAt: removeTileAt,
     setViewportSize: setViewportSize,
-    setCameraPosition: setCameraPosition
+    setCameraPosition: setCameraPosition,
+    returnTileLayer: returnTileLayer,
+    setTileAt2: setTileAt2
   }
   
   
@@ -6858,15 +6890,15 @@ module.exports = (function(){
   
   //The Right facing wolf spritesheet
   var WolfRight = new Image();
-  //WolfRight.src = './img/Wolf_walkright.png';
+  WolfRight.src = './img/Wolf_walkright.png';
 
   //The left facing wolf spritesheet
   var WolfLeft = new Image();
-  //WolfLeft.src = "./img/Wolf_walkleft.png";
+  WolfLeft.src = "./img/Wolf_walkleft.png";
   
    //The IDLE wolf spritesheet
   var WolfIdle = new Image();
-  //WolfIdle.src = "./img/Wolf_idle.png";
+  WolfIdle.src = "./img/Wolf_idle.png";
 
   //The Wolf constructor
   function Wolf(locationX, locationY, layerIndex, inputManager) {
