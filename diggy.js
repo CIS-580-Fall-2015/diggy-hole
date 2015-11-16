@@ -4342,7 +4342,15 @@ module.exports = (function() {
           var box = this.boundingBox(),
             tileX = Math.floor((box.left + (SIZE / 2)) / 64),
             tileY = Math.floor(box.bottom / 64);
-          tilemap.setTileAt(7, tileX, tileY, 0);
+            var layerType = tilemap.returnTileLayer(tileX, tileY, this.layerIndex);
+            if (layerType == 0) {
+              tilemap.setTileAt2(1, tileX, tileY, this.layerIndex);
+            } else if (layerType == 1) {
+              tilemap.setTileAt2(12, tileX, tileY, this.layerIndex);
+            } else if (layerType == 2) {
+              tilemap.setTileAt2(14, tileX, tileY, this.layerIndex);
+            }
+
           sprite.state = FALLING;
           break;
         case JUMPING:
@@ -6138,7 +6146,7 @@ module.exports = (function (){
     this.surface = surface;
     // Determines where the crust layer of the earth ends
     var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
-	
+	this.midEarth = midEarth;
     // Used to help clump up the sky islands
     var skyEarthCount = 0;
     var cloudCount = 0;
@@ -6419,6 +6427,28 @@ module.exports = (function (){
       return undefined;
     layers[layer].data[x + y*mapWidth] =  16; 
   }
+
+  //return current tile layer, 0: sky, 1: crust 2: magma
+  //author: Shanshan Wu
+  var returnTileLayer = function(x, y, layer) {
+    if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
+      return undefined;
+    if (y < this.surface) {
+      return 0;
+    } else if ( y >= this.surface && y < this.midEarth) {
+      return 1;
+    } else {
+      return 2;
+    }
+  };
+
+  //change the type of tile in a given position
+  //author: Shanshan Wu
+  var setTileAt2 = function(newType, x, y, layer) {
+    if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
+      return undefined;
+    layers[layer].data[x + y * mapWidth] = newType;
+  };
   
   // Expose the module's public API
   return {
@@ -6430,7 +6460,9 @@ module.exports = (function (){
 	destroyTileAt: destroyTileAt,
     removeTileAt: removeTileAt,
     setViewportSize: setViewportSize,
-    setCameraPosition: setCameraPosition
+    setCameraPosition: setCameraPosition,
+    returnTileLayer: returnTileLayer,
+    setTileAt2: setTileAt2
   }
   
   
