@@ -23,6 +23,7 @@ module.exports = (function() {
   // Movement constants
   const SPEED = 150;
   const GRAVITY = -250;
+  const TERMINAL_VELOCITY = GRAVITY * -8;
   const JUMP_VELOCITY = -600;
 
   //The Right facing dwarf spritesheet
@@ -32,7 +33,7 @@ module.exports = (function() {
   //The left facing dwarf spritesheet
   var dwarfLeft = new Image();
   dwarfLeft.src = "DwarfAnimatedLeft.png";
-  
+
    var ratRight = new Image();
   ratRight.src = 'img/ratRight2.png';
 
@@ -163,7 +164,15 @@ module.exports = (function() {
           var box = this.boundingBox(),
             tileX = Math.floor((box.left + (SIZE / 2)) / 64),
             tileY = Math.floor(box.bottom / 64);
-          tilemap.setTileAt(7, tileX, tileY, 0);
+            var layerType = tilemap.returnTileLayer(tileX, tileY, this.layerIndex);
+            if (layerType == 0) {
+              tilemap.setTileAt2(1, tileX, tileY, this.layerIndex);
+            } else if (layerType == 1) {
+              tilemap.setTileAt2(12, tileX, tileY, this.layerIndex);
+            } else if (layerType == 2) {
+              tilemap.setTileAt2(14, tileX, tileY, this.layerIndex);
+            }
+
           sprite.state = FALLING;
           break;
         case JUMPING:
@@ -182,7 +191,9 @@ module.exports = (function() {
           }
           break;
         case FALLING:
-          sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          if(sprite.velocityY < TERMINAL_VELOCITY) {
+            sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          }
           sprite.currentY += sprite.velocityY * elapsedTime;
           if (sprite.onGround(tilemap)) {
             sprite.state = STANDING;
