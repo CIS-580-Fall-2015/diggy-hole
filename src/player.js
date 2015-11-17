@@ -21,7 +21,6 @@ module.exports = (function() {
   const SIZE = 64;
 
   // Movement constants
-  const SPEED = 150;
   const GRAVITY = -250;
   const TERMINAL_VELOCITY = GRAVITY * -8;
   const JUMP_VELOCITY = -600;
@@ -42,7 +41,7 @@ module.exports = (function() {
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
-    this.inputManager = inputManager;
+    this.inputManager = inputManager
     this.state = WALKING;
     this.dug = false;
     this.downPressed = false;
@@ -59,7 +58,8 @@ module.exports = (function() {
     this.xSpeed = 10;
     this.ySpeed = 15;
     this.isLeft = false;
-    this.type = "player";
+    this.SPEED = 150;
+	this.type = "player";
 
     //The animations
     this.animations = {
@@ -131,7 +131,7 @@ module.exports = (function() {
     // The "with" keyword allows us to change the
     // current scope, i.e. 'this' becomes our
     // inputManager
-    with(this.inputManager) {
+    with (this.inputManager) {
 
       // Process player state
       switch (sprite.state) {
@@ -150,12 +150,14 @@ module.exports = (function() {
             } else if (isKeyDown(commands.LEFT)) {
               sprite.isLeft = true;
               sprite.state = WALKING;
-              sprite.moveLeft(elapsedTime * SPEED, tilemap);
-            } else if (isKeyDown(commands.RIGHT)) {
+              sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
+            }
+            else if(isKeyDown(commands.RIGHT)) {
               sprite.isLeft = false;
               sprite.state = WALKING;
-              sprite.moveRight(elapsedTime * SPEED, tilemap);
-            } else {
+              sprite.moveRight(elapsedTime * this.SPEED, tilemap);
+            }
+            else {
               sprite.state = STANDING;
             }
           }
@@ -183,11 +185,11 @@ module.exports = (function() {
           }
           if (isKeyDown(commands.LEFT)) {
             sprite.isLeft = true;
-            sprite.moveLeft(elapsedTime * SPEED, tilemap);
+            sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
           }
           if (isKeyDown(commands.RIGHT)) {
             sprite.isLeft = true;
-            sprite.moveRight(elapsedTime * SPEED, tilemap);
+            sprite.moveRight(elapsedTime * this.SPEED, tilemap);
           }
           break;
         case FALLING:
@@ -200,10 +202,11 @@ module.exports = (function() {
             sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
           } else if (isKeyDown(commands.LEFT)) {
             sprite.isLeft = true;
-            sprite.moveLeft(elapsedTime * SPEED, tilemap);
-          } else if (isKeyDown(commands.RIGHT)) {
+            sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
+          }
+          else if(isKeyDown(commands.RIGHT)) {
             sprite.isLeft = false;
-            sprite.moveRight(elapsedTime * SPEED, tilemap);
+            sprite.moveRight(elapsedTime * this.SPEED, tilemap);
           }
           break;
         case SWIMMING:

@@ -31,6 +31,9 @@ module.exports = (function (){
   robo_killer,
       GoblinMiner = require('./goblin-miner.js'),
       Shaman = require('./goblin-shaman.js'),
+    Blobber = require('./blobber.js'),
+    blobber,
+    extantBlobbers,
       player,
 	  rat,
       octopus,
@@ -51,7 +54,7 @@ module.exports = (function (){
    * arguments:
    * - sm, the state manager that loaded this game
    */
-var load = function(sm) {
+  var load = function(sm) {
     stateManager = sm;
 
     // Set up the screen canvas
@@ -139,7 +142,15 @@ var load = function(sm) {
     // the entity manager
     kakao = new Kakao(310,240,0);  //two tiles to the right of the player
     entityManager.add(kakao);
+
+    extantBlobbers = 1;
+    blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
+    entityManager.add(blobber);
+
+
+
   };
+
   /* Updates the state of the game world
    * arguments:
    * - elapsedTime, the amount of time passed between

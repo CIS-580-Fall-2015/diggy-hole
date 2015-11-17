@@ -10,9 +10,9 @@ module.exports = (function() {
 
 
   var entities = [],
-    entityCount = 0;
 
-  var Player = require('./player.js');
+  Player = require('./player.js');
+      entityCount = 0;
 
   /* Adds an entity to those managed.
    * Arguments:
