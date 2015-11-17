@@ -499,6 +499,17 @@ module.exports = (function (){
     return objectMap;
   }
   
+    var update = function(){
+	  layers.forEach(function(layer){
+		  var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
+          var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
+          var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
+          var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
+		  
+		  consolidateLiquids(layer.data, layer.width, layer.height, endX, startX, startY, endY, endX-startX, endY-startY);
+	  });
+  }
+  
   /* */
   var render = function(screenCtx) {
     // Render tilemap layers - note this assumes
