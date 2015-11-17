@@ -3673,7 +3673,10 @@ module.exports = (function (){
 		
       }
     }
-    
+    for(var x = 0; x < height/20; x++){
+		map = consolidateLiquids(map, width, height, width-1, 0, 0, height-1, width, height);
+	}
+	
     // Create mapData object
     var mapData = {
       height: height,
@@ -3696,7 +3699,73 @@ module.exports = (function (){
     return load(mapData, options);
   }
   
+  function consolidateLiquidTB(map, width, height, leftStart, topStart, viewWidth, viewHeight){
+	  for(var j = topStart; j < topStart+viewHeight; j++){
+		  for(var i = leftStart; i < leftStart+viewWidth; i++){
+			  index = j*width + i;
+			  if(map[index] == 6 || map[index] == 11 || map[index] == 13){
+				  if(map[index-height] == 14 || map[index-height] == 12 || map[index-height] == 7){
+					  var temp = map[index];
+					  map[index] = map[index-height];
+					  map[index-height] = temp;
+				  }
+			  }
+			  if(map[index] == 6 || map[index] == 11 || map[index] == 13 && index+1 < width){
+				  if(map[index+1] == 14 || map[index+1] == 12|| map[index+1] == 7){
+					  var temp = map[index];
+					  map[index] = map[index+1];
+					  map[index+1] = temp;
+				  }
+			  }
+			  if(map[index] == 6 || map[index] == 11 || map[index] == 13 && index-1 >= 0){
+				  if(map[index-1] == 14 || map[index-1] == 12|| map[index-1] == 7){
+					  var temp = map[index];
+					  map[index] = map[index-1];
+					  map[index-1] = temp;
+				  }
+			  }
+		  }
+	  }
+	  
+	  return map;
+  }  
   
+    function consolidateLiquidBT(map, width, height, rightStart, bottomStart, viewWidth, viewHeight){
+	  for(var j = bottomStart; j > bottomStart-viewHeight; j--){
+		  for(var i = rightStart; i > rightStart-viewWidth; i--){
+			  index = j*width + i;
+			  if(map[index] == 6 || map[index] == 11 || map[index] == 13){
+				  if(map[index-height] == 14 || map[index-height] == 12 || map[index-height] == 7){
+					  var temp = map[index];
+					  map[index] = map[index-height];
+					  map[index-height] = temp;
+				  }
+			  }
+			  if(map[index] == 6 || map[index] == 11 || map[index] == 13 /*&& index+1 < width*/){
+				  if(map[index+1] == 14 || map[index+1] == 12|| map[index+1] == 7){
+					  var temp = map[index];
+					  map[index] = map[index+1];
+					  map[index+1] = temp;
+				  }
+			  }
+			  if(map[index] == 6 || map[index] == 11 || map[index] == 13 /*&& index-1 >= 0*/){
+				  if(map[index-1] == 14 || map[index-1] == 12|| map[index-1] == 7){
+					  var temp = map[index];
+					  map[index] = map[index-1];
+					  map[index-1] = temp;
+				  }
+			  }
+		  }
+	  }
+	  
+	  return map;
+  } 
+  
+  function consolidateLiquids(map, width, height, rightStart, leftStart, topStart, bottomStart, viewWidth, viewHeight){
+	  map = consolidateLiquidTB(map, width, height, leftStart, topStart, viewWidth, viewHeight);
+	  map = consolidateLiquidBT(map, width, height, rightStart, bottomStart, viewWidth, viewHeight);
+	  return map;
+  } 
   
   /* GenerateObjectMap generates an object map based on the previously generated game map
    * mapWidth - the overall map's width
@@ -3835,6 +3904,7 @@ module.exports = (function (){
   return {
     load: load,
     generate: generate,
+	consolidateLiquids: consolidateLiquids,
     render: render,
     tileAt: tileAt,
 	setTileAt: setTileAt,
