@@ -46,7 +46,8 @@ module.exports = (function (){
       screenCtx,
       backBuffer,
       backBufferCtx,
-      stateManager;
+      stateManager,
+      ScoreEngine = require('./score.js');
 
   /* Loads the GameState, triggered by the StateManager
    * This function sets up the screen canvas, the tilemap,
@@ -91,6 +92,11 @@ module.exports = (function (){
     // the entity manager
     player = new Player(400, 240, 0, inputManager);
     entityManager.add(player);
+    
+    // Set up score engine
+    scoreEngine = new ScoreEngine();
+    entityManager.setScoreEngine(scoreEngine);
+
     //add wolf to
     // the entity manager
     wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player

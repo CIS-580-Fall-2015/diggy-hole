@@ -60,6 +60,9 @@ module.exports = (function() {
   function remove(entity) {
     // Set the entry in the entities table to undefined,
     // indicating an open slot
+    if (entity.score) {
+      this.scoreEngine.add(entity.score);
+    }
     entities[entity._entity_id] = undefined;
   }
 
@@ -163,6 +166,10 @@ module.exports = (function() {
       return true;
     }
     return false;
+  }
+
+  function setScoreEngine(score) {
+    this.scoreEngine = score;
   }
 
   return {
