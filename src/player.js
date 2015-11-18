@@ -192,7 +192,7 @@ module.exports = (function(){
 		var box = this.boundingBox(),
 			tileX = Math.floor((box.left + (SIZE/2))/64),
 			tileY = Math.floor(box.bottom / 64);											
-			tilemap.setTileAt(7, tileX, tileY, 0);			
+			tilemap.setTileAt(8, tileX, tileY, 0);			
 			sprite.state = FALLING;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
