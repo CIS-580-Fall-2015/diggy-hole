@@ -2,9 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4be4fa0a-8dbf-417f-800b-bcf043ecf520" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/diggy.js" afterPath="$PROJECT_DIR$/diggy.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/input-manager.js" afterPath="$PROJECT_DIR$/src/input-manager.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/octopus.js" afterPath="$PROJECT_DIR$/src/octopus.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/player.js" afterPath="$PROJECT_DIR$/src/player.js" />
     </list>
     <ignored path="diggy-hole.iws" />
@@ -30,8 +27,20 @@
       <file leaf-file-name="player.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/player.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.7">
-              <caret line="161" column="35" selection-start-line="161" selection-start-column="35" selection-end-line="161" selection-end-column="35" />
+            <state vertical-scroll-proportion="0.4642857">
+              <caret line="216" column="37" selection-start-line="216" selection-start-column="37" selection-end-line="216" selection-end-column="37" />
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="tilemap.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/tilemap.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="530" column="12" selection-start-line="530" selection-start-column="12" selection-end-line="530" selection-end-column="12" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -45,19 +54,20 @@
             <state vertical-scroll-proportion="0.0">
               <caret line="4012" column="33" selection-start-line="4012" selection-start-column="33" selection-end-line="4012" selection-end-column="33" />
               <folding>
-                <marker date="1447880331000" expanded="true" signature="443:216295" placeholder="{...}" />
-                <marker date="1447880331000" expanded="true" signature="111593:117860" placeholder="[...]" />
-                <marker date="1447880331000" expanded="true" signature="111626:117812" placeholder="{...}" />
-                <marker date="1447880331000" expanded="true" signature="111700:117805" placeholder="{...}" />
-                <marker date="1447880331000" expanded="true" signature="114319:114731" placeholder="{...}" />
-                <marker date="1447880331000" expanded="true" signature="119614:131529" placeholder="[...]" />
-                <marker date="1447880331000" expanded="true" signature="119647:131490" placeholder="{...}" />
-                <marker date="1447880331000" expanded="true" signature="119822:131483" placeholder="{...}" />
-                <marker date="1447880331000" expanded="true" signature="124235:129678" placeholder="{...}" />
-                <marker date="1447880331000" expanded="true" signature="124405:129497" placeholder="{...}" />
-                <marker date="1447880331000" expanded="true" signature="124466:129441" placeholder="{...}" />
-                <marker date="1447880331000" expanded="true" signature="125818:127970" placeholder="{...}" />
-                <marker date="1447880331000" expanded="true" signature="127074:127114" placeholder="/*...*/" />
+                <marker date="1447880421000" expanded="true" signature="443:216280" placeholder="{...}" />
+                <marker date="1447880421000" expanded="true" signature="111593:117860" placeholder="[...]" />
+                <marker date="1447880421000" expanded="true" signature="111626:117812" placeholder="{...}" />
+                <marker date="1447880421000" expanded="true" signature="111700:117805" placeholder="{...}" />
+                <marker date="1447880421000" expanded="true" signature="114319:114731" placeholder="{...}" />
+                <marker date="1447880421000" expanded="true" signature="119614:131514" placeholder="[...]" />
+                <marker date="1447880421000" expanded="true" signature="119647:131475" placeholder="{...}" />
+                <marker date="1447880421000" expanded="true" signature="119822:131468" placeholder="{...}" />
+                <marker date="1447880421000" expanded="true" signature="124235:129663" placeholder="{...}" />
+                <marker date="1447880421000" expanded="true" signature="124405:129482" placeholder="{...}" />
+                <marker date="1447880421000" expanded="true" signature="124466:129426" placeholder="{...}" />
+                <marker date="1447880421000" expanded="true" signature="124695:124977" placeholder="{...}" />
+                <marker date="1447880421000" expanded="true" signature="124879:124977" placeholder="{...}" />
+                <marker date="1447880421000" expanded="true" signature="127059:127099" placeholder="/*...*/" />
               </folding>
             </state>
           </provider>
@@ -546,16 +556,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/tilemap.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="528" column="40" selection-start-line="528" selection-start-column="40" selection-end-line="528" selection-end-column="40" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/img/score/full/full_1.png">
       <provider selected="true" editor-type-id="images">
         <state />
@@ -637,19 +637,20 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="4012" column="33" selection-start-line="4012" selection-start-column="33" selection-end-line="4012" selection-end-column="33" />
           <folding>
-            <marker date="1447880331000" expanded="true" signature="443:216295" placeholder="{...}" />
-            <marker date="1447880331000" expanded="true" signature="111593:117860" placeholder="[...]" />
-            <marker date="1447880331000" expanded="true" signature="111626:117812" placeholder="{...}" />
-            <marker date="1447880331000" expanded="true" signature="111700:117805" placeholder="{...}" />
-            <marker date="1447880331000" expanded="true" signature="114319:114731" placeholder="{...}" />
-            <marker date="1447880331000" expanded="true" signature="119614:131529" placeholder="[...]" />
-            <marker date="1447880331000" expanded="true" signature="119647:131490" placeholder="{...}" />
-            <marker date="1447880331000" expanded="true" signature="119822:131483" placeholder="{...}" />
-            <marker date="1447880331000" expanded="true" signature="124235:129678" placeholder="{...}" />
-            <marker date="1447880331000" expanded="true" signature="124405:129497" placeholder="{...}" />
-            <marker date="1447880331000" expanded="true" signature="124466:129441" placeholder="{...}" />
-            <marker date="1447880331000" expanded="true" signature="125818:127970" placeholder="{...}" />
-            <marker date="1447880331000" expanded="true" signature="127074:127114" placeholder="/*...*/" />
+            <marker date="1447880421000" expanded="true" signature="443:216280" placeholder="{...}" />
+            <marker date="1447880421000" expanded="true" signature="111593:117860" placeholder="[...]" />
+            <marker date="1447880421000" expanded="true" signature="111626:117812" placeholder="{...}" />
+            <marker date="1447880421000" expanded="true" signature="111700:117805" placeholder="{...}" />
+            <marker date="1447880421000" expanded="true" signature="114319:114731" placeholder="{...}" />
+            <marker date="1447880421000" expanded="true" signature="119614:131514" placeholder="[...]" />
+            <marker date="1447880421000" expanded="true" signature="119647:131475" placeholder="{...}" />
+            <marker date="1447880421000" expanded="true" signature="119822:131468" placeholder="{...}" />
+            <marker date="1447880421000" expanded="true" signature="124235:129663" placeholder="{...}" />
+            <marker date="1447880421000" expanded="true" signature="124405:129482" placeholder="{...}" />
+            <marker date="1447880421000" expanded="true" signature="124466:129426" placeholder="{...}" />
+            <marker date="1447880421000" expanded="true" signature="124695:124977" placeholder="{...}" />
+            <marker date="1447880421000" expanded="true" signature="124879:124977" placeholder="{...}" />
+            <marker date="1447880421000" expanded="true" signature="127059:127099" placeholder="/*...*/" />
           </folding>
         </state>
       </provider>
@@ -662,10 +663,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/tilemap.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="530" column="12" selection-start-line="530" selection-start-column="12" selection-end-line="530" selection-end-column="12" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/player.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.7">
-          <caret line="161" column="35" selection-start-line="161" selection-start-column="35" selection-end-line="161" selection-end-column="35" />
+        <state vertical-scroll-proportion="0.4642857">
+          <caret line="216" column="37" selection-start-line="216" selection-start-column="37" selection-end-line="216" selection-end-column="37" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>

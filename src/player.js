@@ -212,9 +212,9 @@ module.exports = (function() {
               if (layerType == 0) {
                 tilemap.setTileAt2(1, tileX, tileY, currentPlayer.layerIndex);
               } else if (layerType == 1) {
-                tilemap.setTileAt2(12, tileX, tileY, currentPlayer.layerIndex);
+                tilemap.setTileAt2(13, tileX, tileY, currentPlayer.layerIndex);
               } else if (layerType == 2) {
-                tilemap.setTileAt2(14, tileX, tileY, currentPlayer.layerIndex);
+                tilemap.setTileAt2(15, tileX, tileY, currentPlayer.layerIndex);
               }
 
               /* setup the callback for when the animation is complete */
