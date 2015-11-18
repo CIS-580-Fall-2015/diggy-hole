@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4be4fa0a-8dbf-417f-800b-bcf043ecf520" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/player.js" afterPath="$PROJECT_DIR$/src/player.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/diggy.js" afterPath="$PROJECT_DIR$/diggy.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/entity-manager.js" afterPath="$PROJECT_DIR$/src/entity-manager.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="diggy-hole.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -24,11 +26,35 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="player.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="player.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/player.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.4642857">
-              <caret line="216" column="37" selection-start-line="216" selection-start-column="37" selection-end-line="216" selection-end-column="37" />
+            <state vertical-scroll-proportion="-13.148149">
+              <caret line="218" column="37" selection-start-line="218" selection-start-column="37" selection-end-line="218" selection-end-column="37" />
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="score.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/score.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="entity-manager.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/entity-manager.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.7771174">
+              <caret line="184" column="34" selection-start-line="184" selection-start-column="23" selection-end-line="184" selection-end-column="34" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -52,22 +78,10 @@
         <entry file="file://$PROJECT_DIR$/diggy.js">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="4012" column="33" selection-start-line="4012" selection-start-column="33" selection-end-line="4012" selection-end-column="33" />
+              <caret line="4301" column="33" selection-start-line="4301" selection-start-column="33" selection-end-line="4301" selection-end-column="33" />
               <folding>
-                <marker date="1447880421000" expanded="true" signature="443:216280" placeholder="{...}" />
-                <marker date="1447880421000" expanded="true" signature="111593:117860" placeholder="[...]" />
-                <marker date="1447880421000" expanded="true" signature="111626:117812" placeholder="{...}" />
-                <marker date="1447880421000" expanded="true" signature="111700:117805" placeholder="{...}" />
-                <marker date="1447880421000" expanded="true" signature="114319:114731" placeholder="{...}" />
-                <marker date="1447880421000" expanded="true" signature="119614:131514" placeholder="[...]" />
-                <marker date="1447880421000" expanded="true" signature="119647:131475" placeholder="{...}" />
-                <marker date="1447880421000" expanded="true" signature="119822:131468" placeholder="{...}" />
-                <marker date="1447880421000" expanded="true" signature="124235:129663" placeholder="{...}" />
-                <marker date="1447880421000" expanded="true" signature="124405:129482" placeholder="{...}" />
-                <marker date="1447880421000" expanded="true" signature="124466:129426" placeholder="{...}" />
-                <marker date="1447880421000" expanded="true" signature="124695:124977" placeholder="{...}" />
-                <marker date="1447880421000" expanded="true" signature="124879:124977" placeholder="{...}" />
-                <marker date="1447880421000" expanded="true" signature="127059:127099" placeholder="/*...*/" />
+                <marker date="1447881445000" expanded="true" signature="443:8199" placeholder="{...}" />
+                <marker date="1447881445000" expanded="true" signature="446:8199" placeholder="[...]" />
               </folding>
             </state>
           </provider>
@@ -122,6 +136,7 @@
         <option value="$PROJECT_DIR$/diggy.js" />
         <option value="$PROJECT_DIR$/src/octopus.js" />
         <option value="$PROJECT_DIR$/src/player.js" />
+        <option value="$PROJECT_DIR$/src/entity-manager.js" />
       </list>
     </option>
   </component>
@@ -556,21 +571,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/img/score/full/full_1.png">
-      <provider selected="true" editor-type-id="images">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/img/score/full/full_2.png">
-      <provider selected="true" editor-type-id="images">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/img/score/full/full_3.png">
-      <provider selected="true" editor-type-id="images">
-        <state />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/img/stone-monster-img/stone-monster-moving-left.png">
       <provider selected="true" editor-type-id="images">
         <state />
@@ -635,22 +635,10 @@
     <entry file="file://$PROJECT_DIR$/diggy.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="4012" column="33" selection-start-line="4012" selection-start-column="33" selection-end-line="4012" selection-end-column="33" />
+          <caret line="4301" column="33" selection-start-line="4301" selection-start-column="33" selection-end-line="4301" selection-end-column="33" />
           <folding>
-            <marker date="1447880421000" expanded="true" signature="443:216280" placeholder="{...}" />
-            <marker date="1447880421000" expanded="true" signature="111593:117860" placeholder="[...]" />
-            <marker date="1447880421000" expanded="true" signature="111626:117812" placeholder="{...}" />
-            <marker date="1447880421000" expanded="true" signature="111700:117805" placeholder="{...}" />
-            <marker date="1447880421000" expanded="true" signature="114319:114731" placeholder="{...}" />
-            <marker date="1447880421000" expanded="true" signature="119614:131514" placeholder="[...]" />
-            <marker date="1447880421000" expanded="true" signature="119647:131475" placeholder="{...}" />
-            <marker date="1447880421000" expanded="true" signature="119822:131468" placeholder="{...}" />
-            <marker date="1447880421000" expanded="true" signature="124235:129663" placeholder="{...}" />
-            <marker date="1447880421000" expanded="true" signature="124405:129482" placeholder="{...}" />
-            <marker date="1447880421000" expanded="true" signature="124466:129426" placeholder="{...}" />
-            <marker date="1447880421000" expanded="true" signature="124695:124977" placeholder="{...}" />
-            <marker date="1447880421000" expanded="true" signature="124879:124977" placeholder="{...}" />
-            <marker date="1447880421000" expanded="true" signature="127059:127099" placeholder="/*...*/" />
+            <marker date="1447881445000" expanded="true" signature="443:8199" placeholder="{...}" />
+            <marker date="1447881445000" expanded="true" signature="446:8199" placeholder="[...]" />
           </folding>
         </state>
       </provider>
@@ -675,8 +663,28 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/player.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4642857">
-          <caret line="216" column="37" selection-start-line="216" selection-start-column="37" selection-end-line="216" selection-end-column="37" />
+        <state vertical-scroll-proportion="-13.148149">
+          <caret line="218" column="37" selection-start-line="218" selection-start-column="37" selection-end-line="218" selection-end-column="37" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/score.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/entity-manager.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.7771174">
+          <caret line="184" column="34" selection-start-line="184" selection-start-column="23" selection-end-line="184" selection-end-column="34" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
