@@ -3,8 +3,9 @@
   <component name="ChangeListManager">
     <list default="true" id="4be4fa0a-8dbf-417f-800b-bcf043ecf520" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/diggy.js" afterPath="$PROJECT_DIR$/diggy.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/entity-manager.js" afterPath="$PROJECT_DIR$/src/entity-manager.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/input-manager.js" afterPath="$PROJECT_DIR$/src/input-manager.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/player.js" afterPath="$PROJECT_DIR$/src/player.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/tilemap.js" afterPath="$PROJECT_DIR$/src/tilemap.js" />
     </list>
     <ignored path="diggy-hole.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -29,8 +30,8 @@
       <file leaf-file-name="player.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/player.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-13.148149">
-              <caret line="218" column="37" selection-start-line="218" selection-start-column="37" selection-end-line="218" selection-end-column="37" />
+            <state vertical-scroll-proportion="-12.222222">
+              <caret line="229" column="0" selection-start-line="229" selection-start-column="0" selection-end-line="229" selection-end-column="0" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -50,10 +51,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="entity-manager.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="entity-manager.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/entity-manager.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.7771174">
+            <state vertical-scroll-proportion="-9.685185">
               <caret line="184" column="34" selection-start-line="184" selection-start-column="23" selection-end-line="184" selection-end-column="34" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
@@ -62,11 +63,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="tilemap.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="tilemap.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/tilemap.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="530" column="12" selection-start-line="530" selection-start-column="12" selection-end-line="530" selection-end-column="12" />
+            <state vertical-scroll-proportion="0.33135214">
+              <caret line="538" column="26" selection-start-line="538" selection-start-column="26" selection-end-line="538" selection-end-column="26" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -77,11 +78,14 @@
       <file leaf-file-name="diggy.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/diggy.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="4301" column="33" selection-start-line="4301" selection-start-column="33" selection-end-line="4301" selection-end-column="33" />
+            <state vertical-scroll-proportion="-317.92593">
+              <caret line="6838" column="7" selection-start-line="6838" selection-start-column="7" selection-end-line="6838" selection-end-column="7" />
               <folding>
-                <marker date="1447881445000" expanded="true" signature="443:8199" placeholder="{...}" />
-                <marker date="1447881445000" expanded="true" signature="446:8199" placeholder="[...]" />
+                <marker date="1447883166000" expanded="true" signature="443:223843" placeholder="{...}" />
+                <marker date="1447883166000" expanded="true" signature="187158:203813" placeholder="[...]" />
+                <marker date="1447883166000" expanded="true" signature="187191:203794" placeholder="{...}" />
+                <marker date="1447883166000" expanded="true" signature="187346:203787" placeholder="{...}" />
+                <marker date="1447883166000" expanded="true" signature="203208:203421" placeholder="{...}" />
               </folding>
             </state>
           </provider>
@@ -90,8 +94,8 @@
       <file leaf-file-name="input-manager.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/input-manager.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-3.8888888">
-              <caret line="7" column="15" selection-start-line="7" selection-start-column="15" selection-end-line="7" selection-end-column="15" />
+            <state vertical-scroll-proportion="-5.5555553">
+              <caret line="10" column="14" selection-start-line="10" selection-start-column="14" selection-end-line="10" selection-end-column="14" />
               <folding />
             </state>
           </provider>
@@ -131,12 +135,12 @@
         <option value="$PROJECT_DIR$/src/wolf.js" />
         <option value="$PROJECT_DIR$/src/game.js" />
         <option value="$PROJECT_DIR$/src/bird.js" />
-        <option value="$PROJECT_DIR$/src/tilemap.js" />
-        <option value="$PROJECT_DIR$/src/input-manager.js" />
-        <option value="$PROJECT_DIR$/diggy.js" />
         <option value="$PROJECT_DIR$/src/octopus.js" />
-        <option value="$PROJECT_DIR$/src/player.js" />
         <option value="$PROJECT_DIR$/src/entity-manager.js" />
+        <option value="$PROJECT_DIR$/src/input-manager.js" />
+        <option value="$PROJECT_DIR$/src/player.js" />
+        <option value="$PROJECT_DIR$/diggy.js" />
+        <option value="$PROJECT_DIR$/src/tilemap.js" />
       </list>
     </option>
   </component>
@@ -328,7 +332,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="1" />
+      <option name="time" value="3" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -624,25 +628,6 @@
         <state />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/input-manager.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-3.8888888">
-          <caret line="7" column="15" selection-start-line="7" selection-start-column="15" selection-end-line="7" selection-end-column="15" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/diggy.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="4301" column="33" selection-start-line="4301" selection-start-column="33" selection-end-line="4301" selection-end-column="33" />
-          <folding>
-            <marker date="1447881445000" expanded="true" signature="443:8199" placeholder="{...}" />
-            <marker date="1447881445000" expanded="true" signature="446:8199" placeholder="[...]" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/octopus.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -651,20 +636,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/tilemap.js">
+    <entry file="file://$PROJECT_DIR$/src/input-manager.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="530" column="12" selection-start-line="530" selection-start-column="12" selection-end-line="530" selection-end-column="12" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
+        <state vertical-scroll-proportion="-5.5555553">
+          <caret line="10" column="14" selection-start-line="10" selection-start-column="14" selection-end-line="10" selection-end-column="14" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/player.js">
+    <entry file="file://$PROJECT_DIR$/src/entity-manager.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-13.148149">
-          <caret line="218" column="37" selection-start-line="218" selection-start-column="37" selection-end-line="218" selection-end-column="37" />
+        <state vertical-scroll-proportion="-9.685185">
+          <caret line="184" column="34" selection-start-line="184" selection-start-column="23" selection-end-line="184" selection-end-column="34" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
@@ -681,10 +664,34 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/entity-manager.js">
+    <entry file="file://$PROJECT_DIR$/src/player.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.7771174">
-          <caret line="184" column="34" selection-start-line="184" selection-start-column="23" selection-end-line="184" selection-end-column="34" />
+        <state vertical-scroll-proportion="-12.222222">
+          <caret line="229" column="0" selection-start-line="229" selection-start-column="0" selection-end-line="229" selection-end-column="0" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/diggy.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-317.92593">
+          <caret line="6838" column="7" selection-start-line="6838" selection-start-column="7" selection-end-line="6838" selection-end-column="7" />
+          <folding>
+            <marker date="1447883166000" expanded="true" signature="443:223843" placeholder="{...}" />
+            <marker date="1447883166000" expanded="true" signature="187158:203813" placeholder="[...]" />
+            <marker date="1447883166000" expanded="true" signature="187191:203794" placeholder="{...}" />
+            <marker date="1447883166000" expanded="true" signature="187346:203787" placeholder="{...}" />
+            <marker date="1447883166000" expanded="true" signature="203208:203421" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/tilemap.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33135214">
+          <caret line="538" column="26" selection-start-line="538" selection-start-column="26" selection-end-line="538" selection-end-column="26" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>

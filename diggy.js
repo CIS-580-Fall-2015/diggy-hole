@@ -3866,6 +3866,7 @@ module.exports = (function() {
     DIGDOWN: 83,
     DIGLEFT: 65,
     DIGRIGHT: 68,
+    DIGUP: 87,
 	PAY: 80,
 	ATTACK : 65
   }
@@ -4497,6 +4498,7 @@ module.exports = (function() {
   const LEFT_DIGGING = 1;
   const RIGHT_DIGGING = 2;
   const DOWN_DIGGING = 3;
+  const UP_DIGGING = 4;
 
   // The Sprite Size
   const SIZE = 64;
@@ -4635,6 +4637,9 @@ module.exports = (function() {
               sprite.state = DIGGING;
               sprite.digState = RIGHT_DIGGING;
               sprite.isLeft = false;
+            } else if(isKeyDown(commands.DIGUP)) {
+              sprite.state = DIGGING;
+              sprite.digState = UP_DIGGING;
             } else if (isKeyDown(commands.UP)) {
               sprite.state = JUMPING;
               sprite.velocityY = JUMP_VELOCITY;
@@ -4680,6 +4685,11 @@ module.exports = (function() {
                       tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
                       sprite.state = STANDING;
                       break;
+                case UP_DIGGING:
+                      tileX = Math.floor((box.left + (SIZE / 2)) / 64);
+                      tileY = Math.floor((box.top - 5) / 64);
+                      sprite.state = STANDING;
+                      break;
                 default:
                       return;
               }
@@ -4687,11 +4697,11 @@ module.exports = (function() {
               /* replace the set tile at this layer */
               var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
               if (layerType == 0) {
-                tilemap.setTileAt2(1, tileX, tileY, currentPlayer.layerIndex);
+                tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex);
               } else if (layerType == 1) {
-                tilemap.setTileAt2(13, tileX, tileY, currentPlayer.layerIndex);
+                tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex);
               } else if (layerType == 2) {
-                tilemap.setTileAt2(15, tileX, tileY, currentPlayer.layerIndex);
+                tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex);
               }
 
               /* setup the callback for when the animation is complete */
@@ -6821,10 +6831,12 @@ module.exports = (function (){
 
   //change the type of tile in a given position
   //author: Shanshan Wu
-  var setTileAt2 = function(newType, x, y, layer) {
+  var mineAt = function(newType, x, y, layer) {
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
       return undefined;
-    layers[layer].data[x + y * mapWidth] = newType;
+
+    if(tileAt(x, y, layer).data.solid)
+      layers[layer].data[x + y * mapWidth] = newType;
   };
   
   // Expose the module's public API
@@ -6839,7 +6851,7 @@ module.exports = (function (){
     setViewportSize: setViewportSize,
     setCameraPosition: setCameraPosition,
     returnTileLayer: returnTileLayer,
-    setTileAt2: setTileAt2
+    mineAt: mineAt
   }
   
   

@@ -535,10 +535,12 @@ module.exports = (function (){
 
   //change the type of tile in a given position
   //author: Shanshan Wu
-  var setTileAt2 = function(newType, x, y, layer) {
+  var mineAt = function(newType, x, y, layer) {
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
       return undefined;
-    layers[layer].data[x + y * mapWidth] = newType;
+
+    if(tileAt(x, y, layer).data.solid)
+      layers[layer].data[x + y * mapWidth] = newType;
   };
   
   // Expose the module's public API
@@ -553,7 +555,7 @@ module.exports = (function (){
     setViewportSize: setViewportSize,
     setCameraPosition: setCameraPosition,
     returnTileLayer: returnTileLayer,
-    setTileAt2: setTileAt2
+    mineAt: mineAt
   }
   
   
