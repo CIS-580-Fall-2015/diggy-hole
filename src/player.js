@@ -17,6 +17,12 @@ module.exports = (function() {
   const FALLING = 4;
   const SWIMMING = 5;
 
+  /* The following are digging direction states */
+  const NOT_DIGGING = 0;
+  const LEFT_DIGGING = 1;
+  const RIGHT_DIGGING = 2;
+  const DOWN_DIGGING = 3;
+
   // The Sprite Size
   const SIZE = 64;
 
@@ -43,6 +49,7 @@ module.exports = (function() {
   function Player(locationX, locationY, layerIndex, inputManager) {
     this.inputManager = inputManager
     this.state = WALKING;
+    this.digState = NOT_DIGGING;
     this.dug = false;
     this.downPressed = false;
     this.layerIndex = layerIndex;
@@ -142,8 +149,17 @@ module.exports = (function() {
             sprite.state = FALLING;
             sprite.velocityY = 0;
           } else {
-            if (isKeyDown(commands.DIG)) {
+            if (isKeyDown(commands.DIGDOWN)) {
               sprite.state = DIGGING;
+              sprite.digState = DOWN_DIGGING;
+            } else if(isKeyDown(commands.DIGLEFT)) {
+              sprite.state = DIGGING;
+              sprite.digState = LEFT_DIGGING;
+              sprite.isLeft = true;
+            } else if(isKeyDown(commands.DIGRIGHT)) {
+              sprite.state = DIGGING;
+              sprite.digState = RIGHT_DIGGING;
+              sprite.isLeft = false;
             } else if (isKeyDown(commands.UP)) {
               sprite.state = JUMPING;
               sprite.velocityY = JUMP_VELOCITY;
@@ -163,19 +179,55 @@ module.exports = (function() {
           }
           break;
         case DIGGING:
-          var box = this.boundingBox(),
-            tileX = Math.floor((box.left + (SIZE / 2)) / 64),
-            tileY = Math.floor(box.bottom / 64);
-            var layerType = tilemap.returnTileLayer(tileX, tileY, this.layerIndex);
-            if (layerType == 0) {
-              tilemap.setTileAt2(1, tileX, tileY, this.layerIndex);
-            } else if (layerType == 1) {
-              tilemap.setTileAt2(12, tileX, tileY, this.layerIndex);
-            } else if (layerType == 2) {
-              tilemap.setTileAt2(14, tileX, tileY, this.layerIndex);
-            }
+            var currentPlayer = this;
+            var digComplete = function() {
+              var box = currentPlayer.boundingBox(),
+                  tileX,
+                  tileY;
 
-          sprite.state = FALLING;
+              /* set the tile location that we are deleting */
+              switch(sprite.digState) {
+                case DOWN_DIGGING:
+                      tileX = Math.floor((box.left + (SIZE / 2)) / 64);
+                      tileY = Math.floor(box.bottom / 64);
+
+                      /* we also know we will be falling if digging down, so start fall */
+                      sprite.state = FALLING;
+                      sprite.velocityY = 0;
+                      break;
+                case LEFT_DIGGING:
+                      tileX = Math.floor((box.left - 5)/ 64);
+                      tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                      sprite.state = STANDING;
+                      break;
+                case RIGHT_DIGGING:
+                      tileX = Math.floor((box.right + 5)/ 64);
+                      tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                      sprite.state = STANDING;
+                      break;
+                default:
+                      return;
+              }
+
+              /* replace the set tile at this layer */
+              var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
+              if (layerType == 0) {
+                tilemap.setTileAt2(1, tileX, tileY, currentPlayer.layerIndex);
+              } else if (layerType == 1) {
+                tilemap.setTileAt2(13, tileX, tileY, currentPlayer.layerIndex);
+              } else if (layerType == 2) {
+                tilemap.setTileAt2(15, tileX, tileY, currentPlayer.layerIndex);
+              }
+
+              /* setup the callback for when the animation is complete */
+              currentPlayer.animations.left[currentPlayer.state].donePlayingCallback = function() {};
+              currentPlayer.animations.right[currentPlayer.state].donePlayingCallback = function() {};
+
+              /* reset the digging state */
+              sprite.digState = NOT_DIGGING;
+            };
+            this.animations.left[this.state].donePlayingCallback = digComplete;
+            this.animations.right[this.state].donePlayingCallback = digComplete;
           break;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
