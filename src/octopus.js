@@ -78,8 +78,6 @@ module.exports = function () {
 
     Octopus.prototype.getPlayerPosition = function(playerPosition) {
 
-        console.log(playerPosition.top + " " + this.currentY);
-
         if (playerPosition.top <= this.currentY - 64) {
             this.state = JUMPING;
             this.velocityY = JUMP_VELOCITY;

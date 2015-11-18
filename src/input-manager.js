@@ -3,9 +3,11 @@ module.exports = (function() {
   var commands = {	
     RIGHT: 39,
     LEFT: 37,
-	  UP: 38,
-	  DOWN: 40,
-    DIG: 32,
+    UP: 38,
+    DOWN: 40,
+    DIGDOWN: 83,
+    DIGLEFT: 65,
+    DIGRIGHT: 68,
 	PAY: 80,
 	ATTACK : 65
   }
