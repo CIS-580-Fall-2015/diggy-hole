@@ -61,7 +61,7 @@ module.exports = (function() {
     // Set the entry in the entities table to undefined,
     // indicating an open slot
     if (entity.score) {
-      this.scoreEngine.add(entity.score);
+      this.scoreEngine.addScore(entity.score);
     }
     entities[entity._entity_id] = undefined;
   }
@@ -181,7 +181,8 @@ module.exports = (function() {
     playerDistance: playerDistance,
     playerDirection: playerDirection,
     getPlayer: getPlayer,
-    getEntity: getEntity
+    getEntity: getEntity,
+    setScoreEngine: setScoreEngine
   };
 
 }());
