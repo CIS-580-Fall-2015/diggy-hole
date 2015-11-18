@@ -353,7 +353,7 @@ module.exports = (function (){
     }
 	
 	for(var x = 0; x < height/20; x++){
-		map = consolidateLiquids(map, width, height, width-1, 0, 0, height-1, width, height);
+		map = consolidateLiquids(map, width, height, width-1, 0, 0, height-1, width, 2);
 	}
 	
     // Create mapData object
@@ -378,57 +378,46 @@ module.exports = (function (){
     return load(mapData, options);
   }
   
-  function consolidateLiquidTB(map, width, height, leftStart, topStart, viewWidth, viewHeight){
-	  for(var j = topStart; j < topStart+viewHeight; j++){
-		  for(var i = leftStart; i < leftStart+viewWidth; i++){
-			  index = j*width + i;
-			  if(map[index] == 6 || map[index] == 11 || map[index] == 13){
-				  if(map[index-height] == 14 || map[index-height] == 12 || map[index-height] == 7){
-					  var temp = map[index];
-					  map[index] = map[index-height];
-					  map[index-height] = temp;
-				  }
-			  }
-			  if(map[index] == 6 || map[index] == 11 || map[index] == 13 && index+1 < width){
-				  if(map[index+1] == 14 || map[index+1] == 12|| map[index+1] == 7){
-					  var temp = map[index];
-					  map[index] = map[index+1];
-					  map[index+1] = temp;
-				  }
-			  }
-			  if(map[index] == 6 || map[index] == 11 || map[index] == 13 && index-1 >= 0){
-				  if(map[index-1] == 14 || map[index-1] == 12|| map[index-1] == 7){
-					  var temp = map[index];
-					  map[index] = map[index-1];
-					  map[index-1] = temp;
-				  }
-			  }
-		  }
-	  }
-	  
-	  return map;
-  }  
-  
-    function consolidateLiquidBT(map, width, height, rightStart, bottomStart, viewWidth, viewHeight){
+  function shiftWaterDown(map, width, height, rightStart, bottomStart, viewWidth, viewHeight){
 	  for(var j = bottomStart; j > bottomStart-viewHeight; j--){
 		  for(var i = rightStart; i > rightStart-viewWidth; i--){
 			  index = j*width + i;
-			  if(map[index] == 6 || map[index] == 11 || map[index] == 13){
-				  if(map[index-height] == 14 || map[index-height] == 12 || map[index-height] == 7){
+			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1){
+				  if(map[index+height] == 14+1 || map[index+height] == 12+1 || map[index+height] == 7+1){
 					  var temp = map[index];
-					  map[index] = map[index-height];
-					  map[index-height] = temp;
+					  map[index] = map[index+height];
+					  map[index+height] = temp;
 				  }
 			  }
-			  if(map[index] == 6 || map[index] == 11 || map[index] == 13 /*&& index+1 < width*/){
-				  if(map[index+1] == 14 || map[index+1] == 12|| map[index+1] == 7){
+		  }
+	  }
+	  
+	  return map;
+  }
+  
+  function shiftWaterRight(map, width, height, leftStart, topStart, viewWidth, viewHeight){  
+	for(var i = leftStart; i < leftStart+viewWidth; i++){
+	  for(var j = topStart; j < topStart+viewHeight; j++){
+			  index = j*width + i;
+			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1 /*&& index+1 < width*/){
+				  if(map[index+1] == 14+1 || map[index+1] == 12+1|| map[index+1] == 7+1){
 					  var temp = map[index];
 					  map[index] = map[index+1];
 					  map[index+1] = temp;
 				  }
 			  }
-			  if(map[index] == 6 || map[index] == 11 || map[index] == 13 /*&& index-1 >= 0*/){
-				  if(map[index-1] == 14 || map[index-1] == 12|| map[index-1] == 7){
+		  }
+	  }
+	  
+	  return map;
+  }
+  
+  function shiftWaterLeft(map, width, height, leftStart, topStart, viewWidth, viewHeight){
+	  for(var j = topStart; j < topStart+viewHeight; j++){
+		  for(var i = leftStart; i < leftStart+viewWidth; i++){
+			  index = j*width + i;
+			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1 /*&& index+1 < width*/){
+				  if(map[index-1] == 14+1 || map[index-1] == 12+1|| map[index-1] == 7+1){
 					  var temp = map[index];
 					  map[index] = map[index-1];
 					  map[index-1] = temp;
@@ -438,11 +427,21 @@ module.exports = (function (){
 	  }
 	  
 	  return map;
-  } 
+  }
   
   function consolidateLiquids(map, width, height, rightStart, leftStart, topStart, bottomStart, viewWidth, viewHeight){
-	  map = consolidateLiquidTB(map, width, height, leftStart, topStart, viewWidth, viewHeight);
-	  map = consolidateLiquidBT(map, width, height, rightStart, bottomStart, viewWidth, viewHeight);
+	  for(var i = 0; i < viewHeight; i++){
+		  //Shift Down
+		  map = shiftWaterDown(map, width, height, rightStart+3, bottomStart+3, viewWidth+6, viewHeight+6);
+		  //Shift Right
+		  map = shiftWaterRight(map, width, height, leftStart-3, topStart-3, viewWidth+6, viewHeight+6);
+	  }
+	  for(var i = 0; i < viewHeight; i++){
+		  //Shift Down
+		  map = shiftWaterDown(map, width, height, rightStart+3, bottomStart+3, viewWidth+6, viewHeight+6);
+		  //Shift Right
+		  map = shiftWaterLeft(map, width, height, leftStart-3, topStart-3, viewWidth+6, viewHeight+6);
+	  }
 	  return map;
   }
   
@@ -579,7 +578,7 @@ module.exports = (function (){
           // The tile's data (solid/liquid, etc.)
           data: newType
         }
-		layers[layer].data[x + y*mapWidth] = tile;
+		layers[layer].data[x + y*mapWidth] = newType;
 	 }
   }
   
@@ -594,6 +593,7 @@ module.exports = (function (){
   return {
     load: load,
 	consolidateLiquids: consolidateLiquids,
+	update: update,
     generate: generate,
     render: render,
     tileAt: tileAt,
