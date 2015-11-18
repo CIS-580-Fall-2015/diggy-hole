@@ -2110,6 +2110,7 @@ module.exports = (function (){
   var update = function(elapsedTime) {
     //player.update(elapsedTime, tilemap);
     entityManager.update(elapsedTime, tilemap);
+	tilemap.update();
     inputManager.swapBuffers();
   }
   
@@ -3201,7 +3202,7 @@ module.exports = (function(){
 		var box = this.boundingBox(),
 			tileX = Math.floor((box.left + (SIZE/2))/64),
 			tileY = Math.floor(box.bottom / 64);											
-			tilemap.setTileAt(7, tileX, tileY, 0);			
+			tilemap.setTileAt(8, tileX, tileY, 0);			
 			sprite.state = FALLING;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
@@ -3673,7 +3674,10 @@ module.exports = (function (){
 		
       }
     }
-    
+    for(var x = 0; x < height/20; x++){
+		map = consolidateLiquids(map, width, height, width-1, 0, 0, height-1, width, 2);
+	}
+	
     // Create mapData object
     var mapData = {
       height: height,
@@ -3696,7 +3700,72 @@ module.exports = (function (){
     return load(mapData, options);
   }
   
+  function shiftWaterDown(map, width, height, rightStart, bottomStart, viewWidth, viewHeight){
+	  for(var j = bottomStart; j > bottomStart-viewHeight; j--){
+		  for(var i = rightStart; i > rightStart-viewWidth; i--){
+			  index = j*width + i;
+			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1){
+				  if(map[index+height] == 14+1 || map[index+height] == 12+1 || map[index+height] == 7+1){
+					  var temp = map[index];
+					  map[index] = map[index+height];
+					  map[index+height] = temp;
+				  }
+			  }
+		  }
+	  }
+	  
+	  return map;
+  }
   
+  function shiftWaterRight(map, width, height, leftStart, topStart, viewWidth, viewHeight){  
+	for(var i = leftStart; i < leftStart+viewWidth; i++){
+	  for(var j = topStart; j < topStart+viewHeight; j++){
+			  index = j*width + i;
+			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1 /*&& index+1 < width*/){
+				  if(map[index+1] == 14+1 || map[index+1] == 12+1|| map[index+1] == 7+1){
+					  var temp = map[index];
+					  map[index] = map[index+1];
+					  map[index+1] = temp;
+				  }
+			  }
+		  }
+	  }
+	  
+	  return map;
+  }
+  
+  function shiftWaterLeft(map, width, height, leftStart, topStart, viewWidth, viewHeight){
+	  for(var j = topStart; j < topStart+viewHeight; j++){
+		  for(var i = leftStart; i < leftStart+viewWidth; i++){
+			  index = j*width + i;
+			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1 /*&& index+1 < width*/){
+				  if(map[index-1] == 14+1 || map[index-1] == 12+1|| map[index-1] == 7+1){
+					  var temp = map[index];
+					  map[index] = map[index-1];
+					  map[index-1] = temp;
+				  }
+			  }
+		  }
+	  }
+	  
+	  return map;
+  }
+  
+  function consolidateLiquids(map, width, height, rightStart, leftStart, topStart, bottomStart, viewWidth, viewHeight){
+	  for(var i = 0; i < viewHeight; i++){
+		  //Shift Down
+		  map = shiftWaterDown(map, width, height, rightStart+3, bottomStart+3, viewWidth+6, viewHeight+6);
+		  //Shift Right
+		  map = shiftWaterRight(map, width, height, leftStart-3, topStart-3, viewWidth+6, viewHeight+6);
+	  }
+	  for(var i = 0; i < viewHeight; i++){
+		  //Shift Down
+		  map = shiftWaterDown(map, width, height, rightStart+3, bottomStart+3, viewWidth+6, viewHeight+6);
+		  //Shift Right
+		  map = shiftWaterLeft(map, width, height, leftStart-3, topStart-3, viewWidth+6, viewHeight+6);
+	  }
+	  return map;
+  }
   
   /* GenerateObjectMap generates an object map based on the previously generated game map
    * mapWidth - the overall map's width
@@ -3749,6 +3818,17 @@ module.exports = (function (){
     /*Place player in the middle*/
     objectMap[surface * width + width/2] = 1;
     return objectMap;
+  }
+  
+      var update = function(){
+	  layers.forEach(function(layer){
+		  var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
+          var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
+          var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
+          var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
+		  
+		  consolidateLiquids(layer.data, layer.width, layer.height, endX, startX, startY, endY, endX-startX, endY-startY);
+	  });
   }
   
   /* */
@@ -3820,7 +3900,7 @@ module.exports = (function (){
           // The tile's data (solid/liquid, etc.)
           data: newType
         }
-		layers[layer].data[x + y*mapWidth] = tile;
+		layers[layer].data[x + y*mapWidth] = newType;
 	 }
   }
   
@@ -3835,6 +3915,8 @@ module.exports = (function (){
   return {
     load: load,
     generate: generate,
+	consolidateLiquids: consolidateLiquids,
+	update: update,
     render: render,
     tileAt: tileAt,
 	setTileAt: setTileAt,
