@@ -120,8 +120,8 @@ module.exports = (function() {
         tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
         tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
     // find the tile we are standing on.
-    if(tileL && tileL.data.solid) return true;
-    if(tileR && tileR.data.solid) return true;
+    if(!tileL || tileL.data.solid) return true;
+    if(!tileR || tileR.data.solid) return true;
     return false;
   }
 

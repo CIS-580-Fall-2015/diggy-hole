@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4be4fa0a-8dbf-417f-800b-bcf043ecf520" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/diggy.js" afterPath="$PROJECT_DIR$/diggy.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/player.js" afterPath="$PROJECT_DIR$/src/player.js" />
     </list>
     <ignored path="diggy-hole.iws" />
@@ -28,8 +27,8 @@
       <file leaf-file-name="player.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/player.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.45">
-              <caret line="104" column="36" selection-start-line="104" selection-start-column="36" selection-end-line="104" selection-end-column="36" />
+            <state vertical-scroll-proportion="0.6">
+              <caret line="123" column="16" selection-start-line="123" selection-start-column="16" selection-end-line="123" selection-end-column="16" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -693,8 +692,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/player.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.45">
-          <caret line="104" column="36" selection-start-line="104" selection-start-column="36" selection-end-line="104" selection-end-column="36" />
+        <state vertical-scroll-proportion="0.6">
+          <caret line="123" column="16" selection-start-line="123" selection-start-column="16" selection-end-line="123" selection-end-column="16" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
