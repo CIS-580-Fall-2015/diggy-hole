@@ -4,6 +4,16 @@ module.exports = (function(){
 		Player = require('./player.js'),
 		EntityManager = require('./entity-manager.js');
 	
+	/**
+		locationX 	- posX
+		locationY 	- posY
+		mapLayer 	- mapLayer
+		type		- custom name (string)
+		width		- width of one animation image
+		height		- height of one animation image
+		frameNum	- number of frames of its animation
+		imgPath		- path to the animation's spritesheet
+	*/
 	function PowerUp(locationX, locationY, mapLayer,
 					 type, width, height, frameNum, imgPath) {
 		this.x = locationX;
@@ -18,7 +28,6 @@ module.exports = (function(){
 		this.img.onload = function () {
 			outerObject.animation = new Animation(outerObject.img, outerObject.width, outerObject.height, 0, 0, frameNum);
 		}
-		console.log(imgPath);
 		this.img.src = imgPath;
 		
 		this.pickedUp = false;
@@ -79,8 +88,7 @@ module.exports = (function(){
 	PowerUp.prototype.collide = function(otherEntity)
 	{
 		if (otherEntity.type == 'player' && this.pickedUp == false) {
-			console.log("collided");
-			otherEntity.poweredUp(this.type);
+			otherEntity.poweredUp(this);
 			this.pickedUpSound.play();
 			this.pickedUp = true;
 		}
