@@ -100,33 +100,49 @@ module.exports = (function() {
   // Determines if the player is on the ground
   Player.prototype.onGround = function(tilemap) {
     var box = this.boundingBox(),
-      tileX = Math.floor((box.left + (SIZE / 2)) / 64),
-      tileY = Math.floor(box.bottom / 64),
-      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+      tileXL = Math.floor((box.left + 5) / 64),
+      tileXR = Math.floor((box.right - 5) / 64),
+      tileY = Math.floor((box.bottom) / 64),
+      tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
+      tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
     // find the tile we are standing on.
-    return (tile && tile.data.solid) ? true : false;
+    if(tileL && tileL.data.solid) return true;
+    if(tileR && tileR.data.solid) return true;
+    return false;
   };
+
+  // Determines if the player will ram his head into a block above
+  Player.prototype.isBlockAbove = function(tilemap) {
+    var box = this.boundingBox(),
+        tileXL = Math.floor((box.left + 5) / 64),
+        tileXR = Math.floor((box.right - 5) / 64),
+        tileY = Math.floor((box.top + 5) / 64),
+        tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
+        tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
+    // find the tile we are standing on.
+    if(tileL && tileL.data.solid) return true;
+    if(tileR && tileR.data.solid) return true;
+    return false;
+  }
 
   // Moves the player to the left, colliding with solid tiles
   Player.prototype.moveLeft = function(distance, tilemap) {
-    this.currentX -= distance;
     var box = this.boundingBox(),
       tileX = Math.floor(box.left / 64),
       tileY = Math.floor(box.bottom / 64) - 1,
       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
+    if (tile && !tile.data.solid)
+      this.currentX -= distance;
   };
 
   // Moves the player to the right, colliding with solid tiles
   Player.prototype.moveRight = function(distance, tilemap) {
-    this.currentX += distance;
     var box = this.boundingBox(),
       tileX = Math.floor(box.right / 64),
       tileY = Math.floor(box.bottom / 64) - 1,
       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+    if (tile && !tile.data.solid)
+      this.currentX += distance;
   };
   /* Player update function
    * arguments:
@@ -263,7 +279,12 @@ module.exports = (function() {
           if (sprite.velocityY > 0) {
             sprite.state = FALLING;
             resetJumpingAnimation(sprite);
+          } else if (sprite.isBlockAbove(tilemap)) {
+            sprite.state = FALLING;
+            sprite.velocityY = 0;
+            resetJumpingAnimation(sprite);
           }
+
           if (isKeyDown(commands.LEFT)) {
             sprite.isLeft = true;
             sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
