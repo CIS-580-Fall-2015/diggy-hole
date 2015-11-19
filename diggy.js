@@ -262,7 +262,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":3,"./entity.js":14}],2:[function(require,module,exports){
+},{"./animation.js":4,"./entity.js":15}],2:[function(require,module,exports){
 /* Entity: Kakao(aka DiamondGroundhog) module
  * Implements the entity pattern and provides
  * the entity Kakao info.
@@ -521,7 +521,91 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":3,"./diamond.js":10,"./entity.js":14}],3:[function(require,module,exports){
+},{"./animation.js":4,"./diamond.js":11,"./entity.js":15}],3:[function(require,module,exports){
+/* Pickaxe is an invisible entity created by player that represents the hitbox
+ * of the Pickaxe.
+ * In the future this would be interesting to have an attack animation effect
+ * like a slash or something.
+ */
+module.exports = (function() {
+  var Entity = require('./entity.js');
+
+  /* moveing these values to a pickaxe factory class would be cool.
+  Then powerups could change the attack size. */
+  var attackSize = { x: 20, y: 40 };
+  var attackRadius = 15;
+
+
+  var Pickaxe = function(position, horizontal) {
+      this.position = { x: position.x, y: position.y };
+      this.score = 0;
+      this.type = "Pickaxe";
+      if(horizontal) this.attackSize = {x: attackSize.y, y: attackSize.x };
+      else this.attackSize = {x: attackSize.x, y: attackSize.y };
+  };
+
+  Pickaxe.prototype.update = function() {
+
+  };
+
+  Pickaxe.prototype.render = function(ctx, debug) {
+      if (debug) renderDebug(this, ctx);
+  };
+
+  Pickaxe.prototype.boundingBox = function() {
+    return {
+        left: this.position.x - this.attackSize.x / 2,
+        top: this.position.y - this.attackSize.y / 2,
+        right: this.position.x + this.attackSize.x / 2,
+        bottom: this.position.y + this.attackSize.y / 2
+    };
+  };
+
+
+  Pickaxe.prototype.boundingCircle = function() {
+    return {
+        cx: this.position.x,
+        cy: this.position.y,
+        radius: attackRadius
+    };
+  };
+
+
+  Pickaxe.prototype.collide = function(ent) {
+  }
+
+  function renderDebug(player, ctx) {
+      var bounds = player.boundingBox();
+      var circle = player.boundingCircle();
+      ctx.save();
+
+      // Draw player bounding box
+      ctx.strokeStyle = "red";
+      ctx.beginPath();
+      ctx.moveTo(bounds.left, bounds.top);
+      ctx.lineTo(bounds.right, bounds.top);
+      ctx.lineTo(bounds.right, bounds.bottom);
+      ctx.lineTo(bounds.left, bounds.bottom);
+      ctx.closePath();
+      ctx.stroke(); // Outline tile underfoot
+
+      ctx.strokeStyle = "blue";
+      ctx.beginPath();
+      ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
+      ctx.stroke();
+
+      ctx.restore();
+  }
+
+
+
+
+  return Pickaxe;
+
+
+  })();
+
+},{"./entity.js":15}],4:[function(require,module,exports){
 module.exports = (function() {
 
   function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame, playItOnce, donePlayingCallback) {
@@ -590,7 +674,7 @@ module.exports = (function() {
 
 }());
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /* Class of the Barrel Skeleton entity
  *
  * Author:
@@ -1055,7 +1139,7 @@ module.exports = (function(){
 }());
 
 
-},{"./animation.js":3,"./bone.js":7,"./entity-manager.js":13,"./entity.js":14,"./player.js":24}],5:[function(require,module,exports){
+},{"./animation.js":4,"./bone.js":8,"./entity-manager.js":14,"./entity.js":15,"./player.js":25}],6:[function(require,module,exports){
 /* Bird Module
 	Authors: Josh Benard
 */
@@ -1202,7 +1286,7 @@ module.exports = (function(){
 	return Bird;
 
 }());
-},{"./animation.js":3,"./entity.js":14,"./player.js":24}],6:[function(require,module,exports){
+},{"./animation.js":4,"./entity.js":15,"./player.js":25}],7:[function(require,module,exports){
 module.exports = (function(){
   var Entity = require('./entity.js');
   var PlayerClass = require('./player.js');
@@ -1463,7 +1547,7 @@ var everal = false;
 
 }());
 
-},{"./entity.js":14,"./player.js":24}],7:[function(require,module,exports){
+},{"./entity.js":15,"./player.js":25}],8:[function(require,module,exports){
 /* Class of the Barrel Skeleton entity
  *
  * Author:
@@ -1674,7 +1758,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":3,"./entity.js":14,"./player.js":24}],8:[function(require,module,exports){
+},{"./animation.js":4,"./entity.js":15,"./player.js":25}],9:[function(require,module,exports){
 module.exports = (function(){
 
 var Animation = require('./animation.js'),
@@ -1862,7 +1946,7 @@ Cannonball.prototype = new Entity();
 return Cannonball;
 	
 }())
-},{"./animation.js":3,"./entity.js":14,"./tilemap.js":33}],9:[function(require,module,exports){
+},{"./animation.js":4,"./entity.js":15,"./tilemap.js":34}],10:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -1934,7 +2018,7 @@ module.exports = (function (){
   }
   
 })();
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 /* Entity: Diamond(added by Diamond) module
  * Implements the entity pattern and provides
  * the entity Diamond info.
@@ -2064,7 +2148,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":3,"./entity.js":14}],11:[function(require,module,exports){
+},{"./animation.js":4,"./entity.js":15}],12:[function(require,module,exports){
 /* Dynamite Dynamite module
  * Authors:
  * Alexander Duben
@@ -2302,7 +2386,7 @@ module.exports = (function(){
   return Dynamite;
 
 }());
-},{"./animation.js":3,"./entity.js":14}],12:[function(require,module,exports){
+},{"./animation.js":4,"./entity.js":15}],13:[function(require,module,exports){
 /* Dynamite Dwarf module
  * Authors:
  * Alexander Duben
@@ -2662,7 +2746,7 @@ module.exports = (function(){
   return Dwarf;
 
 }());
-},{"./animation.js":3,"./dynamite.js":11,"./entity.js":14}],13:[function(require,module,exports){
+},{"./animation.js":4,"./dynamite.js":12,"./entity.js":15}],14:[function(require,module,exports){
 /* The entity manager for the DiggyHole game
  * Currently it uses brute-force approaches
  * to its role - this needs to be refactored
@@ -2852,7 +2936,7 @@ module.exports = (function() {
 
 }());
 
-},{"./player.js":24}],14:[function(require,module,exports){
+},{"./player.js":25}],15:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -2930,7 +3014,7 @@ module.exports = (function(){
    return Entity;
   
 }());
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 /* Game GameState module
  * Provides the main game logic for the Diggy Hole game.
  * Authors:
@@ -3167,7 +3251,7 @@ module.exports = (function (){
 
 })();
 
-},{"./DemonicGroundH.js":1,"./Kakao.js":2,"./barrel.js":4,"./bird.js":5,"./blobber.js":6,"./dynamiteDwarf.js":12,"./entity-manager.js":13,"./goblin-miner.js":16,"./goblin-shaman.js":17,"./input-manager.js":18,"./main-menu.js":19,"./octopus.js":22,"./player.js":24,"./powerUp.js":25,"./rat.js":26,"./robo-killer.js":27,"./score.js":28,"./slime.js":29,"./stone-monster.js":30,"./sudo_chan.js":32,"./tilemap.js":33,"./turret.js":34,"./wolf.js":35}],16:[function(require,module,exports){
+},{"./DemonicGroundH.js":1,"./Kakao.js":2,"./barrel.js":5,"./bird.js":6,"./blobber.js":7,"./dynamiteDwarf.js":13,"./entity-manager.js":14,"./goblin-miner.js":17,"./goblin-shaman.js":18,"./input-manager.js":19,"./main-menu.js":20,"./octopus.js":23,"./player.js":25,"./powerUp.js":26,"./rat.js":27,"./robo-killer.js":28,"./score.js":29,"./slime.js":30,"./stone-monster.js":31,"./sudo_chan.js":33,"./tilemap.js":34,"./turret.js":35,"./wolf.js":36}],17:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -3674,7 +3758,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":3,"./entity.js":14}],17:[function(require,module,exports){
+},{"./animation.js":4,"./entity.js":15}],18:[function(require,module,exports){
 /* Richard Habeeb */
 
 module.exports = (function(){
@@ -3845,7 +3929,7 @@ module.exports = (function(){
     };
 
     shaman.prototype.collide = function(ent) {
-        if(ent.type == "player")
+        if(ent.type == "Pickaxe")
         {
             //check if attacking once attacking is fixed.
             this.dead = true;
@@ -3862,7 +3946,7 @@ module.exports = (function(){
     return shaman;
 })();
 
-},{"./animation.js":3,"./entity.js":14}],18:[function(require,module,exports){
+},{"./animation.js":4,"./entity.js":15}],19:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -3926,7 +4010,7 @@ module.exports = (function() {
   }
   
 })();
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -4051,7 +4135,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./credits-screen":9}],20:[function(require,module,exports){
+},{"./credits-screen":10}],21:[function(require,module,exports){
 
 
 // Wait for the window to load completely
@@ -4095,7 +4179,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":15,"./main-menu":19}],21:[function(require,module,exports){
+},{"./game":16,"./main-menu":20}],22:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -4222,7 +4306,7 @@ module.exports = (function(){
 
 }());
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -4417,7 +4501,7 @@ module.exports = function () {
 }();
 
 
-},{"./entity.js":14,"./octopus_animation.js":23}],23:[function(require,module,exports){
+},{"./entity.js":15,"./octopus_animation.js":24}],24:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -4480,7 +4564,7 @@ module.exports = (function() {
     return OctopusAnimation;
 
 }());
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -4490,7 +4574,8 @@ module.exports = (function() {
  */
 module.exports = (function() {
   var Entity = require('./entity.js'),
-    Animation = require('./animation.js');
+    Animation = require('./animation.js'),
+    Pickaxe = require('./Pickaxe.js');
 
   /* The following are player States (Swimming is not implemented) */
   const STANDING = 0;
@@ -4616,7 +4701,7 @@ module.exports = (function() {
    * - tilemap, the tilemap that corresponds to
    *   the current game world.
    */
-  Player.prototype.update = function(elapsedTime, tilemap) {
+  Player.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
 
     // The "with" keyword allows us to change the
@@ -4634,17 +4719,21 @@ module.exports = (function() {
             sprite.velocityY = 0;
           } else {
             if (isKeyDown(commands.DIGDOWN)) {
+              this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true);
               sprite.state = DIGGING;
               sprite.digState = DOWN_DIGGING;
             } else if(isKeyDown(commands.DIGLEFT)) {
+              this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = LEFT_DIGGING;
               sprite.isLeft = true;
             } else if(isKeyDown(commands.DIGRIGHT)) {
+              this.pick = new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = RIGHT_DIGGING;
               sprite.isLeft = false;
             } else if(isKeyDown(commands.DIGUP)) {
+                this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY }, true);
               sprite.state = DIGGING;
               sprite.digState = UP_DIGGING;
             } else if (isKeyDown(commands.UP)) {
@@ -4663,67 +4752,77 @@ module.exports = (function() {
             else {
               sprite.state = STANDING;
             }
+
+            if(sprite.state == DIGGING) {
+                //if we just entered the digging state we need to spawn the hitbox of our pickaxe
+                //this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
+                entityManager.add(this.pick);
+
+
+                var currentPlayer = this;
+                var digComplete = function() {
+                  /* Add score */
+                  //TODO different scores for different blocks?
+                  entityManager.scoreEngine.addScore(1);
+
+                  var box = currentPlayer.boundingBox(),
+                      tileX,
+                      tileY;
+
+                  /* set the tile location that we are deleting */
+                  switch(sprite.digState) {
+                    case DOWN_DIGGING:
+                          tileX = Math.floor((box.left + (SIZE / 2)) / 64);
+                          tileY = Math.floor(box.bottom / 64);
+
+                          /* we also know we will be falling if digging down, so start fall */
+                          sprite.state = FALLING;
+                          sprite.velocityY = 0;
+                          break;
+                    case LEFT_DIGGING:
+                          tileX = Math.floor((box.left - 5)/ 64);
+                          tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                          sprite.state = STANDING;
+                          break;
+                    case RIGHT_DIGGING:
+                          tileX = Math.floor((box.right + 5)/ 64);
+                          tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                          sprite.state = STANDING;
+                          break;
+                    case UP_DIGGING:
+                          tileX = Math.floor((box.left + (SIZE / 2)) / 64);
+                          tileY = Math.floor((box.top - 5) / 64);
+                          sprite.state = STANDING;
+                          break;
+                    default:
+                          return;
+                  }
+
+                  /* replace the set tile at this layer */
+                  var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
+                  if (layerType == 0) {
+                    tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex);
+                  } else if (layerType == 1) {
+                    tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex);
+                  } else if (layerType == 2) {
+                    tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex);
+                  }
+
+                  /* setup the callback for when the animation is complete */
+                  currentPlayer.animations.left[currentPlayer.state].donePlayingCallback = function() {};
+                  currentPlayer.animations.right[currentPlayer.state].donePlayingCallback = function() {};
+                  entityManager.remove(currentPlayer.pick);
+
+                  /* reset the digging state */
+                  sprite.digState = NOT_DIGGING;
+                };
+                this.animations.left[this.state].donePlayingCallback = digComplete;
+                this.animations.right[this.state].donePlayingCallback = digComplete;
+            }
           }
           break;
         case DIGGING:
-            var currentPlayer = this;
-            var digComplete = function() {
-              /* Add score */
-              //TODO different scores for different blocks?
-              entityManager.scoreEngine.addScore(1);
 
-              var box = currentPlayer.boundingBox(),
-                  tileX,
-                  tileY;
-
-              /* set the tile location that we are deleting */
-              switch(sprite.digState) {
-                case DOWN_DIGGING:
-                      tileX = Math.floor((box.left + (SIZE / 2)) / 64);
-                      tileY = Math.floor(box.bottom / 64);
-
-                      /* we also know we will be falling if digging down, so start fall */
-                      sprite.state = FALLING;
-                      sprite.velocityY = 0;
-                      break;
-                case LEFT_DIGGING:
-                      tileX = Math.floor((box.left - 5)/ 64);
-                      tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
-                      sprite.state = STANDING;
-                      break;
-                case RIGHT_DIGGING:
-                      tileX = Math.floor((box.right + 5)/ 64);
-                      tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
-                      sprite.state = STANDING;
-                      break;
-                case UP_DIGGING:
-                      tileX = Math.floor((box.left + (SIZE / 2)) / 64);
-                      tileY = Math.floor((box.top - 5) / 64);
-                      sprite.state = STANDING;
-                      break;
-                default:
-                      return;
-              }
-
-              /* replace the set tile at this layer */
-              var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
-              if (layerType == 0) {
-                tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex);
-              } else if (layerType == 1) {
-                tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex);
-              } else if (layerType == 2) {
-                tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex);
-              }
-
-              /* setup the callback for when the animation is complete */
-              currentPlayer.animations.left[currentPlayer.state].donePlayingCallback = function() {};
-              currentPlayer.animations.right[currentPlayer.state].donePlayingCallback = function() {};
-
-              /* reset the digging state */
-              sprite.digState = NOT_DIGGING;
-            };
-            this.animations.left[this.state].donePlayingCallback = digComplete;
-            this.animations.right[this.state].donePlayingCallback = digComplete;
           break;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
@@ -4858,7 +4957,7 @@ module.exports = (function() {
 
 }());
 
-},{"./animation.js":3,"./entity.js":14}],25:[function(require,module,exports){
+},{"./Pickaxe.js":3,"./animation.js":4,"./entity.js":15}],26:[function(require,module,exports){
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Entity = require('./entity.js'),
@@ -4978,7 +5077,7 @@ module.exports = (function(){
 	return PowerUp;
 
 }())
-},{"./animation.js":3,"./entity-manager.js":13,"./entity.js":14,"./player.js":24}],26:[function(require,module,exports){
+},{"./animation.js":4,"./entity-manager.js":14,"./entity.js":15,"./player.js":25}],27:[function(require,module,exports){
 /* Enemy module
  * Authors:
  * Kien Le
@@ -5248,7 +5347,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":3,"./entity.js":14}],27:[function(require,module,exports){
+},{"./animation.js":4,"./entity.js":15}],28:[function(require,module,exports){
 /* Entity: Robo-Killer module
  * Implements the entity pattern, provides specific robo-killer constructs.
  *
@@ -5562,7 +5661,7 @@ module.exports = (function() {
 
 }());
 
-},{"./animation.js":3,"./entity.js":14}],28:[function(require,module,exports){
+},{"./animation.js":4,"./entity.js":15}],29:[function(require,module,exports){
 /* Score engine */
 
 module.exports = (function (){
@@ -5587,7 +5686,7 @@ module.exports = (function (){
 
 })();
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -5839,7 +5938,7 @@ module.exports = (function(){
    return Slime;
   
 }());
-},{"./animation.js":3,"./entity.js":14}],30:[function(require,module,exports){
+},{"./animation.js":4,"./entity.js":15}],31:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -6123,7 +6222,7 @@ module.exports = (function(){
     return StoneMonster;
 }());
 
-},{"./animation.js":3,"./entity.js":14,"./player.js":24}],31:[function(require,module,exports){
+},{"./animation.js":4,"./entity.js":15,"./player.js":25}],32:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -6193,7 +6292,7 @@ module.exports = (function() {
     return Sudo_Animation;
 
 }());
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -6441,7 +6540,7 @@ module.exports = (function(){
     return Sudo_Chan;
 }());
 
-},{"./entity.js":14,"./sudo-chan-animation.js":31}],33:[function(require,module,exports){
+},{"./entity.js":15,"./sudo-chan-animation.js":32}],34:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -7005,7 +7104,7 @@ module.exports = (function (){
   
 })();
 
-},{"./noise.js":21}],34:[function(require,module,exports){
+},{"./noise.js":22}],35:[function(require,module,exports){
 
 
 
@@ -7397,7 +7496,7 @@ module.exports = (function(){
 	return Turret;
 	
 }())
-},{"./animation.js":3,"./cannonball.js":8,"./entity-manager.js":13,"./entity.js":14,"./player.js":24}],35:[function(require,module,exports){
+},{"./animation.js":4,"./cannonball.js":9,"./entity-manager.js":14,"./entity.js":15,"./player.js":25}],36:[function(require,module,exports){
 /* Wolf module
  * Implements the entity pattern and provides
  * the DiggyHole Wolf info.
@@ -7652,4 +7751,4 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":3,"./entity.js":14}]},{},[20]);
+},{"./animation.js":4,"./entity.js":15}]},{},[21]);

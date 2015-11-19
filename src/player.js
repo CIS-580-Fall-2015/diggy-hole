@@ -7,7 +7,8 @@
  */
 module.exports = (function() {
   var Entity = require('./entity.js'),
-    Animation = require('./animation.js');
+    Animation = require('./animation.js'),
+    Pickaxe = require('./Pickaxe.js');
 
   /* The following are player States (Swimming is not implemented) */
   const STANDING = 0;
@@ -133,7 +134,7 @@ module.exports = (function() {
    * - tilemap, the tilemap that corresponds to
    *   the current game world.
    */
-  Player.prototype.update = function(elapsedTime, tilemap) {
+  Player.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
 
     // The "with" keyword allows us to change the
@@ -151,17 +152,21 @@ module.exports = (function() {
             sprite.velocityY = 0;
           } else {
             if (isKeyDown(commands.DIGDOWN)) {
+              this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true);
               sprite.state = DIGGING;
               sprite.digState = DOWN_DIGGING;
             } else if(isKeyDown(commands.DIGLEFT)) {
+              this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = LEFT_DIGGING;
               sprite.isLeft = true;
             } else if(isKeyDown(commands.DIGRIGHT)) {
+              this.pick = new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = RIGHT_DIGGING;
               sprite.isLeft = false;
             } else if(isKeyDown(commands.DIGUP)) {
+                this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY }, true);
               sprite.state = DIGGING;
               sprite.digState = UP_DIGGING;
             } else if (isKeyDown(commands.UP)) {
@@ -180,67 +185,77 @@ module.exports = (function() {
             else {
               sprite.state = STANDING;
             }
+
+            if(sprite.state == DIGGING) {
+                //if we just entered the digging state we need to spawn the hitbox of our pickaxe
+                //this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
+                entityManager.add(this.pick);
+
+
+                var currentPlayer = this;
+                var digComplete = function() {
+                  /* Add score */
+                  //TODO different scores for different blocks?
+                  entityManager.scoreEngine.addScore(1);
+
+                  var box = currentPlayer.boundingBox(),
+                      tileX,
+                      tileY;
+
+                  /* set the tile location that we are deleting */
+                  switch(sprite.digState) {
+                    case DOWN_DIGGING:
+                          tileX = Math.floor((box.left + (SIZE / 2)) / 64);
+                          tileY = Math.floor(box.bottom / 64);
+
+                          /* we also know we will be falling if digging down, so start fall */
+                          sprite.state = FALLING;
+                          sprite.velocityY = 0;
+                          break;
+                    case LEFT_DIGGING:
+                          tileX = Math.floor((box.left - 5)/ 64);
+                          tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                          sprite.state = STANDING;
+                          break;
+                    case RIGHT_DIGGING:
+                          tileX = Math.floor((box.right + 5)/ 64);
+                          tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                          sprite.state = STANDING;
+                          break;
+                    case UP_DIGGING:
+                          tileX = Math.floor((box.left + (SIZE / 2)) / 64);
+                          tileY = Math.floor((box.top - 5) / 64);
+                          sprite.state = STANDING;
+                          break;
+                    default:
+                          return;
+                  }
+
+                  /* replace the set tile at this layer */
+                  var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
+                  if (layerType == 0) {
+                    tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex);
+                  } else if (layerType == 1) {
+                    tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex);
+                  } else if (layerType == 2) {
+                    tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex);
+                  }
+
+                  /* setup the callback for when the animation is complete */
+                  currentPlayer.animations.left[currentPlayer.state].donePlayingCallback = function() {};
+                  currentPlayer.animations.right[currentPlayer.state].donePlayingCallback = function() {};
+                  entityManager.remove(currentPlayer.pick);
+
+                  /* reset the digging state */
+                  sprite.digState = NOT_DIGGING;
+                };
+                this.animations.left[this.state].donePlayingCallback = digComplete;
+                this.animations.right[this.state].donePlayingCallback = digComplete;
+            }
           }
           break;
         case DIGGING:
-            var currentPlayer = this;
-            var digComplete = function() {
-              /* Add score */
-              //TODO different scores for different blocks?
-              entityManager.scoreEngine.addScore(1);
 
-              var box = currentPlayer.boundingBox(),
-                  tileX,
-                  tileY;
-
-              /* set the tile location that we are deleting */
-              switch(sprite.digState) {
-                case DOWN_DIGGING:
-                      tileX = Math.floor((box.left + (SIZE / 2)) / 64);
-                      tileY = Math.floor(box.bottom / 64);
-
-                      /* we also know we will be falling if digging down, so start fall */
-                      sprite.state = FALLING;
-                      sprite.velocityY = 0;
-                      break;
-                case LEFT_DIGGING:
-                      tileX = Math.floor((box.left - 5)/ 64);
-                      tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
-                      sprite.state = STANDING;
-                      break;
-                case RIGHT_DIGGING:
-                      tileX = Math.floor((box.right + 5)/ 64);
-                      tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
-                      sprite.state = STANDING;
-                      break;
-                case UP_DIGGING:
-                      tileX = Math.floor((box.left + (SIZE / 2)) / 64);
-                      tileY = Math.floor((box.top - 5) / 64);
-                      sprite.state = STANDING;
-                      break;
-                default:
-                      return;
-              }
-
-              /* replace the set tile at this layer */
-              var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
-              if (layerType == 0) {
-                tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex);
-              } else if (layerType == 1) {
-                tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex);
-              } else if (layerType == 2) {
-                tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex);
-              }
-
-              /* setup the callback for when the animation is complete */
-              currentPlayer.animations.left[currentPlayer.state].donePlayingCallback = function() {};
-              currentPlayer.animations.right[currentPlayer.state].donePlayingCallback = function() {};
-
-              /* reset the digging state */
-              sprite.digState = NOT_DIGGING;
-            };
-            this.animations.left[this.state].donePlayingCallback = digComplete;
-            this.animations.right[this.state].donePlayingCallback = digComplete;
           break;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
