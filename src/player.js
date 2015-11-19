@@ -281,8 +281,18 @@ module.exports = (function() {
 
   };
   
-  Player.prototype.poweredUp = function(type) {
-	  console.log(type);
+  /*
+     This method gets called when a power up is picked up
+	 It should eventually delete the power up from the game
+  */
+  Player.prototype.poweredUp = function(powerUp) {
+	  // Delete power up from entity manager
+	  console.log(powerUp.type);
+	  /*
+	  if (powerUp.type == '') {
+		  ...
+	  }
+	  */
   }
 
   /* Player Render Function
