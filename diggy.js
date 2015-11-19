@@ -19,7 +19,7 @@ module.exports = (function(){
 
   // The Sprite Size
   const SIZE = 64;
-  
+
   // Movement constants
   const SPEED = 100;
   const GRAVITY = -150;
@@ -303,7 +303,7 @@ module.exports = (function(){
 
     this.currentTileIndex = 0;
     this.constSpeed = 15;
-    this.gravity = .5;
+    this.gravity = 0.5;
     this.angle = 0;
     this.xSpeed = 10;
     this.ySpeed = 15;
@@ -311,6 +311,8 @@ module.exports = (function(){
     this.hurtFrame =0;
     this.hasDiamond = false;
     this.moveDiamond = false;
+
+    this.score = 3;
 
     //The animations
     this.animations = {
@@ -1236,11 +1238,12 @@ module.exports = (function(){
     this.currentTileIndex = 0;
     this.nextTileIndex = 0;
     this.constSpeed = 15;
-    this.gravity = .5;
+    this.gravity = 0.5;
     this.angle = 0;
     this.xSpeed = xVel;
     this.ySpeed = yVel;
     this.isLeft = false;
+    this.score = 2;
 
     player = p;
     this.type = "BlobLobber";
@@ -4656,6 +4659,9 @@ module.exports = (function() {
         case DIGGING:
             var currentPlayer = this;
             var digComplete = function() {
+              /* Add score */
+              entityManager.scoreEngine.addScore(1);
+
               var box = currentPlayer.boundingBox(),
                   tileX,
                   tileY;
@@ -5965,6 +5971,7 @@ module.exports = (function(){
 
     return StoneMonster;
 }());
+
 },{"./animation.js":3,"./entity.js":14,"./player.js":24}],30:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
@@ -7492,4 +7499,4 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":3,"./entity.js":14}]},{},[20]);
+},{"./animation.js":3,"./entity.js":14}]},{},[15,20]);

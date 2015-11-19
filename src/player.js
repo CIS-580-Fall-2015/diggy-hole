@@ -181,6 +181,10 @@ module.exports = (function() {
         case DIGGING:
             var currentPlayer = this;
             var digComplete = function() {
+              /* Add score */
+              //TODO different scores for different blocks?
+              entityManager.scoreEngine.addScore(1);
+
               var box = currentPlayer.boundingBox(),
                   tileX,
                   tileY;

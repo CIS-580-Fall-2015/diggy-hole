@@ -10,17 +10,17 @@
  * 		November 04, 2015:
  *  		-Date Created
  *  	November 08, 2015:
- *  		-Completed boundingBox, boundingCirle, render 
+ *  		-Completed boundingBox, boundingCirle, render
  *  			and constructor
  *  		-Started update and update animation
  *  	November 10, 2015:
  *  		-Finished updateAnimation
  *  		-Began work on update function
- *  		-Modularized update function into movement 
+ *  		-Modularized update function into movement
  *  			and state changes.
  *  	November 11, 2015:
  *  		-Finished state machine and update function
- *  	
+ *
  */
 
 module.exports = (function()
@@ -104,6 +104,8 @@ module.exports = (function()
 		this.tickCount = 0;
 		this.currentFrameSet = this.walkingRightFrames;
 
+		this.score = 5;
+
 	}
 
 	Knight.prototype = require('./entity.js');
@@ -181,13 +183,13 @@ module.exports = (function()
 	/**
 	 * Function: collide
 	 * 		Called by the entityManager whenever a collision
-	 *   	is detected. 
+	 *   	is detected.
 	 * Parameters:
 	 *      otherEntity - the entity being collided with
 	 */
 	Knight.prototype.collide = function(otherEntity)
 	{
-		if (otherEntity.type == "player" && otherEntity.currentY < this.ypos) // It's a player and they're stomping on 
+		if (otherEntity.type == "player" && otherEntity.currentY < this.ypos) // It's a player and they're stomping on
 		{																	  // my head
 			this.state = States.DEAD;
 		}
@@ -247,7 +249,7 @@ module.exports = (function()
 						var y1 = player.currentY < (this.center[1] + (RENDER_HEIGHT / 2));
 						var y2 = player.currentY > (this.center[1] - (RENDER_HEIGHT / 2));
 						if (player.currentX > this.xpos && (y1 && y2)) // Players position is right of me
-						{	
+						{
 							this.state = States.RUNNING_RIGHT;
 						}
 					}
@@ -299,10 +301,10 @@ module.exports = (function()
 	 *      Modified version of code from:
 	 *		http://www.somethinghitme.com/2013/04/16/creating-a-canvas-platformer-tutorial-part-tw/
 	 * Parameters:
-	 *      shape - other entity    
+	 *      shape - other entity
 	 * Returns:
 	 *      direction of collision or -1 if no collision
-	 */		
+	 */
 	Knight.prototype.detectCollision = function(shape)
 	{
 		// get the vectors to check against
@@ -312,12 +314,12 @@ module.exports = (function()
 	        hWidths = (RENDER_WIDTH / 2) + (shape.width / 2),
 	        hHeights = (RENDER_HEIGHT / 2) + (shape.height / 2),
 	        colDir = -1;
-	 
-	    // if the x and y vector are less than the half width or half height, 
+
+	    // if the x and y vector are less than the half width or half height,
 	    // they we must be inside the object, causing a collision
-	    if (Math.abs(vX) < hWidths && Math.abs(vY) < hHeights) {        
-	    	var oX = hWidths - Math.abs(vX),             
-	    	oY = hHeights - Math.abs(vY);         
+	    if (Math.abs(vX) < hWidths && Math.abs(vY) < hHeights) {
+	    	var oX = hWidths - Math.abs(vX),
+	    	oY = hHeights - Math.abs(vY);
 	    	if (oX >= oY) {
 	            if (vY > 0) {
 	                colDir = Directions.UP;
@@ -404,7 +406,7 @@ module.exports = (function()
 				this.currentFrameSet = this.walkingRightFrames;
 				update = true;
 				break;
-			
+
 			case States.WALKING_LEFT:
 			case States.RUNNING_LEFT:
 				this.currentFrameSet = this.walkingLeftFrames;
