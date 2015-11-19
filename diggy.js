@@ -4485,7 +4485,13 @@ module.exports = (function() {
  */
 module.exports = (function() {
   var Entity = require('./entity.js'),
-    Animation = require('./animation.js');
+    Animation = require('./animation.js')
+	
+	/*Audio sources*/	
+    jump_sound = new Audio('resources/sounds/jumping_sound.mp3');
+	dig_sound = new Audio('resources/sounds/digging_sound.mp3');
+	walk_sound = new Audio('resources/sounds/walking_sound.mp3');
+	fallGround_sound = new Audio ('resources/sounds/fallToGround.wav');
 
   /* The following are player States (Swimming is not implemented) */
   const STANDING = 0;
@@ -4621,9 +4627,9 @@ module.exports = (function() {
       // Process player state
       switch (sprite.state) {
         case STANDING:
-        case WALKING:
+        case WALKING:	
           // If there is no ground underneath, fall
-          if (!sprite.onGround(tilemap)) {
+          if (!sprite.onGround(tilemap)) {			  
             sprite.state = FALLING;
             sprite.velocityY = 0;
           } else {
@@ -4639,27 +4645,48 @@ module.exports = (function() {
               sprite.digState = RIGHT_DIGGING;
               sprite.isLeft = false;
             } else if (isKeyDown(commands.UP)) {
+				
+				/* Added sound effect for jumping */
+				jump_sound.play();
+				
               sprite.state = JUMPING;
               sprite.velocityY = JUMP_VELOCITY;
             } else if (isKeyDown(commands.LEFT)) {
+				
+			  /*Added walking sound*/
+			  walk_sound.play();
+		  
               sprite.isLeft = true;
               sprite.state = WALKING;
               sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
             }
             else if(isKeyDown(commands.RIGHT)) {
+				
+			  /* Added walking sound */
+			  walk_sound.play();
+		  
               sprite.isLeft = false;
               sprite.state = WALKING;
               sprite.moveRight(elapsedTime * this.SPEED, tilemap);
             }
             else {
               sprite.state = STANDING;
+			  /* Added fall to the ground sound 
+			  fallGround_sound.loop = false;
+			  fallGround_sound.play();*/
             }
           }
           break;
         case DIGGING:
             var currentPlayer = this;
+			
+			/*Added digging sound*/
+			//Not tested yet for digging not working
+			dig_sound.play();
+			
             var digComplete = function() {
               /* Add score */
+              //TODO different scores for different blocks?
               entityManager.scoreEngine.addScore(1);
 
               var box = currentPlayer.boundingBox(),
@@ -4671,7 +4698,6 @@ module.exports = (function() {
                 case DOWN_DIGGING:
                       tileX = Math.floor((box.left + (SIZE / 2)) / 64);
                       tileY = Math.floor(box.bottom / 64);
-
                       /* we also know we will be falling if digging down, so start fall */
                       sprite.state = FALLING;
                       sprite.velocityY = 0;
@@ -5732,6 +5758,8 @@ module.exports = (function(){
         this.waitingTime = 0;
         this.timeToLive = TIME_TO_LIVE;
         this.renderBoundingCircle = false;
+
+        this.score = 3;
 
         this.idle_image = new Image();
         this.idle_image.src = 'img/stone-monster-img/stone_monster_idle.png';
@@ -7499,4 +7527,4 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":3,"./entity.js":14}]},{},[15,20]);
+},{"./animation.js":3,"./entity.js":14}]},{},[20]);
