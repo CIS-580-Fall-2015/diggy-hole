@@ -95,6 +95,7 @@ module.exports = (function (){
     
     // Set up score engine
     scoreEngine = new ScoreEngine();
+    scoreEngine.setPositionFunction(tilemap.getCameraPosition)
     entityManager.setScoreEngine(scoreEngine);
 
     //add wolf to

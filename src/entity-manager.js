@@ -127,6 +127,7 @@ module.exports = (function() {
     for (i = 0; i < entityCount; i++) {
       if (entities[i]) entities[i].update(elapsedTime, tilemap, this);
     }
+    scoreEngine.update();
     checkCollisions();
   }
 
@@ -139,6 +140,7 @@ module.exports = (function() {
     for (var i = 0; i < entityCount; i++) {
       if (entities[i]) entities[i].render(ctx, debug);
     }
+    scoreEngine.render(ctx);
   }
 
   function getPlayer() {
