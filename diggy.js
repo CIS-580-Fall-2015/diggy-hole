@@ -606,13 +606,14 @@ module.exports = (function() {
   })();
 
 },{"./entity.js":15}],4:[function(require,module,exports){
-module.exports = (function() {
+module.exports = function () {
 
-  function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame, playItOnce, donePlayingCallback) {
+
+  function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame, playItOnce, donePlayingCallback, reverse) {
     this.frameIndex = 0,
-      this.time = 0,
-      this.secondsPerFrame = secondsPerFrame || (1 / 16),
-      this.numberOfFrames = numberOfFrames || 1;
+        this.time = 0,
+        this.secondsPerFrame = secondsPerFrame || (1 / 16),
+        this.numberOfFrames = numberOfFrames || 1;
 
     this.width = width;
     this.height = height;
@@ -623,15 +624,17 @@ module.exports = (function() {
 
     this.playItOnce = playItOnce;
     this.donePlayingCallback = donePlayingCallback;
+    this.reversalFactor = 1;
+    if(reverse) this.reversalFactor = -1;
   }
 
-  Animation.prototype.setStats = function(frameCount, locationX, locationY) {
+  Animation.prototype.setStats = function (frameCount, locationX, locationY) {
     this.numberOfFrames = frameCount;
     this.drawLocationY = locationY;
     this.drawLocationX = locationX;
   };
 
-  Animation.prototype.update = function(elapsedTime, tilemap) {
+  Animation.prototype.update = function (elapsedTime, tilemap) {
     this.time += elapsedTime;
 
     // Update animation
@@ -645,7 +648,7 @@ module.exports = (function() {
         if (!this.playItOnce)
           this.frameIndex = 0;
 
-        if(this.donePlayingCallback) {
+        if (this.donePlayingCallback) {
           this.donePlayingCallback();
 
           //once we call the callback, destroy it so it cannot be called again
@@ -655,24 +658,24 @@ module.exports = (function() {
     }
   };
 
-  Animation.prototype.render = function(ctx, x, y) {
+  Animation.prototype.render = function (ctx, x, y) {
 
     // Draw the current frame
     ctx.drawImage(
-      this.image,
-      this.drawLocationX + this.frameIndex * this.width,
-      this.drawLocationY,
-      this.width,
-      this.height,
-      x,
-      y,
-      this.width,
-      this.height);
+        this.image,
+        this.drawLocationX + (this.frameIndex * this.reversalFactor * this.width),
+        this.drawLocationY,
+        this.width,
+        this.height,
+        x,
+        y,
+        this.width,
+        this.height);
   };
 
   return Animation;
 
-}());
+}();
 
 },{}],5:[function(require,module,exports){
 /* Class of the Barrel Skeleton entity
@@ -4646,18 +4649,19 @@ module.exports = (function() {
     //The right-facing animations
     this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 3, 0);
     this.animations.right[WALKING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
-    this.animations.right[JUMPING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 3, 0);
     this.animations.right[DIGGING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE * 2, 4);
-    this.animations.right[FALLING] = new Animation(dwarfRight, SIZE, SIZE, SIZE, SIZE);
+    this.animations.right[FALLING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE);
     this.animations.right[SWIMMING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
 
     //The left-facing animations
     this.animations.left[STANDING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0);
     this.animations.left[WALKING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
-    this.animations.left[JUMPING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE * 3, 0);
     this.animations.left[DIGGING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE * 2, 4);
-    this.animations.left[FALLING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE, SIZE);
+    this.animations.left[FALLING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE * 3, SIZE);
     this.animations.left[SWIMMING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
+
+    //Setup the jump animations
+    resetJumpingAnimation(this);
   }
 
   // Player inherits from Entity
@@ -4828,13 +4832,14 @@ module.exports = (function() {
           sprite.currentY += sprite.velocityY * elapsedTime;
           if (sprite.velocityY > 0) {
             sprite.state = FALLING;
+            resetJumpingAnimation(sprite);
           }
           if (isKeyDown(commands.LEFT)) {
             sprite.isLeft = true;
             sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
           }
           if (isKeyDown(commands.RIGHT)) {
-            sprite.isLeft = true;
+            sprite.isLeft = false;
             sprite.moveRight(elapsedTime * this.SPEED, tilemap);
           }
           break;
@@ -4870,6 +4875,12 @@ module.exports = (function() {
       this.animations.right[this.state].update(elapsedTime);
 
   };
+
+  /* This function resets (or initializes) the jumping animations */
+  function resetJumpingAnimation(player) {
+    player.animations.right[JUMPING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 3, SIZE, 3, 0.1, true, null, true);
+    player.animations.left[JUMPING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE, 3, 0.1, true);
+  }
 
   /*
      This method gets called when a power up is picked up

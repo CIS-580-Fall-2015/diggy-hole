@@ -79,18 +79,19 @@ module.exports = (function() {
     //The right-facing animations
     this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 3, 0);
     this.animations.right[WALKING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
-    this.animations.right[JUMPING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 3, 0);
     this.animations.right[DIGGING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE * 2, 4);
-    this.animations.right[FALLING] = new Animation(dwarfRight, SIZE, SIZE, SIZE, SIZE);
+    this.animations.right[FALLING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE);
     this.animations.right[SWIMMING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
 
     //The left-facing animations
     this.animations.left[STANDING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0);
     this.animations.left[WALKING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
-    this.animations.left[JUMPING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE * 3, 0);
     this.animations.left[DIGGING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE * 2, 4);
-    this.animations.left[FALLING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE, SIZE);
+    this.animations.left[FALLING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE * 3, SIZE);
     this.animations.left[SWIMMING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
+
+    //Setup the jump animations
+    resetJumpingAnimation(this);
   }
 
   // Player inherits from Entity
@@ -261,13 +262,14 @@ module.exports = (function() {
           sprite.currentY += sprite.velocityY * elapsedTime;
           if (sprite.velocityY > 0) {
             sprite.state = FALLING;
+            resetJumpingAnimation(sprite);
           }
           if (isKeyDown(commands.LEFT)) {
             sprite.isLeft = true;
             sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
           }
           if (isKeyDown(commands.RIGHT)) {
-            sprite.isLeft = true;
+            sprite.isLeft = false;
             sprite.moveRight(elapsedTime * this.SPEED, tilemap);
           }
           break;
@@ -303,6 +305,12 @@ module.exports = (function() {
       this.animations.right[this.state].update(elapsedTime);
 
   };
+
+  /* This function resets (or initializes) the jumping animations */
+  function resetJumpingAnimation(player) {
+    player.animations.right[JUMPING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 3, SIZE, 3, 0.1, true, null, true);
+    player.animations.left[JUMPING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE, 3, 0.1, true);
+  }
 
   /*
      This method gets called when a power up is picked up

@@ -1,10 +1,11 @@
-module.exports = (function() {
+module.exports = function () {
 
-  function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame, playItOnce, donePlayingCallback) {
+
+  function Animation(image, width, height, top, left, numberOfFrames, secondsPerFrame, playItOnce, donePlayingCallback, reverse) {
     this.frameIndex = 0,
-      this.time = 0,
-      this.secondsPerFrame = secondsPerFrame || (1 / 16),
-      this.numberOfFrames = numberOfFrames || 1;
+        this.time = 0,
+        this.secondsPerFrame = secondsPerFrame || (1 / 16),
+        this.numberOfFrames = numberOfFrames || 1;
 
     this.width = width;
     this.height = height;
@@ -15,15 +16,17 @@ module.exports = (function() {
 
     this.playItOnce = playItOnce;
     this.donePlayingCallback = donePlayingCallback;
+    this.reversalFactor = 1;
+    if(reverse) this.reversalFactor = -1;
   }
 
-  Animation.prototype.setStats = function(frameCount, locationX, locationY) {
+  Animation.prototype.setStats = function (frameCount, locationX, locationY) {
     this.numberOfFrames = frameCount;
     this.drawLocationY = locationY;
     this.drawLocationX = locationX;
   };
 
-  Animation.prototype.update = function(elapsedTime, tilemap) {
+  Animation.prototype.update = function (elapsedTime, tilemap) {
     this.time += elapsedTime;
 
     // Update animation
@@ -37,7 +40,7 @@ module.exports = (function() {
         if (!this.playItOnce)
           this.frameIndex = 0;
 
-        if(this.donePlayingCallback) {
+        if (this.donePlayingCallback) {
           this.donePlayingCallback();
 
           //once we call the callback, destroy it so it cannot be called again
@@ -47,21 +50,21 @@ module.exports = (function() {
     }
   };
 
-  Animation.prototype.render = function(ctx, x, y) {
+  Animation.prototype.render = function (ctx, x, y) {
 
     // Draw the current frame
     ctx.drawImage(
-      this.image,
-      this.drawLocationX + this.frameIndex * this.width,
-      this.drawLocationY,
-      this.width,
-      this.height,
-      x,
-      y,
-      this.width,
-      this.height);
+        this.image,
+        this.drawLocationX + (this.frameIndex * this.reversalFactor * this.width),
+        this.drawLocationY,
+        this.width,
+        this.height,
+        x,
+        y,
+        this.width,
+        this.height);
   };
 
   return Animation;
 
-}());
+}();
