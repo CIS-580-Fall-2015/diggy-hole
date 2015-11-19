@@ -24,7 +24,7 @@ module.exports = function () {
     const IMG_HEIGH = 309;
 
     var oct = new Image();
-    oct.src = 'octopus.png';
+    oct.src = './img/octopus.png';
 
     function Octopus(locationX, locationY, layerIndex) {
         this.state = WALKING;
@@ -77,8 +77,6 @@ module.exports = function () {
     };
 
     Octopus.prototype.getPlayerPosition = function(playerPosition) {
-
-        console.log(playerPosition.top + " " + this.currentY);
 
         if (playerPosition.top <= this.currentY - 64) {
             this.state = JUMPING;

@@ -10,9 +10,9 @@ module.exports = (function() {
 
 
   var entities = [],
-    entityCount = 0;
 
-  var Player = require('./player.js');
+  Player = require('./player.js');
+      entityCount = 0;
 
   /* Adds an entity to those managed.
    * Arguments:
@@ -60,6 +60,9 @@ module.exports = (function() {
   function remove(entity) {
     // Set the entry in the entities table to undefined,
     // indicating an open slot
+    if (entity.score) {
+      this.scoreEngine.addScore(entity.score);
+    }
     entities[entity._entity_id] = undefined;
   }
 
@@ -165,6 +168,10 @@ module.exports = (function() {
     return false;
   }
 
+  function setScoreEngine(score) {
+    this.scoreEngine = score;
+  }
+
   return {
     add: add,
     remove: remove,
@@ -174,7 +181,8 @@ module.exports = (function() {
     playerDistance: playerDistance,
     playerDirection: playerDirection,
     getPlayer: getPlayer,
-    getEntity: getEntity
+    getEntity: getEntity,
+    setScoreEngine: setScoreEngine
   };
 
 }());

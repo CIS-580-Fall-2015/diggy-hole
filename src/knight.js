@@ -2,25 +2,25 @@
  *
  * Title: knight.js
  *
- * Description: implementation of an AI enemy for 
+ * Description: implementation of an AI enemy for
  * 		DiggyHole.
- * 
+ *
  *
  * History:
- * 		November 04, 2015: 
+ * 		November 04, 2015:
  *  		-Date Created
  *  	November 08, 2015:
- *  		-Completed boundingBox, boundingCirle, render 
+ *  		-Completed boundingBox, boundingCirle, render
  *  			and constructor
  *  		-Started update and update animation
  *  	November 10, 2015:
  *  		-Finished updateAnimation
  *  		-Began work on update function
- *  		-Modularized update function into movement 
+ *  		-Modularized update function into movement
  *  			and state changes.
  *  	November 11, 2015:
  *  		-Finished state machine and update function
- *  	
+ *
  */
 
 module.exports = (function()
@@ -29,20 +29,21 @@ module.exports = (function()
 	///////////////
 	// Constants //
 	///////////////
-	
-	var States = {
-		WALKING_RIGHT: 0,
-		WALKING_LEFT: 1,
-		RUNNING_RIGHT: 2,
-		RUNNING_LEFT: 3,
-		STOPPED: 4,
-		DEAD: 5
+
+	var States =
+	{
+		WALKING_RIGHT = 0,
+		WALKING_LEFT = 1,
+		RUNNING_RIGHT = 2,
+		RUNNING_LEFT = 3,
+		STOPPED = 4
 	}
-	Object.freeze(States); 
+	Object.freeze(States);
 	// Prevents any changes to States object
 	// essentially creating an enum or constant
-	
-	var Directions = {
+
+	var Directions =
+	{
 		UP: 1,
 		DOWN: 2,
 		LEFT: 3,
@@ -60,7 +61,7 @@ module.exports = (function()
 	var DEBUG_COLOR = "#E60000";
 
 	// =-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-	
+
 	//////////////////////
 	// Class Definition //
 	//////////////////////
@@ -70,10 +71,10 @@ module.exports = (function()
 		// Type Info
 		this.type                 = "knight";
 		// Layer info
-		this.layer                = layer; 
-		// State variables
-		this.state                = States.RUNNING_RIGHT;
 		this.timer 				  = 0;
+		this.layer = layer;
+		// State variable
+		this.state = States.STOPPED;
 		// Movement vectors
 		this.xvec                 = 0;
 		this.yvec                 = 0;
@@ -96,15 +97,20 @@ module.exports = (function()
 		this.walkingRightFrames   = [10, 11, 12, 13, 14];
 		this.walkingLeftFrames    = [15, 16, 17, 18, 19];
 		this.attackingRightFrames = [0, 1, 2, 3, 4];
-		this.attackingLeftFrames  = [5, 6, 7, 8, 9];
-		this.facing               = 1; // 1 is right, -1 is left
-		this.frameIndex           = 10;
-		this.ticksPerFrame        = 6;
-		this.tickCount            = 0;
-		this.currentFrameSet      = this.walkingRightFrames;
+		this.attackingLeftFrames = [5, 6, 7, 8, 9];
+		this.facing = 1;
+		this.frameIndex = 0;
+		this.ticksPerFrame = 7;
+		this.tickCount = 0;
+		this.currentFrameSet = this.walkingRightFrames;
+
+		this.score = 5;
 
 	}
-	
+
+	Knight.prototype = require('./entity.js');
+
+
 	/**
 	 * Function: update
 	 * 		performs all the logic to update position, animation, and state
@@ -177,13 +183,13 @@ module.exports = (function()
 	/**
 	 * Function: collide
 	 * 		Called by the entityManager whenever a collision
-	 *   	is detected. 
+	 *   	is detected.
 	 * Parameters:
 	 *      otherEntity - the entity being collided with
 	 */
 	Knight.prototype.collide = function(otherEntity)
 	{
-		if (otherEntity.type == "player" && otherEntity.currentY < this.ypos) // It's a player and they're stomping on 
+		if (otherEntity.type == "player" && otherEntity.currentY < this.ypos) // It's a player and they're stomping on
 		{																	  // my head
 			this.state = States.DEAD;
 		}
@@ -215,7 +221,7 @@ module.exports = (function()
 	Knight.prototype.boundingCircle = function()
 	{
 		return {
-			cx: this.center[0], 
+			cx: this.center[0],
 			cy: this.center[1],
 			radius: RENDER_HEIGHT / 2
 		};
@@ -243,7 +249,7 @@ module.exports = (function()
 						var y1 = player.currentY < (this.center[1] + (RENDER_HEIGHT / 2));
 						var y2 = player.currentY > (this.center[1] - (RENDER_HEIGHT / 2));
 						if (player.currentX > this.xpos && (y1 && y2)) // Players position is right of me
-						{	
+						{
 							this.state = States.RUNNING_RIGHT;
 						}
 					}
@@ -295,10 +301,10 @@ module.exports = (function()
 	 *      Modified version of code from:
 	 *		http://www.somethinghitme.com/2013/04/16/creating-a-canvas-platformer-tutorial-part-tw/
 	 * Parameters:
-	 *      shape - other entity    
+	 *      shape - other entity
 	 * Returns:
 	 *      direction of collision or -1 if no collision
-	 */		
+	 */
 	Knight.prototype.detectCollision = function(shape)
 	{
 		// get the vectors to check against
@@ -308,12 +314,12 @@ module.exports = (function()
 	        hWidths = (RENDER_WIDTH / 2) + (shape.width / 2),
 	        hHeights = (RENDER_HEIGHT / 2) + (shape.height / 2),
 	        colDir = -1;
-	 
-	    // if the x and y vector are less than the half width or half height, 
+
+	    // if the x and y vector are less than the half width or half height,
 	    // they we must be inside the object, causing a collision
-	    if (Math.abs(vX) < hWidths && Math.abs(vY) < hHeights) {        
-	    	var oX = hWidths - Math.abs(vX),             
-	    	oY = hHeights - Math.abs(vY);         
+	    if (Math.abs(vX) < hWidths && Math.abs(vY) < hHeights) {
+	    	var oX = hWidths - Math.abs(vX),
+	    	oY = hHeights - Math.abs(vY);
 	    	if (oX >= oY) {
 	            if (vY > 0) {
 	                colDir = Directions.UP;
@@ -400,7 +406,7 @@ module.exports = (function()
 				this.currentFrameSet = this.walkingRightFrames;
 				update = true;
 				break;
-			
+
 			case States.WALKING_LEFT:
 			case States.RUNNING_LEFT:
 				this.currentFrameSet = this.walkingLeftFrames;
@@ -571,6 +577,7 @@ module.exports = (function()
 	return Knight;
 
 })();
+<<<<<<< HEAD
 
 
 
@@ -586,3 +593,5 @@ module.exports = (function()
 
 
 
+=======
+>>>>>>> a54c9118fbac8ba169dfbd0556cfb0e8113d7142

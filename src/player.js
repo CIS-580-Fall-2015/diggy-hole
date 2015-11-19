@@ -17,12 +17,18 @@ module.exports = (function() {
   const FALLING = 4;
   const SWIMMING = 5;
 
+  /* The following are digging direction states */
+  const NOT_DIGGING = 0;
+  const LEFT_DIGGING = 1;
+  const RIGHT_DIGGING = 2;
+  const DOWN_DIGGING = 3;
+
   // The Sprite Size
   const SIZE = 64;
 
   // Movement constants
-  const SPEED = 150;
   const GRAVITY = -250;
+  const TERMINAL_VELOCITY = GRAVITY * -8;
   const JUMP_VELOCITY = -600;
 
   //The Right facing dwarf spritesheet
@@ -32,7 +38,7 @@ module.exports = (function() {
   //The left facing dwarf spritesheet
   var dwarfLeft = new Image();
   dwarfLeft.src = "DwarfAnimatedLeft.png";
-  
+
    var ratRight = new Image();
   ratRight.src = 'img/ratRight2.png';
 
@@ -41,8 +47,9 @@ module.exports = (function() {
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
-    this.inputManager = inputManager;
+    this.inputManager = inputManager
     this.state = WALKING;
+    this.digState = NOT_DIGGING;
     this.dug = false;
     this.downPressed = false;
     this.layerIndex = layerIndex;
@@ -58,7 +65,8 @@ module.exports = (function() {
     this.xSpeed = 10;
     this.ySpeed = 15;
     this.isLeft = false;
-    this.type = "player";
+    this.SPEED = 150;
+	this.type = "player";
 
     //The animations
     this.animations = {
@@ -130,7 +138,7 @@ module.exports = (function() {
     // The "with" keyword allows us to change the
     // current scope, i.e. 'this' becomes our
     // inputManager
-    with(this.inputManager) {
+    with (this.inputManager) {
 
       // Process player state
       switch (sprite.state) {
@@ -141,30 +149,89 @@ module.exports = (function() {
             sprite.state = FALLING;
             sprite.velocityY = 0;
           } else {
-            if (isKeyDown(commands.DIG)) {
+            if (isKeyDown(commands.DIGDOWN)) {
               sprite.state = DIGGING;
+              sprite.digState = DOWN_DIGGING;
+            } else if(isKeyDown(commands.DIGLEFT)) {
+              sprite.state = DIGGING;
+              sprite.digState = LEFT_DIGGING;
+              sprite.isLeft = true;
+            } else if(isKeyDown(commands.DIGRIGHT)) {
+              sprite.state = DIGGING;
+              sprite.digState = RIGHT_DIGGING;
+              sprite.isLeft = false;
             } else if (isKeyDown(commands.UP)) {
               sprite.state = JUMPING;
               sprite.velocityY = JUMP_VELOCITY;
             } else if (isKeyDown(commands.LEFT)) {
               sprite.isLeft = true;
               sprite.state = WALKING;
-              sprite.moveLeft(elapsedTime * SPEED, tilemap);
-            } else if (isKeyDown(commands.RIGHT)) {
+              sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
+            }
+            else if(isKeyDown(commands.RIGHT)) {
               sprite.isLeft = false;
               sprite.state = WALKING;
-              sprite.moveRight(elapsedTime * SPEED, tilemap);
-            } else {
+              sprite.moveRight(elapsedTime * this.SPEED, tilemap);
+            }
+            else {
               sprite.state = STANDING;
             }
           }
           break;
         case DIGGING:
-          var box = this.boundingBox(),
-            tileX = Math.floor((box.left + (SIZE / 2)) / 64),
-            tileY = Math.floor(box.bottom / 64);
-          tilemap.setTileAt(7, tileX, tileY, 0);
-          sprite.state = FALLING;
+            var currentPlayer = this;
+            var digComplete = function() {
+              /* Add score */
+              //TODO different scores for different blocks?
+              entityManager.scoreEngine.addScore(1);
+
+              var box = currentPlayer.boundingBox(),
+                  tileX,
+                  tileY;
+
+              /* set the tile location that we are deleting */
+              switch(sprite.digState) {
+                case DOWN_DIGGING:
+                      tileX = Math.floor((box.left + (SIZE / 2)) / 64);
+                      tileY = Math.floor(box.bottom / 64);
+
+                      /* we also know we will be falling if digging down, so start fall */
+                      sprite.state = FALLING;
+                      sprite.velocityY = 0;
+                      break;
+                case LEFT_DIGGING:
+                      tileX = Math.floor((box.left - 5)/ 64);
+                      tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                      sprite.state = STANDING;
+                      break;
+                case RIGHT_DIGGING:
+                      tileX = Math.floor((box.right + 5)/ 64);
+                      tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                      sprite.state = STANDING;
+                      break;
+                default:
+                      return;
+              }
+
+              /* replace the set tile at this layer */
+              var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
+              if (layerType == 0) {
+                tilemap.setTileAt2(1, tileX, tileY, currentPlayer.layerIndex);
+              } else if (layerType == 1) {
+                tilemap.setTileAt2(13, tileX, tileY, currentPlayer.layerIndex);
+              } else if (layerType == 2) {
+                tilemap.setTileAt2(15, tileX, tileY, currentPlayer.layerIndex);
+              }
+
+              /* setup the callback for when the animation is complete */
+              currentPlayer.animations.left[currentPlayer.state].donePlayingCallback = function() {};
+              currentPlayer.animations.right[currentPlayer.state].donePlayingCallback = function() {};
+
+              /* reset the digging state */
+              sprite.digState = NOT_DIGGING;
+            };
+            this.animations.left[this.state].donePlayingCallback = digComplete;
+            this.animations.right[this.state].donePlayingCallback = digComplete;
           break;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
@@ -174,25 +241,28 @@ module.exports = (function() {
           }
           if (isKeyDown(commands.LEFT)) {
             sprite.isLeft = true;
-            sprite.moveLeft(elapsedTime * SPEED, tilemap);
+            sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
           }
           if (isKeyDown(commands.RIGHT)) {
             sprite.isLeft = true;
-            sprite.moveRight(elapsedTime * SPEED, tilemap);
+            sprite.moveRight(elapsedTime * this.SPEED, tilemap);
           }
           break;
         case FALLING:
-          sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          if(sprite.velocityY < TERMINAL_VELOCITY) {
+            sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          }
           sprite.currentY += sprite.velocityY * elapsedTime;
           if (sprite.onGround(tilemap)) {
             sprite.state = STANDING;
             sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
           } else if (isKeyDown(commands.LEFT)) {
             sprite.isLeft = true;
-            sprite.moveLeft(elapsedTime * SPEED, tilemap);
-          } else if (isKeyDown(commands.RIGHT)) {
+            sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
+          }
+          else if(isKeyDown(commands.RIGHT)) {
             sprite.isLeft = false;
-            sprite.moveRight(elapsedTime * SPEED, tilemap);
+            sprite.moveRight(elapsedTime * this.SPEED, tilemap);
           }
           break;
         case SWIMMING:
