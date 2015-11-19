@@ -3,7 +3,7 @@ module.exports = (function(){
 		Entity = require('./entity.js'),
 		Player = require('./player.js'),
 		EntityManager = require('./entity-manager.js');
-	
+	const GRAVITY = -250;
 	/**
 		locationX 	- posX
 		locationY 	- posY
@@ -32,11 +32,25 @@ module.exports = (function(){
 		
 		this.pickedUp = false;
 		this.pickedUpSound = new Audio('./sounds/powerUp.wav');
+		this.layerIndex = mapLayer;
+		this.falling = true;
+		this.velocityY = 0;
 	}
 	
 	
 	PowerUp.prototype.update = function(elapsedTime, tilemap, entityManager)
 	{
+		if(this.falling){
+			this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+			this.y += this.velocityY * elapsedTime;
+			if(this.onGround(tilemap)) {
+				this.velocityY = 0;
+				this.y = ((this.boundingBox().bottom/64)-1)*64;
+				this.falling = false;
+			}
+		}
+		
+		  
 		if (this.img.complete == false || this.pickedUp == true) return;
 		
 		this.animation.update(elapsedTime);
@@ -112,6 +126,15 @@ module.exports = (function(){
 			radius: this.radius
 		}
 	}
+	
+	PowerUp.prototype.onGround = function(tilemap) {
+    var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (this.width/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+  }
 	
 	
 	return PowerUp;

@@ -136,7 +136,7 @@ module.exports = (function() {
    */
   Player.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
-
+	sprite.entityManager = entityManager;
     // The "with" keyword allows us to change the
     // current scope, i.e. 'this' becomes our
     // inputManager
@@ -317,6 +317,10 @@ module.exports = (function() {
 		  ...
 	  }
 	  */
+	  if (powerUp.type == 'pick') {
+		  console.log("super pickaxe");
+	  }
+	  this.entityManager.remove(powerUp);
   }
 
   /* Player Render Function

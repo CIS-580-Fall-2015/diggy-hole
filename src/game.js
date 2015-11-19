@@ -85,8 +85,8 @@ module.exports = (function (){
     });
 
     for (var i = 0; i < 35; i += 7){
-      stoneMonster = new StoneMonster(64*i, 0, 0);
-      entityManager.add(stoneMonster);
+      //stoneMonster = new StoneMonster(64*i, 0, 0);
+      //entityManager.add(stoneMonster);
     }
 
     // Create the player and add them to
@@ -136,14 +136,17 @@ module.exports = (function (){
 			turret = new Turret(Math.random()*64*50, Math.random()*64*20, o);
 			entityManager.add(turret);
 		}
+		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png'));
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
-		entityManager.add(barrel);
+		//entityManager.add(barrel);
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
+		
 
 	}
-	powerUp = new PowerUp(258, 14912, 0,
-					 'demo', 44, 40, 10, './img/powerUps/coin.png');
-	entityManager.add(powerUp);
+	//powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
+					 
+	
+	
 
 	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
 	entityManager.add(dynamiteDwarf);

@@ -3102,8 +3102,8 @@ module.exports = (function (){
     });
 
     for (var i = 0; i < 35; i += 7){
-      stoneMonster = new StoneMonster(64*i, 0, 0);
-      entityManager.add(stoneMonster);
+      //stoneMonster = new StoneMonster(64*i, 0, 0);
+      //entityManager.add(stoneMonster);
     }
 
     // Create the player and add them to
@@ -3153,14 +3153,17 @@ module.exports = (function (){
 			turret = new Turret(Math.random()*64*50, Math.random()*64*20, o);
 			entityManager.add(turret);
 		}
+		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png'));
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
-		entityManager.add(barrel);
+		//entityManager.add(barrel);
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
+		
 
 	}
-	powerUp = new PowerUp(258, 14912, 0,
-					 'demo', 44, 40, 10, './img/powerUps/coin.png');
-	entityManager.add(powerUp);
+	//powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
+					 
+	
+	
 
 	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
 	entityManager.add(dynamiteDwarf);
@@ -4703,7 +4706,7 @@ module.exports = (function() {
    */
   Player.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
-
+	sprite.entityManager = entityManager;
     // The "with" keyword allows us to change the
     // current scope, i.e. 'this' becomes our
     // inputManager
@@ -4884,6 +4887,10 @@ module.exports = (function() {
 		  ...
 	  }
 	  */
+	  if (powerUp.type == 'pick') {
+		  console.log("super pickaxe");
+	  }
+	  this.entityManager.remove(powerUp);
   }
 
   /* Player Render Function
@@ -4963,7 +4970,7 @@ module.exports = (function(){
 		Entity = require('./entity.js'),
 		Player = require('./player.js'),
 		EntityManager = require('./entity-manager.js');
-	
+	const GRAVITY = -250;
 	/**
 		locationX 	- posX
 		locationY 	- posY
@@ -4992,11 +4999,25 @@ module.exports = (function(){
 		
 		this.pickedUp = false;
 		this.pickedUpSound = new Audio('./sounds/powerUp.wav');
+		this.layerIndex = mapLayer;
+		this.falling = true;
+		this.velocityY = 0;
 	}
 	
 	
 	PowerUp.prototype.update = function(elapsedTime, tilemap, entityManager)
 	{
+		if(this.falling){
+			this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+			this.y += this.velocityY * elapsedTime;
+			if(this.onGround(tilemap)) {
+				this.velocityY = 0;
+				this.y = ((this.boundingBox().bottom/64)-1)*64;
+				this.falling = false;
+			}
+		}
+		
+		  
 		if (this.img.complete == false || this.pickedUp == true) return;
 		
 		this.animation.update(elapsedTime);
@@ -5072,6 +5093,15 @@ module.exports = (function(){
 			radius: this.radius
 		}
 	}
+	
+	PowerUp.prototype.onGround = function(tilemap) {
+    var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (this.width/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+  }
 	
 	
 	return PowerUp;
