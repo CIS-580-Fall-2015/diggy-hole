@@ -280,6 +280,10 @@ module.exports = (function() {
       this.animations.right[this.state].update(elapsedTime);
 
   };
+  
+  Player.prototype.poweredUp = function(type) {
+	  console.log(type);
+  }
 
   /* Player Render Function
    * arguments:

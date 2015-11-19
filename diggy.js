@@ -1862,7 +1862,7 @@ Cannonball.prototype = new Entity();
 return Cannonball;
 	
 }())
-},{"./animation.js":3,"./entity.js":14,"./tilemap.js":32}],9:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":14,"./tilemap.js":33}],9:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -2980,7 +2980,8 @@ module.exports = (function (){
       backBuffer,
       backBufferCtx,
       stateManager,
-      ScoreEngine = require('./score.js');
+      ScoreEngine = require('./score.js'),
+	  PowerUp = require('./powerUp.js');
 
   /* Loads the GameState, triggered by the StateManager
    * This function sets up the screen canvas, the tilemap,
@@ -3073,6 +3074,9 @@ module.exports = (function (){
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
 
 	}
+	powerUp = new PowerUp(258, 14912, 0,
+					 'demo', 44, 40, 10, './img/powerUps/coin.png');
+	entityManager.add(powerUp);
 
 	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
 	entityManager.add(dynamiteDwarf);
@@ -3163,7 +3167,7 @@ module.exports = (function (){
 
 })();
 
-},{"./DemonicGroundH.js":1,"./Kakao.js":2,"./barrel.js":4,"./bird.js":5,"./blobber.js":6,"./dynamiteDwarf.js":12,"./entity-manager.js":13,"./goblin-miner.js":16,"./goblin-shaman.js":17,"./input-manager.js":18,"./main-menu.js":19,"./octopus.js":22,"./player.js":24,"./rat.js":25,"./robo-killer.js":26,"./score.js":27,"./slime.js":28,"./stone-monster.js":29,"./sudo_chan.js":31,"./tilemap.js":32,"./turret.js":33,"./wolf.js":34}],16:[function(require,module,exports){
+},{"./DemonicGroundH.js":1,"./Kakao.js":2,"./barrel.js":4,"./bird.js":5,"./blobber.js":6,"./dynamiteDwarf.js":12,"./entity-manager.js":13,"./goblin-miner.js":16,"./goblin-shaman.js":17,"./input-manager.js":18,"./main-menu.js":19,"./octopus.js":22,"./player.js":24,"./powerUp.js":25,"./rat.js":26,"./robo-killer.js":27,"./score.js":28,"./slime.js":29,"./stone-monster.js":30,"./sudo_chan.js":32,"./tilemap.js":33,"./turret.js":34,"./wolf.js":35}],16:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -4660,6 +4664,7 @@ module.exports = (function() {
             var currentPlayer = this;
             var digComplete = function() {
               /* Add score */
+              //TODO different scores for different blocks?
               entityManager.scoreEngine.addScore(1);
 
               var box = currentPlayer.boundingBox(),
@@ -4757,6 +4762,10 @@ module.exports = (function() {
       this.animations.right[this.state].update(elapsedTime);
 
   };
+  
+  Player.prototype.poweredUp = function(type) {
+	  console.log(type);
+  }
 
   /* Player Render Function
    * arguments:
@@ -4830,6 +4839,118 @@ module.exports = (function() {
 }());
 
 },{"./animation.js":3,"./entity.js":14}],25:[function(require,module,exports){
+module.exports = (function(){
+	var Animation = require('./animation.js'),
+		Entity = require('./entity.js'),
+		Player = require('./player.js'),
+		EntityManager = require('./entity-manager.js');
+	
+	function PowerUp(locationX, locationY, mapLayer,
+					 type, width, height, frameNum, imgPath) {
+		this.x = locationX;
+		this.y = locationY;
+		this.type = type;
+		this.width = width;
+		this.height = height;
+		this.img = new Image();
+		this.animation = null;
+		this.radius = Math.sqrt(this.width * this.width / 4 + this.height * this.height / 4);
+		var outerObject = this;
+		this.img.onload = function () {
+			outerObject.animation = new Animation(outerObject.img, outerObject.width, outerObject.height, 0, 0, frameNum);
+		}
+		console.log(imgPath);
+		this.img.src = imgPath;
+		
+		this.pickedUp = false;
+		this.pickedUpSound = new Audio('./sounds/powerUp.wav');
+	}
+	
+	
+	PowerUp.prototype.update = function(elapsedTime, tilemap, entityManager)
+	{
+		if (this.img.complete == false || this.pickedUp == true) return;
+		
+		this.animation.update(elapsedTime);
+	}
+	
+	PowerUp.prototype.render = function(context, debug)
+	{
+		if (this.img.complete == false || this.pickedUp == true) return;
+		this.animation.render(context, this.x, this.y);
+		if(debug) renderDebug(this, context);
+	}
+	
+	function renderDebug(powerUp, ctx) {
+		var bounds = powerUp.boundingBox();
+		var circle = powerUp.boundingCircle();
+		ctx.save();
+		
+		// Draw player bounding box
+		ctx.strokeStyle = "red";
+		ctx.beginPath();
+		ctx.moveTo(bounds.left, bounds.top);
+		ctx.lineTo(bounds.right, bounds.top);
+		ctx.lineTo(bounds.right, bounds.bottom);
+		ctx.lineTo(bounds.left, bounds.bottom);
+		ctx.lineTo(bounds.left, bounds.bottom);
+		ctx.closePath();
+		ctx.stroke();
+		
+		ctx.strokeStyle = "blue";
+		ctx.beginPath();
+		ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
+		ctx.stroke();
+		
+		// Outline tile underfoot
+		var tileX = 64 * Math.floor((bounds.left + (this.width/2))/64),
+			tileY = 64 * (Math.floor(bounds.bottom / 64));
+		ctx.strokeStyle = "black";
+		ctx.beginPath();
+		ctx.moveTo(tileX, tileY);
+		ctx.lineTo(tileX + 64, tileY);
+		ctx.lineTo(tileX + 64, tileY + 64);
+		ctx.lineTo(tileX, tileY + 64);
+		ctx.closePath();
+		ctx.stroke();
+		
+		ctx.restore();
+  }
+	
+	PowerUp.prototype.collide = function(otherEntity)
+	{
+		if (otherEntity.type == 'player' && this.pickedUp == false) {
+			console.log("collided");
+			otherEntity.poweredUp(this.type);
+			this.pickedUpSound.play();
+			this.pickedUp = true;
+		}
+	}
+	
+	PowerUp.prototype.boundingBox = function()
+	{
+		return {
+			left: this.x,
+			top: this.y,
+			right: this.x + this.width,
+			bottom: this.y + this.height
+		}
+	}
+
+	PowerUp.prototype.boundingCircle = function()
+	{
+		return {
+			cx: this.x + this.width / 2,
+			cy: this.y + this.height / 2,
+			radius: this.radius
+		}
+	}
+	
+	
+	return PowerUp;
+
+}())
+},{"./animation.js":3,"./entity-manager.js":13,"./entity.js":14,"./player.js":24}],26:[function(require,module,exports){
 /* Enemy module
  * Authors:
  * Kien Le
@@ -5099,7 +5220,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":3,"./entity.js":14}],26:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":14}],27:[function(require,module,exports){
 /* Entity: Robo-Killer module
  * Implements the entity pattern, provides specific robo-killer constructs.
  *
@@ -5413,7 +5534,7 @@ module.exports = (function() {
 
 }());
 
-},{"./animation.js":3,"./entity.js":14}],27:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":14}],28:[function(require,module,exports){
 /* Score engine */
 
 module.exports = (function (){
@@ -5438,7 +5559,7 @@ module.exports = (function (){
 
 })();
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -5690,7 +5811,7 @@ module.exports = (function(){
    return Slime;
   
 }());
-},{"./animation.js":3,"./entity.js":14}],29:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":14}],30:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -5732,6 +5853,8 @@ module.exports = (function(){
         this.waitingTime = 0;
         this.timeToLive = TIME_TO_LIVE;
         this.renderBoundingCircle = false;
+
+        this.score = 3;
 
         this.idle_image = new Image();
         this.idle_image.src = 'img/stone-monster-img/stone_monster_idle.png';
@@ -5972,7 +6095,7 @@ module.exports = (function(){
     return StoneMonster;
 }());
 
-},{"./animation.js":3,"./entity.js":14,"./player.js":24}],30:[function(require,module,exports){
+},{"./animation.js":3,"./entity.js":14,"./player.js":24}],31:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -6042,7 +6165,7 @@ module.exports = (function() {
     return Sudo_Animation;
 
 }());
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -6290,7 +6413,7 @@ module.exports = (function(){
     return Sudo_Chan;
 }());
 
-},{"./entity.js":14,"./sudo-chan-animation.js":30}],32:[function(require,module,exports){
+},{"./entity.js":14,"./sudo-chan-animation.js":31}],33:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -6852,7 +6975,7 @@ module.exports = (function (){
   
 })();
 
-},{"./noise.js":21}],33:[function(require,module,exports){
+},{"./noise.js":21}],34:[function(require,module,exports){
 
 
 
@@ -7244,7 +7367,7 @@ module.exports = (function(){
 	return Turret;
 	
 }())
-},{"./animation.js":3,"./cannonball.js":8,"./entity-manager.js":13,"./entity.js":14,"./player.js":24}],34:[function(require,module,exports){
+},{"./animation.js":3,"./cannonball.js":8,"./entity-manager.js":13,"./entity.js":14,"./player.js":24}],35:[function(require,module,exports){
 /* Wolf module
  * Implements the entity pattern and provides
  * the DiggyHole Wolf info.
@@ -7499,4 +7622,4 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":3,"./entity.js":14}]},{},[15,20]);
+},{"./animation.js":3,"./entity.js":14}]},{},[20]);
