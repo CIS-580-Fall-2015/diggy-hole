@@ -58,7 +58,6 @@ module.exports = (function(){
     this.ySpeed = 15;
     this.isLeft = false;
 	this.type = "player";
-      this.enable_vertical_swim = false; //By default player should not be able to swim up
     
     //The animations
     this.animations = {
@@ -95,10 +94,17 @@ module.exports = (function(){
     // find the tile we are standing on.
     return (tile && tile.data.solid) ? true : false;
   }
-    Player.prototype.inWater = function(tilemap){
-        var box = this.boundingBox(),
-            tileX = Math.floor((box.left + (SIZE/2))/64), //possibly make whole body immersion
-            tileY = Math.floor(box.bottom / 64), //possibly make whole body immersion
+  // Check to see if player is in water i.e full body emersion
+  Player.prototype.inWater = function(tilemap){
+    var box = this.boundingBox();
+      // Based on the position that player is facing changed the location of it's X coordinate
+    if(this.isLeft){
+      var tileX = Math.floor((box.left + (SIZE/(3/2)))/64);
+       }
+    else{
+      var tileX = Math.floor((box.right - (SIZE/24))/64);
+    }
+    var tileY = Math.floor(box.top / 64), //make whole body immersion
             tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
             if(tile){
                 if (tile.data.type == "Water"){
@@ -107,7 +113,25 @@ module.exports = (function(){
             }
         return false; //
     };
-  
+  // Check to see if player is on top of water
+  Player.prototype.onWater = function(tilemap){
+    var box = this.boundingBox();
+    // Based on the position that player is facing changed the location of it's X coordinate
+    if(this.isLeft){
+      var tileX = Math.floor((box.left)/64)
+    }
+    else{
+      var tileX = Math.floor((box.right)/64);
+    }
+    var tileY = Math.floor(box.bottom / 64) - 1,// check if player is right above water.
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if(tile){
+      if (tile.data.type == "Water" && !this.inWater(tilemap)){
+        return true;
+      }
+    }
+    return false; //
+  };
   // Moves the player to the left, colliding with solid tiles
   Player.prototype.moveLeft = function(distance, tilemap) {
     this.currentX -= distance;
@@ -153,18 +177,18 @@ module.exports = (function(){
             sprite.state = FALLING;
             sprite.velocityY = 0;
           }
-          else if(sprite.inWater(tilemap)){
+          // If there is water underneath it
+          else if(sprite.onWater(tilemap) || sprite.inWater(tilemap)){
               sprite.state = SWIMMING;
               sprite.holdBreath = true;
-              sprite.enable_vertical_swim = true;
           }
           else {
             if(isKeyDown(commands.DIG)) {
               sprite.state = DIGGING;
             }
             else if(isKeyDown(commands.UP)) {
-              sprite.state = JUMPING;
-              sprite.velocityY = JUMP_VELOCITY;
+                sprite.state = JUMPING;
+                sprite.velocityY = JUMP_VELOCITY;
             }
             else if(isKeyDown(commands.LEFT)) {
               if (sprite.inWater(tilemap)) {//DEBUG
@@ -192,7 +216,7 @@ module.exports = (function(){
 		var box = this.boundingBox(),
 			tileX = Math.floor((box.left + (SIZE/2))/64),
 			tileY = Math.floor(box.bottom / 64);											
-			tilemap.setTileAt(8, tileX, tileY, 0);			
+			tilemap.setTileAt(8, tileX, tileY, 0);
 			sprite.state = FALLING;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
@@ -230,17 +254,20 @@ module.exports = (function(){
             sprite.moveRight(elapsedTime * SPEED, tilemap);
           }
           break;
-          case SWIMMING:
+        case SWIMMING:
             console.log("swimming");
             console.log(sprite.velocityY);
-              //Player Sinks automatically
-              //if(!sprite.onGround(tilemap)){
-                  sprite.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2) +
-                      (sprite.velocityY / GRAVITY_IN_WATER);
+              //Player Sinks automatically, they have risistance i.e sink slower if fully emmersed
+              // in water
+                  if(sprite.inWater(tilemap)){
+                    sprite.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2) +
+                        (sprite.velocityY / GRAVITY_IN_WATER);
+                    console.log("in water");
+                  }
+              else{
+                    sprite.state = FALLING;
+                  }
                   sprite.currentY += sprite.velocityY * elapsedTime;
-              //}
-              //check if the force from player's plunge enables them to swim back up, left or right
-              if(sprite.enable_vertical_swim){
                   if(isKeyDown(commands.LEFT)){
                       sprite.velocityY = 0;
                       sprite.isLeft = true;
@@ -252,22 +279,28 @@ module.exports = (function(){
                       sprite.moveRight(elapsedTime * SPEED_IN_LIQUID, tilemap);
                   }
                   else if(isKeyDown(commands.UP)) {
-                    sprite.velocityY = Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
-                    sprite.currentY -= sprite.velocityY * elapsedTime;
-                    sprite.velocityY = 0;
+                      sprite.velocityY = SWIM_UP;
                       console.log("SWIMING UP");
                   }
-              }
+                  else if(isKeyDown(commands.DIG)){
+                      sprite.state = DIGGING;
+                  }
               else if(!sprite.onGround(tilemap) && !sprite.inWater(tilemap)){
                     sprite.state = FALLING;
                     sprite.holdBreath = false;
                     console.log("falling");
               }
-              else if(sprite.onGround(tilemap)){
+              else if(sprite.onGround(tilemap) && !sprite.inWater(tilemap)){
                   sprite.velocityY = 0;
                   sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+                    sprite.state = STANDING;
                   console.log("standing");
               }
+              else if(sprite.onGround(tilemap) && sprite.inWater(tilemap)){
+                    sprite.velocityY = 0;
+                    sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+                    console.log("floating in water");
+                  }
               if(breathCount > 4){
                 //Player is dead!
               //<progress id="health" value="100" max="100"></progress>
@@ -279,7 +312,7 @@ module.exports = (function(){
       // Swap input buffers
       swapBuffers();
     }
-       if(sprite.holdBreath){
+       if(sprite.holdBreath && sprite.inWater(tilemap)){
          breathCount = elapsedTime + breathCount
        }
         else{
