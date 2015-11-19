@@ -185,6 +185,10 @@ module.exports = (function() {
         case DIGGING:
             var currentPlayer = this;
             var digComplete = function() {
+              /* Add score */
+              //TODO different scores for different blocks?
+              entityManager.scoreEngine.addScore(1);
+
               var box = currentPlayer.boundingBox(),
                   tileX,
                   tileY;
@@ -285,6 +289,20 @@ module.exports = (function() {
       this.animations.right[this.state].update(elapsedTime);
 
   };
+  
+  /*
+     This method gets called when a power up is picked up
+	 It should eventually delete the power up from the game
+  */
+  Player.prototype.poweredUp = function(powerUp) {
+	  // Delete power up from entity manager
+	  console.log(powerUp.type);
+	  /*
+	  if (powerUp.type == '') {
+		  ...
+	  }
+	  */
+  }
 
   /* Player Render Function
    * arguments:

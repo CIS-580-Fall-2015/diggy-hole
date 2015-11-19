@@ -47,7 +47,8 @@ module.exports = (function (){
       backBuffer,
       backBufferCtx,
       stateManager,
-      ScoreEngine = require('./score.js');
+      ScoreEngine = require('./score.js'),
+	  PowerUp = require('./powerUp.js');
 
   /* Loads the GameState, triggered by the StateManager
    * This function sets up the screen canvas, the tilemap,
@@ -140,6 +141,9 @@ module.exports = (function (){
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
 
 	}
+	powerUp = new PowerUp(258, 14912, 0,
+					 'demo', 44, 40, 10, './img/powerUps/coin.png');
+	entityManager.add(powerUp);
 
 	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
 	entityManager.add(dynamiteDwarf);

@@ -42,6 +42,7 @@ var direction;//0 for left, 1 for right
     this.lastTime = 0;//Tracks the last time update was called
     this.id = id;
 	  this.type = "ghost";
+    this.score = 4;
 
     //The animations
     this.animations = {

@@ -40,6 +40,8 @@ module.exports = (function(){
         this.timeToLive = TIME_TO_LIVE;
         this.renderBoundingCircle = false;
 
+        this.score = 3;
+
         this.idle_image = new Image();
         this.idle_image.src = 'img/stone-monster-img/stone_monster_idle.png';
 
