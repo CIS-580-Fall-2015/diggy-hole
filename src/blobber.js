@@ -33,11 +33,12 @@ module.exports = (function(){
     this.currentTileIndex = 0;
     this.nextTileIndex = 0;
     this.constSpeed = 15;
-    this.gravity = .5;
+    this.gravity = 0.5;
     this.angle = 0;
     this.xSpeed = xVel;
     this.ySpeed = yVel;
     this.isLeft = false;
+    this.score = 2;
 
     player = p;
     this.type = "BlobLobber";
