@@ -30,7 +30,7 @@ module.exports = (function() {
   // Movement constants
   const GRAVITY = -250;
   const TERMINAL_VELOCITY = GRAVITY * -8;
-  const JUMP_VELOCITY = -600;
+  const JUMP_VELOCITY = -900;
 
   //The Right facing dwarf spritesheet
   var dwarfRight = new Image();
@@ -289,7 +289,7 @@ module.exports = (function() {
       this.animations.right[this.state].update(elapsedTime);
 
   };
-  
+
   /*
      This method gets called when a power up is picked up
 	 It should eventually delete the power up from the game
