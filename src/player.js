@@ -13,10 +13,6 @@ module.exports = (function() {
     jump_sound = new Audio('resources/sounds/jumping_sound.mp3');
 	dig_sound = new Audio('resources/sounds/digging_sound.mp3');
 	walk_sound = new Audio('resources/sounds/walking_sound.mp3');
-	//fallGround_sound = new Audio ('resources/sounds/fallToGround.wav');
-	
-	//Dwarf sound responses
-	dwarf_sound = new Audio('resources/sounds/dwarfSound.mp3');
 
     Animation = require('./animation.js'),
     Pickaxe = require('./Pickaxe.js'),
@@ -242,9 +238,6 @@ module.exports = (function() {
             }
             else {
               sprite.state = STANDING;
-			  /* Added fall to the ground sound 
-			  fallGround_sound.loop = false;
-			  fallGround_sound.play();*/
             }
 
             if(sprite.state == DIGGING) {
