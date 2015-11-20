@@ -3095,8 +3095,14 @@ module.exports = (function() {
    * - tilemap, the current tilemap for the game.
    */
   function update(elapsedTime, tilemap) {
-    for (i = 0; i < entityCount; i++) {
-      if (entities[i]) entities[i].update(elapsedTime, tilemap, this);
+	//used for determining the area of the screen/what entities are on/near screen to be updated
+    var play = getPlayer();
+	var x = play.currentX;
+	var y = play.currentY;
+	var pow = Math.sqrt(1282*1282+722*722);
+	//loops through entities
+	for (i = 0; i < entityCount; i++) {
+      if (entities[i]&&playerDistance(entities[i])<pow+x+10&&playerDistance(entities[i])<pow+y) entities[i].update(elapsedTime, tilemap, this);
     }
     scoreEngine.update();
     checkCollisions();
@@ -3108,8 +3114,14 @@ module.exports = (function() {
    * - debug, the flag to trigger visual debugging
    */
   function render(ctx, debug) {
+	//used for determining the area of the screen/what entities are on/near screen to be updated
+    var play = getPlayer();
+	var x = play.currentX;
+	var y = play.currentY;
+	var pow = Math.sqrt(1282*1282+722*722);
+	//loops through entities
     for (var i = 0; i < entityCount; i++) {
-      if (entities[i]) entities[i].render(ctx, debug);
+      if (entities[i]&&playerDistance(entities[i])<pow+x+10&&playerDistance(entities[i])<pow+y) entities[i].render(ctx, debug);
     }
     scoreEngine.render(ctx);
   }
