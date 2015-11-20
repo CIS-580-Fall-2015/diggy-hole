@@ -75,7 +75,7 @@ module.exports = (function(){
 	
 	PowerUp.prototype.render = function(context, debug)
 	{
-		if (this.img.complete == false || this.pickedUp == true) return;
+		if (this.img.complete == false || this.pickedUp == true || this.animation == null) return;
 		this.animation.render(context, this.x, this.y);
 		if(debug) renderDebug(this, context);
 	}

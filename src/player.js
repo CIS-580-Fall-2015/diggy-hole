@@ -8,7 +8,8 @@
 module.exports = (function() {
   var Entity = require('./entity.js'),
     Animation = require('./animation.js'),
-    Pickaxe = require('./Pickaxe.js');
+    Pickaxe = require('./Pickaxe.js'),
+	Bone = require('./Bone.js');
 
   /* The following are player States (Swimming is not implemented) */
   const STANDING = 0;
@@ -72,6 +73,11 @@ module.exports = (function() {
 	this.superPickaxe = false;
 	this.superAxeImg = new Image();
 	this.superAxeImg.src = "./img/powerUps/pick.png";
+	
+	// bone powerup
+	this.attackFrequency = 1;
+	this.lastAttack = 0;
+	this.bones = 10;
 
     //The animations
     this.animations = {
@@ -317,7 +323,16 @@ module.exports = (function() {
         case SWIMMING:
           // NOT IMPLEMENTED YET
       }
-
+		
+		// countdown to next bone projectile
+	  	if(this.lastAttack <= this.attackFrequency){
+			this.lastAttack += elapsedTime;
+		}
+	
+		if (isKeyDown(commands.SHOOT)) {
+            this.shoot();
+         }
+		  
       // Swap input buffers
       swapBuffers();
     }
@@ -498,6 +513,18 @@ module.exports = (function() {
 	  }
 	 
   }
+  
+  	/*
+		Bone projectile powerup	
+	*/
+   Player.prototype.shoot = function(){
+		if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
+			bone = new Bone(this.currentX, this.currentY, 0, this.isLeft, this);
+			entityManager.add(bone);			
+			this.bones--;
+			this.lastAttack = 0;
+		}		   
+   } 
 
   /* Player Render Function
    * arguments:

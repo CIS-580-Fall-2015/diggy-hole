@@ -9,6 +9,8 @@ module.exports = (function(){
   var Entity = require('./entity.js'),
 		Player = require('./player.js'),
       Animation = require('./animation.js');
+	  entityManager = require('./entity-manager.js');
+	  PowerUp = require('./powerUp.js');
 
       var spritesheet = new Image();
       spritesheet.src = './img/blobber.png';
@@ -28,12 +30,13 @@ module.exports = (function(){
 
 
   //The Bone constructor
-  function Bone(locationX, locationY, layerIndex, isLeft) {
+  function Bone(locationX, locationY, layerIndex, isLeft, parent) {
     this.layerIndex = layerIndex;
     this.currentX = locationX;
     this.currentY = locationY;
     this.xSpeed = 200;
     this.isLeft = isLeft;
+	this.parent = parent;
 
 	this.type = "Bone";
 
@@ -193,12 +196,44 @@ module.exports = (function(){
     *   to determine what type it is to know what to
     *   do with it.
     */
-   Bone.prototype.collide = function(otherEntity) {
-	   if( otherEntity instanceof Player){
+   Bone.prototype.collide = function(otherEntity) {	   
+	   if(!this.enabled || otherEntity.type == this.parent.type || otherEntity.type == "Bone" || otherEntity.type == "Pickaxe" || otherEntity instanceof PowerUp){
+		   return
+		   
+	   }
+	   
+	   if( otherEntity.type == "player"){
 		   this.enabled = false;
 		   if(DEBUG){
 		   console.log("Player hit by bone");
+		   entityManager.scoreEngine.subScore(1000);
 		   }
+	   } else if(otherEntity.lives){
+		   this.enabled = false;
+		   if(--otherEntity.lives < 1){
+			   
+				if(DEBUG){
+					console.log("Entity "+otherEntity.type+" killed by bone.");
+				}
+				if(otherEntity.die){
+					otherEntity.die();				
+				} else {
+					entityManager.remove(otherEntity);
+				}
+		   }
+		   if(DEBUG){
+					console.log("Entity "+otherEntity.type+" has "+otherEntity.lives+" lives left.");
+			}
+	   } else {
+		   this.enabled = false;
+		   if(DEBUG){
+				console.log("Entity "+otherEntity.type+" killed by bone.");
+			}
+		   if(otherEntity.die){
+					otherEntity.die();				
+				} else {
+					entityManager.remove(otherEntity);
+				}
 	   }
    }
 
