@@ -150,7 +150,7 @@ module.exports = (function() {
 
   function getPlayer() {
     for (var i = 0; i < entityCount; i++) {
-      if (entities[i] && entities[i] instanceof Player) {
+      if (entities[i] && entities[i].type == "player") {
         return entities[i];
       }
     }

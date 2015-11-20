@@ -927,10 +927,10 @@ module.exports = function () {
 /* Class of the Barrel Skeleton entity
  *
  * Author:
- * - Matej Petrlik 
+ * - Matej Petrlik
  */
- 
- 
+
+
 module.exports = (function(){
   var Entity = require('./entity.js'),
 		Player = require('./player.js'),
@@ -938,11 +938,11 @@ module.exports = (function(){
       Animation = require('./animation.js'),
 	  PowerUp = require('./powerUp.js'),
 	  entityManager = require('./entity-manager.js');
-  
-  
+
+
   const DEBUG = true;
-  
-  
+
+
   /* The following are barrel states */
   const IDLE = 0;
   const ATTACKING = 1;
@@ -952,8 +952,8 @@ module.exports = (function(){
   const DEAD = 5;
 
   const PROJECTILE = 6;
-  
-  
+
+
   // The Sprite Size
   const SIZE = 64;
 
@@ -962,67 +962,68 @@ module.exports = (function(){
   const GRAVITY = -250;
   const JUMP_VELOCITY = -600;
   const MAX_BUMPS = 3;
-  
+
   // Time before removing entity after dead
   const TIME_DEAD = 20;
-  
-  
+
+
     var boneLeft = new Image();
   boneLeft.src = 'img/BoneLeft.png';
-  
+
   var barrelIdle = new Image();
   barrelIdle.src = 'img/BarrelIdle.png';
-  
+
     var barrelAttack = new Image();
   barrelAttack.src = 'img/BarrelAttack.png';
-  
+
       var barrelRollingLeft = new Image();
   barrelRollingLeft.src = 'img/BarrelRollingLeft.png';
-  
+
       var barrelRollingRight = new Image();
   barrelRollingRight.src = 'img/BarrelRollingRight.png';
-  
+
     var barrelDead = new Image();
   barrelDead.src = 'img/BarrelBroken.png';
 
   //The Barrel constructor
   function Barrel(locationX, locationY, layerIndex) {
     this.layerIndex = layerIndex;
-    this.currentX = locationX; 
-    this.currentY = locationY; 
-    this.nextX = 0; 
+    this.currentX = locationX;
+    this.currentY = locationY;
+    this.nextX = 0;
     this.nextY = 0;
-    this.currentTileIndex = 0; 
+    this.currentTileIndex = 0;
     this.nextTileIndex = 0;
-    this.constSpeed = 15; 
-    this.gravity = .5; 
-    this.angle = 0; 
-    this.xSpeed = 10; 
+    this.constSpeed = 15;
+    this.gravity = .5;
+    this.angle = 0;
+    this.xSpeed = 10;
     this.ySpeed = 15;
     this.isLeft = false;
-	
+    this.score = 4;
+
 	this.type = "Barrel";
-	
+
 	this.range = 5*SIZE;
 	this.attackFrequency = 1.7;
 	this.lastAttack = 0;
 	this.lives = 5;
 	this.timeDead = 0;
 	this.score = 10;
-	
+
 	this.state = IDLE;
 	this.playerInRange = false;
 	this.attacked = false;
 	this.recovered = true;
 	this.attackedFromLeft = false;
 	this.bumpCount = 0;
-    
+
     //The animations
     this.animations = {
       left: [],
       right: [],
     }
-    
+
     //The right-facing animations
     this.animations.right[IDLE] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
 	this.animations.right[ATTACKING] = new Animation(barrelAttack, SIZE, SIZE, 0, 0, 12);
@@ -1030,7 +1031,7 @@ module.exports = (function(){
     this.animations.right[FALLING] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
     this.animations.right[SWIMMING] = new Animation(barrelRollingRight, SIZE, SIZE, 0, 0, 8);
 	this.animations.right[DEAD] = new Animation(barrelDead, SIZE, SIZE, 0, 0, 1);
-    
+
     //The left-facing animations
     this.animations.left[IDLE] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
 	this.animations.left[ATTACKING] = new Animation(barrelAttack, SIZE, SIZE, 0, 0, 12);
@@ -1039,20 +1040,20 @@ module.exports = (function(){
     this.animations.left[SWIMMING] = new Animation(barrelRollingLeft, SIZE, SIZE, 0, 0, 8);
 	this.animations.left[DEAD] = new Animation(barrelDead, SIZE, SIZE, 0, 0, 1);
   }
-  
+
   // Barrel inherits from Entity
   Barrel.prototype = new Entity();
-  
+
   // Determines if the barrel is on the ground
   Barrel.prototype.onGround = function(tilemap) {
     var box = this.boundingBox(),
         tileX = Math.floor((box.left + (SIZE/2))/64),
         tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     // find the tile we are standing on.
     return (tile && tile.data.solid) ? true : false;
   }
-  
+
   // Moves the barrel to the left, colliding with solid tiles
   Barrel.prototype.moveLeft = function(distance, tilemap) {
     this.currentX -= distance;
@@ -1069,7 +1070,7 @@ module.exports = (function(){
       this.currentX = (Math.floor(this.currentX/64) + 1) * 64;
 	}
   }
-  
+
   // Moves the barrel to the right, colliding with solid tiles
   Barrel.prototype.moveRight = function(distance, tilemap) {
     this.currentX += distance;
@@ -1082,21 +1083,21 @@ module.exports = (function(){
 		if(++this.bumpCount>MAX_BUMPS){
 			this.state = IDLE;
 			this.bumpCount = 0;
-		}		
+		}
       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
 	}
   }
-  
+
   /* Barrel update function
    * arguments:
-   * - elapsedTime, the time that has passed 
+   * - elapsedTime, the time that has passed
    *   between this and the last frame.
    * - tilemap, the tilemap that corresponds to
    *   the current game world.
    */
   Barrel.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
-    
+
 	var entities = entityManager.queryRadius(this.currentX, this.currentY, this.range);
 	this.playerInRange = false;
 		for(var i=0; i<entities.length;i++){
@@ -1108,10 +1109,10 @@ module.exports = (function(){
 				break;
 			}
 		}
-    
+
       // Process barrel state
       switch(sprite.state) {
-		  
+
         case IDLE:
 			if(!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
@@ -1120,7 +1121,7 @@ module.exports = (function(){
 				console.log("Barrel state: FALLING");
 			}
           } else if(sprite.attacked){
-	  
+
 			if(!sprite.attackedFromLeft) {
               sprite.isLeft = true;
               sprite.state = ROLLING;
@@ -1133,7 +1134,7 @@ module.exports = (function(){
               sprite.isLeft = false;
               sprite.state = ROLLING;
               sprite.moveRight(elapsedTime * SPEED, tilemap);
-			  
+
 			  if(DEBUG){
 				console.log("Barrel direction: right");
 			}
@@ -1142,15 +1143,15 @@ module.exports = (function(){
 			else if(sprite.playerInRange){
 				this.lastAttack = this.attackFrequency;
 				sprite.state = ATTACKING;
-				
+
 				if(DEBUG){
 				console.log("Barrel state: ATTACKING");
 			}
 			}
 			break;
-          
-		
-		
+
+
+
 		case ATTACKING:
 			sprite.attack(elapsedTime, entities);
 			if(!sprite.onGround(tilemap)) {
@@ -1173,14 +1174,14 @@ module.exports = (function(){
 		  }
 			else if(!sprite.playerInRange){
 				sprite.state = IDLE;
-				
+
 				if(DEBUG){
 				console.log("Barrel state: IDLE");
 			}
 			}
-          
+
 		break;
-		
+
         case ROLLING:
           // If there is no ground underneath, fall
           if(!sprite.onGround(tilemap)) {
@@ -1206,14 +1207,14 @@ module.exports = (function(){
 				sprite.attacked = false;
 				sprite.recovered = true;
               sprite.state = IDLE;
-			  
+
 			  if(DEBUG){
 				console.log("Barrel state: ROLLING");
 			}
             }
           }
           break;
-		  
+
         case FALLING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
           sprite.currentY += sprite.velocityY * elapsedTime;
@@ -1230,36 +1231,36 @@ module.exports = (function(){
               sprite.moveRight(elapsedTime * SPEED, tilemap);
             } else {
             sprite.state = IDLE;
-            
-			
+
+
 			if(DEBUG){
 				console.log("Barrel state: IDLE");
 			}
           }
 		}
           break;
-		  
+
 		case DEAD:
 			this.timeDead += elapsedTime;
 			if(this.timeDead > TIME_DEAD){
 				entityManager.remove(this);
 			}
 		break;
-		  
+
         case SWIMMING:
           // NOT IMPLEMENTED YET
       }
-	
-	  
+
+
 	    // Update animation
     if(this.isLeft)
       this.animations.left[this.state].update(elapsedTime);
     else
       this.animations.right[this.state].update(elapsedTime);
-	
-	} 
-  
-  
+
+	}
+
+
   /* Barrel Render Function
    * arguments:
    * - ctx, the rendering context
@@ -1272,15 +1273,15 @@ module.exports = (function(){
       this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
     else
       this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
-    
+
     if(debug) renderDebug(this, ctx);
   }
-  
+
   // Draw debugging visual elements
   function renderDebug(barrel, ctx) {
     var bounds = barrel.boundingBox();
     ctx.save();
-    
+
     // Draw barrel bounding box
     ctx.strokeStyle = "red";
     ctx.beginPath();
@@ -1290,7 +1291,7 @@ module.exports = (function(){
     ctx.lineTo(bounds.left, bounds.bottom);
     ctx.closePath();
     ctx.stroke();
-    
+
     // Outline tile underfoot
     var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
         tileY = 64 * (Math.floor(bounds.bottom / 64));
@@ -1302,12 +1303,12 @@ module.exports = (function(){
     ctx.lineTo(tileX, tileY + 64);
     ctx.closePath();
     ctx.stroke();
-    
+
     ctx.restore();
   }
-  
+
   /* barrel BoundingBox Function
-   * returns: A bounding box representing the barrel 
+   * returns: A bounding box representing the barrel
    */
   Barrel.prototype.boundingBox = function() {
     return {
@@ -1317,8 +1318,8 @@ module.exports = (function(){
       bottom: this.currentY + SIZE
     }
   }
-  
-  
+
+
     Barrel.prototype.boundingCircle = function() {
      return {
 		 cx: this.currentX + SIZE/2,
@@ -1326,15 +1327,15 @@ module.exports = (function(){
 		 radius: SIZE/2
 	 }
    }
-   
+
       /* Collide function
     * This function is called by the entityManager when it determines
     * a possible collision.
     * parameters:
     * - otherEntity is the entity this enemy collided with
-    *   You will likely want to use 
-    *     'otherEntity instanceof <Type>' 
-    *   to determine what type it is to know what to 
+    *   You will likely want to use
+    *     'otherEntity instanceof <Type>'
+    *   to determine what type it is to know what to
     *   do with it.
     */
    Barrel.prototype.collide = function(otherEntity) {
@@ -1344,7 +1345,7 @@ module.exports = (function(){
 	   }
 		   if(--this.lives<=0){
 			   this.die();
-			   
+
 		   } else {
 			   if(DEBUG){
 		   console.log(this.lives+" lives left");
@@ -1361,7 +1362,7 @@ module.exports = (function(){
 		   }
 	   }
    }
-   
+
    Barrel.prototype.die = function(){
 	   this.state = DEAD;
 			   boneUp = new PowerUp(this.currentX, this.currentY, this.layerIndex, 'boneUp', 64, 64, 1, 'img/BoneLeft.png');
@@ -1370,11 +1371,11 @@ module.exports = (function(){
 				console.log("Barrel state: DEAD");
 			}
    }
-   
+
    Barrel.prototype.attack = function(elapsedTime, entities){
 		this.lastAttack += elapsedTime;
 		if(this.lastAttack >= this.attackFrequency){
-			
+
 			for(var i=0; i<entities.length;i++){
 				if(entities[i] instanceof Player){
 					var playerX = entities[i].currentX;
@@ -1386,18 +1387,17 @@ module.exports = (function(){
 			} else {
 				var isLeft = true;
 			}
-			
+
 			this.lastAttack = 0;
 			bone = new Bone(this.currentX, this.currentY, 0, isLeft, this);
 			entityManager.add(bone);
 		}
-	   
+
    }
-  
+
   return Barrel;
 
 }());
-
 
 },{"./animation.js":5,"./bone.js":9,"./entity-manager.js":15,"./entity.js":16,"./player.js":27,"./powerUp.js":28}],7:[function(require,module,exports){
 /* Bird Module
@@ -1997,7 +1997,7 @@ Cannonball.prototype = new Entity();
 return Cannonball;
 	
 }())
-},{"./animation.js":5,"./entity.js":16,"./tilemap.js":36}],11:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":16,"./tilemap.js":37}],11:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -2104,6 +2104,8 @@ module.exports = (function(){
     this.currentX = locationX;
     this.currentY = locationY;
 
+    this.score = 20;
+
     //default state
     this.state = HOLD;
 
@@ -2171,7 +2173,7 @@ module.exports = (function(){
       bottom: this.currentY + SIZE
     }
   }
-  
+
   Diamond.prototype.boundingCircle =function(){
     return{
       cx: this.currentX + SIZE/2,
@@ -2229,6 +2231,8 @@ module.exports = (function(){
   explosionImg.src = './img/explosionSpriteBig.png';
   var detonationTimer = 0;
   var explosionTimer = 0;
+  
+  var explosion = new Audio('./sounds/explosion.wav');
 
   //The Dynamite constructor
   function Dynamite(locationX, locationY, layerIndex, inputManager, sourceEntity) {
@@ -2314,6 +2318,7 @@ module.exports = (function(){
 			}
 		break;
         case DETONATE:
+		  explosion.play();
 		  if(explosionTimer < 15){
 			  explosionTimer++;
 			  if(explosionTimer == 8){
@@ -2508,6 +2513,8 @@ module.exports = (function(){
   var detonate = new Image();
   detonate.src = "./img/dwarfDetonate.png";
   
+  var explosion = new Audio('./sounds/explosion.wav');
+  
   var walkTimer = 0,
 	idleTimer = 0,
 	settingChargesTimer = 0,
@@ -2618,7 +2625,7 @@ module.exports = (function(){
       switch(sprite.state) {
         case STANDING:
 			sprite.isPlayerColliding = false;
-			if(isKeyDown(commands.ATTACK)){
+			if(isKeyDown(commands.DIGDOWN)|isKeyDown(commands.DIGUP)|isKeyDown(commands.DIGLEFT)|isKeyDown(commands.DIGRIGHT)){
 				sprite.state = DYING;
 			}
 			if(!sprite.onGround(tilemap)) {
@@ -2682,6 +2689,7 @@ module.exports = (function(){
 				if((tileY-GROUNDLVL) <= 0){//if above surface just use just constant force
 					player.velocityY = -1500;
 				}
+				explosion.play();
 				player.state = 2;//jumping
 				sprite.state = WALKING;
 			}
@@ -2955,7 +2963,7 @@ module.exports = (function() {
 
   function getPlayer() {
     for (var i = 0; i < entityCount; i++) {
-      if (entities[i] && entities[i] instanceof Player) {
+      if (entities[i] && entities[i].type == "player") {
         return entities[i];
       }
     }
@@ -3322,7 +3330,7 @@ module.exports = (function (){
 
 })();
 
-},{"./DemonicGroundH.js":2,"./Kakao.js":3,"./barrel.js":6,"./bird.js":7,"./blobber.js":8,"./dynamiteDwarf.js":14,"./entity-manager.js":15,"./goblin-miner.js":18,"./goblin-shaman.js":19,"./input-manager.js":21,"./main-menu.js":22,"./octopus.js":25,"./player.js":27,"./powerUp.js":28,"./rat.js":29,"./robo-killer.js":30,"./score.js":31,"./slime.js":32,"./stone-monster.js":33,"./sudo_chan.js":35,"./tilemap.js":36,"./turret.js":37,"./wolf.js":38}],18:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./Kakao.js":3,"./barrel.js":6,"./bird.js":7,"./blobber.js":8,"./dynamiteDwarf.js":14,"./entity-manager.js":15,"./goblin-miner.js":18,"./goblin-shaman.js":19,"./input-manager.js":21,"./main-menu.js":22,"./octopus.js":25,"./player.js":27,"./powerUp.js":28,"./rat.js":29,"./robo-killer.js":30,"./score.js":31,"./slime.js":32,"./stone-monster.js":34,"./sudo_chan.js":36,"./tilemap.js":37,"./turret.js":38,"./wolf.js":39}],18:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -4340,12 +4348,13 @@ window.onload = function() {
     if(state) state.exit();
     return state;
   }
-  
+
   var game = require('./game');
   pushState(game);
   
-  var mainMenu = require('./main-menu');
-  pushState(mainMenu);
+  //edited the main to go to the splash-screen first
+  var splash = require('./splash-screen');
+  pushState(splash);
   
   // Event handlers for key events
   window.onkeydown = function(event) {
@@ -4365,7 +4374,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":17,"./main-menu":22}],24:[function(require,module,exports){
+},{"./game":17,"./splash-screen":33}],24:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -6504,6 +6513,73 @@ module.exports = (function(){
   
 }());
 },{"./animation.js":5,"./entity.js":16}],33:[function(require,module,exports){
+/* MainMenu GameState module
+ * Provides the main menu for the Diggy Hole game.
+ * Authors:
+ * - Ian Speer, Austin Boerger
+ */
+module.exports = (function (){
+  var menu = document.getElementById("splash-screen"),
+      stateManager;
+
+  /*
+   * The load() method initializes the menu 
+   * and tells the DOM to render the menu HTML
+   * parameters:
+   * - sm the state manager
+   */
+  var load = function(sm) {
+    stateManager = sm;
+    menu.style.display = "flex";
+  }
+  
+  /*
+   * The exit() method hides the menu
+   */
+  var exit = function() {
+    menu.style.display = "none";
+  }
+    
+  /* 
+   * The update() method updates the menu
+   * (in this case, a no-op)
+   */
+  var update = function() {}
+  
+  /* 
+   * The render() method renders the menu
+   * (in this case, a no-op as the menu is 
+   * HTML elements renderd by the DOM)
+   */
+  var render = function() {}
+    
+  /* 
+   * The keyDown() method handles 
+   * the key down event for the menu.
+   */
+  var keyDown = function(event) {
+    switch(event.keyCode) {
+      case 13: // ENTER
+        event.preventDefault();
+		stateManager.popState();
+        break;
+    }
+  }
+  
+  /* The keyUp() method handles the key up event */
+  function keyUp(event) {}
+  
+  return {
+    load: load,
+    exit: exit,
+    update: update,
+    render: render,
+    keyDown: keyDown,
+    keyUp: keyUp
+  }
+  
+})();
+},{}],34:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -6787,7 +6863,7 @@ module.exports = (function(){
     return StoneMonster;
 }());
 
-},{"./animation.js":5,"./entity.js":16,"./player.js":27}],34:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":16,"./player.js":27}],35:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -6857,7 +6933,7 @@ module.exports = (function() {
     return Sudo_Animation;
 
 }());
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -7105,7 +7181,7 @@ module.exports = (function(){
     return Sudo_Chan;
 }());
 
-},{"./entity.js":16,"./sudo-chan-animation.js":34}],36:[function(require,module,exports){
+},{"./entity.js":16,"./sudo-chan-animation.js":35}],37:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -7683,7 +7759,7 @@ module.exports = (function (){
 
 })();
 
-},{"./noise.js":24}],37:[function(require,module,exports){
+},{"./noise.js":24}],38:[function(require,module,exports){
 
 
 
@@ -8075,7 +8151,7 @@ module.exports = (function(){
 	return Turret;
 	
 }())
-},{"./animation.js":5,"./cannonball.js":10,"./entity-manager.js":15,"./entity.js":16,"./player.js":27}],38:[function(require,module,exports){
+},{"./animation.js":5,"./cannonball.js":10,"./entity-manager.js":15,"./entity.js":16,"./player.js":27}],39:[function(require,module,exports){
 /* Wolf module
  * Implements the entity pattern and provides
  * the DiggyHole Wolf info.
