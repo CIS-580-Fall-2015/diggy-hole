@@ -91,9 +91,9 @@ module.exports = (function (){
 
     // Create the player and add them to
     // the entity manager
-    player = new Player(400, 240, 0, inputManager);
+    player = new Player(320, 240*64, 0, inputManager);
     entityManager.add(player);
-    
+
     // Set up score engine
     scoreEngine = new ScoreEngine();
     scoreEngine.setPositionFunction(tilemap.getCameraPosition)
@@ -142,13 +142,13 @@ module.exports = (function (){
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
 		//entityManager.add(barrel);
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
-		
+
 
 	}
 	//powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
-					 
-	
-	
+
+
+
 
 	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
 	entityManager.add(dynamiteDwarf);
