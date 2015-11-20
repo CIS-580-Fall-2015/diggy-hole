@@ -2014,9 +2014,10 @@ module.exports = (function(){
 		height - Height of one animation image.
 		frameNum - The number of frames in the collectible's sprite sheet.
 		imgPath - Relative path to the animation's sprite sheet.
+    score - The amount of points that the collectible is worth.
 	*/
 	function Collectible(locationX, locationY, mapLayer,
-					 type, width, height, frameNum, imgPath) {
+					 type, width, height, frameNum, imgPath, score) {
     // Establish coordinates.
 		this.x = locationX;
 		this.y = locationY;
@@ -2036,6 +2037,10 @@ module.exports = (function(){
 		this.animation = new Animation(this.img, this.width, this.height, 0, 0, frameNum);
     // Has the collectible been collected by the player? False to begin with.
 		this.collected = false;
+    // Establish the score of the entity.
+    this.score = score;
+
+    console.log("A " + this.type + " was created.");
 
     // A pickedUpSound might be implemented in the future (similar to the powerup).
 		//this.pickedUpSound = new Audio('');
@@ -2054,6 +2059,7 @@ module.exports = (function(){
     if (this.collected == true)
     {
       entityManager.remove(this);
+      console.log("A " + this.type + " was removed.");
     }
 	}
 
@@ -2106,7 +2112,8 @@ module.exports = (function(){
 			// Sounds may be implemented in the future.
 			//this.pickedUpSound.play();
 			this.collected = true;
-			this.player = otherEntity;
+      // Tell the player to add this to its list of collectibles.
+			// otherEntity.collected(this);
 		}
 	}
 
@@ -3378,8 +3385,8 @@ module.exports = (function (){
 
   // Create collectibles.
   // WHOEVER IS IN CHARGE OF ENTITY PLACEMENT: Feel free to change the coordiates (first 2 parameters - x,y).
-  entityManager.add(new Collectible(500, 240, 0,'bit_coin', 64, 64, 8, './img/bit_coin.png'));
-
+  entityManager.add(new Collectible(500, 240, 0,'bit_coin', 64, 64, 8, './img/bit_coin.png', 10));
+  // entityManager.add(new Collectible(600, 240, 0,'lost_cat', 64, 64, 14, './img/lost_cat.png', 15));
 
 	// Spawn 10 barrels close to player
 	 // And some turrets
@@ -3418,7 +3425,7 @@ module.exports = (function (){
     blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
     entityManager.add(blobber);
 
-			
+
 	// Kyle Brown: Background Music
 	var bgMusic = new Audio('./resources/sounds/DiggyHoleBGMusicAm.wav');
 	   bgMusic.addEventListener('ended', function() {

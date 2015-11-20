@@ -120,7 +120,7 @@ module.exports = (function(){
 			//this.pickedUpSound.play();
 			this.collected = true;
       // Tell the player to add this to its list of collectibles.
-			otherEntity.collected(this);
+			// otherEntity.collected(this);
 		}
 	}
 
