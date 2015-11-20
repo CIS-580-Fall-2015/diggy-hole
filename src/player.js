@@ -550,8 +550,8 @@ module.exports = (function() {
 	*/
    Player.prototype.shoot = function(){
 		if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
-			bone = new Bone(this.currentX, this.currentY, 0, this.isLeft, this);
-			entityManager.add(bone);			
+			var bone = new Bone(this.currentX, this.currentY, 0, this.isLeft, this);
+			this.entityManager.add(bone);
 			this.bones--;
 			this.lastAttack = 0;
 		}		   
