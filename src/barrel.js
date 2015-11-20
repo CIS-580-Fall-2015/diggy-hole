@@ -439,7 +439,7 @@ module.exports = (function(){
 
    Barrel.prototype.die = function(){
 	   this.state = DEAD;
-			   boneUp = new PowerUp(this.currentX, this.currentY, this.layerIndex, 'boneUp', 64, 64, 1, 'img/BoneLeft.png');
+			   boneUp = new PowerUp(this.currentX, this.currentY, this.layerIndex, 'boneUp', 64, 64, 10, 'img/powerUps/boneUp.png');
 			   entityManager.add(boneUp);
 			   if(DEBUG){
 				console.log("Barrel state: DEAD");
