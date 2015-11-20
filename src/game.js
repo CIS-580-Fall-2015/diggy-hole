@@ -100,28 +100,28 @@ module.exports = (function (){
     scoreEngine.setPositionFunction(tilemap.getCameraPosition)
     entityManager.setScoreEngine(scoreEngine);
 
-    //add wolf to
+   //add wolf to
     // the entity manager
-    wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
-    entityManager.add(wolf);
+    //wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
+    //entityManager.add(wolf);
 
-    bird = new Bird(400, 100);
+    bird = new Bird(600, 100);
     entityManager.add(bird);
 
     // Add a robo-killer to the entity manager.
-    robo_killer = new Robo_Killer(450, 240, 0);
+    robo_killer = new Robo_Killer(450, 1240, 0);
     entityManager.add(robo_killer);
 
-	rat = new Rat(500, 360, 0);
+	rat = new Rat(500, 1360, 0);
 	entityManager.add(rat);
 
-	slime = new Slime(400, 20, 0);
+	slime = new Slime(400, 1120, 0);
 	entityManager.add(slime);
 
-    sudo_chan = new Sudo_Chan(490, 240, 0);
+    sudo_chan = new Sudo_Chan(490, 1240, 0);
     entityManager.add(sudo_chan);
 
-    octopus = new Octopus(120, 240, 0);
+    octopus = new Octopus(120, 2240, 0);
     entityManager.add(octopus);
 
 	DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
