@@ -460,7 +460,8 @@ module.exports = (function (){
           screenCtx.fillStyle="rgba(142,167,214,0.3)"; //color similar but lighter than the water tile
           screenCtx.fillRect(i*tileWidth,j*tileHeight,tileWidth,tileHeight);
 			  }else if (map[index] == 13+1) {
-
+          screenCtx.fillStyle="rgba(182,56,46,0.3)"; //color similar but lighter than the lava tile
+          screenCtx.fillRect(i*tileWidth,j*tileHeight,tileWidth,tileHeight);
 			  }
 		  }
 	  }
