@@ -3095,8 +3095,14 @@ module.exports = (function() {
    * - tilemap, the current tilemap for the game.
    */
   function update(elapsedTime, tilemap) {
-    for (i = 0; i < entityCount; i++) {
-      if (entities[i]) entities[i].update(elapsedTime, tilemap, this);
+	//used for determining the area of the screen/what entities are on/near screen to be updated
+    var play = getPlayer();
+	var x = play.currentX;
+	var y = play.currentY;
+	var pow = Math.sqrt(1282*1282+722*722);
+	//loops through entities
+	for (i = 0; i < entityCount; i++) {
+      if (entities[i]&&playerDistance(entities[i])<pow+x+10&&playerDistance(entities[i])<pow+y) entities[i].update(elapsedTime, tilemap, this);
     }
     scoreEngine.update();
     checkCollisions();
@@ -3108,8 +3114,14 @@ module.exports = (function() {
    * - debug, the flag to trigger visual debugging
    */
   function render(ctx, debug) {
+	//used for determining the area of the screen/what entities are on/near screen to be updated
+    var play = getPlayer();
+	var x = play.currentX;
+	var y = play.currentY;
+	var pow = Math.sqrt(1282*1282+722*722);
+	//loops through entities
     for (var i = 0; i < entityCount; i++) {
-      if (entities[i]) entities[i].render(ctx, debug);
+      if (entities[i]&&playerDistance(entities[i])<pow+x+10&&playerDistance(entities[i])<pow+y) entities[i].render(ctx, debug);
     }
     scoreEngine.render(ctx);
   }
@@ -5115,20 +5127,24 @@ module.exports = (function() {
             sprite.velocityY = 0;
           } else {
             if (isKeyDown(commands.DIGDOWN)) {
+			  dig_sound.play();				
               this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true);
               sprite.state = DIGGING;
               sprite.digState = DOWN_DIGGING;
             } else if(isKeyDown(commands.DIGLEFT)) {
+			  dig_sound.play();				
               this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = LEFT_DIGGING;
               sprite.isLeft = true;
             } else if(isKeyDown(commands.DIGRIGHT)) {
+			  dig_sound.play();				
               this.pick = new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = RIGHT_DIGGING;
               sprite.isLeft = false;
-            } else if(isKeyDown(commands.DIGUP)) {
+            } else if(isKeyDown(commands.DIGUP)) {				
+			  dig_sound.play();				
                 this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY }, true);
               sprite.state = DIGGING;
               sprite.digState = UP_DIGGING;
@@ -7552,9 +7568,11 @@ module.exports = (function (){
         tileproperties: {
           0: { // Sky background
             type: "SkyBackground",
+            notDiggable: true
           },
           1: { // Clouds
              type: "Clouds",
+             notDiggable: true
           },
           2: { // Sky Earth
             type: "Sky Earth",
@@ -7576,10 +7594,12 @@ module.exports = (function (){
           },
           6: { // Water
             type: "Water",
-            liquid: true
+            liquid: true,
+            notDiggable: true
           },
           7: { // Cave background
             type: "CaveBackground",
+            notDiggable: true
           },
           8: { // Gems
             type: "Gems",
@@ -7597,21 +7617,26 @@ module.exports = (function (){
           },
           11: { // water
             type: "Water",
-            liquid: true
+            liquid: true,
+            notDiggable: true
           },
           12: { // cave background
             type: "CaveBackground",
+            notDiggable: true
           },
           13: { // lava
             type: "Lava",
             liquid: true,
             damage: 10,
+            notDiggable: true
           },
           14: { // dark background
             type: "DarkBackground",
+            notDiggable: true
           },
           15: { // dug background
             type: "DugBackground",
+            notDiggable: true
           }
         },
         spacing: 0,
