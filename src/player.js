@@ -567,7 +567,7 @@ module.exports = (function() {
         this.currentY - 350,
         64,
         64);
-		ctx.font = "15pt Calibri";
+		ctx.font = "20pt Calibri";
 		ctx.fillText("x"+this.bones, this.currentX + 445, this.currentY - 300);
 
 	
