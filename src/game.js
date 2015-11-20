@@ -134,10 +134,11 @@ module.exports = (function (){
     // and some shamans
 	for(var i = 0; i < 10; i++){
 		if (i < 3) {
-			turret = new Turret(Math.random()*64*50, Math.random()*64*20, o);
+			turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
 			entityManager.add(turret);
 		}
 		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 500));
+		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 12, './img/powerUps/crystal_enhanced.png', true, 500));
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
 		//entityManager.add(barrel);
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
