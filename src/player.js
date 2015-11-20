@@ -7,8 +7,7 @@
  */
 module.exports = (function() {
   var Entity = require('./entity.js'),
-<<<<<<< HEAD
-    Animation = require('./animation.js')
+    Animation = require('./animation.js');
 	
 	/*Audio sources*/	
     jump_sound = new Audio('resources/sounds/jumping_sound.mp3');
@@ -18,11 +17,9 @@ module.exports = (function() {
 	
 	//Dwarf sound responses
 	dwarf_sound = new Audio('resources/sounds/dwarfSound.mp3');
-	
-=======
+
     Animation = require('./animation.js'),
     Pickaxe = require('./Pickaxe.js');
->>>>>>> refs/remotes/origin/master
 
   /* The following are player States (Swimming is not implemented) */
   const STANDING = 0;
@@ -303,12 +300,11 @@ module.exports = (function() {
           }
           break;
         case DIGGING:
-<<<<<<< HEAD
             var currentPlayer = this;
 			
 			/*Added digging sound*/
 			//Not tested yet because digging not working yet
-			dig_sound.play();
+			//dig_sound.play();
 			
             var digComplete = function() {
               /* Add score */
@@ -361,8 +357,6 @@ module.exports = (function() {
             };
             this.animations.left[this.state].donePlayingCallback = digComplete;
             this.animations.right[this.state].donePlayingCallback = digComplete;
-=======
->>>>>>> refs/remotes/origin/master
           break;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
