@@ -3223,7 +3223,7 @@ module.exports = (function (){
 		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
 		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
 		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 12, './img/powerUps/crystal_enhanced.png', true, -1));
-		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
+		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
 		entityManager.add(barrel);
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
 		
@@ -4800,6 +4800,8 @@ module.exports = (function() {
 
   var ratLeft = new Image();
   ratLeft.src = "img/ratLeft2.png";
+  
+  
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
@@ -4825,12 +4827,14 @@ module.exports = (function() {
 	this.type = "player";
 	this.superPickaxe = false;
 	this.superAxeImg = new Image();
-	this.superAxeImg.src = "./img/powerUps/pick.png";
+	this.superAxeImg.src = "./img/powerUps/pick.png";	
+	this.boneImg = new Image();
+	this.boneImg.src = "./img/BoneLeft.png";
 	
 	// bone powerup
 	this.attackFrequency = 1;
 	this.lastAttack = 0;
-	this.bones = 10;
+	this.bones = 5;
 
     //The animations
     this.animations = {
@@ -5235,13 +5239,13 @@ module.exports = (function() {
 	 It should eventually delete the power up from the game
   */
   Player.prototype.poweredUp = function(powerUp) {
-	  // Delete power up from entity manager
-	  console.log(powerUp.type);
-	  /*
-	  if (powerUp.type == '') {
-		  ...
+	  
+	  console.log("Picked up power up: " + powerUp.type);
+	  
+	  if (powerUp.type == 'boneUp') {
+		  this.bones++;
 	  }
-	  */
+	  
 	  if (powerUp.type == 'pick') {
 		  
 		  console.log("super pickaxe activated");
@@ -5305,6 +5309,20 @@ module.exports = (function() {
         64,
         64);
 	}
+	
+		ctx.drawImage(
+        this.boneImg,
+        0,
+        0,
+        64,
+        64,
+        this.currentX + 400,
+        this.currentY - 350,
+        64,
+        64);
+		ctx.font = "15pt Calibri";
+		ctx.fillText("x"+this.bones, this.currentX + 445, this.currentY - 300);
+
 	
     if (debug) renderDebug(this, ctx);
   }
