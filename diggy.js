@@ -200,7 +200,7 @@ module.exports = (function(){
 		   this.enabled = false;
 		   if(DEBUG){
 		   console.log("Player hit by bone");
-		   entityManager.scoreEngine.subScore(1000);
+		   entityManager.scoreEngine.scoreToZero();
 		   }
 	   } else if(otherEntity.lives){
 		   this.enabled = false;
@@ -3346,28 +3346,28 @@ module.exports = (function (){
     scoreEngine.setPositionFunction(tilemap.getCameraPosition)
     entityManager.setScoreEngine(scoreEngine);
 
-    //add wolf to
+   //add wolf to
     // the entity manager
-    wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
-    entityManager.add(wolf);
+    //wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
+    //entityManager.add(wolf);
 
-    bird = new Bird(400, 100);
+    bird = new Bird(600, 100);
     entityManager.add(bird);
 
     // Add a robo-killer to the entity manager.
-    robo_killer = new Robo_Killer(450, 240, 0);
+    robo_killer = new Robo_Killer(450, 1240, 0);
     entityManager.add(robo_killer);
 
-	rat = new Rat(500, 360, 0);
+	rat = new Rat(500, 1360, 0);
 	entityManager.add(rat);
 
-	slime = new Slime(400, 20, 0);
+	slime = new Slime(400, 1120, 0);
 	entityManager.add(slime);
 
-    sudo_chan = new Sudo_Chan(490, 240, 0);
+    sudo_chan = new Sudo_Chan(490, 1240, 0);
     entityManager.add(sudo_chan);
 
-    octopus = new Octopus(120, 240, 0);
+    octopus = new Octopus(120, 2240, 0);
     entityManager.add(octopus);
 
 	DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
@@ -3411,13 +3411,21 @@ module.exports = (function (){
 
 	// Karenfang: Create a Kakao and add it to
     // the entity manager
-    kakao = new Kakao(310,240,0);  //two tiles to the right of the player
+    kakao = new Kakao(310,1240,0);  //two tiles to the right of the player
     entityManager.add(kakao);
 
     extantBlobbers = 1;
     blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
     entityManager.add(blobber);
 
+			
+	// Kyle Brown: Background Music
+	var bgMusic = new Audio('./resources/sounds/DiggyHoleBGMusicAm.wav');
+	   bgMusic.addEventListener('ended', function() {
+    this.currentTime = 0;
+    this.play();
+	}, false);
+	bgMusic.play();
 
 
   };
@@ -3430,8 +3438,8 @@ module.exports = (function (){
   var update = function(elapsedTime) {
     //player.update(elapsedTime, tilemap);
     entityManager.update(elapsedTime, tilemap);
+	tilemap.update();
     inputManager.swapBuffers();
-
     octopus.getPlayerPosition(player.boundingBox());
   };
 
@@ -4958,10 +4966,6 @@ module.exports = (function() {
     jump_sound = new Audio('resources/sounds/jumping_sound.mp3');
 	dig_sound = new Audio('resources/sounds/digging_sound.mp3');
 	walk_sound = new Audio('resources/sounds/walking_sound.mp3');
-	//fallGround_sound = new Audio ('resources/sounds/fallToGround.wav');
-	
-	//Dwarf sound responses
-	dwarf_sound = new Audio('resources/sounds/dwarfSound.mp3');
 
     Animation = require('./animation.js'),
     Pickaxe = require('./Pickaxe.js'),
@@ -5168,10 +5172,7 @@ module.exports = (function() {
               sprite.velocityY = JUMP_VELOCITY;
             } else if (isKeyDown(commands.LEFT)) {
 			  /*Added walking sound*/
-			  walk_sound.play();
-			  
-			  dwarf_sound.play();
-		  
+			  walk_sound.play();		  
               sprite.isLeft = true;
               sprite.state = WALKING;
               sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
@@ -5187,9 +5188,6 @@ module.exports = (function() {
             }
             else {
               sprite.state = STANDING;
-			  /* Added fall to the ground sound 
-			  fallGround_sound.loop = false;
-			  fallGround_sound.play();*/
             }
 
             if(sprite.state == DIGGING) {
@@ -6409,6 +6407,18 @@ module.exports = (function (){
 
   ScoreEngine.prototype.subScore = function(amount) {
     this.score -= amount;
+    if (this.score < 0)
+    {
+      this.score = 0;
+    }
+  };
+
+  ScoreEngine.prototype.scoreToZero = function() {
+    this.score = 0;
+    for (var i = 0; i < this.frameGoal.length; i++)
+    {
+      this.frameGoal[i] = 0;
+    }
   };
 
   ScoreEngine.prototype.update = function()
@@ -6451,7 +6461,11 @@ module.exports = (function (){
     }
   };
 
-  ScoreEngine.prototype.updateAnimation = function()
+  /**
+   * Parameters:
+   *     forward - true is forward, false is backward
+   */
+  ScoreEngine.prototype.updateAnimation = function(forward)
   {
     for (var i = 0; i < this.frameGoal.length; i++)
     {
@@ -6469,6 +6483,21 @@ module.exports = (function (){
           {
             this.frameIndex[i] = 0;
           }
+          // if (forward)
+          // {
+            
+          // }
+          // else // backward
+          // {
+          //   if (this.frameIndex[i] > 0)
+          //   {
+          //     this.frameIndex[i] -= 1;
+          //   }
+          //   else
+          //   {
+          //     this.frameIndex[i] = 39;
+          //   }
+          // }
         }
       }
     }
