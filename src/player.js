@@ -518,9 +518,13 @@ module.exports = (function() {
 	  
 	  if (powerUp.type == 'boneUp') {
 		  this.bones++;
-	  }
+	  } else if (powerUp.type == 'coin') {
+		  // add points
 	  
-	  if (powerUp.type == 'pick') {
+	  } else if (powerUp.type == 'crystal') {
+		  // add points
+		  
+	  } else if (powerUp.type == 'pick') {
 		  
 		  console.log("super pickaxe activated");
 		  this.superPickaxe = true;

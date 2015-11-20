@@ -32,7 +32,7 @@ function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, grav
 	this.gravity = gravity;
 	this.projectileTime = 0;
 	this.projectileTimeExploding = 0;
-	this.explosionSound = new Audio('./sounds/explosion.wav');
+	this.explosionSound = new Audio('./resources/sounds/explosion.wav');
 	
 	// constants
 	this.projectileTimeToReachTop = undefined;
