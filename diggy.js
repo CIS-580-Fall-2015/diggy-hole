@@ -80,38 +80,31 @@ module.exports = (function(){
 
 	// Update projectile
 	if(this.enabled){
-			if(this.isLeft){
-				this.currentX -= elapsedTime * this.xSpeed;
-			} else {
-				this.currentX += elapsedTime * this.xSpeed;
-			}
-			this.distTraveled += elapsedTime * this.xSpeed;
+		if(this.isLeft){
+			this.currentX -= elapsedTime * this.xSpeed;
+		} else {
+			this.currentX += elapsedTime * this.xSpeed;
+		}
+		this.distTraveled += elapsedTime * this.xSpeed;
 
 
-			if(this.distTraveled >= this.range){
-				this.distTraveled = 0;
-				this.enabled = false;
-			}
+		if(this.distTraveled >= this.range){
+			this.distTraveled = 0;
+			this.enabled = false;
+		}
 
-			if(this.isLeft){
-		var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.enabled = false;
-
-
-
-	} else {
-		var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.enabled = false;
-	}
-
+		if(this.isLeft){
+			var box = this.boundingBox(),
+				tileX = Math.floor(box.left/64),
+				tileY = Math.floor(box.bottom / 64) - 1;
+		} else {
+			var box = this.boundingBox(),
+				tileX = Math.floor(box.right/64),
+				tileY = Math.floor(box.bottom / 64) - 1;
+		}
+		var tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+		if (tile && tile.data.solid)
+			this.enabled = false;
 	}
 
 	// Update projectile animation
@@ -2021,9 +2014,10 @@ module.exports = (function(){
 		height - Height of one animation image.
 		frameNum - The number of frames in the collectible's sprite sheet.
 		imgPath - Relative path to the animation's sprite sheet.
+    score - The amount of points that the collectible is worth.
 	*/
 	function Collectible(locationX, locationY, mapLayer,
-					 type, width, height, frameNum, imgPath) {
+					 type, width, height, frameNum, imgPath, score) {
     // Establish coordinates.
 		this.x = locationX;
 		this.y = locationY;
@@ -2043,6 +2037,10 @@ module.exports = (function(){
 		this.animation = new Animation(this.img, this.width, this.height, 0, 0, frameNum);
     // Has the collectible been collected by the player? False to begin with.
 		this.collected = false;
+    // Establish the score of the entity.
+    this.score = score;
+
+    console.log("A " + this.type + " was created.");
 
     // A pickedUpSound might be implemented in the future (similar to the powerup).
 		//this.pickedUpSound = new Audio('');
@@ -2061,6 +2059,7 @@ module.exports = (function(){
     if (this.collected == true)
     {
       entityManager.remove(this);
+      console.log("A " + this.type + " was removed.");
     }
 	}
 
@@ -2113,7 +2112,8 @@ module.exports = (function(){
 			// Sounds may be implemented in the future.
 			//this.pickedUpSound.play();
 			this.collected = true;
-			this.player = otherEntity;
+      // Tell the player to add this to its list of collectibles.
+			// otherEntity.collected(this);
 		}
 	}
 
@@ -3353,28 +3353,28 @@ module.exports = (function (){
     scoreEngine.setPositionFunction(tilemap.getCameraPosition)
     entityManager.setScoreEngine(scoreEngine);
 
-    //add wolf to
+   //add wolf to
     // the entity manager
-    wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
-    entityManager.add(wolf);
+    //wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
+    //entityManager.add(wolf);
 
-    bird = new Bird(400, 100);
+    bird = new Bird(600, 100);
     entityManager.add(bird);
 
     // Add a robo-killer to the entity manager.
-    robo_killer = new Robo_Killer(450, 240, 0);
+    robo_killer = new Robo_Killer(450, 1240, 0);
     entityManager.add(robo_killer);
 
-	rat = new Rat(500, 360, 0);
+	rat = new Rat(500, 1360, 0);
 	entityManager.add(rat);
 
-	slime = new Slime(400, 20, 0);
+	slime = new Slime(400, 1120, 0);
 	entityManager.add(slime);
 
-    sudo_chan = new Sudo_Chan(490, 240, 0);
+    sudo_chan = new Sudo_Chan(490, 1240, 0);
     entityManager.add(sudo_chan);
 
-    octopus = new Octopus(120, 240, 0);
+    octopus = new Octopus(120, 2240, 0);
     entityManager.add(octopus);
 
 	DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
@@ -3385,8 +3385,8 @@ module.exports = (function (){
 
   // Create collectibles.
   // WHOEVER IS IN CHARGE OF ENTITY PLACEMENT: Feel free to change the coordiates (first 2 parameters - x,y).
-  entityManager.add(new Collectible(500, 240, 0,'bit_coin', 64, 64, 8, './img/bit_coin.png'));
-
+  entityManager.add(new Collectible(500, 240, 0,'bit_coin', 64, 64, 8, './img/bit_coin.png', 10));
+  // entityManager.add(new Collectible(600, 240, 0,'lost_cat', 64, 64, 14, './img/lost_cat.png', 15));
 
 	// Spawn 10 barrels close to player
 	 // And some turrets
@@ -3418,14 +3418,14 @@ module.exports = (function (){
 
 	// Karenfang: Create a Kakao and add it to
     // the entity manager
-    kakao = new Kakao(310,240,0);  //two tiles to the right of the player
+    kakao = new Kakao(310,1240,0);  //two tiles to the right of the player
     entityManager.add(kakao);
 
     extantBlobbers = 1;
     blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
     entityManager.add(blobber);
 
-			
+
 	// Kyle Brown: Background Music
 	var bgMusic = new Audio('./resources/sounds/DiggyHoleBGMusicAm.wav');
 	   bgMusic.addEventListener('ended', function() {
@@ -4221,6 +4221,8 @@ module.exports = (function (){
         scroll = 0,
         Player = require('./player.js'),
         player,
+        Bone = require('./bone.js'),
+        bone,
         screenCtx,
         backBuffer,
         backBufferCtx,
@@ -4260,6 +4262,17 @@ module.exports = (function (){
      */
     var update = function(elapsedTime) {
         player.demoUpdate(elapsedTime, null);
+        if(bone) {
+            if(bone.isLeft){
+                bone.currentX -= elapsedTime * bone.xSpeed;
+            } else {
+                bone.currentX += elapsedTime * bone.xSpeed;
+            }
+            if(bone.boundingBox().right <= 0)
+                bone = null;
+            else if(bone.boundingBox().left >= 128)
+                bone = null;
+        }
     }
 
     /*
@@ -4269,12 +4282,15 @@ module.exports = (function (){
      */
     var render = function() {
         // Clear the back buffer
-        screenCtx.fillStyle = 'rgb(255,255,255)';
+        screenCtx.fillStyle = 'rgb(0,0,0)';
         screenCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
         screenCtx.save();
 
         player.render(screenCtx, false);
+
+        if(bone)
+            bone.render(screenCtx);
 
         screenCtx.restore();
     }
@@ -4284,13 +4300,15 @@ module.exports = (function (){
      * events for the menu.
      */
     var keyDown = function(event) {
+        event.preventDefault();
         switch(event.keyCode) {
             case 27: // ESC
-                event.preventDefault();
                 stateManager.popState();
                 break;
+            case inputManager.commands.SHOOT:
+                bone = new Bone(player.currentX, player.currentY, 0, player.isLeft, player);
+                break;
             default:
-                event.preventDefault();
                 inputManager.keyDown(event);
                 break;
         }
@@ -4310,7 +4328,7 @@ module.exports = (function (){
     }
 
 })();
-},{"./input-manager.js":22,"./player.js":28}],22:[function(require,module,exports){
+},{"./bone.js":9,"./input-manager.js":22,"./player.js":28}],22:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
