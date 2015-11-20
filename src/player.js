@@ -219,10 +219,7 @@ module.exports = (function() {
               sprite.velocityY = JUMP_VELOCITY;
             } else if (isKeyDown(commands.LEFT)) {
 			  /*Added walking sound*/
-			  walk_sound.play();
-			  
-			  dwarf_sound.play();
-		  
+			  walk_sound.play();		  
               sprite.isLeft = true;
               sprite.state = WALKING;
               sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
