@@ -184,8 +184,8 @@ module.exports = (function (){
   var update = function(elapsedTime) {
     //player.update(elapsedTime, tilemap);
     entityManager.update(elapsedTime, tilemap);
+	tilemap.update();
     inputManager.swapBuffers();
-
     octopus.getPlayerPosition(player.boundingBox());
   };
 
