@@ -6,9 +6,9 @@
 module.exports = (function (){
   var menu = document.getElementById("main-menu"),
       play = document.getElementById("play-btn"),
-      settings = document.getElementById("settings-btn"),
+      help = document.getElementById("help-btn"),
       credits = document.getElementById("credits-btn"),
-      items = [play, settings, credits],
+      items = [play, help, credits],
       selectedItemIndex = 0,
       stateManager;
   
@@ -38,6 +38,15 @@ module.exports = (function (){
     event.preventDefault();
     var creditsScreen = require('./credits-screen');
     stateManager.pushState(creditsScreen);
+  }
+
+  /*
+   *  The Help button launches the help menu
+   */
+  help.onclick = function(event) {
+    event.preventDefault();
+    var helpScreen = require('./help-screen');
+    stateManager.pushState(helpScreen);
   }
   
   /*
