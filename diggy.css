@@ -38,3 +38,17 @@
   text-decoration: underline;
   font-weight: bold;
 }
+
+#help-wrapper {
+  justify-content: flex-start;
+  text-align: center;
+  align-items: center;
+  position: relative;
+}
+
+#player-tester {
+  border: 1px solid black;
+  width: 128px;
+  height: 128px;
+  margin-left: 120px;
+}

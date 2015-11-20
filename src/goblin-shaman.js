@@ -168,7 +168,7 @@ module.exports = (function(){
     };
 
     shaman.prototype.collide = function(ent) {
-        if(ent.type == "player")
+        if(ent.type == "Pickaxe")
         {
             //check if attacking once attacking is fixed.
             this.dead = true;
