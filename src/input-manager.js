@@ -8,6 +8,7 @@ module.exports = (function() {
     DIGDOWN: 83,
     DIGLEFT: 65,
     DIGRIGHT: 68,
+    DIGUP: 87,
 	PAY: 80,
 	ATTACK : 65
   }
