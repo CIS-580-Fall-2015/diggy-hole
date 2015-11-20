@@ -172,6 +172,14 @@ module.exports = (function (){
     blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
     entityManager.add(blobber);
 
+			
+	// Kyle Brown: Background Music
+	var bgMusic = new Audio('./resources/sounds/DiggyHoleBGMusicAm.wav');
+	   bgMusic.addEventListener('ended', function() {
+    this.currentTime = 0;
+    this.play();
+	}, false);
+	bgMusic.play();
 
 
   };
@@ -184,8 +192,8 @@ module.exports = (function (){
   var update = function(elapsedTime) {
     //player.update(elapsedTime, tilemap);
     entityManager.update(elapsedTime, tilemap);
+	tilemap.update();
     inputManager.swapBuffers();
-
     octopus.getPlayerPosition(player.boundingBox());
   };
 

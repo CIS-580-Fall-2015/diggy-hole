@@ -206,7 +206,7 @@ module.exports = (function(){
 		   this.enabled = false;
 		   if(DEBUG){
 		   console.log("Player hit by bone");
-		   entityManager.scoreEngine.subScore(1000);
+		   entityManager.scoreEngine.scoreToZero();
 		   }
 	   } else if(otherEntity.lives){
 		   this.enabled = false;
