@@ -32,6 +32,8 @@ module.exports = (function(){
     this.currentX = locationX;
     this.currentY = locationY;
 
+    this.score = 20;
+
     //default state
     this.state = HOLD;
 
@@ -99,7 +101,7 @@ module.exports = (function(){
       bottom: this.currentY + SIZE
     }
   }
-  
+
   Diamond.prototype.boundingCircle =function(){
     return{
       cx: this.currentX + SIZE/2,
