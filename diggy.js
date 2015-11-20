@@ -3114,7 +3114,7 @@ module.exports = (function (){
 
     // Create the player and add them to
     // the entity manager
-    player = new Player(320, 240*64, 0, inputManager);
+    player = new Player(10*64, 240*64, 0, inputManager);
     entityManager.add(player);
 
     // Set up score engine
@@ -3221,6 +3221,7 @@ module.exports = (function (){
     tilemap.render(backBufferCtx);
     entityManager.render(backBufferCtx, true);
     //player.render(backBufferCtx, true);
+    tilemap.renderWater(backBufferCtx);
 
     backBufferCtx.restore();
 
@@ -7428,6 +7429,32 @@ module.exports = (function (){
     return objectMap;
   }
 
+  /*Karenfang*/
+  var renderWater = function(screenCtx){
+    layers.forEach(function(layer){
+		  var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
+      var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
+      var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
+      var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
+
+      var count =0;
+      var map = layer.data;
+      console.log("Round 1");
+
+      for(var i = startX; i < endX; i++){
+        for(var j = startY; j < endY; j++){
+			  index = j*layer.width + i;
+        //Todo: Lava covered by red
+			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1 /*&& index+1 < width*/){
+          count++;
+          console.log("x: "+(i-startX)+" y: "+(j-startY));
+			  }
+		  }
+	  }
+    //console.log("Liquid tiles number: "+count);
+
+	  });
+  }
   /* */
   var render = function(screenCtx) {
     // Render tilemap layers - note this assumes
@@ -7555,7 +7582,8 @@ module.exports = (function (){
     setCameraPosition: setCameraPosition,
     returnTileLayer: returnTileLayer,
     getCameraPosition: getCameraPosition,
-    mineAt: mineAt
+    mineAt: mineAt,
+    renderWater: renderWater
   }
 
 

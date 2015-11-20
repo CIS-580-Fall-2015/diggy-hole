@@ -91,7 +91,7 @@ module.exports = (function (){
 
     // Create the player and add them to
     // the entity manager
-    player = new Player(320, 240*64, 0, inputManager);
+    player = new Player(10*64, 240*64, 0, inputManager);
     entityManager.add(player);
 
     // Set up score engine
@@ -198,6 +198,7 @@ module.exports = (function (){
     tilemap.render(backBufferCtx);
     entityManager.render(backBufferCtx, true);
     //player.render(backBufferCtx, true);
+    tilemap.renderWater(backBufferCtx);
 
     backBufferCtx.restore();
 
