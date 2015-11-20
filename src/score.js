@@ -4,7 +4,7 @@ module.exports = (function (){
 
   function ScoreEngine() {
     this.img             = new Image();
-    this.img.src         = './img/score/clear_background_yellow_spritesheet.png';
+    this.img.src         = './img/score/clear_background_yellow_num.png';
     this.score           = 0;
     this.tickCount       = [0, 0, 0, 0];
     this.frameIndex      = [0, 0, 0, 0];
