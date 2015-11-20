@@ -305,6 +305,132 @@ module.exports = (function() {
 
   };
 
+  // Update function for use with the help player
+  Player.prototype.demoUpdate = function(elapsedTime) {
+    var sprite = this;
+
+    // The "with" keyword allows us to change the
+    // current scope, i.e. 'this' becomes our
+    // inputManager
+    with (this.inputManager) {
+
+      // Process player state
+      switch (sprite.state) {
+        case STANDING:
+        case WALKING:
+          // If there is no ground underneath, fall
+          if (sprite.currentY < 64) {
+            sprite.state = FALLING;
+            sprite.velocityY = 0;
+          } else {
+            if (isKeyDown(commands.DIGDOWN)) {
+              sprite.state = DIGGING;
+              sprite.digState = DOWN_DIGGING;
+            } else if(isKeyDown(commands.DIGLEFT)) {
+              sprite.state = DIGGING;
+              sprite.digState = LEFT_DIGGING;
+              sprite.isLeft = true;
+            } else if(isKeyDown(commands.DIGRIGHT)) {
+              sprite.state = DIGGING;
+              sprite.digState = RIGHT_DIGGING;
+              sprite.isLeft = false;
+            } else if(isKeyDown(commands.DIGUP)) {
+              sprite.state = DIGGING;
+              sprite.digState = UP_DIGGING;
+            } else if (isKeyDown(commands.UP)) {
+              sprite.state = JUMPING;
+              sprite.velocityY = JUMP_VELOCITY;
+            } else if (isKeyDown(commands.LEFT)) {
+              sprite.isLeft = true;
+              sprite.state = WALKING;
+            }
+            else if(isKeyDown(commands.RIGHT)) {
+              sprite.isLeft = false;
+              sprite.state = WALKING;
+            }
+            else {
+              sprite.state = STANDING;
+            }
+
+            if(sprite.state == DIGGING) {
+              var digComplete = function() {
+
+                /* set the tile location that we are deleting */
+                switch(sprite.digState) {
+                  case DOWN_DIGGING:
+                    sprite.state = STANDING;
+                    break;
+                  case LEFT_DIGGING:
+                    sprite.state = STANDING;
+                    break;
+                  case RIGHT_DIGGING:
+                    sprite.state = STANDING;
+                    break;
+                  case UP_DIGGING:
+                    sprite.state = STANDING;
+                    break;
+                  default:
+                    return;
+                }
+
+                /* setup the callback for when the animation is complete */
+                sprite.animations.left[sprite.state].donePlayingCallback = function() {};
+                sprite.animations.right[sprite.state].donePlayingCallback = function() {};
+
+                /* reset the digging state */
+                sprite.digState = NOT_DIGGING;
+              };
+              this.animations.left[this.state].donePlayingCallback = digComplete;
+              this.animations.right[this.state].donePlayingCallback = digComplete;
+            }
+          }
+          break;
+        case DIGGING:
+
+          break;
+        case JUMPING:
+          sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          sprite.currentY += sprite.velocityY * elapsedTime;
+          if (sprite.currentY <= -64) {
+            sprite.state = FALLING;
+            sprite.velocityY = 0;
+          }
+          if (isKeyDown(commands.LEFT)) {
+            sprite.isLeft = true;
+          }
+          if (isKeyDown(commands.RIGHT)) {
+            sprite.isLeft = true;
+          }
+          break;
+        case FALLING:
+          if(sprite.velocityY < TERMINAL_VELOCITY) {
+            sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          }
+          sprite.currentY += sprite.velocityY * elapsedTime;
+          if (sprite.currentY >= 64) {
+            sprite.state = STANDING;
+          } else if (isKeyDown(commands.LEFT)) {
+            sprite.isLeft = true;
+          }
+          else if(isKeyDown(commands.RIGHT)) {
+            sprite.isLeft = false;
+          }
+          break;
+        case SWIMMING:
+        // NOT IMPLEMENTED YET
+      }
+
+      // Swap input buffers
+      swapBuffers();
+    }
+
+    // Update animation
+    if (this.isLeft)
+      this.animations.left[this.state].update(elapsedTime);
+    else
+      this.animations.right[this.state].update(elapsedTime);
+  }
+
   /*
      This method gets called when a power up is picked up
 	 It should eventually delete the power up from the game
