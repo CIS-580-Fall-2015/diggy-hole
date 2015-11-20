@@ -165,7 +165,7 @@ module.exports = (function (){
 
 	// Karenfang: Create a Kakao and add it to
     // the entity manager
-    kakao = new Kakao(310,240,0);  //two tiles to the right of the player
+    kakao = new Kakao(310,1240,0);  //two tiles to the right of the player
     entityManager.add(kakao);
 
     extantBlobbers = 1;
