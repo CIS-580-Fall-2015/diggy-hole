@@ -1,6 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-<<<<<<< HEAD
-=======
 /* Class of the Barrel Skeleton entity
  *
  * Author:
@@ -247,7 +245,6 @@ module.exports = (function(){
 }());
 
 },{"./animation.js":5,"./entity-manager.js":15,"./entity.js":16,"./player.js":27,"./powerUp.js":28}],2:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /* DemonicGroundHog
  * Authors:
 	Nathan Bean
@@ -511,11 +508,7 @@ module.exports = (function(){
 
 }());
 
-<<<<<<< HEAD
-},{"./animation.js":4,"./entity.js":15}],2:[function(require,module,exports){
-=======
 },{"./animation.js":5,"./entity.js":16}],3:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /* Entity: Kakao(aka DiamondGroundhog) module
  * Implements the entity pattern and provides
  * the entity Kakao info.
@@ -774,11 +767,7 @@ module.exports = (function(){
 
 }());
 
-<<<<<<< HEAD
-},{"./animation.js":4,"./diamond.js":11,"./entity.js":15}],3:[function(require,module,exports){
-=======
 },{"./animation.js":5,"./diamond.js":12,"./entity.js":16}],4:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /* Pickaxe is an invisible entity created by player that represents the hitbox
  * of the Pickaxe.
  * In the future this would be interesting to have an attack animation effect
@@ -862,11 +851,7 @@ module.exports = (function() {
 
   })();
 
-<<<<<<< HEAD
-},{"./entity.js":15}],4:[function(require,module,exports){
-=======
 },{"./entity.js":16}],5:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 module.exports = function () {
 
 
@@ -938,16 +923,6 @@ module.exports = function () {
 
 }();
 
-<<<<<<< HEAD
-},{}],5:[function(require,module,exports){
-/* Class of the Barrel Skeleton entity
- *
- * Author:
- * - Matej Petrlik 
- */
- 
- 
-=======
 },{}],6:[function(require,module,exports){
 /* Class of the Barrel Skeleton entity
  *
@@ -956,20 +931,10 @@ module.exports = function () {
  */
 
 
->>>>>>> refs/remotes/origin/master
 module.exports = (function(){
   var Entity = require('./entity.js'),
 		Player = require('./player.js'),
 		Bone = require('./bone.js'),
-<<<<<<< HEAD
-      Animation = require('./animation.js');
-	  entityManager = require('./entity-manager.js');
-  
-  
-  const DEBUG = true;
-  
-  
-=======
       Animation = require('./animation.js'),
 	  PowerUp = require('./powerUp.js'),
 	  entityManager = require('./entity-manager.js');
@@ -978,7 +943,6 @@ module.exports = (function(){
   const DEBUG = true;
 
 
->>>>>>> refs/remotes/origin/master
   /* The following are barrel states */
   const IDLE = 0;
   const ATTACKING = 1;
@@ -988,13 +952,8 @@ module.exports = (function(){
   const DEAD = 5;
 
   const PROJECTILE = 6;
-<<<<<<< HEAD
-  
-  
-=======
 
 
->>>>>>> refs/remotes/origin/master
   // The Sprite Size
   const SIZE = 64;
 
@@ -1003,25 +962,6 @@ module.exports = (function(){
   const GRAVITY = -250;
   const JUMP_VELOCITY = -600;
   const MAX_BUMPS = 3;
-<<<<<<< HEAD
-  
-  
-    var boneLeft = new Image();
-  boneLeft.src = 'img/BoneLeft.png';
-  
-  var barrelIdle = new Image();
-  barrelIdle.src = 'img/BarrelIdle.png';
-  
-    var barrelAttack = new Image();
-  barrelAttack.src = 'img/BarrelAttack.png';
-  
-      var barrelRollingLeft = new Image();
-  barrelRollingLeft.src = 'img/BarrelRollingLeft.png';
-  
-      var barrelRollingRight = new Image();
-  barrelRollingRight.src = 'img/BarrelRollingRight.png';
-  
-=======
 
   // Time before removing entity after dead
   const TIME_DEAD = 20;
@@ -1042,30 +982,12 @@ module.exports = (function(){
       var barrelRollingRight = new Image();
   barrelRollingRight.src = 'img/BarrelRollingRight.png';
 
->>>>>>> refs/remotes/origin/master
     var barrelDead = new Image();
   barrelDead.src = 'img/BarrelBroken.png';
 
   //The Barrel constructor
   function Barrel(locationX, locationY, layerIndex) {
     this.layerIndex = layerIndex;
-<<<<<<< HEAD
-    this.currentX = locationX; 
-    this.currentY = locationY; 
-    this.nextX = 0; 
-    this.nextY = 0;
-    this.currentTileIndex = 0; 
-    this.nextTileIndex = 0;
-    this.constSpeed = 15; 
-    this.gravity = .5; 
-    this.angle = 0; 
-    this.xSpeed = 10; 
-    this.ySpeed = 15;
-    this.isLeft = false;
-	
-	this.type = "Barrel";
-	
-=======
     this.currentX = locationX;
     this.currentY = locationY;
     this.nextX = 0;
@@ -1082,39 +1004,26 @@ module.exports = (function(){
 
 	this.type = "Barrel";
 
->>>>>>> refs/remotes/origin/master
 	this.range = 5*SIZE;
 	this.attackFrequency = 1.7;
 	this.lastAttack = 0;
 	this.lives = 5;
-<<<<<<< HEAD
-	
-=======
 	this.timeDead = 0;
 	this.score = 10;
 
->>>>>>> refs/remotes/origin/master
 	this.state = IDLE;
 	this.playerInRange = false;
 	this.attacked = false;
 	this.recovered = true;
 	this.attackedFromLeft = false;
 	this.bumpCount = 0;
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> refs/remotes/origin/master
     //The animations
     this.animations = {
       left: [],
       right: [],
     }
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> refs/remotes/origin/master
     //The right-facing animations
     this.animations.right[IDLE] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
 	this.animations.right[ATTACKING] = new Animation(barrelAttack, SIZE, SIZE, 0, 0, 12);
@@ -1122,11 +1031,7 @@ module.exports = (function(){
     this.animations.right[FALLING] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
     this.animations.right[SWIMMING] = new Animation(barrelRollingRight, SIZE, SIZE, 0, 0, 8);
 	this.animations.right[DEAD] = new Animation(barrelDead, SIZE, SIZE, 0, 0, 1);
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> refs/remotes/origin/master
     //The left-facing animations
     this.animations.left[IDLE] = new Animation(barrelIdle, SIZE, SIZE, 0, 0, 15);
 	this.animations.left[ATTACKING] = new Animation(barrelAttack, SIZE, SIZE, 0, 0, 12);
@@ -1135,35 +1040,20 @@ module.exports = (function(){
     this.animations.left[SWIMMING] = new Animation(barrelRollingLeft, SIZE, SIZE, 0, 0, 8);
 	this.animations.left[DEAD] = new Animation(barrelDead, SIZE, SIZE, 0, 0, 1);
   }
-<<<<<<< HEAD
-  
-  // Barrel inherits from Entity
-  Barrel.prototype = new Entity();
-  
-=======
 
   // Barrel inherits from Entity
   Barrel.prototype = new Entity();
 
->>>>>>> refs/remotes/origin/master
   // Determines if the barrel is on the ground
   Barrel.prototype.onGround = function(tilemap) {
     var box = this.boundingBox(),
         tileX = Math.floor((box.left + (SIZE/2))/64),
         tileY = Math.floor(box.bottom / 64),
-<<<<<<< HEAD
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
-    // find the tile we are standing on.
-    return (tile && tile.data.solid) ? true : false;
-  }
-  
-=======
         tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     // find the tile we are standing on.
     return (tile && tile.data.solid) ? true : false;
   }
 
->>>>>>> refs/remotes/origin/master
   // Moves the barrel to the left, colliding with solid tiles
   Barrel.prototype.moveLeft = function(distance, tilemap) {
     this.currentX -= distance;
@@ -1180,11 +1070,7 @@ module.exports = (function(){
       this.currentX = (Math.floor(this.currentX/64) + 1) * 64;
 	}
   }
-<<<<<<< HEAD
-  
-=======
 
->>>>>>> refs/remotes/origin/master
   // Moves the barrel to the right, colliding with solid tiles
   Barrel.prototype.moveRight = function(distance, tilemap) {
     this.currentX += distance;
@@ -1197,16 +1083,6 @@ module.exports = (function(){
 		if(++this.bumpCount>MAX_BUMPS){
 			this.state = IDLE;
 			this.bumpCount = 0;
-<<<<<<< HEAD
-		}		
-      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
-	}
-  }
-  
-  /* Barrel update function
-   * arguments:
-   * - elapsedTime, the time that has passed 
-=======
 		}
       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
 	}
@@ -1215,22 +1091,13 @@ module.exports = (function(){
   /* Barrel update function
    * arguments:
    * - elapsedTime, the time that has passed
->>>>>>> refs/remotes/origin/master
    *   between this and the last frame.
    * - tilemap, the tilemap that corresponds to
    *   the current game world.
    */
   Barrel.prototype.update = function(elapsedTime, tilemap, entityManager) {
-<<<<<<< HEAD
-	  if(this.state == DEAD){
-		 return;
-	  }
-    var sprite = this;
-    
-=======
     var sprite = this;
 
->>>>>>> refs/remotes/origin/master
 	var entities = entityManager.queryRadius(this.currentX, this.currentY, this.range);
 	this.playerInRange = false;
 		for(var i=0; i<entities.length;i++){
@@ -1242,17 +1109,10 @@ module.exports = (function(){
 				break;
 			}
 		}
-<<<<<<< HEAD
-    
-      // Process barrel state
-      switch(sprite.state) {
-		  
-=======
 
       // Process barrel state
       switch(sprite.state) {
 
->>>>>>> refs/remotes/origin/master
         case IDLE:
 			if(!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
@@ -1261,11 +1121,7 @@ module.exports = (function(){
 				console.log("Barrel state: FALLING");
 			}
           } else if(sprite.attacked){
-<<<<<<< HEAD
-	  
-=======
 
->>>>>>> refs/remotes/origin/master
 			if(!sprite.attackedFromLeft) {
               sprite.isLeft = true;
               sprite.state = ROLLING;
@@ -1278,11 +1134,7 @@ module.exports = (function(){
               sprite.isLeft = false;
               sprite.state = ROLLING;
               sprite.moveRight(elapsedTime * SPEED, tilemap);
-<<<<<<< HEAD
-			  
-=======
 
->>>>>>> refs/remotes/origin/master
 			  if(DEBUG){
 				console.log("Barrel direction: right");
 			}
@@ -1291,25 +1143,15 @@ module.exports = (function(){
 			else if(sprite.playerInRange){
 				this.lastAttack = this.attackFrequency;
 				sprite.state = ATTACKING;
-<<<<<<< HEAD
-				
-=======
 
->>>>>>> refs/remotes/origin/master
 				if(DEBUG){
 				console.log("Barrel state: ATTACKING");
 			}
 			}
 			break;
-<<<<<<< HEAD
-          
-		
-		
-=======
 
 
 
->>>>>>> refs/remotes/origin/master
 		case ATTACKING:
 			sprite.attack(elapsedTime, entities);
 			if(!sprite.onGround(tilemap)) {
@@ -1332,24 +1174,14 @@ module.exports = (function(){
 		  }
 			else if(!sprite.playerInRange){
 				sprite.state = IDLE;
-<<<<<<< HEAD
-				
-=======
 
->>>>>>> refs/remotes/origin/master
 				if(DEBUG){
 				console.log("Barrel state: IDLE");
 			}
 			}
-<<<<<<< HEAD
-          
-		break;
-		
-=======
 
 		break;
 
->>>>>>> refs/remotes/origin/master
         case ROLLING:
           // If there is no ground underneath, fall
           if(!sprite.onGround(tilemap)) {
@@ -1375,22 +1207,14 @@ module.exports = (function(){
 				sprite.attacked = false;
 				sprite.recovered = true;
               sprite.state = IDLE;
-<<<<<<< HEAD
-			  
-=======
 
->>>>>>> refs/remotes/origin/master
 			  if(DEBUG){
 				console.log("Barrel state: ROLLING");
 			}
             }
           }
           break;
-<<<<<<< HEAD
-		  
-=======
 
->>>>>>> refs/remotes/origin/master
         case FALLING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
           sprite.currentY += sprite.velocityY * elapsedTime;
@@ -1407,31 +1231,14 @@ module.exports = (function(){
               sprite.moveRight(elapsedTime * SPEED, tilemap);
             } else {
             sprite.state = IDLE;
-<<<<<<< HEAD
-            
-			
-=======
 
 
->>>>>>> refs/remotes/origin/master
 			if(DEBUG){
 				console.log("Barrel state: IDLE");
 			}
           }
 		}
           break;
-<<<<<<< HEAD
-		  
-		case DEAD:
-			
-		break;
-		  
-        case SWIMMING:
-          // NOT IMPLEMENTED YET
-      }
-	
-	  
-=======
 
 		case DEAD:
 			this.timeDead += elapsedTime;
@@ -1445,23 +1252,15 @@ module.exports = (function(){
       }
 
 
->>>>>>> refs/remotes/origin/master
 	    // Update animation
     if(this.isLeft)
       this.animations.left[this.state].update(elapsedTime);
     else
       this.animations.right[this.state].update(elapsedTime);
-<<<<<<< HEAD
-	
-	} 
-  
-  
-=======
 
 	}
 
 
->>>>>>> refs/remotes/origin/master
   /* Barrel Render Function
    * arguments:
    * - ctx, the rendering context
@@ -1474,26 +1273,15 @@ module.exports = (function(){
       this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
     else
       this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
-<<<<<<< HEAD
-    
-    if(debug) renderDebug(this, ctx);
-  }
-  
-=======
 
     if(debug) renderDebug(this, ctx);
   }
 
->>>>>>> refs/remotes/origin/master
   // Draw debugging visual elements
   function renderDebug(barrel, ctx) {
     var bounds = barrel.boundingBox();
     ctx.save();
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> refs/remotes/origin/master
     // Draw barrel bounding box
     ctx.strokeStyle = "red";
     ctx.beginPath();
@@ -1503,11 +1291,7 @@ module.exports = (function(){
     ctx.lineTo(bounds.left, bounds.bottom);
     ctx.closePath();
     ctx.stroke();
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> refs/remotes/origin/master
     // Outline tile underfoot
     var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
         tileY = 64 * (Math.floor(bounds.bottom / 64));
@@ -1519,21 +1303,12 @@ module.exports = (function(){
     ctx.lineTo(tileX, tileY + 64);
     ctx.closePath();
     ctx.stroke();
-<<<<<<< HEAD
-    
-    ctx.restore();
-  }
-  
-  /* barrel BoundingBox Function
-   * returns: A bounding box representing the barrel 
-=======
 
     ctx.restore();
   }
 
   /* barrel BoundingBox Function
    * returns: A bounding box representing the barrel
->>>>>>> refs/remotes/origin/master
    */
   Barrel.prototype.boundingBox = function() {
     return {
@@ -1543,13 +1318,8 @@ module.exports = (function(){
       bottom: this.currentY + SIZE
     }
   }
-<<<<<<< HEAD
-  
-  
-=======
 
 
->>>>>>> refs/remotes/origin/master
     Barrel.prototype.boundingCircle = function() {
      return {
 		 cx: this.currentX + SIZE/2,
@@ -1557,25 +1327,15 @@ module.exports = (function(){
 		 radius: SIZE/2
 	 }
    }
-<<<<<<< HEAD
-   
-=======
 
->>>>>>> refs/remotes/origin/master
       /* Collide function
     * This function is called by the entityManager when it determines
     * a possible collision.
     * parameters:
     * - otherEntity is the entity this enemy collided with
-<<<<<<< HEAD
-    *   You will likely want to use 
-    *     'otherEntity instanceof <Type>' 
-    *   to determine what type it is to know what to 
-=======
     *   You will likely want to use
     *     'otherEntity instanceof <Type>'
     *   to determine what type it is to know what to
->>>>>>> refs/remotes/origin/master
     *   do with it.
     */
    Barrel.prototype.collide = function(otherEntity) {
@@ -1584,16 +1344,8 @@ module.exports = (function(){
 		   console.log("Collision with player");
 	   }
 		   if(--this.lives<=0){
-<<<<<<< HEAD
-			   this.state = DEAD;
-			   if(DEBUG){
-				console.log("Barrel state: DEAD");
-			}
-			   
-=======
 			   this.die();
 
->>>>>>> refs/remotes/origin/master
 		   } else {
 			   if(DEBUG){
 		   console.log(this.lives+" lives left");
@@ -1610,14 +1362,6 @@ module.exports = (function(){
 		   }
 	   }
    }
-<<<<<<< HEAD
-   
-   
-   Barrel.prototype.attack = function(elapsedTime, entities){
-		this.lastAttack += elapsedTime;
-		if(this.lastAttack >= this.attackFrequency){
-			
-=======
 
    Barrel.prototype.die = function(){
 	   this.state = DEAD;
@@ -1632,7 +1376,6 @@ module.exports = (function(){
 		this.lastAttack += elapsedTime;
 		if(this.lastAttack >= this.attackFrequency){
 
->>>>>>> refs/remotes/origin/master
 			for(var i=0; i<entities.length;i++){
 				if(entities[i] instanceof Player){
 					var playerX = entities[i].currentX;
@@ -1644,22 +1387,6 @@ module.exports = (function(){
 			} else {
 				var isLeft = true;
 			}
-<<<<<<< HEAD
-			
-			this.lastAttack = 0;
-			bone = new Bone(this.currentX, this.currentY, 0, isLeft);
-			entityManager.add(bone);
-		}
-	   
-   }
-  
-  return Barrel;
-
-}());
-
-
-},{"./animation.js":4,"./bone.js":8,"./entity-manager.js":14,"./entity.js":15,"./player.js":26}],6:[function(require,module,exports){
-=======
 
 			this.lastAttack = 0;
 			bone = new Bone(this.currentX, this.currentY, 0, isLeft, this);
@@ -1673,7 +1400,6 @@ module.exports = (function(){
 }());
 
 },{"./animation.js":5,"./bone.js":9,"./entity-manager.js":15,"./entity.js":16,"./player.js":27,"./powerUp.js":28}],7:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /* Bird Module
 	Authors: Josh Benard
 */
@@ -1820,11 +1546,7 @@ module.exports = (function(){
 	return Bird;
 
 }());
-<<<<<<< HEAD
-},{"./animation.js":4,"./entity.js":15,"./player.js":26}],7:[function(require,module,exports){
-=======
 },{"./animation.js":5,"./entity.js":16,"./player.js":27}],8:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 module.exports = (function(){
   var Entity = require('./entity.js');
   var PlayerClass = require('./player.js');
@@ -2085,2636 +1807,6 @@ var everal = false;
 
 }());
 
-<<<<<<< HEAD
-},{"./entity.js":15,"./player.js":26}],8:[function(require,module,exports){
-/* Class of the Barrel Skeleton entity
- *
- * Author:
- * - Matej Petrlik
- */
-
-
-module.exports = (function(){
-  var Entity = require('./entity.js'),
-		Player = require('./player.js'),
-      Animation = require('./animation.js');
-
-      var spritesheet = new Image();
-      spritesheet.src = './img/blobber.png';
-
-
-  const DEBUG = true;
-
-  const PROJECTILE = 0;
-
-  // The Sprite Size
-  const SIZE = 64;
-
-  // Movement constants
-
-    var boneLeft = new Image();
-  boneLeft.src = 'img/BoneLeft.png';
-
-
-  //The Bone constructor
-  function Bone(locationX, locationY, layerIndex, isLeft) {
-    this.layerIndex = layerIndex;
-    this.currentX = locationX;
-    this.currentY = locationY;
-    this.xSpeed = 200;
-    this.isLeft = isLeft;
-
-	this.type = "Bone";
-
-	this.range = 5*SIZE;
-	this.enabled = true;
-	this.distTraveled = 0;
-	this.size = SIZE/2;
-	this.playerHit = false;
-
-
-    //The animations
-    this.animations = {
-      left: [],
-      right: [],
-    }
-
-    //The right-facing animations
-	this.animations.right[PROJECTILE] = new Animation(boneLeft, SIZE, SIZE, 0, 0, 8);
-
-    //The left-facing animations
-	this.animations.left[PROJECTILE] = new Animation(boneLeft, SIZE, SIZE, 0, 0, 8);
-  }
-
-  // Bone inherits from Entity
-	Bone.prototype = new Entity();
-
-	Bone.prototype.onGround = function(tilemap) {
-    var box = this.boundingBox(),
-        tileX = Math.floor((box.left + (SIZE/2))/64),
-        tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    return (tile && tile.data.solid) ? true : false;
-  }
-
-
-
-  Bone.prototype.update = function(elapsedTime, tilemap, entityManager) {
-
-	var entities = entityManager.queryRadius(this.currentX, this.currentY, this.range);
-
-	// Update projectile
-	if(this.enabled){
-			if(this.isLeft){
-				this.currentX -= elapsedTime * this.xSpeed;
-			} else {
-				this.currentX += elapsedTime * this.xSpeed;
-			}
-			this.distTraveled += elapsedTime * this.xSpeed;
-
-
-			if(this.distTraveled >= this.range){
-				this.distTraveled = 0;
-				this.enabled = false;
-			}
-
-			if(this.isLeft){
-		var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.enabled = false;
-
-
-
-	} else {
-		var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.enabled = false;
-	}
-
-	}
-
-	// Update projectile animation
-	if(this.isLeft){
-		this.animations.left[PROJECTILE].update(elapsedTime);
-	} else {
-		this.animations.right[PROJECTILE].update(elapsedTime);
-	}
-
-	if(!this.enabled){
-		entityManager.remove(this);
-	}
-  }
-
-  Bone.prototype.render = function(ctx, debug) {
-	if(this.enabled){
-		if(this.isLeft){
-			this.animations.left[PROJECTILE].render(ctx, this.currentX, this.currentY);
-		} else {
-			this.animations.right[PROJECTILE].render(ctx, this.currentX, this.currentY);
-		}
-	}
-
-	   if(debug) renderDebug(this, ctx);
-  }
-
-  // Draw debugging visual elements
-  function renderDebug(bone, ctx) {
-    var bounds = bone.boundingBox();
-    ctx.save();
-
-    // Draw bone bounding box
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-    ctx.moveTo(bounds.left, bounds.top);
-    ctx.lineTo(bounds.right, bounds.top);
-    ctx.lineTo(bounds.right, bounds.bottom);
-    ctx.lineTo(bounds.left, bounds.bottom);
-    ctx.closePath();
-    ctx.stroke();
-
-    // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
-        tileY = 64 * (Math.floor(bounds.bottom / 64));
-    ctx.strokeStyle = "black";
-    ctx.beginPath();
-    ctx.moveTo(tileX, tileY);
-    ctx.lineTo(tileX + 64, tileY);
-    ctx.lineTo(tileX + 64, tileY + 64);
-    ctx.lineTo(tileX, tileY + 64);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-
-  Bone.prototype.boundingBox = function() {
-    return {
-      left: this.currentX,
-      top: this.currentY,
-      right: this.currentX + this.size*2,
-      bottom: this.currentY + this.size*2
-    }
-  }
-
-
-    Bone.prototype.boundingCircle = function() {
-     return {
-		 cx: this.currentX + this.size/2,
-		 cy: this.currentY + this.size/2,
-		 radius: this.size/2
-	 }
-   }
-
-      /* Collide function
-    * This function is called by the entityManager when it determines
-    * a possible collision.
-    * parameters:
-    * - otherEntity is the entity this enemy collided with
-    *   You will likely want to use
-    *     'otherEntity instanceof <Type>'
-    *   to determine what type it is to know what to
-    *   do with it.
-    */
-   Bone.prototype.collide = function(otherEntity) {
-	   if( otherEntity instanceof Player){
-		   this.enabled = false;
-		   if(DEBUG){
-		   console.log("Player hit by bone");
-		   }
-	   }
-   }
-
-
-
-  return Bone;
-
-}());
-
-},{"./animation.js":4,"./entity.js":15,"./player.js":26}],9:[function(require,module,exports){
-module.exports = (function(){
-
-var Animation = require('./animation.js'),
-	Entity = require('./entity.js'),
-	Tilemap = require('./tilemap.js'),
-	cannonballImg = new Image();
-	cannonballImg.src = './img/turret/cannonball_small.png',
-	explosionImg = new Image(),
-	explosionImg.src = './img/turret/explosion_small.png';
-	
-	const IDLE = 0,
-		  ASCENDING = 1,
-		  DESCENDING = 2,
-		  EXPLODING = 3;
-		  
-	const BALL_SIZE = 20,
-	      EXPLOSION_SIZE = 64;
-		  
-	const TILE_WIDTH = 64,
-		  TILE_HEIGHT = 64,
-		  MAP_SIZE = 1000;
-
-function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, gravity, centerOffsetX, centerOffsetY) {
-	this.initPosX = locationX + centerOffsetX,
-	this.initPosY = locationY + centerOffsetY;
-	this.posX = locationX;
-	this.posY = locationY;
-	this.type = 'cannonball';
-	this.state = IDLE;
-	this.verticalV = verticalV;
-	this.horizontalV = horizontalV;
-	this.gravity = gravity;
-	this.projectileTime = 0;
-	this.projectileTimeExploding = 0;
-	this.explosionSound = new Audio('./sounds/explosion.wav');
-	
-	// constants
-	this.projectileTimeToReachTop = undefined;
-	
-	this.animations = [];
-	
-	this.animations[IDLE] = new Animation(explosionImg, BALL_SIZE, BALL_SIZE, 0, 0);
-	this.animations[ASCENDING] = new Animation(cannonballImg, BALL_SIZE, BALL_SIZE, 0, 0);
-	this.animations[DESCENDING] = new Animation(cannonballImg, BALL_SIZE, BALL_SIZE, 0, 0);
-	this.animations[EXPLODING] = new Animation(explosionImg, EXPLOSION_SIZE, EXPLOSION_SIZE, 0, 0, 10);
-	
-	// get position x of the projectile at a given time after it has been fired
-	this.getXAtTime = function() {
-		return this.initPosX + this.horizontalV * this.projectileTime;
-	}
-	
-	// get position y of the projectile at a given time after it has been fired
-	this.getYAtTime = function() {
-		return this.initPosY + this.verticalV * this.projectileTime + this.gravity * this.projectileTime * this.projectileTime / 2;
-	}
-	
-	this.reset = function(verticalV, horizontalV) {
-		this.posX = this.initPosX;
-		this.posY = this.initPosY;
-		this.horizontalV = horizontalV;
-		this.verticalV = verticalV;
-		this.projectileTime = 0;
-		this.state = ASCENDING;
-		this.projectileTimeToReachTop = -this.verticalV / gravity;
-		this.projectileTimeExploding = 0;
-	}
-	
-	this.checkCollisions = function(tile) {
-		if (tile && tile.data.solid) {
-			tilemap.destroyTileAt(1, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
-			this.state = EXPLODING;
-			this.offsetExploding();
-			this.explosionSound.play();
-		}
-	}
-	
-	this.offsetExploding = function() {
-		this.posX -= 20;
-		this.posY -= 20;
-	}
-	
-	this.getXFromCoords = function(x) {
-		return (x / TILE_WIDTH) | 0;
-	}
-	
-	this.getYFromCoords = function(y) {
-		return (y / TILE_HEIGHT) | 0;
-	}
-}
-
-Cannonball.prototype = new Entity();
-	
-	Cannonball.prototype.update = function(elapsedTime, tilemap, entityManager)
-	{
-		if (this.state == ASCENDING || this.state == DESCENDING) {
-			if (this.projectileTime > this.projectileTimeToReachTop) {
-				this.state = DESCENDING;
-			}
-			this.animations[this.state].update(elapsedTime);
-			this.posX = this.getXAtTime();
-			this.posY = this.getYAtTime();
-			this.projectileTime += 0.5;
-		}
-		
-		if (this.state == EXPLODING) {
-			this.animations[this.state].update(elapsedTime);
-			this.projectileTimeExploding += elapsedTime;
-			if (this.projectileTimeExploding > 2) {
-				this.state = IDLE;
-			}
-		}
-		
-		this.checkCollisions(Tilemap.tileAt(this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0));
-	}
-
-	Cannonball.prototype.render = function(context, debug)
-	{
-		this.animations[this.state].render(context, this.posX, this.posY);
-		if(debug) renderDebug(this, context);
-	}
-
-	Cannonball.prototype.collide = function(otherEntity)
-	{
-		if (otherEntity.type == 'turret' && this.state == DESCENDING) {
-			this.offsetExploding();
-			this.state = EXPLODING;
-			this.explosionSound.play();
-		}
-	}
-	
-	function renderDebug(cannonball, ctx) {
-		var bounds = cannonball.boundingBox();
-		var circle = cannonball.boundingCircle();
-		ctx.save();
-		
-		// Draw player bounding box
-		ctx.strokeStyle = "red";
-		ctx.beginPath();
-		ctx.moveTo(bounds.left, bounds.top);
-		ctx.lineTo(bounds.right, bounds.top);
-		ctx.lineTo(bounds.right, bounds.bottom);
-		ctx.lineTo(bounds.left, bounds.bottom);
-		ctx.closePath();
-		ctx.stroke();
-		
-		ctx.strokeStyle = "blue";
-		ctx.beginPath();
-		ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
-		ctx.stroke();
-		
-		// Outline tile underfoot
-		var tileX = 64 * Math.floor((bounds.left + (BALL_SIZE/2))/64),
-			tileY = 64 * (Math.floor(bounds.bottom / 64));
-		ctx.strokeStyle = "black";
-		ctx.beginPath();
-		ctx.moveTo(tileX, tileY);
-		ctx.lineTo(tileX + 64, tileY);
-		ctx.lineTo(tileX + 64, tileY + 64);
-		ctx.lineTo(tileX, tileY + 64);
-		ctx.closePath();
-		ctx.stroke();
-		
-		ctx.restore();
-  }
-
-	Cannonball.prototype.boundingBox = function()
-	{
-		return {
-			left: this.posX,
-			top: this.posY,
-			right: this.posX + BALL_SIZE,
-			bottom: this.posY + BALL_SIZE
-		}
-	}
-
-	Cannonball.prototype.boundingCircle = function()
-	{
-		return {
-			cx: this.posX + BALL_SIZE / 2,
-			cy: this.posY + BALL_SIZE / 2,
-			radius: BALL_SIZE * Math.sqrt(2) / 2
-		}
-	}
-
-return Cannonball;
-	
-}())
-},{"./animation.js":4,"./entity.js":15,"./tilemap.js":35}],10:[function(require,module,exports){
-// Credits Menu game state defined using the Module pattern
-module.exports = (function (){
-  var menu = document.getElementById("credits-menu"),
-      exit = document.getElementById("exit-btn"),
-      wrap = document.getElementById("credits-wrapper"),
-      scroll = 0,
-      stateManager;    
-   
-  /*
-   * The load() method initializes the menu 
-   * and tells the DOM to render the menu HTML
-   * parameters:
-   * - sm the state manager
-   */
-  var load = function(sm) {
-    stateManager = sm;
-    menu.style.display = "flex";
-    scroll = 200;
-    wrap.style.marginTop = "200px";
-  }
-  
-  /*
-   * The exit() method hides the menu
-   */
-  var exit = function() {
-    menu.style.display = "none";
-  }
-    
-  /* 
-   * The update() method updates the menu,
-   * scrolling the credits
-   */
-  var update = function(elapsedTime) {
-    scroll -= 0.0001 * elapsedTime;
-    wrap.style.marginTop = Math.round(scroll) + "px";   
-  }
-  
-  /* 
-   * The render() method renders the menu
-   * (in this case, a no-op as the menu is 
-   * HTML elements renderd by the DOM)
-   */
-  var render = function() {}
-    
-  /* 
-   * The keyHander() method handles key
-   * events for the menu.
-   */
-  var keyDown = function(event) {
-    switch(event.keyCode) {
-      case 13: // ENTER
-      case 32: // SPACE
-      case 27: // ESC
-        event.preventDefault();
-        stateManager.popState();
-        break;
-    }
-  }
-  
-  var keyUp = function(event) {}
-  
-  return {
-    load: load,
-    exit: exit,
-    update: update,
-    render: render,
-    keyDown: keyDown,
-    keyUp: keyUp
-  }
-  
-})();
-},{}],11:[function(require,module,exports){
-/* Entity: Diamond(added by Diamond) module
- * Implements the entity pattern and provides
- * the entity Diamond info.
- * Author:
- * - Karen(Fei) Fang
- * Image source: https://openclipart.org
- */
-module.exports = (function(){
-  var Entity = require('./entity.js'),
-      Animation = require('./animation.js');
-
-  // The Sprite Size
-  const SIZE = 64;
-
-  /* The following are Diamond States */
-  const HOLD = 0;
-  const DROPPED = 1;
-  const PICKED = 2;
-
-  //The Diamond spritesheet
-  var diamondImage = new Image();
-  diamondImage .src = 'img/diamond-animation.png';
-
-  var pickFrame = 0;
-
-
-  //The Diamond constructor
-  function Diamond(locationX, locationY, layerIndex) {
-    this.type = "Diamond";
-
-    this.layerIndex = layerIndex;
-    this.currentX = locationX;
-    this.currentY = locationY;
-
-    //default state
-    this.state = HOLD;
-
-    this.currentTileIndex = 0;
-
-    //The animations
-    this.animations = [];
-    this.animations[DROPPED] = new Animation(diamondImage, SIZE, SIZE, 0, 0);
-    this.animations[PICKED] = new Animation(diamondImage, SIZE, SIZE, 0, 0, 4, 1/4);
-  }
-
-  // Diamond inherits from Entity
-  Diamond.prototype = new Entity();
-
-  /* Diamond update function
-   * arguments:
-   * - elapsedTime, the time that has passed
-   *   between this and the last frame.
-   * - tilemap, the tilemap that corresponds to
-   *   the current game world.
-   */
-  Diamond.prototype.update = function(elapsedTime, tilemap, entityManager) {
-    switch (this.state) {
-      case HOLD:
-        return;
-      case DROPPED:
-        break;
-      case PICKED:
-        if(this.pickFrame <= 3*(1/elapsedTime)){
-          this.pickFrame++;
-        }else {
-          entityManager.remove(this);
-          console.log("Diamond: Player picked up the diamond! Entity Diamond removed.");
-          return;
-        }
-        break;
-    }
-    this.animations[this.state].update(elapsedTime);
-
-  }
-
-  /* Diamond Render Function
-   * arguments:
-   * - ctx, the rendering context
-   * - debug, a flag that indicates turning on
-   * visual debugging
-   */
-  Diamond.prototype.render = function(ctx, debug) {
-    // Draw the Diamond (and the correct animation)
-    //console.log("Diamond: this.state: "+this.state);
-    if(this.state != HOLD){
-      //console.log("Diamond: this.currentX: "+this.currentX+" this.currentY: "+this.currentY);
-      this.animations[this.state].render(ctx, this.currentX, this.currentY);
-    }
-  }
-
-  /* Diamond BoundingBox Function
-   * returns: A bounding box representing the Diamond
-   */
-  Diamond.prototype.boundingBox = function() {
-    return {
-      left: this.currentX + 1/4*SIZE,
-      top: this.currentY,
-      right: this.currentX + 3/4*SIZE,
-      bottom: this.currentY + SIZE
-    }
-  }
-  
-  Diamond.prototype.boundingCircle =function(){
-    return{
-      cx: this.currentX + SIZE/2,
-      cy: this.currentY + SIZE/2,
-      radius: SIZE/2
-    }
-  }
-
-  Diamond.prototype.collide = function(otherEntity){
-    if(otherEntity.type === "Kakao"&& this.state===HOLD){
-      //console.log("Kakao: Update diamond position.");
-      this.currentX = otherEntity.currentX;
-      this.currentY = otherEntity.currentY;
-      return;
-    }
-    if(otherEntity.type!="player" && otherEntity.type!= "Kakao"){  //collides with other players
-      this.state = DROPPED;
-    }
-    if(otherEntity.type === "player"){  //collides with player
-      this.state = PICKED;
-    }
-  }
-
-  return Diamond;
-
-}());
-
-},{"./animation.js":4,"./entity.js":15}],12:[function(require,module,exports){
-/* Dynamite Dynamite module
- * Authors:
- * Alexander Duben
- */
-module.exports = (function(){
-  var Entity = require('./entity.js');
-  Animation = require('./animation.js');
-  
-  //states
-  const COUNTDOWN = 0;
-  const DETONATE = 1;
-  const DONE = 2;
-  const FALLING = 3;
-
-  // The Sprite Size
-  const SIZE = 64;
-
-  // Movement constants
-  const SPEED = 50;
-  const GRAVITY = -250;
-  const JUMP_VELOCITY = -600;
-  
-  
-  var dynamiteImg = new Image();
-  dynamiteImg.src = './img/dynamiteSprite.png';
-  var explosionImg = new Image();
-  explosionImg.src = './img/explosionSpriteBig.png';
-  var detonationTimer = 0;
-  var explosionTimer = 0;
-
-  //The Dynamite constructor
-  function Dynamite(locationX, locationY, layerIndex, inputManager, sourceEntity) {
-    this.inputManager = inputManager
-    this.state = FALLING; 
-    this.dug = false; 
-    this.downPressed = false;
-    this.layerIndex = layerIndex;
-    this.currentX = locationX; 
-    this.currentY = locationY; 
-    this.nextX = 0; 
-    this.nextY = 0;
-    this.currentTileIndex = 0; 
-    this.nextTileIndex = 0;
-    this.constSpeed = 15; 
-    this.gravity = .5; 
-    this.angle = 0; 
-    this.xSpeed = 10; 
-    this.ySpeed = 15;
-    this.isLeft = false;
-	this.isPlayerColliding = false;
-	this.type = 'dynamite';
-	this.velocityY = -800;
-	this.source = sourceEntity;
-	
-       //The animations
-    this.animations = {
-      dynamite: [],
-    }
-    
-    //The right-facing animations
-    this.animations.dynamite[FALLING] = new Animation(dynamiteImg, SIZE, SIZE, 0, 0, 8);
-    this.animations.dynamite[DETONATE] = new Animation(explosionImg, 300, 300, 0, 0, 4);
-	this.animations.dynamite[COUNTDOWN] = new Animation(dynamiteImg, SIZE, SIZE, 0, 0);
-	this.animations.dynamite[DONE] = new Animation(explosionImg, SIZE, SIZE, 5*SIZE, 0);
-  }
-  // Dynamite inherits from Entity
-  Dynamite.prototype = new Entity();
-  
-  // Determines if the player is on the ground
-  Dynamite.prototype.onGround = function(tilemap) {
-    var box = this.boundingBox(),
-        tileX = Math.floor((box.left + (SIZE/2))/64),
-        tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
-    // find the tile we are standing on.
-    return (tile && tile.data.solid) ? true : false;
-  }
-  
-  
-  
-  /* Dynamite update function
-   * arguments:
-   * - elapsedTime, the time that has passed 
-   *   between this and the last frame.
-   * - tilemap, the tilemap that corresponds to
-   *   the current game world.
-   */
-  Dynamite.prototype.update = function(elapsedTime, tilemap, entityManager) {
-    var sprite = this;
-    
-    // The "with" keyword allows us to change the
-    // current scope, i.e. 'this' becomes our 
-    // inputManager
-    with (this.inputManager) {	
-
-		switch(sprite.state) {
-        case FALLING:
-			sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-			sprite.currentY += sprite.velocityY * elapsedTime;
-			if(sprite.onGround(tilemap)) {
-				sprite.velocityY = 0;
-				sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-				sprite.state = COUNTDOWN;
-			}
-			detonationTimer++;
-			
-          break;
-		case COUNTDOWN:
-			detonationTimer++;
-			if(detonationTimer > 260){
-				sprite.state = DETONATE;
-			}
-		break;
-        case DETONATE:
-		  if(explosionTimer < 15){
-			  explosionTimer++;
-			  if(explosionTimer == 8){
-				  sprite.source.state = 6; //remove source body
-			  }
-		  }else{
-				var box = sprite.boundingBox(),
-				tileX = Math.floor((box.left + (SIZE/2))/64),
-				tileY = Math.floor(box.bottom / 64);
-				for(var i = tileX-3; i < tileX+3;i++){
-					for(var j = tileY -3; j < tileY+3;j++){
-						
-						tilemap.setTileAt(7, i, j, 0);
-					}	  
-				}
-				for(var i = tileX-5; i < tileX+5;i++){
-					for(var j = tileY -5; j < tileY+5;j++){
-						if(Math.random() < 0.4){
-							tilemap.setTileAt(7, i, j, 0);
-						}
-						
-					}	  
-				}
-				sprite.state = DONE;
-				
-				
-		  }
-		  
-          break;
-		  
-		  case DONE:
-		  //final state
-			break;
-		}
-		
-      
-      
-      // Swap input buffers
-      swapBuffers();
-    }
-       
-    // Update animation
-    
-      this.animations.dynamite[this.state].update(elapsedTime);
-    
-    
-  }
-  
-  /* Dynamite Render Function
-   * arguments:
-   * - ctx, the rendering context
-   * - debug, a flag that indicates turning on
-   * visual debugging
-   */
-  Dynamite.prototype.render = function(ctx, debug) {
-    // Draw the Dynamite (and the correct animation)
-    if(this.state == COUNTDOWN){
-		this.animations.dynamite[this.state].render(ctx, this.currentX, this.currentY+25); 
-	}
-	else if(this.state == DETONATE){
-		this.animations.dynamite[this.state].render(ctx, this.currentX-100, this.currentY-100);
-	}else{
-		this.animations.dynamite[this.state].render(ctx, this.currentX, this.currentY);
-	}
-    if(this.state != DONE){
-		if(debug) renderDebug(this, ctx);
-	}
-    
-  }
-  
-  // Draw debugging visual elements
-  function renderDebug(Dynamite, ctx) {
-    var bounds = Dynamite.boundingBox();
-    ctx.save();
-    
-    // Draw Dynamite bounding box
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-    ctx.moveTo(bounds.left, bounds.top);
-    ctx.lineTo(bounds.right, bounds.top);
-    ctx.lineTo(bounds.right, bounds.bottom);
-    ctx.lineTo(bounds.left, bounds.bottom);
-    ctx.closePath();
-    ctx.stroke();
-    
-    // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
-        tileY = 64 * (Math.floor(bounds.bottom / 64));
-    ctx.strokeStyle = "black";
-    ctx.beginPath();
-    ctx.moveTo(tileX, tileY);
-    ctx.lineTo(tileX + 64, tileY);
-    ctx.lineTo(tileX + 64, tileY + 64);
-    ctx.lineTo(tileX, tileY + 64);
-    ctx.closePath();
-    ctx.stroke();
-    
-    ctx.restore();
-  }
-  
-  Dynamite.prototype.collide = function(otherEntity){
-	  
-  }
-  
-  /* Dynamite BoundingBox Function
-   * returns: A bounding box representing the Dynamite 
-   */
-  Dynamite.prototype.boundingBox = function() {
-    return {
-      left: this.currentX,
-      top: this.currentY,
-      right: this.currentX + SIZE,
-      bottom: this.currentY + SIZE
-    }
-  }
-  
-  Dynamite.prototype.boundingCircle = function() {
-     return {cx: this.currentX+SIZE/2, cy: this.currentY+SIZE/2, radius: SIZE/2}
-   }
-  
-  return Dynamite;
-
-}());
-},{"./animation.js":4,"./entity.js":15}],13:[function(require,module,exports){
-/* Dynamite Dwarf module
- * Authors:
- * Alexander Duben
- */
-module.exports = (function(){
-  var Entity = require('./entity.js'),
-      Animation = require('./animation.js'),
-	  Dynamite = require('./dynamite.js');
-  
-  /* The following are Dwarf States (Swimming is not implemented) */
-  const STANDING = 0;
-  const WALKING = 1;
-  const DETONATING = 2;
-  const FALLING = 3;
-  const DYING = 4;
-  const DEAD = 5;
-  const DONE = 6;
-  
-  var GROUNDLVL = 10;
-
-  // The Sprite Size
-  const SIZE = 64;
-
-  // Movement constants
-  const SPEED = 50;
-  const GRAVITY = -250;
-  const JUMP_VELOCITY = -600;
-  
-  //The Right facing dwarf spritesheet
-  var dwarfRight = new Image();
-  dwarfRight.src = 'DwarfAnimatedRight.png';
-
-  //The left facing dwarf spritesheet
-  var dwarfLeft = new Image();
-  dwarfLeft.src = "DwarfAnimatedLeft.png";
-  
-  //walk sprites
-  var walkLeft = new Image();
-  walkLeft.src = "./img/dwarfWalkLeft.png";
-  var walkRight = new Image();
-  walkRight.src = "./img/dwarfWalkRight.png";
-  
-  //idle sprites
-  var idleLeft = new Image();
-  idleLeft.src = "./img/dwarfIdleLeft.png";
-  var idleRight = new Image();
-  idleRight.src = "./img/dwarfIdleRight.png";
-  
-  //fall sprites
-  var fallLeft = new Image();
-  fallLeft.src = "./img/dwarfFallLeft.png";
-  var fallRight = new Image();
-  fallRight.src = "./img/dwarfFallRight.png";
-  
-  //dying sprites
-  var dieLeft = new Image();
-  dieLeft.src = "./img/dwarfDyingLeft.png";
-  var dieRight = new Image();
-  dieRight.src = "./img/dwarfDyingRight.png";
-  
-  //dead sprites
-  var deadLeft = new Image();
-  deadLeft.src = "./img/dwarfDeadLeft.png";
-  var deadRight = new Image();
-  deadRight.src = "./img/dwarfDeadRight.png";
-  
-  //detonate sprite
-  var detonate = new Image();
-  detonate.src = "./img/dwarfDetonate.png";
-  
-  var walkTimer = 0,
-	idleTimer = 0,
-	settingChargesTimer = 0,
-	dyingTimer = 0;
-
-  //The Dwarf constructor
-  function Dwarf(locationX, locationY, layerIndex, inputManager) {
-    this.inputManager = inputManager
-    this.state = WALKING; 
-    this.dug = false; 
-    this.downPressed = false;
-    this.layerIndex = layerIndex;
-    this.currentX = locationX; 
-    this.currentY = locationY; 
-    this.nextX = 0; 
-    this.nextY = 0;
-    this.currentTileIndex = 0; 
-    this.nextTileIndex = 0;
-    this.constSpeed = 15; 
-    this.gravity = .5; 
-    this.angle = 0; 
-    this.xSpeed = 10; 
-    this.ySpeed = 15;
-    this.isLeft = false;
-	this.isPlayerColliding = false;
-	this.type = 'dynamiteDwarf';
-	this.score = -500;
-	//this.player = playerEntity;
-    
-    //The animations
-    this.animations = {
-      left: [],
-      right: [],
-    }
-    
-    //The right-facing animations
-    this.animations.right[STANDING] = new Animation(idleRight, SIZE, SIZE, 0, 0, 8);
-    this.animations.right[WALKING] = new Animation(walkRight, SIZE, SIZE, 0, 0, 8);
-    this.animations.right[DYING] = new Animation(dieRight, SIZE, SIZE, SIZE,0,7);
-    this.animations.right[DETONATING] = new Animation(detonate, SIZE, SIZE, 0, 0, 20, 1/8);
-    this.animations.right[FALLING] = new Animation(fallRight, SIZE, SIZE, 0, 0);
-	this.animations.right[DEAD] = new Animation(deadRight, SIZE, SIZE, 0, 0);
-	this.animations.right[DONE] = new Animation(dieRight,SIZE,SIZE,0,0);
-    
-    
-    //The left-facing animations
-    this.animations.left[STANDING] = new Animation(idleLeft, SIZE, SIZE, 0, 0, 8);
-    this.animations.left[WALKING] = new Animation(walkLeft, SIZE, SIZE, 0, 0, 8);
-    this.animations.left[DYING] = new Animation(dieLeft, SIZE, SIZE, 0,0,7);
-    this.animations.left[DETONATING] = new Animation(detonate, SIZE, SIZE, 0, 0, 20, 1/8);
-    this.animations.left[FALLING] = new Animation(fallLeft, SIZE, SIZE, 0, 0);
-	this.animations.left[DEAD] = new Animation(deadLeft, SIZE, SIZE, 0, 0);
-    this.animations.left[DONE] = new Animation(dieRight,SIZE,SIZE,0,0);
-  }
-  
-  // Dwarf inherits from Entity
-  Dwarf.prototype = new Entity();
-  
-  
-  // Determines if the Dwarf is on the ground
-  Dwarf.prototype.onGround = function(tilemap) {
-    var box = this.boundingBox(),
-        tileX = Math.floor((box.left + (SIZE/2))/64),
-        tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
-    // find the tile we are standing on.
-    return (tile && tile.data.solid) ? true : false;
-  }
-  
-  // Moves the Dwarf to the left, colliding with solid tiles
-  Dwarf.prototype.moveLeft = function(distance, tilemap) {
-    this.currentX -= distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid) 
-      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
-  }
-  
-  // Moves the Dwarf to the right, colliding with solid tiles
-  Dwarf.prototype.moveRight = function(distance, tilemap) {
-    this.currentX += distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
-  }
-  
-  /* Dwarf update function
-   * arguments:
-   * - elapsedTime, the time that has passed 
-   *   between this and the last frame.
-   * - tilemap, the tilemap that corresponds to
-   *   the current game world.
-   */
-  Dwarf.prototype.update = function(elapsedTime, tilemap, entityManager) {
-    var sprite = this;
-    GROUNDLVL = tilemap.surface;
-    // The "with" keyword allows us to change the
-    // current scope, i.e. 'this' becomes our 
-    // inputManager
-    with (this.inputManager) {
-	
-      // Process Dwarf state
-      switch(sprite.state) {
-        case STANDING:
-			sprite.isPlayerColliding = false;
-			if(isKeyDown(commands.ATTACK)){
-				sprite.state = DYING;
-			}
-			if(!sprite.onGround(tilemap)) {
-				sprite.state = FALLING;
-				sprite.velocityY = 0;
-				idleTimer = 0;
-				break;
-			}
-			if(idleTimer < 120){
-				idleTimer++;
-				if(isKeyDown(commands.PAY)) {
-					sprite.state = DETONATING;
-				}
-			}else{
-				idleTimer = 0;
-				sprite.state = WALKING;
-			}
-
-			break;
-        case WALKING:
-          // If there is no ground underneath, fall
-          if(sprite.isPlayerColliding){
-			  sprite.state = STANDING;
-			  walkTimer = 0;
-		  }else if(!sprite.onGround(tilemap)) {
-            sprite.state = FALLING;
-            sprite.velocityY = 0;
-          }
-		  else {                      
-            if(walkTimer<480) {
-              sprite.state = WALKING;
-			  walkTimer++;
-			  if(sprite.isLeft){
-				 sprite.moveLeft(elapsedTime * SPEED, tilemap); 
-			  }else{
-				 sprite.moveRight(elapsedTime * SPEED, tilemap); 
-			  }             
-            }else{
-				walkTimer = 0;
-				sprite.isLeft = !sprite.isLeft;
-			}
-          }
-          break;
-       
-        case DETONATING:
-			var player = entityManager.getPlayer();//player entity
-			if(settingChargesTimer < 150){
-				settingChargesTimer++;
-			}else{
-				settingChargesTimer = 0;
-				var box = sprite.boundingBox(),
-				tileX = Math.floor((box.left + (SIZE/2))/64),
-				tileY = Math.floor(box.bottom / 64);								
-				for(var j = tileY; j > GROUNDLVL;j--){
-					tilemap.setTileAt(7, tileX, j-1, 0);
-				}
-				player.currentX = tileX*64;
-				player.currentY = tileY*64;
-				//player.velocityY = -1500;		
-				player.velocityY = -Math.sqrt((tileY-GROUNDLVL)*64*10*(-GRAVITY));//shoot player above surface level
-				if((tileY-GROUNDLVL) <= 0){//if above surface just use just constant force
-					player.velocityY = -1500;
-				}
-				player.state = 2;//jumping
-				sprite.state = WALKING;
-			}
-          break;
-        case FALLING:
-          sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-          sprite.currentY += sprite.velocityY * elapsedTime;
-          if(sprite.onGround(tilemap)) {
-            sprite.state = WALKING;
-            sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-          }
-          
-          break;
-        case DYING:
-			if(dyingTimer < 25){
-				dyingTimer++;
-			}else{
-				dyingTimer = 0;
-				var dynamite = new Dynamite(sprite.currentX,sprite.currentY,0, sprite.inputManager,sprite);
-				entityManager.add(dynamite);
-				sprite.state = DEAD;
-			}
-			break;
-		case DEAD:
-			//stays dead until body destroyed
-			break;
-		case DONE:
-			//final state
-			break;
-      }
-      
-      // Swap input buffers
-      swapBuffers();
-    }
-       
-    // Update animation
-    if(this.isLeft)
-      this.animations.left[this.state].update(elapsedTime);
-    else
-      this.animations.right[this.state].update(elapsedTime);
-    
-  }
-  
-  /* Dwarf Render Function
-   * arguments:
-   * - ctx, the rendering context
-   * - debug, a flag that indicates turning on
-   * visual debugging
-   */
-  Dwarf.prototype.render = function(ctx, debug) {
-    // Draw the Dwarf (and the correct animation)
-    if(this.isLeft)
-      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
-    else
-      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
-    
-    if(this.state != DONE){
-		if(debug) renderDebug(this, ctx);
-	}
-  }
-  
-  // Draw debugging visual elements
-  function renderDebug(Dwarf, ctx) {
-    var bounds = Dwarf.boundingBox();
-    ctx.save();
-    
-    // Draw Dwarf bounding box
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-    ctx.moveTo(bounds.left, bounds.top);
-    ctx.lineTo(bounds.right, bounds.top);
-    ctx.lineTo(bounds.right, bounds.bottom);
-    ctx.lineTo(bounds.left, bounds.bottom);
-    ctx.closePath();
-    ctx.stroke();
-    
-    // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
-        tileY = 64 * (Math.floor(bounds.bottom / 64));
-    ctx.strokeStyle = "black";
-    ctx.beginPath();
-    ctx.moveTo(tileX, tileY);
-    ctx.lineTo(tileX + 64, tileY);
-    ctx.lineTo(tileX + 64, tileY + 64);
-    ctx.lineTo(tileX, tileY + 64);
-    ctx.closePath();
-    ctx.stroke();
-    
-    ctx.restore();
-  }
-  
-  Dwarf.prototype.collide = function(otherEntity){
-	  if(otherEntity.type == 'player'){
-		  this.isPlayerColliding = true;
-	  }
-  }
-  
-  /* Dwarf BoundingBox Function
-   * returns: A bounding box representing the Dwarf 
-   */
-  Dwarf.prototype.boundingBox = function() {
-    return {
-      left: this.currentX,
-      top: this.currentY,
-      right: this.currentX + SIZE,
-      bottom: this.currentY + SIZE
-    }
-  }
-  
-  Dwarf.prototype.boundingCircle = function() {
-     return {cx: this.currentX+SIZE/2, cy: this.currentY+SIZE/2, radius: SIZE/2};
-   }
-  
-  return Dwarf;
-
-}());
-},{"./animation.js":4,"./dynamite.js":12,"./entity.js":15}],14:[function(require,module,exports){
-/* The entity manager for the DiggyHole game
- * Currently it uses brute-force approaches
- * to its role - this needs to be refactored
- * into a spatial data structure approach.
- * Authors:
- * - Nathan Bean
- */
-module.exports = (function() {
-  const MAX_ENTITIES = 100;
-
-
-  var entities = [],
-
-  Player = require('./player.js');
-      entityCount = 0;
-
-  /* Adds an entity to those managed.
-   * Arguments:
-   * - entity, the entity to add
-   */
-  function add(entity) {
-    if (entityCount < MAX_ENTITIES) {
-      // Determine the entity's unique ID
-      // (we simply use an auto-increment count)
-      var id = entityCount;
-      entityCount++;
-
-      // Set the entity's id on the entity itself
-      // as a property.  Due to the dynamic nature of
-      // JavaScript, this is easy
-      entity._entity_id = id;
-
-      // Store the entity in the entities array
-      entities[id] = entity;
-      return true;
-    } else {
-      // We've hit the max number of allowable entities,
-      // yet we may have freed up some space within our
-      // entity array when an entity was removed.
-      // If so, let's co-opt it.
-      for (var i = 0; i < MAX_ENTITIES; i++) {
-        if (entities[i] === undefined) {
-          entity._entity_id = i;
-          entities[i] = entity;
-          return i;
-        }
-      }
-      // If we get to this point, there are simply no
-      // available spaces for a new entity.
-      // Log an error message, and return an error value.
-      console.error("Too many entities");
-      return undefined;
-    }
-  }
-
-  /* Removes an entity from those managed
-   * Arguments:
-   * - entity, the entity to remove
-   */
-  function remove(entity) {
-    // Set the entry in the entities table to undefined,
-    // indicating an open slot
-    if (entity.score) {
-      this.scoreEngine.addScore(entity.score);
-    }
-    entities[entity._entity_id] = undefined;
-  }
-
-  /* Checks for collisions between entities, and
-   * triggers the collide() event handler.
-   */
-  function checkCollisions() {
-    for (var i = 0; i < entityCount; i++) {
-      // Don't check for nonexistant entities
-      if (entities[i]) {
-        for (var j = 0; j < entityCount; j++) {
-          // don't check for collisions with ourselves
-          // and don't bother checking non-existing entities
-          if (i != j && entities[j]) {
-            var boundsA = entities[i].boundingBox();
-            var boundsB = entities[j].boundingBox();
-            if (boundsA.left < boundsB.right &&
-              boundsA.right > boundsB.left &&
-              boundsA.top < boundsB.bottom &&
-              boundsA.bottom > boundsB.top
-            ) {
-              entities[i].collide(entities[j]);
-              entities[j].collide(entities[i]);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /* Returns all entities within the given radius.
-   * Arguments:
-   * - x, the x-coordinate of the center of the query circle
-   * - y, the y-coordinate of the center of the query circle
-   * - r, the radius of the center of the circle
-   * Returns:
-   *   An array of entity references
-   */
-  function queryRadius(x, y, r) {
-    var entitiesInRadius = [];
-    for (var i = 0; i < entityCount; i++) {
-      // Only check existing entities
-      if (entities[i]) {
-        var circ = entities[i].boundingCircle();
-        if (Math.pow(circ.radius + r, 2) >=
-          Math.pow(x - circ.cx, 2) + Math.pow(y - circ.cy, 2)
-        ) {
-          entitiesInRadius.push(entities[i]);
-        }
-      }
-    }
-    return entitiesInRadius;
-  }
-
-  /* Updates all managed entities
-   * Arguments:
-   * - elapsedTime, how much time has passed between the prior frameElement
-   *   and this one.
-   * - tilemap, the current tilemap for the game.
-   */
-  function update(elapsedTime, tilemap) {
-    for (i = 0; i < entityCount; i++) {
-      if (entities[i]) entities[i].update(elapsedTime, tilemap, this);
-    }
-    scoreEngine.update();
-    checkCollisions();
-  }
-
-  /* Renders the managed entities
-   * Arguments:
-   * - ctx, the rendering contextual
-   * - debug, the flag to trigger visual debugging
-   */
-  function render(ctx, debug) {
-    for (var i = 0; i < entityCount; i++) {
-      if (entities[i]) entities[i].render(ctx, debug);
-    }
-    scoreEngine.render(ctx);
-  }
-
-  function getPlayer() {
-    for (var i = 0; i < entityCount; i++) {
-      if (entities[i] && entities[i] instanceof Player) {
-        return entities[i];
-      }
-    }
-  }
-
-  function getEntity(index) {
-    return entities[index];
-  }
-
-  /* Gets distance between entity and player */
-  function playerDistance(entity) {
-    var d = Math.pow(entity.currentX - entities[0].currentX, 2) + Math.pow(entity.currentY - entities[0].currentY, 2);
-    d = Math.sqrt(d);
-    return d;
-  }
-
-  /* Gets direction relative to player */
-  function playerDirection(entity) {
-    if (entities[0].currentX < entity.currentX) {
-      return true;
-    }
-    return false;
-  }
-
-  function setScoreEngine(score) {
-    this.scoreEngine = score;
-  }
-
-  return {
-    add: add,
-    remove: remove,
-    queryRadius: queryRadius,
-    update: update,
-    render: render,
-    playerDistance: playerDistance,
-    playerDirection: playerDirection,
-    getPlayer: getPlayer,
-    getEntity: getEntity,
-    setScoreEngine: setScoreEngine
-  };
-
-}());
-
-},{"./player.js":26}],15:[function(require,module,exports){
-/* Base class for all game entities,
- * implemented as a common JS module
- * Authors:
- * - Nathan Bean 
- */
-module.exports = (function(){
-  
-  /* Constructor
-   * Generally speaking, you'll want to set
-   * the X and Y position, as well as the layerX
-   * of the map the entity is located on
-   */
-  function Entity(locationX, locationY, mapLayer){
-    this.x = locationX;
-    this.y = locationY;
-    this.mapLayer = mapLayer;
-  }
-  
-  /* Update function
-   * parameters:
-   * - elapsedTime is the time that has passed since the
-   *   previous frame 
-   * - tilemap is the currently loaded tilemap; you'll 
-   *   probably want to call its tileAt and setTile methods.
-   * - entityManager is the game's entity manager, and
-   *   keeps track of where all game entities are.
-   *   you can call its query functions
-   */
-  Entity.prototype.update = function(elapsedTime, tilemap, entityManager) {
-      // TODO: Determine what your entity will do
-  }
-  
-  /* Render function
-   * parameters:
-   *  - context is the rendering context.  It may be transformed
-   *    to account for the camera 
-   */
-   Entity.prototype.render = function(context) {
-     // TODO: Draw your entity sprite
-   }
-   
-   /* Collide function
-    * This function is called by the entityManager when it determines
-    * a possible collision.
-    * parameters:
-    * - otherEntity is the entity this enemy collided with
-    *   You will likely want to use 
-    *     'otherEntity instanceof <Type>' 
-    *   to determine what type it is to know what to 
-    *   do with it.
-    */
-   Entity.prototype.collide = function(otherEntity) {
-   } 
-   
-   /* BoundingBox function
-    * This function returns an axis-aligned bounding
-    * box, i.e {top: 0, left: 0, right: 20, bottom: 50}
-    * the box should contain your entity or at least the
-    * part that can be collided with.
-    */
-   Entity.prototype.boundingBox = function() {
-     // Return a bounding box for your entity
-   }
-   
-   /* BoundingCircle function
-    * This function returns a bounding circle, i.e.
-    * {cx: 0, cy: 0, radius: 20}
-    * the circle should contain your entity or at 
-    * least the part that can be collided with.
-    */
-   Entity.prototype.boundingCircle = function() {
-     // Return a bounding circle for your entity
-   }
-   
-   return Entity;
-  
-}());
-},{}],16:[function(require,module,exports){
-/* Game GameState module
- * Provides the main game logic for the Diggy Hole game.
- * Authors:
- * - Nathan Bean
- */
-module.exports = (function (){
-
-  // The width & height of the screen
-  const SCREEN_WIDTH = 1280,
-        SCREEN_HEIGHT = 720;
-
-  // Module variables
-  var Player = require('./player.js'),
-	  Rat = require('./rat.js'),
-	  Wolf = require('./wolf.js'),
-    Robo_Killer = require('./robo-killer.js'),
-      Octopus = require('./octopus.js'),
-      inputManager = require('./input-manager.js'),
-      tilemap = require('./tilemap.js'),
-      entityManager = require('./entity-manager.js'),
-      StoneMonster = require('./stone-monster.js'),
-	  DemonicGroundHog = require('./DemonicGroundH.js'),
-      Barrel = require('./barrel.js'),
-	  Turret = require('./turret.js'),
-	  DynamiteDwarf = require('./dynamiteDwarf.js'),
-	  Kakao = require('./Kakao.js'),
-    Bird = require('./bird.js'),
-    bird,
-	  kakao,
-	wolf,
-  robo_killer,
-      GoblinMiner = require('./goblin-miner.js'),
-      Shaman = require('./goblin-shaman.js'),
-    Blobber = require('./blobber.js'),
-    blobber,
-    extantBlobbers,
-      player,
-	  rat,
-      octopus,
-      stoneMonster,
-	  Slime = require('./slime.js'),
-      Sudo_Chan = require('./sudo_chan.js'),
-      sudo_chan,
-      slime,
-      goblinMiner,
-      screenCtx,
-      backBuffer,
-      backBufferCtx,
-      stateManager,
-      ScoreEngine = require('./score.js'),
-	  PowerUp = require('./powerUp.js');
-
-  /* Loads the GameState, triggered by the StateManager
-   * This function sets up the screen canvas, the tilemap,
-   * and loads the entity.
-   * arguments:
-   * - sm, the state manager that loaded this game
-   */
-  var load = function(sm) {
-    stateManager = sm;
-
-    // Set up the screen canvas
-    var screen = document.createElement("canvas");
-    screen.width = SCREEN_WIDTH;
-    screen.height = SCREEN_HEIGHT;
-    screenCtx = screen.getContext("2d");
-    document.getElementById("game-screen-container").appendChild(screen);
-
-    // Set up the back buffer
-    backBuffer = document.createElement("canvas");
-    backBuffer.width = SCREEN_WIDTH;
-    backBuffer.height = SCREEN_HEIGHT;
-    backBufferCtx = backBuffer.getContext("2d");
-
-    // Generate the tilemap
-    tilemap.generate(1000, 1000, {
-      viewport: {
-        width: 1028,
-        height: 720
-      },
-      onload: function() {
-        window.tilemap = tilemap;
-        tilemap.render(screenCtx);
-      }
-    });
-
-    for (var i = 0; i < 35; i += 7){
-      //stoneMonster = new StoneMonster(64*i, 0, 0);
-      //entityManager.add(stoneMonster);
-    }
-
-    // Create the player and add them to
-    // the entity manager
-    player = new Player(400, 240, 0, inputManager);
-    entityManager.add(player);
-    
-    // Set up score engine
-    scoreEngine = new ScoreEngine();
-    scoreEngine.setPositionFunction(tilemap.getCameraPosition)
-    entityManager.setScoreEngine(scoreEngine);
-
-    //add wolf to
-    // the entity manager
-    wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
-    entityManager.add(wolf);
-
-    bird = new Bird(400, 100);
-    entityManager.add(bird);
-
-    // Add a robo-killer to the entity manager.
-    robo_killer = new Robo_Killer(450, 240, 0);
-    entityManager.add(robo_killer);
-
-	rat = new Rat(500, 360, 0);
-	entityManager.add(rat);
-
-	slime = new Slime(400, 20, 0);
-	entityManager.add(slime);
-
-    sudo_chan = new Sudo_Chan(490, 240, 0);
-    entityManager.add(sudo_chan);
-
-    octopus = new Octopus(120, 240, 0);
-    entityManager.add(octopus);
-
-	DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
-	entityManager.add(DemonicGroundHog);
-
-	goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
-	entityManager.add(goblinMiner);
-
-	// Spawn 10 barrels close to player
-	 // And some turrets
-    // and some shamans
-	for(var i = 0; i < 10; i++){
-		if (i < 3) {
-			turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
-			entityManager.add(turret);
-		}
-		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 500));
-		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 12, './img/powerUps/crystal_enhanced.png', true, 500));
-		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
-		//entityManager.add(barrel);
-        entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
-		
-
-	}
-	//powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
-					 
-	
-	
-
-	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
-	entityManager.add(dynamiteDwarf);
-
-	// Karenfang: Create a Kakao and add it to
-    // the entity manager
-    kakao = new Kakao(310,240,0);  //two tiles to the right of the player
-    entityManager.add(kakao);
-
-    extantBlobbers = 1;
-    blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
-    entityManager.add(blobber);
-
-
-
-  };
-
-  /* Updates the state of the game world
-   * arguments:
-   * - elapsedTime, the amount of time passed between
-   * this and the prior frame.
-   */
-  var update = function(elapsedTime) {
-    //player.update(elapsedTime, tilemap);
-    entityManager.update(elapsedTime, tilemap);
-    inputManager.swapBuffers();
-
-    octopus.getPlayerPosition(player.boundingBox());
-  };
-
-  /* Renders the current state of the game world
-   */
-  var render = function() {
-    // Clear the back buffer
-    backBufferCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-    // TODO: Calculate rubberbanding
-    var bounds = player.boundingBox();
-    var offsetX = SCREEN_WIDTH / 2,
-        offsetY = SCREEN_HEIGHT / 2;
-
-    // Apply camera transforms
-    backBufferCtx.save();backBufferCtx.translate(offsetX - bounds.left, offsetY - bounds.top);
-    tilemap.setCameraPosition(bounds.left, bounds.top);
-
-    // Redraw the map & entities
-    tilemap.render(backBufferCtx);
-    entityManager.render(backBufferCtx, true);
-    //player.render(backBufferCtx, true);
-
-    backBufferCtx.restore();
-
-    // Flip the back buffer
-    screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-  };
-
-  /* Event handler for key down events
-   * arguments:
-   * - event, the key down event to process
-   */
-  function keyDown(event) {
-    if(event.keyCode == 27) { // ESC
-      var mainMenu = require('./main-menu.js');
-      stateManager.pushState(mainMenu);
-    }
-    inputManager.keyDown(event);
-  }
-
-  /* Event handler for key up events
-   * arguments:
-   * - event, the key up event to process
-   */
-  function keyUp(event) {
-    inputManager.keyUp(event);
-  }
-
-  /* Exits the game */
-  var exit = function() {}
-
-  return {
-    load: load,
-    exit: exit,
-    update: update,
-    render: render,
-    keyDown: keyDown,
-    keyUp: keyUp
-  }
-
-})();
-
-},{"./DemonicGroundH.js":1,"./Kakao.js":2,"./barrel.js":5,"./bird.js":6,"./blobber.js":7,"./dynamiteDwarf.js":13,"./entity-manager.js":14,"./goblin-miner.js":17,"./goblin-shaman.js":18,"./input-manager.js":20,"./main-menu.js":21,"./octopus.js":24,"./player.js":26,"./powerUp.js":27,"./rat.js":28,"./robo-killer.js":29,"./score.js":30,"./slime.js":31,"./stone-monster.js":32,"./sudo_chan.js":34,"./tilemap.js":35,"./turret.js":36,"./wolf.js":37}],17:[function(require,module,exports){
-/* Goblin Miner module
- * Implements the entity pattern and provides
- * the DiggyHole Goblin Miner info.
- * Author:
- * - Wyatt Watson
- * - Nathan Bean
- */
-module.exports = (function(){
-    var Entity = require('./entity.js'),
-	    Animation = require('./animation.js');
-
-    /* The following are Goblin Miner States */
-    const PASSIVE_STANDING = 0;
-    const WALKING = 1;
-    const JUMPING = 2;
-    const FALLING = 3;
-    const DIGGING = 4;
-    const CHARGING = 5;
-    const ATTACKING = 6;
-    const AGGRESSIVE_STANDING = 7;
-
-
-    function GoblinMiner(locationX, locationY, layerIndex, entManager){
-	    this.data = {type: 'goblinMiner'};
-		this.entityManager = entManager;
-		this.state = PASSIVE_STANDING;
-	    this.layerIndex = layerIndex;
-	    this.currentX = locationX;
-	    this.currentY = locationY;
-	    this.nextX = 0;
-	    this.nextY = 0;
-	    this.currentTileIndex = 0;
-	    this.nextTileIndex = 0;
-	    this.constSpeed = 15;
-	    this.gravity = .5;
-	    this.angle = 0;
-	    this.xSpeed = 10;
-	    this.ySpeed = 15;
-		this.velocityY = 0;
-	    this.isLeft = false;
-		this.direction = 0;
-
-	    // The animations
-	    this.animations = {
-			left: [],
-			right: []
-	    }
-
-	    /* ADD CODE HERE */
-	    // The right-facing animations
-	    this.animations.right[PASSIVE_STANDING] = new Animation(goblinMinerRight, 354/8, 64, 354/8, 0, 0, 8);
-	    // the left-facing animations
-	    /* END ADD CODE HERE */
-    }
-
-    GoblinMiner.prototype = new Entity();
-
-    // Determines if the Goblin Miner is on the ground
-    GoblinMiner.prototype.onGround = function(tilemap) {
-		var box = this.boundingBox(),
-			tileX = Math.floor((box.left + (SIZE/2))/64),
-			tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    // find the tile we are standing on.
-    return (tile && tile.data.solid) ? true : false;
-    }
-
-    /* Returns the entities in Sight
-     * - tileX, the x coordinate of our current tile location
-     * - tileY, the y coordinate of our current tile location
-     * - layerIndex, the layer we are in and interact with
-     * - tileMap, the tilemap
-     */
-    function vision(tileX, tileY, layerIndex, tileMap, goblin){
-	var entities = goblin.entityManager.queryRadius(tileX, tileY, 2);
-	/* for(i = -5; i <= 5; i++){
-		if(i == 0){}
-		else{
-			var temp = {
-				entity: tileMap.tileAt(tileX+i, tileY, layerIndex),
-				direction: i};
-			if(tileX+i >= 0 && tileX+i <= 1000)
-				entities.push(temp);
-		}
-	} */
-	return entities;
-    }
-
-    /* Returns the entities in Hearing Range
-     * - tileX, the x coordinate of our current tile location
-     * - tileY, the y coordinate of our current tile location
-     * - layerIndex, the layer we are in and interact with
-     * - tileMap, the tilemap
-     */
-    function aggressionRadius(tileX, tileY, layerIndex, tileMap, goblin){
-	var entities = goblin.entityManager.queryRadius(tileX, tileY, 7);
-/* 	for(j = -5; j <= 5; j++){
-		for(i = -5; i <= 5; i++){
-			if(i == 0 && j == 0){}
-			else{
-				var temp = {
-					entity: tileMap.tileAt(tileX+i, tileY+j, layerIndex),
-				direction: i};
-				if(tileX+i >= 0 && tileX+i <= 1000 && tileY+j >= 0 && tileY+j <= 1000)
-					entities.push(tileMap.tileAt(tileX+i, tileY+j, layerIndex));
-			}
-		}
-	} */
-	return entities;
-    }
-
-    /* Returns a bool for if there is a large enough path to jump up
-     * - tileX, the x coordinate of our current tile location
-     * - tileY, the y coordinate of our current tile location
-     * - layerIndex, the layer we are in and interact with
-     * - tileMap, the tilemap
-     */
-    function checkAbovePath(tileX, tileY, layerIndex, tileMap){
-	var tile = tileMap.tileAt(tileX, tileY-1, layerIndex);
-	if(!(tile && tile.data.solid)){
-		tile = tileMap.tileAt(tileX, tileY-2, layerIndex);
-		if(!(tile && tile.data.solid))
-			return true;
-	}
-	return false;
-    }
-
-    /* Returns a bool for if the path above is open (false - solid, true - open)
-     * - tileX, the x coordinate of our current tile location
-     * - tileY, the y coordinate of our current tile location
-     * - layerIndex, the layer we are in and interact with
-     * - tileMap, the tilemap
-     */
-    function checkAbove(tileX, tileY, layerIndex, tileMap){
-	var tile = tileMap.tileAt(tileX, tileY-1, layerIndex);
-	if(tile && tile.data.solid)
-		return false;
-	return true;
-    }
-
-    /* Returns a bool for if the path to the right is open (false - solid, true - open)
-     * - tileX, the x coordinate of our current tile location
-     * - tileY, the y coordinate of our current tile location
-     * - layerIndex, the layer we are in and interact with
-     * - tileMap, the tilemap
-     */
-    function checkRight(tileX, tileY, layerIndex, tileMap){
-	var tile = tileMap.tileAt(tileX+1, tileY, layerIndex);
-	if(tile && tile.data.solid)
-		return false;
-	return true;
-    }
-
-    /* Returns a bool for if the path to the left is open (false - solid, true - open)
-     * - tileX, the x coordinate of our current tile location
-     * - tileY, the y coordinate of our current tile location
-     * - layerIndex, the layer we are in and interact with
-     * - tileMap, the tilemap
-     */
-    function checkLeft(tileX, tileY, layerIndex, tileMap){
-	var tile = tileMap.tileAt(tileX-1, tileY, layerIndex);
-	if(tile && tile.data.solid)
-		return false;
-	return true;
-    }
-
-    /* Returns a bool for if the path below is open (false - solid, true - open)
-     * - tileX, the x coordinate of our current tile location
-     * - tileY, the y coordinate of our current tile location
-     * - layerIndex, the layer we are in and interact with
-     * - tileMap, the tilemap
-     */
-    function checkBelow (tileX, tileY, layerIndex, tileMap){
-	var tile = tileMap.tileAt(tileX, tileY+1, layerIndex);
-	if(tile && tile.data.solid)
-		return false;
-	return true;
-    }
-
-    /* Returns an array holding a command and possibly direction
-     * - tileX, the x coordinate of our current tile location
-     * - tileY, the y coordinate of our current tile location
-     * - layerIndex, the layer we are in and interact with
-     * - tileMap, the tilemap
-     * - currentState, the current state of the goblin miner
-     * - direction, the possible direction the goblin miner is moving
-     */
-    function command(tileX, tileY, layerIndex, tileMap, currentState, direction, goblin){
-	if(!goblin.onGround(tilemap)){
-		return {command: FALLING, direction: 0};
-	}
-
-/* 	var visionEnts = vision(tileX, tileY, layerIndex, tileMap, goblin);
-	var aggroEnts = aggressionRadius(tileX, tileY, layerIndex, tileMap, goblin);
-
-	// Check for player in vision
-	for(i = 0; i < visionEnts.length; i++){
-		if(visionEnts[i].type == 'player'){
-			var temp;
-			if(visionEnts[i].direction == 1 || visionEnts[i].direction == -1)
-				temp = {command: ATTACKING, direction: visionEnts[i].direction};
-			else
-				temp = {command: CHARGING, direction: visionEnts[i].direction};
-			return temp;
-		}
-	}
-
-	// Check for player in aggro range
-	for(i = 0; i < aggroEnts.length; i++){
-		if(aggroEnts[i].type == 'player'){
-			var temp = {command: AGGRESSIVE_STANDING, direction: aggroEnts[i].direction};
-			return temp;
-		}
-	}  */
-
-	// Player is not nearby, so need to find something to do
-	var randomNum = Math.random();
-
-	switch(currentState) {
-		case AGGRESSIVE_STANDING:
-		    return {command: PASSIVE_STANDING, direction: 0};
-			break;
-		case PASSIVE_STANDING:
-		    if(randomNum < .8)
-			    return {command: PASSIVE_STANDING, direction: 0};
-			if(randomNum > .4){
-				if(checkLeft(tileX, tileY, layerIndex, tileMap) && tileX-1 >= -1)
-					return {command: WALKING, direction: -1};
-				else{
-					if(randomNum > .7)
-						return {command: DIGGING, direction: -1};
-					else
-						return {command: WALKING, direction: 1};
-				}
-			}
-			else{
-				if(checkRight(tileX, tileY, layerIndex, tileMap) && tileX+1 <= 1000)
-					return {command: WALKING, direction: 1};
-				else{
-					if(randomNum < .1)
-						return {command: DIGGING, direction: 1};
-					else
-						return {command: WALKING, direction: -1};
-				}
-			}
-			break;
-		case WALKING:
-		    /*if(randomNum < .05)
-			    return {command: PASSIVE_STANDING, direction: 0};
-			else*/ if(checkBelow(tileX, tileY, layerIndex, tileMap)){
-				if(randomNum > .1 && tileX+direction >= 0){
-					return {command: WALKING, direction: direction};
-				}
-				else
-					return {command: WALKING, direction: -direction};
-			}
-		    if(direction == 1){
-			    if(checkRight(tileX, tileY, layerIndex, tileMap))
-				    return {command: WALKING, direction: 1};
-				else if(randomNum < .9 && tileX-1 >= -1)
-					return {command: WALKING, direction: -1};
-			    else
-				    return {command: DIGGING, direction: 1};
-		    }
-		    else{
-			    if(checkLeft(tileX, tileY, layerIndex, tileMap) && tileX-1 >= -1)
-				    return {command: WALKING, direction: -1};
-				else if(randomNum < .9 && tileX+1 <= 1000)
-					return {command: WALKING, direction: 1};
-			    else
-				    return {command: DIGGING, direction: -1};
-		    }
-			break;
-		case DIGGING:
-		    if(direction >= 1 && checkRight(tileX, tileY, layerIndex, tileMap))
-			    return {command: WALKING, direction: 1};
-		    else if(direction <= -1 && checkLeft(tileX, tileY, layerIndex, tileMap))
-			    return {command: WALKING, direction: -1};
-			break;
-		case FALLING:
-			if(randomNum > .5){
-			    if(checkRight(tileX, tileY, layerIndex, tileMap) && tileX+1 <= 1000)
-					return {command: FALLING, direction: 1};
-			    else
-					return {command: FALLING, direction: 0};
-			}
-			else{
-			    if(checkLeft(tileX, tileY, layerIndex, tileMap) && tileX-1 >= 0)
-					return {command: FALLING, direction: -1};
-			    else
-				    return {command: FALLING, direction: 0};
-			}
-			break;
-        }
-		return {command: currentState, direction: direction};
-    }
-
-    // Movement constants
-    const SPEED = 150;
-    const GRAVITY = -250;
-    const JUMP_VELOCITY = -600;
-
-    // Current stance (Passive, Aggressive)
-    var Passive = true;
-
-	var SIZE = 64;
-
-    /* ADD CODE HERE */
-    // The right facing goblin miner spritesheet(s)
-    var goblinMinerRight = new Image();
-    goblinMinerRight.src = 'img/Passive_Scratch.png';
-
-    // The left facing goblin miner spritesheet(s)
-    var goblinMinerLeft = new Image();
-    goblinMinerLeft.src = '';
-    /* END ADD CODE HERE*/
-
-    // Moves the Goblin Miner to the left, colliding with solid tiles
-    GoblinMiner.prototype.moveLeft = function(distance, tilemap) {
-    this.currentX -= distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
-    }
-
-  // Moves the Goblin Miner to the right, colliding with solid tiles
-  GoblinMiner.prototype.moveRight = function(distance, tilemap) {
-    this.currentX += distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
-  }
-
-  /* Goblin Miner update function
-   * arguments:
-   * - elapsedTime, the time that has passed
-   *   between this and the last frame.
-   * - tilemap, the tilemap that corresponds to
-   *   the current game world.
-   */
-  GoblinMiner.prototype.update = function(elapsedTime, tilemap) {
-    var sprite = this;
-
-	var tileX = Math.floor(this.currentX/64);
-	var tileY = Math.floor(this.currentY/64);
-
-    var whatDo = command(Math.floor(this.currentX/64), Math.floor(this.currentY/64), this.layerIndex, tilemap, this.state, this.direction, this);
-    //var whatDo = {command: PASSIVE_STANDING, direction: 0};
-	this.state = whatDo.command;
-	this.direction = whatDo.direction;
-
-	/* ADD CODE HERE */
-    // Process Goblin Miner state
-    switch(whatDo.command) {
-        case PASSIVE_STANDING:
-		  this.velocityY = 0;
-		  break;
-		case AGGRESSIVE_STANDING:
-		  this.velocityY = 0;
-		  break;
-        case WALKING:
-		  this.velocityY = 0;
-          if(whatDo.direction >= 0){
-			  this.isLeft = false;
-			  this.moveRight(elapsedTime * SPEED, tilemap);
-		  }
-		  else{
-			  this.isLeft = true;
-			  this.moveLeft(elapsedTime * SPEED, tilemap);
-		  }
-          break;
-		case CHARGING:
-          if(whatDo.direction > 0){
-			  this.isLeft = false;
-			  this.moveRight(elapsedTime * SPEED*2, tilemap);
-		  }
-		  else{
-			  this.isLeft = true;
-			  this.moveLeft(elapsedTime * SPEED*2, tilemap);
-		  }
-          break;
-        case DIGGING:
-		  if(whatDo.direction > 0){
-			  tilemap.removeTileAt(tileX+1, tileY, this.layerIndex);
-		  }
-		  else{
-			  tilemap.removeTileAt(tileX-1, tileY, this.layerIndex);
-		  }
-		case ATTACKING:
-		  if(whatDo.direction > 0){
-			  //attack right
-		  }
-		  else{
-			  //attack left
-		  }
-        case FALLING:
-          this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-          this.currentY += sprite.velocityY * elapsedTime;
-          if(this.onGround(tilemap)) {
-            this.state = PASSIVE_STANDING;
-            this.currentY = 64 * Math.floor(sprite.currentY / 64);
-			this.velocityY = 0;
-          }
-          if(whatDo.direction > 0){
-			  this.isLeft = false;
-			  this.moveRight(elapsedTime * SPEED, tilemap);
-		  }
-		  else if(whatDo.direction < 0){
-			  this.isLeft = true;
-			  this.moveLeft(elapsedTime * SPEED, tilemap);
-		  }
-          break;
-      }
-	  /* END ADD CODE HERE */
-
-    // Update animation
-    /* if(this.isLeft)
-      this.animations.left[this.state].update(elapsedTime);
-    else
-      this.animations.right[this.state].update(elapsedTime); */
-
-    this.animations.right[PASSIVE_STANDING].update(elapsedTime);
-  }
-
-  /* Goblin Miner Render Function
-   * arguments:
-   * - ctx, the rendering context
-   * - debug, a flag that indicates turning on
-   * visual debugging
-   */
-  GoblinMiner.prototype.render = function(ctx, debug) {
-    // Draw the Goblin Miner (and the correct animation)
-    /* if(this.isLeft)
-      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
-    else
-      this.animations.right[this.state].render(ctx, this.currentX, this.currentY); */
-
-	this.animations.right[PASSIVE_STANDING].render(ctx, this.currentX, this.currentY);
-
-    if(debug) renderDebug(this, ctx);
-  }
-
-  // Draw debugging visual elements
-  function renderDebug(goblinMiner, ctx) {
-    var bounds = goblinMiner.boundingBox();
-    ctx.save();
-
-    // Draw Goblin Miner bounding box
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-    ctx.moveTo(bounds.left, bounds.top);
-    ctx.lineTo(bounds.right, bounds.top);
-    ctx.lineTo(bounds.right, bounds.bottom);
-    ctx.lineTo(bounds.left, bounds.bottom);
-    ctx.closePath();
-    ctx.stroke();
-
-    // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
-        tileY = 64 * (Math.floor(bounds.bottom / 64));
-    ctx.strokeStyle = "black";
-    ctx.beginPath();
-    ctx.moveTo(tileX, tileY);
-    ctx.lineTo(tileX + 64, tileY);
-    ctx.lineTo(tileX + 64, tileY + 64);
-    ctx.lineTo(tileX, tileY + 64);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-  GoblinMiner.prototype.collide = function(otherEntity) {
-  	if(otherEntity.type == "player"){
-  		return [ATTACKING, 0];
-  	}
-  }
-
-  /* Goblin Miner BoundingBox Function
-   * returns: A bounding box representing the Goblin Miner
-   */
-  GoblinMiner.prototype.boundingBox = function() {
-    return {
-      left: this.currentX,
-      top: this.currentY,
-      right: this.currentX + SIZE,
-      bottom: this.currentY + SIZE
-    }
-  }
-  GoblinMiner.prototype.boundingCircle = function() {
-     return {
-		 cx: this.currentX + SIZE/2,
-		 cy: this.currentY + SIZE/2,
-		 radius: SIZE/2
-	 }
-   }
-  return GoblinMiner;
-
-}());
-
-},{"./animation.js":4,"./entity.js":15}],18:[function(require,module,exports){
-/* Richard Habeeb */
-
-module.exports = (function(){
-    var Entity = require('./entity.js');
-    var Animation = require('./animation.js');
-    var imagesToLoad = 2;
-    var frameSize = {x: 64, y: 64};
-    var loader = function() {
-        imagesToLoad--;
-        if(imagesToLoad === 0) {
-
-        }
-    };
-    var walkingSpriteSheet = new Image();
-    walkingSpriteSheet.src = "./img/Goblin Shaman.png";
-
-    var attackSpriteSheet = new Image();
-    attackSpriteSheet.src = "./img/Goblin Shaman Attack.png";
-    var gravity = -250;
-
-
-    var shaman = function(x, y, layer) {
-        this.score = 1;
-        this.type = "shaman";
-        this.maxhp = 100;
-        this.hp = this.maxhp;
-        this.state = this.idleState;
-        this.layerIndex = layer;
-        this.reverse = false;
-        this.dead = false;
-        this.walkingAnimation = new Animation(walkingSpriteSheet, frameSize.x, frameSize.y, 0, 0, 4, 1.0 / 4, false);
-        this.attackingAnimation = new Animation(attackSpriteSheet, frameSize.x, frameSize.y, 0, 0, 6, 1.0 / 4, false);
-        this.renderAnimation = null;
-        this.position = {x: x, y: y};
-        this.size = {x: 0, y: 0};
-        this.velocity = {x: -50, y: 0};
-    };
-
-    shaman.prototype = new Entity();
-
-    shaman.prototype.update = function(elapsedTime, tilemap, entityManager) {
-        if(this.state === null) this.state = this.idleState;
-
-        if(this.dead) entityManager.remove(this);
-
-        this.state(elapsedTime, tilemap, entityManager);
-    };
-
-    shaman.prototype.render = function(ctx, debug) {
-
-        if(this.reverse) {
-            ctx.save();
-            ctx.scale(-1, 1);
-            this.renderAnimation.render(ctx, -frameSize.x - this.position.x, this.position.y);
-            ctx.restore();
-        }
-        else {
-            this.renderAnimation.render(ctx, this.position.x, this.position.y);
-        }
-
-
-
-        if (debug) renderDebug(this, ctx);
-    };
-
-    function renderDebug(player, ctx) {
-        var bounds = player.boundingBox();
-        ctx.save();
-
-        // Draw player bounding box
-        ctx.strokeStyle = "black";
-        ctx.beginPath();
-        ctx.moveTo(bounds.left, bounds.top);
-        ctx.lineTo(bounds.right, bounds.top);
-        ctx.lineTo(bounds.right, bounds.bottom);
-        ctx.lineTo(bounds.left, bounds.bottom);
-        ctx.closePath();
-        ctx.stroke(); // Outline tile underfoot
-        var tileX = 64 * Math.floor((bounds.left + (frameSize.x / 2 )) / 64),
-            tileY = 64 * (Math.floor(bounds.bottom / 64));
-        ctx.strokeStyle = "black";
-        ctx.beginPath();
-        ctx.moveTo(tileX, tileY);
-        ctx.lineTo(tileX + 64, tileY);
-        ctx.lineTo(tileX + 64, tileY + 64);
-        ctx.lineTo(tileX, tileY + 64);
-        ctx.closePath();
-        ctx.stroke();
-
-        ctx.restore();
-    }
-
-    shaman.prototype.onGround = function (tilemap) {
-        var box = this.boundingBox(),
-            tileX = Math.floor((box.left + (frameSize.x / 2)) / 64),
-            tileY = Math.floor(box.bottom / 64);
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        return (tile && tile.data.solid) ? true : false;
-    };
-
-    shaman.prototype.nextTileEmpty = function (tilemap) {
-        var box = this.boundingBox(),
-            tileX = Math.floor((box.left + (frameSize.x / 2)) / 64),
-            tileY = Math.floor((box.bottom + (frameSize.y / 2)) / 64);
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        return (tile && !tile.data.solid) ? true : false;
-    };
-
-    shaman.prototype.isPlayerNearby = function(entityManager) {
-        var entitiesInRange = entityManager.queryRadius(this.position.x, this.position.y, 200);
-        if (entitiesInRange.length > 0) {
-            for (var i = 0; i < entitiesInRange.length; i ++) {
-                if (entitiesInRange[i].type == 'player') {
-                    return true;
-                }
-            }
-        }
-        return false;
-    };
-
-    shaman.prototype.idleState = function(elapsedTime, tilemap, entityManager) {
-        if(!this.onGround(tilemap)) {
-            this.velocity.y += (gravity * elapsedTime) * (gravity * elapsedTime);
-
-        }
-        else {
-            this.velocity.y = 0;
-            this.position.y = Math.floor(this.position.y / 64) * 64;
-            if(this.isPlayerNearby(entityManager)) {
-                this.state = this.attackState;
-            }
-        }
-
-        if(this.nextTileEmpty(tilemap)) {
-            this.velocity.x = -this.velocity.x;
-        }
-
-        this.position.x += this.velocity.x * elapsedTime;
-        this.position.y += this.velocity.y * elapsedTime;
-        this.reverse = this.velocity.x > 0;
-        this.walkingAnimation.update(elapsedTime);
-        this.renderAnimation = this.walkingAnimation;
-    };
-
-    shaman.prototype.attackState = function(elapsedTime, tilemap, entityManager) {
-        if(!this.isPlayerNearby(entityManager) || !this.onGround(tilemap)) {
-            this.state = this.idleState;
-        }
-        this.attackingAnimation.update(elapsedTime);
-        this.renderAnimation = this.attackingAnimation;
-    };
-
-    shaman.prototype.boundingBox = function() {
-        return {
-            top: this.position.y,
-            left: this.position.x,
-            right: this.position.x + frameSize.x,
-            bottom: this.position.y + frameSize.y
-        };
-    };
-
-    shaman.prototype.boundingCircle = function() {
-        return {
-            cx: this.position.x + frameSize.x / 2.0,
-            cy: this.position.y + frameSize.y / 2.0,
-            radius: frameSize.x
-        };
-    };
-
-    shaman.prototype.collide = function(ent) {
-        if(ent.type == "Pickaxe")
-        {
-            //check if attacking once attacking is fixed.
-            this.dead = true;
-        }
-        if(ent.type == "goblinMiner")
-        {
-
-            //Do something interesting with health later
-        }
-    };
-
-
-
-    return shaman;
-})();
-
-},{"./animation.js":4,"./entity.js":15}],19:[function(require,module,exports){
-/**
- * Help Menu: Manages the help menu screen
- * Created by Josh Benard on 11/19/15.
- */
-module.exports = (function (){
-    const SCREEN_WIDTH = 128;
-    const SCREEN_HEIGHT = 128;
-
-    var menu = document.getElementById("help-menu"),
-        exit = document.getElementById("exit-btn"),
-        wrap = document.getElementById("help-wrapper"),
-        inputManager = require('./input-manager.js'),
-        scroll = 0,
-        Player = require('./player.js'),
-        player,
-        screenCtx,
-        backBuffer,
-        backBufferCtx,
-        stateManager;
-
-    /*
-     * The load() method initializes the menu
-     * and tells the DOM to render the menu HTML
-     * parameters:
-     * - sm the state manager
-     */
-    var load = function(sm) {
-        stateManager = sm;
-        menu.style.display = "flex";
-        player = new Player(32,64,0, inputManager);
-
-        // Set up the screen canvas
-        var screen = document.createElement("canvas");
-        screen.width = SCREEN_WIDTH;
-        screen.height = SCREEN_HEIGHT;
-        screenCtx = screen.getContext("2d");
-        document.getElementById("player-tester").appendChild(screen);
-    }
-
-    /*
-     * The exit() method hides the menu
-     */
-    var exit = function() {
-        // delete the canvas object
-        document.getElementById("player-tester").removeChild(document.getElementById("player-tester").firstChild);
-        menu.style.display = "none";
-    }
-
-    /*
-     * The update() method updates the menu,
-     * scrolling the credits
-     */
-    var update = function(elapsedTime) {
-        player.demoUpdate(elapsedTime, null);
-    }
-
-    /*
-     * The render() method renders the menu
-     * (in this case, a no-op as the menu is
-     * HTML elements renderd by the DOM)
-     */
-    var render = function() {
-        // Clear the back buffer
-        screenCtx.fillStyle = 'rgb(255,255,255)';
-        screenCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-        screenCtx.save();
-
-        player.render(screenCtx, false);
-
-        screenCtx.restore();
-    }
-
-    /*
-     * The keyHander() method handles key
-     * events for the menu.
-     */
-    var keyDown = function(event) {
-        switch(event.keyCode) {
-            case 27: // ESC
-                event.preventDefault();
-                stateManager.popState();
-                break;
-            default:
-                event.preventDefault();
-                inputManager.keyDown(event);
-                break;
-        }
-    }
-
-    var keyUp = function(event) {
-        inputManager.keyUp(event);
-    }
-
-    return {
-        load: load,
-        exit: exit,
-        update: update,
-        render: render,
-        keyDown: keyDown,
-        keyUp: keyUp
-    }
-
-})();
-},{"./input-manager.js":20,"./player.js":26}],20:[function(require,module,exports){
-module.exports = (function() { 
-
-  var commands = {	
-    RIGHT: 39,
-    LEFT: 37,
-    UP: 38,
-    DOWN: 40,
-    DIGDOWN: 83,
-    DIGLEFT: 65,
-    DIGRIGHT: 68,
-    DIGUP: 87,
-	PAY: 80,
-	ATTACK : 65
-  }
-  
-  var oldKeys = [];
-  var newKeys = [];
-  for(var i = 30; i < 40; i++) {
-    oldKeys[i] = false;
-    newKeys[i] = false;
-  }
-  
-  function swapBuffers() {
-    for(var i = 30; i < 40; i++) {
-      oldKeys[i] = newKeys[i];
-    }
-  }
-
-  function keyDown(event) {
-    event.preventDefault();
-    newKeys[event.keyCode] = true;
-    return false;
-  }
-  
-  function keyUp(event) {
-    event.preventDefault();
-    newKeys[event.keyCode] = false;
-    return false;
-  }
-  
-  function isKeyDown(keyCode) {
-    return newKeys[keyCode];
-  }
-  
-  function wasKeyPressed(keyCode) {
-    return (!oldKeys[keyCode] && newKeys[keyCode]);
-  }
-  
-  function wasKeyReleased(keyCode) {
-    return (oldKeys[keyCode] && !newKeys[keyCode]);
-  }
-  
-  return {
-    commands: commands,
-    swapBuffers: swapBuffers,
-    keyDown: keyDown,
-    keyUp: keyUp,
-    isKeyDown: isKeyDown,
-    wasKeyPressed: wasKeyPressed,
-    wasKeyReleased: wasKeyReleased
-  }
-  
-})();
-},{}],21:[function(require,module,exports){
-/* MainMenu GameState module
- * Provides the main menu for the Diggy Hole game.
- * Authors:
- * - Nathan Bean
- */
-module.exports = (function (){
-  var menu = document.getElementById("main-menu"),
-      play = document.getElementById("play-btn"),
-      help = document.getElementById("help-btn"),
-      credits = document.getElementById("credits-btn"),
-      items = [play, help, credits],
-      selectedItemIndex = 0,
-      stateManager;
-  
-  items.forEach( function(item, i) {
-    item.onmouseover = function() {
-      items[selectedItemIndex].classList.remove("selected");
-      selectedItemIndex = i;
-      items[selectedItemIndex].classList.add("selected");
-    }
-  });
-  
-  /*
-   * The Play button exits the menu and returns 
-   * to the previous (gameplay) state.  This 
-   * should only be called when the stateManager
-   * has been set via a load() call.
-   */
-  play.onclick = function(event) {
-    event.preventDefault();
-    stateManager.popState();
-  }
-  
-  /* 
-   * The Credits button launches the credit menu
-   */
-  credits.onclick = function(event) {
-    event.preventDefault();
-    var creditsScreen = require('./credits-screen');
-    stateManager.pushState(creditsScreen);
-  }
-
-  /*
-   *  The Help button launches the help menu
-   */
-  help.onclick = function(event) {
-    event.preventDefault();
-    var helpScreen = require('./help-screen');
-    stateManager.pushState(helpScreen);
-  }
-  
-=======
 },{"./entity.js":16,"./player.js":27}],9:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
 },{"./animation.js":5,"./entity-manager.js":15,"./entity.js":16,"./player.js":27,"./powerUp.js":28,"dup":1}],10:[function(require,module,exports){
@@ -4914,7 +2006,6 @@ module.exports = (function (){
       scroll = 0,
       stateManager;    
    
->>>>>>> refs/remotes/origin/master
   /*
    * The load() method initializes the menu 
    * and tells the DOM to render the menu HTML
@@ -4924,12 +2015,8 @@ module.exports = (function (){
   var load = function(sm) {
     stateManager = sm;
     menu.style.display = "flex";
-<<<<<<< HEAD
-    items[selectedItemIndex].classList.add("selected");
-=======
     scroll = 200;
     wrap.style.marginTop = "200px";
->>>>>>> refs/remotes/origin/master
   }
   
   /*
@@ -4940,12 +2027,6 @@ module.exports = (function (){
   }
     
   /* 
-<<<<<<< HEAD
-   * The update() method updates the menu
-   * (in this case, a no-op)
-   */
-  var update = function() {}
-=======
    * The update() method updates the menu,
    * scrolling the credits
    */
@@ -4953,7 +2034,6 @@ module.exports = (function (){
     scroll -= 0.0001 * elapsedTime;
     wrap.style.marginTop = Math.round(scroll) + "px";   
   }
->>>>>>> refs/remotes/origin/master
   
   /* 
    * The render() method renders the menu
@@ -4963,59 +2043,21 @@ module.exports = (function (){
   var render = function() {}
     
   /* 
-<<<<<<< HEAD
-   * The keyDown() method handles 
-   * the key down event for the menu.
-=======
    * The keyHander() method handles key
    * events for the menu.
->>>>>>> refs/remotes/origin/master
    */
   var keyDown = function(event) {
     switch(event.keyCode) {
       case 13: // ENTER
       case 32: // SPACE
-<<<<<<< HEAD
-        event.preventDefault();
-        var me = new MouseEvent('click', {
-          'view': window,
-          'bubbles': true,
-          'cancelable': true
-        });
-        items[selectedItemIndex].dispatchEvent(me);
-        break;      
-=======
->>>>>>> refs/remotes/origin/master
       case 27: // ESC
         event.preventDefault();
         stateManager.popState();
         break;
-<<<<<<< HEAD
-      case 40: // up
-        event.preventDefault();
-        items[selectedItemIndex].classList.remove("selected");
-        selectedItemIndex++;
-        if(selectedItemIndex >= items.length) selectedItemIndex = 0;
-        items[selectedItemIndex].classList.add("selected");
-        break;
-      case 38: // down
-        event.preventDefault();
-        items[selectedItemIndex].classList.remove("selected");
-        selectedItemIndex--;
-        if(selectedItemIndex < 0) selectedItemIndex = items.length - 1;
-        items[selectedItemIndex].classList.add("selected");
-        break;
-    }
-  }
-  
-  /* The keyUp() method handles the key up event */
-  function keyUp(event) {}
-=======
     }
   }
   
   var keyUp = function(event) {}
->>>>>>> refs/remotes/origin/master
   
   return {
     load: load,
@@ -5027,438 +2069,6 @@ module.exports = (function (){
   }
   
 })();
-<<<<<<< HEAD
-},{"./credits-screen":10,"./help-screen":19}],22:[function(require,module,exports){
-
-
-// Wait for the window to load completely
-window.onload = function() {
-  
-  var gameTime = 0,
-      gameState = [];
-    
-  var pushState = function(state) {
-    state.load({pushState: pushState, popState: popState});
-    gameState.push(state);
-  }
-  
-  var popState = function() {
-    state = gameState.pop(); 
-    if(state) state.exit();
-    return state;
-  }
-  
-  var game = require('./game');
-  pushState(game);
-  
-  var mainMenu = require('./main-menu');
-  pushState(mainMenu);
-  
-  // Event handlers for key events
-  window.onkeydown = function(event) {
-    gameState[gameState.length-1].keyDown(event);
-  }
-  window.onkeyup = function(event) {
-    gameState[gameState.length-1].keyUp(event);
-  }
-  
-  function loop(newTime) {
-    var elapsedTime = (newTime - gameTime) / 1000;
-    gameTime = newTime;
-    gameState[gameState.length-1].update(elapsedTime);
-    gameState[gameState.length-1].render(elapsedTime);
-    window.requestAnimationFrame(loop);
-  }
-  window.requestAnimationFrame(loop);
-  
-};
-},{"./game":16,"./main-menu":21}],23:[function(require,module,exports){
-/* Noise generation module
- * Authors:
- * - Nathan Bean
- * - Wyatt Watson
- */
-module.exports = (function(){
-  // Initially, we start with a random seed
-  var seed = 0; //Math.random();
-
-  /* Seeds the random number generator
-   * params:
-   * - newSeed - the seed to use
-   */
-  function setSeed(newSeed) {
-    seed = newSeed;
-  }
-
-  /* Taken from http://indiegamr.com/generate-repeatable-random-numbers-in-js/ */
-  function randomNumber(min, max){
-    min = min || 0;
-    max = max || 1;
-
-    seed = (seed * 9301 + 49297) % 233280;
-    var random = seed/233280;
-
-    return min + random * (max - min);
-  }
-
-  /* The following functions were done in tandem with the tutorial at
-  http://devmag.org.za/2009/04/25/perlin-noise/ and following along through
-  Nathan Bean's Perlin Noise file*/
-
-  function generateNoise(width, height){
-    var noise = new Array(width*height);
-
-    for (i = 0; i < width; i++){
-      for (j = 0; j < height; j++){
-        noise[j * width + i] = (randomNumber(0, 1269.5));
-      }
-    }
-
-    return noise;
-  }
-
-  function generateSmoothNoise(mapWidth, noise, octave){
-    var width = mapWidth;
-    var height = noise.length / width;
-
-    var smoothNoise = new Array(width*height);
-
-    var samplePeriod = Math.floor(Math.pow(2, octave));
-    var sampleFrequency = 1.0 / samplePeriod;
-
-    for (i = 0; i < width; i++){
-      var sample_i0 = Math.floor(Math.floor(i / samplePeriod) * samplePeriod);
-      var sample_i1 = Math.floor((sample_i0 + samplePeriod) % width);
-      var horizontal_blend = (i - sample_i0) * sampleFrequency;
-
-      for (j = 0; j < height; j++){
-        var sample_j0 = Math.floor(Math.floor(j / samplePeriod) * samplePeriod);
-        var sample_j1 = Math.floor((sample_j0 + samplePeriod) % height);
-        var vertical_blend = (j - sample_j0) * sampleFrequency;
-
-        var top = Interpolate(noise[sample_j0 * width + sample_i0],
-          noise[sample_j0 * width + sample_i1], horizontal_blend);
-
-        var bottom = Interpolate(noise[sample_j1 * width + sample_i0],
-          noise[sample_j1 * width + sample_i1], horizontal_blend);
-
-        smoothNoise[j * width + i] = Interpolate(top, bottom, vertical_blend);
-      }
-    }
-
-    return smoothNoise;
-  }
-
-  function Interpolate(x0, x1, alpha){
-    return x0 * (1-alpha) + alpha * x1;
-  }
-
-  function generatePerlinNoise(mapWidth, noise, octave){
-    var width = mapWidth;
-    var height = noise.length / width;
-
-    var smoothNoise = new Array(octave);
-
-    var persistance = 0.5;
-
-    for (x = 0; x < octave; x++){
-      smoothNoise[x] = generateSmoothNoise(mapWidth, noise, x);}
-
-    var perlinNoise = new Array(width*height);
-    var amplitude = 1.0;
-    var totalAmplitude = 0.0;
-
-    for (o = octave - 1; o >= 0; o--){
-      amplitude *= persistance;
-      totalAmplitude += amplitude;
-
-      for (i = 0; i < width; i++){
-        for (j = 0; j < height; j++){
-          perlinNoise[j * width + i] = smoothNoise[o][j * width + i] * amplitude;
-        }
-      }
-    }
-
-    for (i = 0; i < width; i++){
-      for (j = 0; j < height; j++){
-        perlinNoise[j * width + i] = perlinNoise[j * width + i] / totalAmplitude;
-      }
-    }
-
-    return perlinNoise;
-  }
-  /*END PERLIN NOISE TUTORIAL/CODE*/
-
-  return {
-    setSeed: setSeed,
-    randomNumber: randomNumber,
-    generateNoise: generateNoise,
-    generateSmoothNoise: generateSmoothNoise,
-    generatePerlinNoise: generatePerlinNoise,
-  }
-
-}());
-
-},{}],24:[function(require,module,exports){
-/**
- * Created by Jessica on 11/8/15.
- */
-
-module.exports = function () {
-
-    var Entity = require('./entity.js'),
-        OctopusAnimation = require('./octopus_animation.js');
-
-
-    //const STANDING = 0;
-    const WALKING = 1;
-    const JUMPING = 2;
-    const ATTACKING = 3;
-    const FALLING = 4;
-
-    const SIZE = 64;
-
-    const SPEED = 150;
-    const GRAVITY = -250;
-    const JUMP_VELOCITY = -600;
-
-    const IMG_WIDTH = 240;
-    const IMG_HEIGH = 309;
-
-    var oct = new Image();
-    oct.src = './img/octopus.png';
-
-    function Octopus(locationX, locationY, layerIndex) {
-        this.state = WALKING;
-        this.layerIndex = layerIndex;
-        this.currentX = locationX;
-        this.currentY = locationY;
-        this.gravity = 0.5;
-        this.xSpeed = 10;
-        this.ySpeed = 15;
-        this.animations = [];
-        this.isLeft = false;
-        this.type = "magicOctopus";
-
-        //this.animations[STANDING] = new OctopusAnimation(oct, IMG_WIDTH, IMG_HEIGH, SIZE, 0, 0);
-        this.animations[WALKING] = new OctopusAnimation(oct, IMG_WIDTH, IMG_HEIGH, SIZE, 0, 0, 4);
-        this.animations[JUMPING] = new OctopusAnimation(oct, IMG_WIDTH, IMG_HEIGH, SIZE, 0, IMG_HEIGH, 4);
-        this.animations[FALLING] = new OctopusAnimation(oct, IMG_WIDTH, IMG_HEIGH, SIZE, 0, 0);
-        this.animations[ATTACKING] = new OctopusAnimation(oct, IMG_WIDTH, IMG_HEIGH, SIZE, 0, IMG_HEIGH * 2, 4);
-
-    }
-
-    Octopus.prototype = new Entity();
-
-    Octopus.prototype.onGround = function (tilemap) {
-        var box = this.boundingBox(),
-            tileX = Math.floor((box.left + (SIZE / 2)) / 64),
-            tileY = Math.floor(box.bottom / 64);
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        return (tile && tile.data.solid) ? true : false;
-    };
-
-    Octopus.prototype.moveLeft = function (distance, tilemap) {
-        this.currentX -= distance;
-        var box = this.boundingBox(),
-            tileX = Math.floor(box.left / 64),
-            tileY = Math.floor(box.bottom / 64) - 1,
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && tile.data.solid)
-            this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
-    };
-
-    Octopus.prototype.moveRight = function (distance, tilemap) {
-        this.currentX += distance;
-        var box = this.boundingBox(),
-            tileX = Math.floor(box.right / 64),
-            tileY = Math.floor(box.bottom / 64) - 1,
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && tile.data.solid)
-            this.currentX = (Math.ceil(this.currentX / 64) - 1) * 64;
-    };
-
-    Octopus.prototype.getPlayerPosition = function(playerPosition) {
-
-        if (playerPosition.top <= this.currentY - 64) {
-            this.state = JUMPING;
-            this.velocityY = JUMP_VELOCITY;
-        } else if (playerPosition.left > this.currentX + 64) {
-            this.state = WALKING;
-            this.isLeft = false;
-        } else if (playerPosition.left < this.currentX - 64) {
-            this.state = WALKING;
-            this.isLeft = true;
-        }
-
-    };
-
-    Octopus.prototype.update = function(elapsedTime, tilemap) {
-
-        switch(this.state) {
-            //case STANDING:
-            case WALKING:
-                // If there is no ground underneath, fall
-                if (!this.onGround(tilemap)) {
-                    this.state = FALLING;
-                    this.velocityY = 0;
-                }
-                if (this.isLeft == true) {
-                    this.moveLeft(elapsedTime * SPEED, tilemap);
-                } else {
-                    this.moveRight(elapsedTime * SPEED, tilemap);
-                }
-
-                break;
-            case JUMPING:
-                this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-                this.currentY += this.velocityY * elapsedTime;
-                if (this.velocityY > 0) {
-                    this.state = FALLING;
-                }
-                break;
-            case FALLING:
-                this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-                this.currentY += this.velocityY * elapsedTime;
-                if (this.onGround(tilemap)) {
-                    this.state = WALKING;
-                    this.currentY = 64 * Math.floor(this.currentY / 64);
-                }
-                break;
-        }
-        this.animations[this.state].update(elapsedTime);
-
-     };
-
-    function renderDebug(player, ctx) {
-        var bounds = player.boundingBox();
-        ctx.save();
-
-        // Draw player bounding box
-        ctx.strokeStyle = "black";
-        ctx.beginPath();
-        ctx.moveTo(bounds.left, bounds.top);
-        ctx.lineTo(bounds.right, bounds.top);
-        ctx.lineTo(bounds.right, bounds.bottom);
-        ctx.lineTo(bounds.left, bounds.bottom);
-        ctx.closePath();
-        ctx.stroke(); // Outline tile underfoot
-        var tileX = 64 * Math.floor((bounds.left + (SIZE / 2 )) / 64),
-            tileY = 64 * (Math.floor(bounds.bottom / 64));
-        ctx.strokeStyle = "black";
-        ctx.beginPath();
-        ctx.moveTo(tileX, tileY);
-        ctx.lineTo(tileX + 64, tileY);
-        ctx.lineTo(tileX + 64, tileY + 64);
-        ctx.lineTo(tileX, tileY + 64);
-        ctx.closePath();
-        ctx.stroke();
-
-        ctx.restore();
-    }
-
-
-    Octopus.prototype.render = function (context, debug) {
-        this.animations[this.state].render(context, this.currentX, this.currentY);
-
-        if (debug) renderDebug(this, context);
-    };
-
-    Octopus.prototype.collide = function (otherEntity) {
-        if (otherEntity.type != "player") {
-            if (this.onGround(tilemap)) {
-                this.state = ATTACKING;
-            }
-        }
-    };
-
-    Octopus.prototype.boundingBox = function () {
-        return {
-            left: this.currentX,
-            top: this.currentY,
-            right: this.currentX + SIZE,
-            bottom: this.currentY + SIZE
-        }
-    };
-
-    Octopus.prototype.boundingCircle = function () {
-        return {
-            cx: this.currentX + SIZE / 2,
-            cy: this.currentY + SIZE / 2,
-            radius: SIZE / 2
-        }
-    };
-
-    return Octopus;
-
-}();
-
-
-},{"./entity.js":15,"./octopus_animation.js":25}],25:[function(require,module,exports){
-/**
- * Created by Jessica on 11/8/15.
- */
-module.exports = (function() {
-
-    function OctopusAnimation(image, srcWidth, srcHeight, size, top, left, numberOfFrames, secondsPerFrame) {
-        this.frameIndex = 0;
-        this.time = 0;
-        this.secondsPerFrame = secondsPerFrame || (1/16);
-        this.numberOfFrames = numberOfFrames || 1;
-
-        this.srcWidth = srcWidth;
-        this.srcHeight = srcHeight;
-        this.size = size;
-        this.image = image;
-
-        this.drawLocationX = top || 0;
-        this.drawLocationY = left || 0;
-    }
-
-    OctopusAnimation.prototype.setStats = function(frameCount, locationX, locationY){
-        this.numberOfFrames = frameCount;
-        this.drawLocationY = locationY;
-        this.drawLocationX = locationX;
-    };
-
-    OctopusAnimation.prototype.update = function (elapsedTime, tilemap) {
-        this.time += elapsedTime;
-
-        // Update animation
-        if (this.time > this.secondsPerFrame) {
-            if(this.time > this.secondsPerFrame) this.time -= this.secondsPerFrame;
-
-            // If the current frame index is in range
-            if (this.frameIndex < this.numberOfFrames - 1) {
-                this.frameIndex += 1;
-            } else {
-                this.frameIndex = 0;
-            }
-        }
-    };
-
-    OctopusAnimation.prototype.render = function(ctx, x, y) {
-
-        // Draw the current frame
-        ctx.drawImage(
-            this.image,
-            this.drawLocationX + this.frameIndex * this.srcWidth,
-            this.drawLocationY,
-            this.srcWidth,
-            this.srcHeight,
-            x,
-            y,
-            this.size,
-            this.size);
-    };
-
-
-
-    return OctopusAnimation;
-
-}());
-},{}],26:[function(require,module,exports){
-=======
 },{}],12:[function(require,module,exports){
 /* Entity: Diamond(added by Diamond) module
  * Implements the entity pattern and provides
@@ -8150,7 +4760,6 @@ module.exports = (function() {
 
 }());
 },{}],27:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -8160,7 +4769,6 @@ module.exports = (function() {
  */
 module.exports = (function() {
   var Entity = require('./entity.js'),
-<<<<<<< HEAD
     Animation = require('./animation.js');
 	
 	/*Audio sources*/	
@@ -8173,12 +4781,8 @@ module.exports = (function() {
 	dwarf_sound = new Audio('resources/sounds/dwarfSound.mp3');
 
     Animation = require('./animation.js'),
-    Pickaxe = require('./Pickaxe.js');
-=======
-    Animation = require('./animation.js'),
     Pickaxe = require('./Pickaxe.js'),
 	Bone = require('./Bone.js');
->>>>>>> refs/remotes/origin/master
 
   /* The following are player States (Swimming is not implemented) */
   const STANDING = 0;
@@ -8216,11 +4820,8 @@ module.exports = (function() {
 
   var ratLeft = new Image();
   ratLeft.src = "img/ratLeft2.png";
-<<<<<<< HEAD
-=======
   
   
->>>>>>> refs/remotes/origin/master
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
@@ -8245,8 +4846,6 @@ module.exports = (function() {
     this.SPEED = 150;
 	this.type = "player";
 	this.superPickaxe = false;
-<<<<<<< HEAD
-=======
 	this.superAxeImg = new Image();
 	this.superAxeImg.src = "./img/powerUps/pick.png";	
 	this.boneImg = new Image();
@@ -8256,7 +4855,6 @@ module.exports = (function() {
 	this.attackFrequency = 1;
 	this.lastAttack = 0;
 	this.bones = 5;
->>>>>>> refs/remotes/origin/master
 
     //The animations
     this.animations = {
@@ -8350,15 +4948,9 @@ module.exports = (function() {
       // Process player state
       switch (sprite.state) {
         case STANDING:
-<<<<<<< HEAD
         case WALKING:	
           // If there is no ground underneath, fall
           if (!sprite.onGround(tilemap)) {			  
-=======
-        case WALKING:
-          // If there is no ground underneath, fall
-          if (!sprite.onGround(tilemap)) {
->>>>>>> refs/remotes/origin/master
             sprite.state = FALLING;
             sprite.velocityY = 0;
           } else {
@@ -8381,7 +4973,6 @@ module.exports = (function() {
               sprite.state = DIGGING;
               sprite.digState = UP_DIGGING;
             } else if (isKeyDown(commands.UP)) {
-<<<<<<< HEAD
 				
 			  /* Added sound effect for jumping */
 			  jump_sound.play();
@@ -8394,35 +4985,24 @@ module.exports = (function() {
 			  
 			  dwarf_sound.play();
 		  
-=======
-              sprite.state = JUMPING;
-              sprite.velocityY = JUMP_VELOCITY;
-            } else if (isKeyDown(commands.LEFT)) {
->>>>>>> refs/remotes/origin/master
               sprite.isLeft = true;
               sprite.state = WALKING;
               sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
             }
             else if(isKeyDown(commands.RIGHT)) {
-<<<<<<< HEAD
 				
 			  /* Added walking sound */
 			  walk_sound.play();
 		  
-=======
->>>>>>> refs/remotes/origin/master
               sprite.isLeft = false;
               sprite.state = WALKING;
               sprite.moveRight(elapsedTime * this.SPEED, tilemap);
             }
             else {
               sprite.state = STANDING;
-<<<<<<< HEAD
 			  /* Added fall to the ground sound 
 			  fallGround_sound.loop = false;
 			  fallGround_sound.play();*/
-=======
->>>>>>> refs/remotes/origin/master
             }
 
             if(sprite.state == DIGGING) {
@@ -8473,19 +5053,11 @@ module.exports = (function() {
                   /* replace the set tile at this layer */
                   var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
                   if (layerType == 0) {
-<<<<<<< HEAD
-                    tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex);
-                  } else if (layerType == 1) {
-                    tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex);
-                  } else if (layerType == 2) {
-                    tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex);
-=======
                     tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
                   } else if (layerType == 1) {
                     tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
                   } else if (layerType == 2) {
                     tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
->>>>>>> refs/remotes/origin/master
                   }
 
                   /* setup the callback for when the animation is complete */
@@ -8502,12 +5074,11 @@ module.exports = (function() {
           }
           break;
         case DIGGING:
-<<<<<<< HEAD
             var currentPlayer = this;
 			
 			/*Added digging sound*/
 			//Not tested yet because digging not working yet
-			dig_sound.play();
+			//dig_sound.play();
 			
             var digComplete = function() {
               /* Add score */
@@ -8560,8 +5131,6 @@ module.exports = (function() {
             };
             this.animations.left[this.state].donePlayingCallback = digComplete;
             this.animations.right[this.state].donePlayingCallback = digComplete;
-=======
->>>>>>> refs/remotes/origin/master
           break;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
@@ -8604,9 +5173,6 @@ module.exports = (function() {
         case SWIMMING:
           // NOT IMPLEMENTED YET
       }
-<<<<<<< HEAD
-
-=======
 		
 		// countdown to next bone projectile
 	  	if(this.lastAttack <= this.attackFrequency){
@@ -8617,7 +5183,6 @@ module.exports = (function() {
             this.shoot();
          }
 		  
->>>>>>> refs/remotes/origin/master
       // Swap input buffers
       swapBuffers();
     }
@@ -8767,16 +5332,6 @@ module.exports = (function() {
 	 It should eventually delete the power up from the game
   */
   Player.prototype.poweredUp = function(powerUp) {
-<<<<<<< HEAD
-	  // Delete power up from entity manager
-	  console.log(powerUp.type);
-	  /*
-	  if (powerUp.type == '') {
-		  ...
-	  }
-	  */
-	  if (powerUp.type == 'pick') {
-=======
 	  
 	  console.log("Picked up power up: " + powerUp.type);
 	  
@@ -8786,16 +5341,11 @@ module.exports = (function() {
 	  
 	  if (powerUp.type == 'pick') {
 		  
->>>>>>> refs/remotes/origin/master
 		  console.log("super pickaxe activated");
 		  this.superPickaxe = true;
 	  }
 	  
-<<<<<<< HEAD
-	  if(powerUp.effectDuration == 0){//if power up lasts 4ever
-=======
 	  if(powerUp.effectDuration < 0){//if power up lasts 4ever
->>>>>>> refs/remotes/origin/master
 		   this.entityManager.remove(powerUp);
 	  }
 	 
@@ -8813,8 +5363,6 @@ module.exports = (function() {
 	  }
 	 
   }
-<<<<<<< HEAD
-=======
   
   	/*
 		Bone projectile powerup	
@@ -8827,7 +5375,6 @@ module.exports = (function() {
 			this.lastAttack = 0;
 		}		   
    } 
->>>>>>> refs/remotes/origin/master
 
   /* Player Render Function
    * arguments:
@@ -8842,10 +5389,6 @@ module.exports = (function() {
     else
       this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
 
-<<<<<<< HEAD
-    if (debug) renderDebug(this, ctx);
-  };
-=======
     //draw powerups
 	if(this.superPickaxe){
 		ctx.drawImage(
@@ -8876,7 +5419,6 @@ module.exports = (function() {
 	
     if (debug) renderDebug(this, ctx);
   }
->>>>>>> refs/remotes/origin/master
 
   // Draw debugging visual elements
   function renderDebug(player, ctx) {
@@ -9286,202 +5828,6 @@ module.exports = (function(){
 
   }
 
-<<<<<<< HEAD
-}())
-},{"./animation.js":4,"./entity-manager.js":14,"./entity.js":15,"./player.js":26}],28:[function(require,module,exports){
-/* Enemy module
- * Authors:
- * Kien Le
- */
-module.exports = (function(){
-  var Entity = require('./entity.js'),
-      Animation = require('./animation.js');
-
-  /* The following are enemy States */
-  const STANDING = 0;
-  const WALKING = 1;
-  const FALLING = 2;
-  const ATTACKING = 3;
-
-  // The Sprite Size
-  const SIZE = 64;
-
-  // Movement constants
-  const SPEED = 100;
-  const GRAVITY = -250;
-  const JUMP_VELOCITY = -600;
-
-  var ratIdleRight = new Image();
-  ratIdleRight.src = 'img/ratIdleRight.png';
-
-  var ratIdleLeft = new Image();
-  ratIdleLeft.src = 'img/ratIdleLeft.png';
-
-  var ratRight = new Image();
-  ratRight.src = 'img/ratRight2.png';
-
-  var ratLeft = new Image();
-  ratLeft.src = "img/ratLeft2.png";
-
-  //The enemy constructor
-  function Rat(locationX, locationY, layerIndex)
-  {
-    this.state = WALKING;
-    this.layerIndex = layerIndex;
-    this.currentX = locationX;
-    this.currentY = locationY;
-    this.nextX = 0;
-    this.nextY = 0;
-    this.currentTileIndex = 0;
-    this.nextTileIndex = 0;
-    this.constSpeed = 15;
-    this.gravity = .5;
-    this.angle = 0;
-    this.xSpeed = 10;
-    this.ySpeed = 15;
-    this.isLeft = false;
-	this.type = "rat";
-
-    //The animations
-    this.animations = {
-      left: [],
-      right: [],
-    }
-
-    //The right-facing animations
-    this.animations.right[STANDING] = new Animation(ratIdleRight, SIZE, SIZE, SIZE*2, SIZE);
-    this.animations.right[WALKING] = new Animation(ratRight, SIZE, SIZE, 0, 0, 8);
-    this.animations.right[FALLING] = new Animation(ratIdleRight, SIZE, SIZE, 0, 0, 8);
-	this.animations.right[ATTACKING] = new Animation(ratRight, SIZE, SIZE, 0, 0, 8);
-
-    //The left-facing animations
-    this.animations.left[STANDING] = new Animation(ratIdleLeft, SIZE, SIZE, SIZE*2, SIZE);
-    this.animations.left[WALKING] = new Animation(ratLeft, SIZE, SIZE, 0, 0, 8);
-    this.animations.left[FALLING] = new Animation(ratIdleLeft, SIZE, SIZE, 0, 0, 8);
-	this.animations.left[ATTACKING] = new Animation(ratLeft, SIZE, SIZE, 0, 0, 8);
-  }
-
-  // Player inherits from Entity
-  Rat.prototype = new Entity();
-
-  // Determines if the player is on the ground
-  Rat.prototype.onGround = function(tilemap)
-  {
-    var box = this.boundingBox(),
-        tileX = Math.floor((box.left + (SIZE/2))/64),
-        tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    // find the tile we are standing on.
-    return (tile && tile.data.solid) ? true : false;
-  }
-
-  Rat.prototype.checkLeft = function(tilemap)
-  {
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    return (tile && tile.data.solid) ? true : false;
-  }
-
-  Rat.prototype.checkRight = function(tilemap)
-  {
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    return (tile && tile.data.solid) ? true : false;
-  }
-
-  // Moves the enemy to the left, colliding with solid tiles
-  Rat.prototype.moveLeft = function(distance, tilemap)
-  {
-    this.currentX -= distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
-  }
-
-  // Moves the enemy to the right, colliding with solid tiles
-  Rat.prototype.moveRight = function(distance, tilemap)
-  {
-    this.currentX += distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
-  }
-
-  /* Enemy update function
-   * arguments:
-   * - elapsedTime, the time that has passed
-   *   between this and the last frame.
-   * - tilemap, the tilemap that corresponds to
-   *   the current game world.
-   */
-  Rat.prototype.update = function(elapsedTime, tilemap) {
-    var sprite = this;
-
-      // Process enemy state
-      switch(sprite.state) {
-        case STANDING:
-        case WALKING:
-          // If there is no ground underneath, fall
-          if(!sprite.onGround(tilemap))
-		  {
-            sprite.state = FALLING;
-            sprite.velocityY = 0;
-          }
-		  else
-		  {
-            if(sprite.onGround(tilemap) && sprite.checkLeft(tilemap))
-			{
-              sprite.isLeft = false;
-              sprite.state = WALKING;
-              sprite.moveRight(elapsedTime * SPEED, tilemap);
-            }
-            else if(sprite.onGround(tilemap) && sprite.checkRight(tilemap))
-			{
-              sprite.isLeft = true;
-              sprite.state = WALKING;
-              sprite.moveLeft(elapsedTime * SPEED, tilemap);
-            }
-            else
-			{
-              sprite.state = STANDING;
-            }
-          }
-          break;
-        case FALLING:
-          sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-          sprite.currentY += sprite.velocityY * elapsedTime;
-          if(sprite.onGround(tilemap)) {
-            sprite.state = STANDING;
-            sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-          }
-          break;
-        //case SWIMMING:
-          // NOT IMPLEMENTED YET
-		case ATTACKING:
-		  sprite.state = STANDING;
-		  //TODO: attack player
-      }
-
-    // Update animation
-    if(this.isLeft)
-      this.animations.left[this.state].update(elapsedTime);
-    else
-      this.animations.right[this.state].update(elapsedTime);
-
-  }
-
-=======
->>>>>>> refs/remotes/origin/master
   /* Enemy Render Function
    * arguments:
    * - ctx, the rendering context
@@ -9560,11 +5906,7 @@ module.exports = (function(){
 
 }());
 
-<<<<<<< HEAD
-},{"./animation.js":4,"./entity.js":15}],29:[function(require,module,exports){
-=======
 },{"./animation.js":5,"./entity.js":16}],30:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /* Entity: Robo-Killer module
  * Implements the entity pattern, provides specific robo-killer constructs.
  *
@@ -9878,11 +6220,7 @@ module.exports = (function() {
 
 }());
 
-<<<<<<< HEAD
-},{"./animation.js":4,"./entity.js":15}],30:[function(require,module,exports){
-=======
 },{"./animation.js":5,"./entity.js":16}],31:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /* Score engine */
 
 module.exports = (function (){
@@ -10006,11 +6344,7 @@ module.exports = (function (){
 
 })();
 
-<<<<<<< HEAD
-},{}],31:[function(require,module,exports){
-=======
 },{}],32:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -10262,9 +6596,6 @@ module.exports = (function(){
    return Slime;
   
 }());
-<<<<<<< HEAD
-},{"./animation.js":4,"./entity.js":15}],32:[function(require,module,exports){
-=======
 },{"./animation.js":5,"./entity.js":16}],33:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
@@ -10333,7 +6664,6 @@ module.exports = (function (){
   
 })();
 },{}],34:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -10617,11 +6947,7 @@ module.exports = (function(){
     return StoneMonster;
 }());
 
-<<<<<<< HEAD
-},{"./animation.js":4,"./entity.js":15,"./player.js":26}],33:[function(require,module,exports){
-=======
 },{"./animation.js":5,"./entity.js":16,"./player.js":27}],35:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -10691,11 +7017,7 @@ module.exports = (function() {
     return Sudo_Animation;
 
 }());
-<<<<<<< HEAD
-},{}],34:[function(require,module,exports){
-=======
 },{}],36:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -10943,11 +7265,7 @@ module.exports = (function(){
     return Sudo_Chan;
 }());
 
-<<<<<<< HEAD
-},{"./entity.js":15,"./sudo-chan-animation.js":33}],35:[function(require,module,exports){
-=======
 },{"./entity.js":16,"./sudo-chan-animation.js":35}],37:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -11146,12 +7464,8 @@ module.exports = (function (){
           },
           5: { // Stone w grass
             type: "StoneWithGrass",
-<<<<<<< HEAD
-            solid: true
-=======
             solid: true,
 			notDiggable: true
->>>>>>> refs/remotes/origin/master
           },
           6: { // Water
             type: "Water",
@@ -11172,10 +7486,7 @@ module.exports = (function (){
           10: { // stone
             type: "Stone",
             solid: true,
-<<<<<<< HEAD
-=======
 			notDiggable: true
->>>>>>> refs/remotes/origin/master
           },
           11: { // water
             type: "Water",
@@ -11503,15 +7814,6 @@ module.exports = (function (){
     }
   };
 
-<<<<<<< HEAD
-  //change the type of tile in a given position
-  //author: Shanshan Wu
-  var mineAt = function(newType, x, y, layer) {
-    if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
-      return undefined;
-
-    if(tileAt(x, y, layer).data.solid)
-=======
   //change the type of tile in a given position.....duplicate of setTileAt
   //author: Shanshan Wu
   var mineAt = function(newType, x, y, layer, digAll) {
@@ -11519,7 +7821,6 @@ module.exports = (function (){
       return undefined;
 
     if((tileAt(x, y, layer).data.solid & !tileAt(x, y, layer).data.notDiggable) | digAll)
->>>>>>> refs/remotes/origin/master
       layers[layer].data[x + y * mapWidth] = newType;
   };
 
@@ -11934,11 +8235,7 @@ module.exports = (function(){
 	return Turret;
 	
 }())
-<<<<<<< HEAD
-},{"./animation.js":4,"./cannonball.js":9,"./entity-manager.js":14,"./entity.js":15,"./player.js":26}],37:[function(require,module,exports){
-=======
 },{"./animation.js":5,"./cannonball.js":10,"./entity-manager.js":15,"./entity.js":16,"./player.js":27}],39:[function(require,module,exports){
->>>>>>> refs/remotes/origin/master
 /* Wolf module
  * Implements the entity pattern and provides
  * the DiggyHole Wolf info.
