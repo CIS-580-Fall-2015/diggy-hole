@@ -5127,20 +5127,24 @@ module.exports = (function() {
             sprite.velocityY = 0;
           } else {
             if (isKeyDown(commands.DIGDOWN)) {
+			  dig_sound.play();				
               this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true);
               sprite.state = DIGGING;
               sprite.digState = DOWN_DIGGING;
             } else if(isKeyDown(commands.DIGLEFT)) {
+			  dig_sound.play();				
               this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = LEFT_DIGGING;
               sprite.isLeft = true;
             } else if(isKeyDown(commands.DIGRIGHT)) {
+			  dig_sound.play();				
               this.pick = new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = RIGHT_DIGGING;
               sprite.isLeft = false;
-            } else if(isKeyDown(commands.DIGUP)) {
+            } else if(isKeyDown(commands.DIGUP)) {				
+			  dig_sound.play();				
                 this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY }, true);
               sprite.state = DIGGING;
               sprite.digState = UP_DIGGING;
@@ -7939,7 +7943,7 @@ module.exports = (function (){
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
       return undefined;
 
-    if((tileAt(x, y, layer).data.solid & !tileAt(x, y, layer).data.notDiggable) || digAll)
+    if((tileAt(x, y, layer).data.solid && !tileAt(x, y, layer).data.notDiggable) || digAll)
       layers[layer].data[x + y * mapWidth] = newType;
   };
 

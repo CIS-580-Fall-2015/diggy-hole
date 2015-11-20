@@ -552,7 +552,7 @@ module.exports = (function (){
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
       return undefined;
 
-    if((tileAt(x, y, layer).data.solid & !tileAt(x, y, layer).data.notDiggable) || digAll)
+    if((tileAt(x, y, layer).data.solid && !tileAt(x, y, layer).data.notDiggable) || digAll)
       layers[layer].data[x + y * mapWidth] = newType;
   };
 
