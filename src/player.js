@@ -7,6 +7,17 @@
  */
 module.exports = (function() {
   var Entity = require('./entity.js'),
+    Animation = require('./animation.js');
+	
+	/*Audio sources*/	
+    jump_sound = new Audio('resources/sounds/jumping_sound.mp3');
+	dig_sound = new Audio('resources/sounds/digging_sound.mp3');
+	walk_sound = new Audio('resources/sounds/walking_sound.mp3');
+	//fallGround_sound = new Audio ('resources/sounds/fallToGround.wav');
+	
+	//Dwarf sound responses
+	dwarf_sound = new Audio('resources/sounds/dwarfSound.mp3');
+
     Animation = require('./animation.js'),
     Pickaxe = require('./Pickaxe.js'),
 	Bone = require('./Bone.js');
@@ -175,9 +186,9 @@ module.exports = (function() {
       // Process player state
       switch (sprite.state) {
         case STANDING:
-        case WALKING:
+        case WALKING:	
           // If there is no ground underneath, fall
-          if (!sprite.onGround(tilemap)) {
+          if (!sprite.onGround(tilemap)) {			  
             sprite.state = FALLING;
             sprite.velocityY = 0;
           } else {
@@ -200,20 +211,36 @@ module.exports = (function() {
               sprite.state = DIGGING;
               sprite.digState = UP_DIGGING;
             } else if (isKeyDown(commands.UP)) {
+				
+			  /* Added sound effect for jumping */
+			  jump_sound.play();
+				
               sprite.state = JUMPING;
               sprite.velocityY = JUMP_VELOCITY;
             } else if (isKeyDown(commands.LEFT)) {
+			  /*Added walking sound*/
+			  walk_sound.play();
+			  
+			  dwarf_sound.play();
+		  
               sprite.isLeft = true;
               sprite.state = WALKING;
               sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
             }
             else if(isKeyDown(commands.RIGHT)) {
+				
+			  /* Added walking sound */
+			  walk_sound.play();
+		  
               sprite.isLeft = false;
               sprite.state = WALKING;
               sprite.moveRight(elapsedTime * this.SPEED, tilemap);
             }
             else {
               sprite.state = STANDING;
+			  /* Added fall to the ground sound 
+			  fallGround_sound.loop = false;
+			  fallGround_sound.play();*/
             }
 
             if(sprite.state == DIGGING) {
@@ -285,6 +312,63 @@ module.exports = (function() {
           }
           break;
         case DIGGING:
+            var currentPlayer = this;
+			
+			/*Added digging sound*/
+			//Not tested yet because digging not working yet
+			//dig_sound.play();
+			
+            var digComplete = function() {
+              /* Add score */
+              //TODO different scores for different blocks?
+              entityManager.scoreEngine.addScore(1);
+
+              var box = currentPlayer.boundingBox(),
+                  tileX,
+                  tileY;
+
+              /* set the tile location that we are deleting */
+              switch(sprite.digState) {
+                case DOWN_DIGGING:
+                      tileX = Math.floor((box.left + (SIZE / 2)) / 64);
+                      tileY = Math.floor(box.bottom / 64);
+                      /* we also know we will be falling if digging down, so start fall */
+                      sprite.state = FALLING;
+                      sprite.velocityY = 0;
+                      break;
+                case LEFT_DIGGING:
+                      tileX = Math.floor((box.left - 5)/ 64);
+                      tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                      sprite.state = STANDING;
+                      break;
+                case RIGHT_DIGGING:
+                      tileX = Math.floor((box.right + 5)/ 64);
+                      tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                      sprite.state = STANDING;
+                      break;
+                default:
+                      return;
+              }
+
+              /* replace the set tile at this layer */
+              var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
+              if (layerType == 0) {
+                tilemap.setTileAt2(1, tileX, tileY, currentPlayer.layerIndex);
+              } else if (layerType == 1) {
+                tilemap.setTileAt2(13, tileX, tileY, currentPlayer.layerIndex);
+              } else if (layerType == 2) {
+                tilemap.setTileAt2(15, tileX, tileY, currentPlayer.layerIndex);
+              }
+
+              /* setup the callback for when the animation is complete */
+              currentPlayer.animations.left[currentPlayer.state].donePlayingCallback = function() {};
+              currentPlayer.animations.right[currentPlayer.state].donePlayingCallback = function() {};
+
+              /* reset the digging state */
+              sprite.digState = NOT_DIGGING;
+            };
+            this.animations.left[this.state].donePlayingCallback = digComplete;
+            this.animations.right[this.state].donePlayingCallback = digComplete;
           break;
         case JUMPING:
           sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
