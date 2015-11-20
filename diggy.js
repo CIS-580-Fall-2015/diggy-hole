@@ -3445,8 +3445,8 @@ module.exports = (function (){
   var update = function(elapsedTime) {
     //player.update(elapsedTime, tilemap);
     entityManager.update(elapsedTime, tilemap);
+	tilemap.update();
     inputManager.swapBuffers();
-
     octopus.getPlayerPosition(player.boundingBox());
   };
 
@@ -4955,10 +4955,6 @@ module.exports = (function() {
     jump_sound = new Audio('resources/sounds/jumping_sound.mp3');
 	dig_sound = new Audio('resources/sounds/digging_sound.mp3');
 	walk_sound = new Audio('resources/sounds/walking_sound.mp3');
-	//fallGround_sound = new Audio ('resources/sounds/fallToGround.wav');
-	
-	//Dwarf sound responses
-	dwarf_sound = new Audio('resources/sounds/dwarfSound.mp3');
 
     Animation = require('./animation.js'),
     Pickaxe = require('./Pickaxe.js'),
@@ -5165,10 +5161,7 @@ module.exports = (function() {
               sprite.velocityY = JUMP_VELOCITY;
             } else if (isKeyDown(commands.LEFT)) {
 			  /*Added walking sound*/
-			  walk_sound.play();
-			  
-			  dwarf_sound.play();
-		  
+			  walk_sound.play();		  
               sprite.isLeft = true;
               sprite.state = WALKING;
               sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
@@ -5184,9 +5177,6 @@ module.exports = (function() {
             }
             else {
               sprite.state = STANDING;
-			  /* Added fall to the ground sound 
-			  fallGround_sound.loop = false;
-			  fallGround_sound.play();*/
             }
 
             if(sprite.state == DIGGING) {
@@ -8745,4 +8735,4 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":5,"./entity.js":17}]},{},[24,18]);
+},{"./animation.js":5,"./entity.js":17}]},{},[24]);
