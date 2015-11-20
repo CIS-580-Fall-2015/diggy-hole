@@ -121,26 +121,6 @@ module.exports = (function(){
         return false; //
     };
 
-  // Check to see if player is on top of water
-  Player.prototype.onWater = function(tilemap){
-    var box = this.boundingBox();
-    // Based on the position that player is facing changed the location of it's X coordinate
-    if(this.isLeft){
-      var tileX = Math.floor((box.left)/64)
-    }
-    else{
-      var tileX = Math.floor((box.right)/64);
-    }
-    var tileY = Math.floor(box.bottom / 64) - 1,// check if player is right above water.
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if(tile){
-      if (tile.data.type == "Water" && !this.inWater(tilemap)){
-        return true;
-      }
-    }
-    return false; //
-  };
-
   // Moves the player to the left, colliding with solid tiles
   Player.prototype.moveLeft = function(distance, tilemap) {
     this.currentX -= distance;
