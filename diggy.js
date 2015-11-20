@@ -5424,7 +5424,7 @@ module.exports = (function (){
 
   function ScoreEngine() {
     this.img             = new Image();
-    this.img.src         = './img/score/clear_background_spritesheet.png';
+    this.img.src         = './img/score/clear_background_yellow_spritesheet.png';
     this.score           = 0;
     this.tickCount       = [0, 0, 0, 0];
     this.frameIndex      = [0, 0, 0, 0];
@@ -5438,16 +5438,9 @@ module.exports = (function (){
     
     this.height          = 32;
     this.width           = 32;
-    // var that             = this;
-    // this.img.onload      = function()
-    // {
-    //   that.height          = this.height / that.numRows;
-    //   that.width           = this.width / that.numFramesPerRow;
-    // }
   }
 
   ScoreEngine.prototype.addScore = function(amount) {
-    console.log(this.score + amount);
     var scoreString;
     this.score += amount;
     if (this.score < 10)
@@ -6468,7 +6461,7 @@ module.exports = (function (){
    */
   var getCameraPosition = function()
   {
-    return [clamp(cameraX - viewportHalfWidth - 32, 0, 1280), clamp(cameraY - viewportHalfHeight + 32, 0, 720)];
+    return [cameraX - viewportHalfWidth - 32, cameraY - viewportHalfHeight + 32];
   }
    
   /* Loads the tilemap 
