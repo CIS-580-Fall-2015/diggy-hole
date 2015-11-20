@@ -1,4 +1,250 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/* Class of the Barrel Skeleton entity
+ *
+ * Author:
+ * - Matej Petrlik
+ */
+
+
+module.exports = (function(){
+  var Entity = require('./entity.js'),
+		Player = require('./player.js'),
+      Animation = require('./animation.js');
+	  entityManager = require('./entity-manager.js');
+	  PowerUp = require('./powerUp.js');
+
+      var spritesheet = new Image();
+      spritesheet.src = './img/blobber.png';
+
+
+  const DEBUG = true;
+
+  const PROJECTILE = 0;
+
+  // The Sprite Size
+  const SIZE = 64;
+
+  // Movement constants
+
+    var boneLeft = new Image();
+  boneLeft.src = 'img/BoneLeft.png';
+
+
+  //The Bone constructor
+  function Bone(locationX, locationY, layerIndex, isLeft, parent) {
+    this.layerIndex = layerIndex;
+    this.currentX = locationX;
+    this.currentY = locationY;
+    this.xSpeed = 200;
+    this.isLeft = isLeft;
+	this.parent = parent;
+
+	this.type = "Bone";
+
+	this.range = 5*SIZE;
+	this.enabled = true;
+	this.distTraveled = 0;
+	this.size = SIZE/2;
+	this.playerHit = false;
+
+
+    //The animations
+    this.animations = {
+      left: [],
+      right: [],
+    }
+
+    //The right-facing animations
+	this.animations.right[PROJECTILE] = new Animation(boneLeft, SIZE, SIZE, 0, 0, 8);
+
+    //The left-facing animations
+	this.animations.left[PROJECTILE] = new Animation(boneLeft, SIZE, SIZE, 0, 0, 8);
+  }
+
+  // Bone inherits from Entity
+	Bone.prototype = new Entity();
+
+	Bone.prototype.onGround = function(tilemap) {
+    var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (SIZE/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    return (tile && tile.data.solid) ? true : false;
+  }
+
+
+
+  Bone.prototype.update = function(elapsedTime, tilemap, entityManager) {
+
+	var entities = entityManager.queryRadius(this.currentX, this.currentY, this.range);
+
+	// Update projectile
+	if(this.enabled){
+			if(this.isLeft){
+				this.currentX -= elapsedTime * this.xSpeed;
+			} else {
+				this.currentX += elapsedTime * this.xSpeed;
+			}
+			this.distTraveled += elapsedTime * this.xSpeed;
+
+
+			if(this.distTraveled >= this.range){
+				this.distTraveled = 0;
+				this.enabled = false;
+			}
+
+			if(this.isLeft){
+		var box = this.boundingBox(),
+        tileX = Math.floor(box.left/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.enabled = false;
+
+
+
+	} else {
+		var box = this.boundingBox(),
+        tileX = Math.floor(box.right/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.enabled = false;
+	}
+
+	}
+
+	// Update projectile animation
+	if(this.isLeft){
+		this.animations.left[PROJECTILE].update(elapsedTime);
+	} else {
+		this.animations.right[PROJECTILE].update(elapsedTime);
+	}
+
+	if(!this.enabled){
+		entityManager.remove(this);
+	}
+  }
+
+  Bone.prototype.render = function(ctx, debug) {
+	if(this.enabled){
+		if(this.isLeft){
+			this.animations.left[PROJECTILE].render(ctx, this.currentX, this.currentY);
+		} else {
+			this.animations.right[PROJECTILE].render(ctx, this.currentX, this.currentY);
+		}
+	}
+
+	   if(debug) renderDebug(this, ctx);
+  }
+
+  // Draw debugging visual elements
+  function renderDebug(bone, ctx) {
+    var bounds = bone.boundingBox();
+    ctx.save();
+
+    // Draw bone bounding box
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Outline tile underfoot
+    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(tileX, tileY);
+    ctx.lineTo(tileX + 64, tileY);
+    ctx.lineTo(tileX + 64, tileY + 64);
+    ctx.lineTo(tileX, tileY + 64);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+
+  Bone.prototype.boundingBox = function() {
+    return {
+      left: this.currentX,
+      top: this.currentY,
+      right: this.currentX + this.size*2,
+      bottom: this.currentY + this.size*2
+    }
+  }
+
+
+    Bone.prototype.boundingCircle = function() {
+     return {
+		 cx: this.currentX + this.size/2,
+		 cy: this.currentY + this.size/2,
+		 radius: this.size/2
+	 }
+   }
+
+      /* Collide function
+    * This function is called by the entityManager when it determines
+    * a possible collision.
+    * parameters:
+    * - otherEntity is the entity this enemy collided with
+    *   You will likely want to use
+    *     'otherEntity instanceof <Type>'
+    *   to determine what type it is to know what to
+    *   do with it.
+    */
+   Bone.prototype.collide = function(otherEntity) {	   
+	   if(!this.enabled || otherEntity.type == this.parent.type || otherEntity.type == "Bone" || otherEntity.type == "Pickaxe" || otherEntity instanceof PowerUp){
+		   return
+		   
+	   }
+	   
+	   if( otherEntity.type == "player"){
+		   this.enabled = false;
+		   if(DEBUG){
+		   console.log("Player hit by bone");
+		   entityManager.scoreEngine.subScore(1000);
+		   }
+	   } else if(otherEntity.lives){
+		   this.enabled = false;
+		   if(--otherEntity.lives < 1){
+			   
+				if(DEBUG){
+					console.log("Entity "+otherEntity.type+" killed by bone.");
+				}
+				if(otherEntity.die){
+					otherEntity.die();				
+				} else {
+					entityManager.remove(otherEntity);
+				}
+		   }
+		   if(DEBUG){
+					console.log("Entity "+otherEntity.type+" has "+otherEntity.lives+" lives left.");
+			}
+	   } else {
+		   this.enabled = false;
+		   if(DEBUG){
+				console.log("Entity "+otherEntity.type+" killed by bone.");
+			}
+		   if(otherEntity.die){
+					otherEntity.die();				
+				} else {
+					entityManager.remove(otherEntity);
+				}
+	   }
+   }
+
+
+
+  return Bone;
+
+}());
+
+},{"./animation.js":5,"./entity-manager.js":15,"./entity.js":16,"./player.js":27,"./powerUp.js":28}],2:[function(require,module,exports){
 /* DemonicGroundHog
  * Authors:
 	Nathan Bean
@@ -262,7 +508,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":4,"./entity.js":15}],2:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":16}],3:[function(require,module,exports){
 /* Entity: Kakao(aka DiamondGroundhog) module
  * Implements the entity pattern and provides
  * the entity Kakao info.
@@ -521,7 +767,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":4,"./diamond.js":11,"./entity.js":15}],3:[function(require,module,exports){
+},{"./animation.js":5,"./diamond.js":12,"./entity.js":16}],4:[function(require,module,exports){
 /* Pickaxe is an invisible entity created by player that represents the hitbox
  * of the Pickaxe.
  * In the future this would be interesting to have an attack animation effect
@@ -605,7 +851,7 @@ module.exports = (function() {
 
   })();
 
-},{"./entity.js":15}],4:[function(require,module,exports){
+},{"./entity.js":16}],5:[function(require,module,exports){
 module.exports = function () {
 
 
@@ -677,7 +923,7 @@ module.exports = function () {
 
 }();
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /* Class of the Barrel Skeleton entity
  *
  * Author:
@@ -689,7 +935,8 @@ module.exports = (function(){
   var Entity = require('./entity.js'),
 		Player = require('./player.js'),
 		Bone = require('./bone.js'),
-      Animation = require('./animation.js');
+      Animation = require('./animation.js'),
+	  PowerUp = require('./powerUp.js'),
 	  entityManager = require('./entity-manager.js');
   
   
@@ -715,6 +962,9 @@ module.exports = (function(){
   const GRAVITY = -250;
   const JUMP_VELOCITY = -600;
   const MAX_BUMPS = 3;
+  
+  // Time before removing entity after dead
+  const TIME_DEAD = 20;
   
   
     var boneLeft = new Image();
@@ -757,6 +1007,8 @@ module.exports = (function(){
 	this.attackFrequency = 1.7;
 	this.lastAttack = 0;
 	this.lives = 5;
+	this.timeDead = 0;
+	this.score = 10;
 	
 	this.state = IDLE;
 	this.playerInRange = false;
@@ -843,9 +1095,6 @@ module.exports = (function(){
    *   the current game world.
    */
   Barrel.prototype.update = function(elapsedTime, tilemap, entityManager) {
-	  if(this.state == DEAD){
-		 return;
-	  }
     var sprite = this;
     
 	var entities = entityManager.queryRadius(this.currentX, this.currentY, this.range);
@@ -991,7 +1240,10 @@ module.exports = (function(){
           break;
 		  
 		case DEAD:
-			
+			this.timeDead += elapsedTime;
+			if(this.timeDead > TIME_DEAD){
+				entityManager.remove(this);
+			}
 		break;
 		  
         case SWIMMING:
@@ -1091,10 +1343,7 @@ module.exports = (function(){
 		   console.log("Collision with player");
 	   }
 		   if(--this.lives<=0){
-			   this.state = DEAD;
-			   if(DEBUG){
-				console.log("Barrel state: DEAD");
-			}
+			   this.die();
 			   
 		   } else {
 			   if(DEBUG){
@@ -1113,6 +1362,14 @@ module.exports = (function(){
 	   }
    }
    
+   Barrel.prototype.die = function(){
+	   this.state = DEAD;
+			   boneUp = new PowerUp(this.currentX, this.currentY, this.layerIndex, 'boneUp', 64, 64, 1, 'img/BoneLeft.png');
+			   entityManager.add(boneUp);
+			   if(DEBUG){
+				console.log("Barrel state: DEAD");
+			}
+   }
    
    Barrel.prototype.attack = function(elapsedTime, entities){
 		this.lastAttack += elapsedTime;
@@ -1131,7 +1388,7 @@ module.exports = (function(){
 			}
 			
 			this.lastAttack = 0;
-			bone = new Bone(this.currentX, this.currentY, 0, isLeft);
+			bone = new Bone(this.currentX, this.currentY, 0, isLeft, this);
 			entityManager.add(bone);
 		}
 	   
@@ -1142,7 +1399,7 @@ module.exports = (function(){
 }());
 
 
-},{"./animation.js":4,"./bone.js":8,"./entity-manager.js":14,"./entity.js":15,"./player.js":26}],6:[function(require,module,exports){
+},{"./animation.js":5,"./bone.js":9,"./entity-manager.js":15,"./entity.js":16,"./player.js":27,"./powerUp.js":28}],7:[function(require,module,exports){
 /* Bird Module
 	Authors: Josh Benard
 */
@@ -1289,7 +1546,7 @@ module.exports = (function(){
 	return Bird;
 
 }());
-},{"./animation.js":4,"./entity.js":15,"./player.js":26}],7:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":16,"./player.js":27}],8:[function(require,module,exports){
 module.exports = (function(){
   var Entity = require('./entity.js');
   var PlayerClass = require('./player.js');
@@ -1550,218 +1807,9 @@ var everal = false;
 
 }());
 
-},{"./entity.js":15,"./player.js":26}],8:[function(require,module,exports){
-/* Class of the Barrel Skeleton entity
- *
- * Author:
- * - Matej Petrlik
- */
-
-
-module.exports = (function(){
-  var Entity = require('./entity.js'),
-		Player = require('./player.js'),
-      Animation = require('./animation.js');
-
-      var spritesheet = new Image();
-      spritesheet.src = './img/blobber.png';
-
-
-  const DEBUG = true;
-
-  const PROJECTILE = 0;
-
-  // The Sprite Size
-  const SIZE = 64;
-
-  // Movement constants
-
-    var boneLeft = new Image();
-  boneLeft.src = 'img/BoneLeft.png';
-
-
-  //The Bone constructor
-  function Bone(locationX, locationY, layerIndex, isLeft) {
-    this.layerIndex = layerIndex;
-    this.currentX = locationX;
-    this.currentY = locationY;
-    this.xSpeed = 200;
-    this.isLeft = isLeft;
-
-	this.type = "Bone";
-
-	this.range = 5*SIZE;
-	this.enabled = true;
-	this.distTraveled = 0;
-	this.size = SIZE/2;
-	this.playerHit = false;
-
-
-    //The animations
-    this.animations = {
-      left: [],
-      right: [],
-    }
-
-    //The right-facing animations
-	this.animations.right[PROJECTILE] = new Animation(boneLeft, SIZE, SIZE, 0, 0, 8);
-
-    //The left-facing animations
-	this.animations.left[PROJECTILE] = new Animation(boneLeft, SIZE, SIZE, 0, 0, 8);
-  }
-
-  // Bone inherits from Entity
-	Bone.prototype = new Entity();
-
-	Bone.prototype.onGround = function(tilemap) {
-    var box = this.boundingBox(),
-        tileX = Math.floor((box.left + (SIZE/2))/64),
-        tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    return (tile && tile.data.solid) ? true : false;
-  }
-
-
-
-  Bone.prototype.update = function(elapsedTime, tilemap, entityManager) {
-
-	var entities = entityManager.queryRadius(this.currentX, this.currentY, this.range);
-
-	// Update projectile
-	if(this.enabled){
-			if(this.isLeft){
-				this.currentX -= elapsedTime * this.xSpeed;
-			} else {
-				this.currentX += elapsedTime * this.xSpeed;
-			}
-			this.distTraveled += elapsedTime * this.xSpeed;
-
-
-			if(this.distTraveled >= this.range){
-				this.distTraveled = 0;
-				this.enabled = false;
-			}
-
-			if(this.isLeft){
-		var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.enabled = false;
-
-
-
-	} else {
-		var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.enabled = false;
-	}
-
-	}
-
-	// Update projectile animation
-	if(this.isLeft){
-		this.animations.left[PROJECTILE].update(elapsedTime);
-	} else {
-		this.animations.right[PROJECTILE].update(elapsedTime);
-	}
-
-	if(!this.enabled){
-		entityManager.remove(this);
-	}
-  }
-
-  Bone.prototype.render = function(ctx, debug) {
-	if(this.enabled){
-		if(this.isLeft){
-			this.animations.left[PROJECTILE].render(ctx, this.currentX, this.currentY);
-		} else {
-			this.animations.right[PROJECTILE].render(ctx, this.currentX, this.currentY);
-		}
-	}
-
-	   if(debug) renderDebug(this, ctx);
-  }
-
-  // Draw debugging visual elements
-  function renderDebug(bone, ctx) {
-    var bounds = bone.boundingBox();
-    ctx.save();
-
-    // Draw bone bounding box
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-    ctx.moveTo(bounds.left, bounds.top);
-    ctx.lineTo(bounds.right, bounds.top);
-    ctx.lineTo(bounds.right, bounds.bottom);
-    ctx.lineTo(bounds.left, bounds.bottom);
-    ctx.closePath();
-    ctx.stroke();
-
-    // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
-        tileY = 64 * (Math.floor(bounds.bottom / 64));
-    ctx.strokeStyle = "black";
-    ctx.beginPath();
-    ctx.moveTo(tileX, tileY);
-    ctx.lineTo(tileX + 64, tileY);
-    ctx.lineTo(tileX + 64, tileY + 64);
-    ctx.lineTo(tileX, tileY + 64);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-
-  Bone.prototype.boundingBox = function() {
-    return {
-      left: this.currentX,
-      top: this.currentY,
-      right: this.currentX + this.size*2,
-      bottom: this.currentY + this.size*2
-    }
-  }
-
-
-    Bone.prototype.boundingCircle = function() {
-     return {
-		 cx: this.currentX + this.size/2,
-		 cy: this.currentY + this.size/2,
-		 radius: this.size/2
-	 }
-   }
-
-      /* Collide function
-    * This function is called by the entityManager when it determines
-    * a possible collision.
-    * parameters:
-    * - otherEntity is the entity this enemy collided with
-    *   You will likely want to use
-    *     'otherEntity instanceof <Type>'
-    *   to determine what type it is to know what to
-    *   do with it.
-    */
-   Bone.prototype.collide = function(otherEntity) {
-	   if( otherEntity instanceof Player){
-		   this.enabled = false;
-		   if(DEBUG){
-		   console.log("Player hit by bone");
-		   }
-	   }
-   }
-
-
-
-  return Bone;
-
-}());
-
-},{"./animation.js":4,"./entity.js":15,"./player.js":26}],9:[function(require,module,exports){
+},{"./entity.js":16,"./player.js":27}],9:[function(require,module,exports){
+arguments[4][1][0].apply(exports,arguments)
+},{"./animation.js":5,"./entity-manager.js":15,"./entity.js":16,"./player.js":27,"./powerUp.js":28,"dup":1}],10:[function(require,module,exports){
 module.exports = (function(){
 
 var Animation = require('./animation.js'),
@@ -1949,7 +1997,7 @@ Cannonball.prototype = new Entity();
 return Cannonball;
 	
 }())
-},{"./animation.js":4,"./entity.js":15,"./tilemap.js":35}],10:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":16,"./tilemap.js":36}],11:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -2021,7 +2069,7 @@ module.exports = (function (){
   }
   
 })();
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /* Entity: Diamond(added by Diamond) module
  * Implements the entity pattern and provides
  * the entity Diamond info.
@@ -2151,7 +2199,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":4,"./entity.js":15}],12:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":16}],13:[function(require,module,exports){
 /* Dynamite Dynamite module
  * Authors:
  * Alexander Duben
@@ -2389,7 +2437,7 @@ module.exports = (function(){
   return Dynamite;
 
 }());
-},{"./animation.js":4,"./entity.js":15}],13:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":16}],14:[function(require,module,exports){
 /* Dynamite Dwarf module
  * Authors:
  * Alexander Duben
@@ -2754,7 +2802,7 @@ module.exports = (function(){
   return Dwarf;
 
 }());
-},{"./animation.js":4,"./dynamite.js":12,"./entity.js":15}],14:[function(require,module,exports){
+},{"./animation.js":5,"./dynamite.js":13,"./entity.js":16}],15:[function(require,module,exports){
 /* The entity manager for the DiggyHole game
  * Currently it uses brute-force approaches
  * to its role - this needs to be refactored
@@ -2763,7 +2811,7 @@ module.exports = (function(){
  * - Nathan Bean
  */
 module.exports = (function() {
-  const MAX_ENTITIES = 100;
+  const MAX_ENTITIES = 200;
 
 
   var entities = [],
@@ -2833,7 +2881,7 @@ module.exports = (function() {
         for (var j = 0; j < entityCount; j++) {
           // don't check for collisions with ourselves
           // and don't bother checking non-existing entities
-          if (i != j && entities[j]) {
+          if (i != j && entities[j] && entities[i]) {
             var boundsA = entities[i].boundingBox();
             var boundsB = entities[j].boundingBox();
             if (boundsA.left < boundsB.right &&
@@ -2841,9 +2889,14 @@ module.exports = (function() {
               boundsA.top < boundsB.bottom &&
               boundsA.bottom > boundsB.top
             ) {
-              entities[i].collide(entities[j]);
-              entities[j].collide(entities[i]);
-            }
+				entities[i].collide(entities[j]);
+				
+				// check again if entities[j] exists as it could
+				// have been killed by entities[i]
+				if(entities[j]){
+					entities[j].collide(entities[i]);
+				}
+			}
           }
         }
       }
@@ -2946,7 +2999,7 @@ module.exports = (function() {
 
 }());
 
-},{"./player.js":26}],15:[function(require,module,exports){
+},{"./player.js":27}],16:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -3024,7 +3077,7 @@ module.exports = (function(){
    return Entity;
   
 }());
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 /* Game GameState module
  * Provides the main game logic for the Diggy Hole game.
  * Authors:
@@ -3163,12 +3216,15 @@ module.exports = (function (){
 		if (i < 3) {
 			turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
 			entityManager.add(turret);
+			
 		}
+		dynamiteDwarf = new DynamiteDwarf(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
+	entityManager.add(dynamiteDwarf);
 		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
 		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
 		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 12, './img/powerUps/crystal_enhanced.png', true, -1));
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
-		//entityManager.add(barrel);
+		entityManager.add(barrel);
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
 		
 
@@ -3178,8 +3234,7 @@ module.exports = (function (){
 	
 	
 
-	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
-	entityManager.add(dynamiteDwarf);
+	
 
 	// Karenfang: Create a Kakao and add it to
     // the entity manager
@@ -3267,7 +3322,7 @@ module.exports = (function (){
 
 })();
 
-},{"./DemonicGroundH.js":1,"./Kakao.js":2,"./barrel.js":5,"./bird.js":6,"./blobber.js":7,"./dynamiteDwarf.js":13,"./entity-manager.js":14,"./goblin-miner.js":17,"./goblin-shaman.js":18,"./input-manager.js":20,"./main-menu.js":21,"./octopus.js":24,"./player.js":26,"./powerUp.js":27,"./rat.js":28,"./robo-killer.js":29,"./score.js":30,"./slime.js":31,"./stone-monster.js":32,"./sudo_chan.js":34,"./tilemap.js":35,"./turret.js":36,"./wolf.js":37}],17:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./Kakao.js":3,"./barrel.js":6,"./bird.js":7,"./blobber.js":8,"./dynamiteDwarf.js":14,"./entity-manager.js":15,"./goblin-miner.js":18,"./goblin-shaman.js":19,"./input-manager.js":21,"./main-menu.js":22,"./octopus.js":25,"./player.js":27,"./powerUp.js":28,"./rat.js":29,"./robo-killer.js":30,"./score.js":31,"./slime.js":32,"./stone-monster.js":33,"./sudo_chan.js":35,"./tilemap.js":36,"./turret.js":37,"./wolf.js":38}],18:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -3774,7 +3829,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":4,"./entity.js":15}],18:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":16}],19:[function(require,module,exports){
 /* Richard Habeeb */
 
 module.exports = (function(){
@@ -3962,7 +4017,7 @@ module.exports = (function(){
     return shaman;
 })();
 
-},{"./animation.js":4,"./entity.js":15}],19:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":16}],20:[function(require,module,exports){
 /**
  * Help Menu: Manages the help menu screen
  * Created by Josh Benard on 11/19/15.
@@ -4067,7 +4122,7 @@ module.exports = (function (){
     }
 
 })();
-},{"./input-manager.js":20,"./player.js":26}],20:[function(require,module,exports){
+},{"./input-manager.js":21,"./player.js":27}],21:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -4075,12 +4130,13 @@ module.exports = (function() {
     LEFT: 37,
     UP: 38,
     DOWN: 40,
-    DIGDOWN: 83,
-    DIGLEFT: 65,
-    DIGRIGHT: 68,
-    DIGUP: 87,
-	PAY: 80,
-	ATTACK : 65
+    DIGDOWN: 83, 	// S
+    DIGLEFT: 65, 	// A
+    DIGRIGHT: 68,	// D
+    DIGUP: 87,		// W
+	PAY: 80,		// P
+	ATTACK : 65,	// A
+	SHOOT : 66	 	// B
   }
   
   var oldKeys = [];
@@ -4131,7 +4187,7 @@ module.exports = (function() {
   }
   
 })();
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -4265,7 +4321,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./credits-screen":10,"./help-screen":19}],22:[function(require,module,exports){
+},{"./credits-screen":11,"./help-screen":20}],23:[function(require,module,exports){
 
 
 // Wait for the window to load completely
@@ -4309,7 +4365,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":16,"./main-menu":21}],23:[function(require,module,exports){
+},{"./game":17,"./main-menu":22}],24:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -4436,7 +4492,7 @@ module.exports = (function(){
 
 }());
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -4631,7 +4687,7 @@ module.exports = function () {
 }();
 
 
-},{"./entity.js":15,"./octopus_animation.js":25}],25:[function(require,module,exports){
+},{"./entity.js":16,"./octopus_animation.js":26}],26:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -4694,7 +4750,7 @@ module.exports = (function() {
     return OctopusAnimation;
 
 }());
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -4705,7 +4761,8 @@ module.exports = (function() {
 module.exports = (function() {
   var Entity = require('./entity.js'),
     Animation = require('./animation.js'),
-    Pickaxe = require('./Pickaxe.js');
+    Pickaxe = require('./Pickaxe.js'),
+	Bone = require('./Bone.js');
 
   /* The following are player States (Swimming is not implemented) */
   const STANDING = 0;
@@ -4769,6 +4826,11 @@ module.exports = (function() {
 	this.superPickaxe = false;
 	this.superAxeImg = new Image();
 	this.superAxeImg.src = "./img/powerUps/pick.png";
+	
+	// bone powerup
+	this.attackFrequency = 1;
+	this.lastAttack = 0;
+	this.bones = 10;
 
     //The animations
     this.animations = {
@@ -5014,7 +5076,16 @@ module.exports = (function() {
         case SWIMMING:
           // NOT IMPLEMENTED YET
       }
-
+		
+		// countdown to next bone projectile
+	  	if(this.lastAttack <= this.attackFrequency){
+			this.lastAttack += elapsedTime;
+		}
+	
+		if (isKeyDown(commands.SHOOT)) {
+            this.shoot();
+         }
+		  
       // Swap input buffers
       swapBuffers();
     }
@@ -5195,6 +5266,18 @@ module.exports = (function() {
 	  }
 	 
   }
+  
+  	/*
+		Bone projectile powerup	
+	*/
+   Player.prototype.shoot = function(){
+		if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
+			bone = new Bone(this.currentX, this.currentY, 0, this.isLeft, this);
+			entityManager.add(bone);			
+			this.bones--;
+			this.lastAttack = 0;
+		}		   
+   } 
 
   /* Player Render Function
    * arguments:
@@ -5281,7 +5364,7 @@ module.exports = (function() {
 
 }());
 
-},{"./Pickaxe.js":3,"./animation.js":4,"./entity.js":15}],27:[function(require,module,exports){
+},{"./Bone.js":1,"./Pickaxe.js":4,"./animation.js":5,"./entity.js":16}],28:[function(require,module,exports){
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Entity = require('./entity.js'),
@@ -5359,7 +5442,7 @@ module.exports = (function(){
 	
 	PowerUp.prototype.render = function(context, debug)
 	{
-		if (this.img.complete == false || this.pickedUp == true) return;
+		if (this.img.complete == false || this.pickedUp == true || this.animation == null) return;
 		this.animation.render(context, this.x, this.y);
 		if(debug) renderDebug(this, context);
 	}
@@ -5442,7 +5525,7 @@ module.exports = (function(){
 	return PowerUp;
 
 }())
-},{"./animation.js":4,"./entity-manager.js":14,"./entity.js":15,"./player.js":26}],28:[function(require,module,exports){
+},{"./animation.js":5,"./entity-manager.js":15,"./entity.js":16,"./player.js":27}],29:[function(require,module,exports){
 /* Enemy module
  * Authors:
  * Kien Le
@@ -5712,7 +5795,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":4,"./entity.js":15}],29:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":16}],30:[function(require,module,exports){
 /* Entity: Robo-Killer module
  * Implements the entity pattern, provides specific robo-killer constructs.
  *
@@ -6026,7 +6109,7 @@ module.exports = (function() {
 
 }());
 
-},{"./animation.js":4,"./entity.js":15}],30:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":16}],31:[function(require,module,exports){
 /* Score engine */
 
 module.exports = (function (){
@@ -6150,7 +6233,7 @@ module.exports = (function (){
 
 })();
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -6402,7 +6485,7 @@ module.exports = (function(){
    return Slime;
   
 }());
-},{"./animation.js":4,"./entity.js":15}],32:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":16}],33:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -6686,7 +6769,7 @@ module.exports = (function(){
     return StoneMonster;
 }());
 
-},{"./animation.js":4,"./entity.js":15,"./player.js":26}],33:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":16,"./player.js":27}],34:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -6756,7 +6839,7 @@ module.exports = (function() {
     return Sudo_Animation;
 
 }());
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -7004,7 +7087,7 @@ module.exports = (function(){
     return Sudo_Chan;
 }());
 
-},{"./entity.js":15,"./sudo-chan-animation.js":33}],35:[function(require,module,exports){
+},{"./entity.js":16,"./sudo-chan-animation.js":34}],36:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -7582,7 +7665,7 @@ module.exports = (function (){
 
 })();
 
-},{"./noise.js":23}],36:[function(require,module,exports){
+},{"./noise.js":24}],37:[function(require,module,exports){
 
 
 
@@ -7974,7 +8057,7 @@ module.exports = (function(){
 	return Turret;
 	
 }())
-},{"./animation.js":4,"./cannonball.js":9,"./entity-manager.js":14,"./entity.js":15,"./player.js":26}],37:[function(require,module,exports){
+},{"./animation.js":5,"./cannonball.js":10,"./entity-manager.js":15,"./entity.js":16,"./player.js":27}],38:[function(require,module,exports){
 /* Wolf module
  * Implements the entity pattern and provides
  * the DiggyHole Wolf info.
@@ -8229,4 +8312,4 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":4,"./entity.js":15}]},{},[22]);
+},{"./animation.js":5,"./entity.js":16}]},{},[23]);

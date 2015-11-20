@@ -9,7 +9,8 @@ module.exports = (function(){
   var Entity = require('./entity.js'),
 		Player = require('./player.js'),
 		Bone = require('./bone.js'),
-      Animation = require('./animation.js');
+      Animation = require('./animation.js'),
+	  PowerUp = require('./powerUp.js'),
 	  entityManager = require('./entity-manager.js');
   
   
@@ -35,6 +36,9 @@ module.exports = (function(){
   const GRAVITY = -250;
   const JUMP_VELOCITY = -600;
   const MAX_BUMPS = 3;
+  
+  // Time before removing entity after dead
+  const TIME_DEAD = 20;
   
   
     var boneLeft = new Image();
@@ -77,6 +81,8 @@ module.exports = (function(){
 	this.attackFrequency = 1.7;
 	this.lastAttack = 0;
 	this.lives = 5;
+	this.timeDead = 0;
+	this.score = 10;
 	
 	this.state = IDLE;
 	this.playerInRange = false;
@@ -163,9 +169,6 @@ module.exports = (function(){
    *   the current game world.
    */
   Barrel.prototype.update = function(elapsedTime, tilemap, entityManager) {
-	  if(this.state == DEAD){
-		 return;
-	  }
     var sprite = this;
     
 	var entities = entityManager.queryRadius(this.currentX, this.currentY, this.range);
@@ -311,7 +314,10 @@ module.exports = (function(){
           break;
 		  
 		case DEAD:
-			
+			this.timeDead += elapsedTime;
+			if(this.timeDead > TIME_DEAD){
+				entityManager.remove(this);
+			}
 		break;
 		  
         case SWIMMING:
@@ -411,10 +417,7 @@ module.exports = (function(){
 		   console.log("Collision with player");
 	   }
 		   if(--this.lives<=0){
-			   this.state = DEAD;
-			   if(DEBUG){
-				console.log("Barrel state: DEAD");
-			}
+			   this.die();
 			   
 		   } else {
 			   if(DEBUG){
@@ -433,6 +436,14 @@ module.exports = (function(){
 	   }
    }
    
+   Barrel.prototype.die = function(){
+	   this.state = DEAD;
+			   boneUp = new PowerUp(this.currentX, this.currentY, this.layerIndex, 'boneUp', 64, 64, 1, 'img/BoneLeft.png');
+			   entityManager.add(boneUp);
+			   if(DEBUG){
+				console.log("Barrel state: DEAD");
+			}
+   }
    
    Barrel.prototype.attack = function(elapsedTime, entities){
 		this.lastAttack += elapsedTime;
@@ -451,7 +462,7 @@ module.exports = (function(){
 			}
 			
 			this.lastAttack = 0;
-			bone = new Bone(this.currentX, this.currentY, 0, isLeft);
+			bone = new Bone(this.currentX, this.currentY, 0, isLeft, this);
 			entityManager.add(bone);
 		}
 	   
