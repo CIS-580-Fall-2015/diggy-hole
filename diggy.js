@@ -7552,9 +7552,11 @@ module.exports = (function (){
         tileproperties: {
           0: { // Sky background
             type: "SkyBackground",
+            notDiggable: true
           },
           1: { // Clouds
              type: "Clouds",
+             notDiggable: true
           },
           2: { // Sky Earth
             type: "Sky Earth",
@@ -7576,10 +7578,12 @@ module.exports = (function (){
           },
           6: { // Water
             type: "Water",
-            liquid: true
+            liquid: true,
+            notDiggable: true
           },
           7: { // Cave background
             type: "CaveBackground",
+            notDiggable: true
           },
           8: { // Gems
             type: "Gems",
@@ -7597,21 +7601,26 @@ module.exports = (function (){
           },
           11: { // water
             type: "Water",
-            liquid: true
+            liquid: true,
+            notDiggable: true
           },
           12: { // cave background
             type: "CaveBackground",
+            notDiggable: true
           },
           13: { // lava
             type: "Lava",
             liquid: true,
             damage: 10,
+            notDiggable: true
           },
           14: { // dark background
             type: "DarkBackground",
+            notDiggable: true
           },
           15: { // dug background
             type: "DugBackground",
+            notDiggable: true
           }
         },
         spacing: 0,
