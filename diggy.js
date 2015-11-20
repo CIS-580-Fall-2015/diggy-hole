@@ -1884,18 +1884,6 @@ function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, grav
 			this.offsetExploding();
 			this.explosionSound.play();
 		}
-<<<<<<< HEAD
-		this.img.src = imgPath;
-		
-		this.pickedUp = false;
-		this.pickedUpSound = new Audio('resources/sounds/powerUp.wav');
-		this.layerIndex = mapLayer;
-		this.falling = true;
-		this.flying = flying;
-		this.velocityY = 0;
-		this.effectDuration = duration;
-=======
->>>>>>> refs/remotes/origin/master
 	}
 	
 	this.offsetExploding = function() {
@@ -5127,20 +5115,24 @@ module.exports = (function() {
             sprite.velocityY = 0;
           } else {
             if (isKeyDown(commands.DIGDOWN)) {
+			  dig_sound.play();				
               this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true);
               sprite.state = DIGGING;
               sprite.digState = DOWN_DIGGING;
             } else if(isKeyDown(commands.DIGLEFT)) {
+			  dig_sound.play();				
               this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = LEFT_DIGGING;
               sprite.isLeft = true;
             } else if(isKeyDown(commands.DIGRIGHT)) {
+			  dig_sound.play();				
               this.pick = new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = RIGHT_DIGGING;
               sprite.isLeft = false;
-            } else if(isKeyDown(commands.DIGUP)) {
+            } else if(isKeyDown(commands.DIGUP)) {				
+			  dig_sound.play();				
                 this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY }, true);
               sprite.state = DIGGING;
               sprite.digState = UP_DIGGING;
