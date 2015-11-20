@@ -196,7 +196,8 @@ module.exports = (function (){
           },
           5: { // Stone w grass
             type: "StoneWithGrass",
-            solid: true
+            solid: true,
+			notDiggable: true
           },
           6: { // Water
             type: "Water",
@@ -217,6 +218,7 @@ module.exports = (function (){
           10: { // stone
             type: "Stone",
             solid: true,
+			notDiggable: true
           },
           11: { // water
             type: "Water",
@@ -544,13 +546,13 @@ module.exports = (function (){
     }
   };
 
-  //change the type of tile in a given position
+  //change the type of tile in a given position.....duplicate of setTileAt
   //author: Shanshan Wu
-  var mineAt = function(newType, x, y, layer) {
+  var mineAt = function(newType, x, y, layer, digAll) {
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
       return undefined;
 
-    if(tileAt(x, y, layer).data.solid)
+    if((tileAt(x, y, layer).data.solid & !tileAt(x, y, layer).data.notDiggable) | digAll)
       layers[layer].data[x + y * mapWidth] = newType;
   };
 

@@ -19,7 +19,8 @@ module.exports = (function() {
 	dwarf_sound = new Audio('resources/sounds/dwarfSound.mp3');
 
     Animation = require('./animation.js'),
-    Pickaxe = require('./Pickaxe.js');
+    Pickaxe = require('./Pickaxe.js'),
+	Bone = require('./Bone.js');
 
   /* The following are player States (Swimming is not implemented) */
   const STANDING = 0;
@@ -57,6 +58,8 @@ module.exports = (function() {
 
   var ratLeft = new Image();
   ratLeft.src = "img/ratLeft2.png";
+  
+  
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
@@ -81,6 +84,15 @@ module.exports = (function() {
     this.SPEED = 150;
 	this.type = "player";
 	this.superPickaxe = false;
+	this.superAxeImg = new Image();
+	this.superAxeImg.src = "./img/powerUps/pick.png";	
+	this.boneImg = new Image();
+	this.boneImg.src = "./img/BoneLeft.png";
+	
+	// bone powerup
+	this.attackFrequency = 1;
+	this.lastAttack = 0;
+	this.bones = 5;
 
     //The animations
     this.animations = {
@@ -279,11 +291,11 @@ module.exports = (function() {
                   /* replace the set tile at this layer */
                   var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
                   if (layerType == 0) {
-                    tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex);
+                    tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
                   } else if (layerType == 1) {
-                    tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex);
+                    tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
                   } else if (layerType == 2) {
-                    tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex);
+                    tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
                   }
 
                   /* setup the callback for when the animation is complete */
@@ -399,7 +411,16 @@ module.exports = (function() {
         case SWIMMING:
           // NOT IMPLEMENTED YET
       }
-
+		
+		// countdown to next bone projectile
+	  	if(this.lastAttack <= this.attackFrequency){
+			this.lastAttack += elapsedTime;
+		}
+	
+		if (isKeyDown(commands.SHOOT)) {
+            this.shoot();
+         }
+		  
       // Swap input buffers
       swapBuffers();
     }
@@ -549,19 +570,20 @@ module.exports = (function() {
 	 It should eventually delete the power up from the game
   */
   Player.prototype.poweredUp = function(powerUp) {
-	  // Delete power up from entity manager
-	  console.log(powerUp.type);
-	  /*
-	  if (powerUp.type == '') {
-		  ...
+	  
+	  console.log("Picked up power up: " + powerUp.type);
+	  
+	  if (powerUp.type == 'boneUp') {
+		  this.bones++;
 	  }
-	  */
+	  
 	  if (powerUp.type == 'pick') {
+		  
 		  console.log("super pickaxe activated");
 		  this.superPickaxe = true;
 	  }
 	  
-	  if(powerUp.effectDuration == 0){//if power up lasts 4ever
+	  if(powerUp.effectDuration < 0){//if power up lasts 4ever
 		   this.entityManager.remove(powerUp);
 	  }
 	 
@@ -579,6 +601,18 @@ module.exports = (function() {
 	  }
 	 
   }
+  
+  	/*
+		Bone projectile powerup	
+	*/
+   Player.prototype.shoot = function(){
+		if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
+			bone = new Bone(this.currentX, this.currentY, 0, this.isLeft, this);
+			entityManager.add(bone);			
+			this.bones--;
+			this.lastAttack = 0;
+		}		   
+   } 
 
   /* Player Render Function
    * arguments:
@@ -593,8 +627,36 @@ module.exports = (function() {
     else
       this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
 
+    //draw powerups
+	if(this.superPickaxe){
+		ctx.drawImage(
+        this.superAxeImg,
+        0,
+        0,
+        64,
+        64,
+        this.currentX + 500,
+        this.currentY - 350,
+        64,
+        64);
+	}
+	
+		ctx.drawImage(
+        this.boneImg,
+        0,
+        0,
+        64,
+        64,
+        this.currentX + 400,
+        this.currentY - 350,
+        64,
+        64);
+		ctx.font = "15pt Calibri";
+		ctx.fillText("x"+this.bones, this.currentX + 445, this.currentY - 300);
+
+	
     if (debug) renderDebug(this, ctx);
-  };
+  }
 
   // Draw debugging visual elements
   function renderDebug(player, ctx) {

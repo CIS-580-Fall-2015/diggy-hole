@@ -46,6 +46,15 @@
   position: relative;
 }
 
+.splash{
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: url("img/splash.jpg");
+  border: 5px double #000;
+  display: none;
+}
+
 #player-tester {
   border: 1px solid black;
   width: 128px;

@@ -16,12 +16,13 @@ window.onload = function() {
     if(state) state.exit();
     return state;
   }
-  
+
   var game = require('./game');
   pushState(game);
   
-  var mainMenu = require('./main-menu');
-  pushState(mainMenu);
+  //edited the main to go to the splash-screen first
+  var splash = require('./splash-screen');
+  pushState(splash);
   
   // Event handlers for key events
   window.onkeydown = function(event) {

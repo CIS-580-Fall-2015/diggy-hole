@@ -69,12 +69,13 @@ module.exports = (function(){
 			this.player.clearEffect(this);
 		}
 		
+		
 		if (this.img.complete == false || this.pickedUp == true) return;
 	}
 	
 	PowerUp.prototype.render = function(context, debug)
 	{
-		if (this.img.complete == false || this.pickedUp == true) return;
+		if (this.img.complete == false || this.pickedUp == true || this.animation == null) return;
 		this.animation.render(context, this.x, this.y);
 		if(debug) renderDebug(this, context);
 	}

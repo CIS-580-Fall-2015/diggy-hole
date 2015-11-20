@@ -5,12 +5,13 @@ module.exports = (function() {
     LEFT: 37,
     UP: 38,
     DOWN: 40,
-    DIGDOWN: 83,
-    DIGLEFT: 65,
-    DIGRIGHT: 68,
-    DIGUP: 87,
-	PAY: 80,
-	ATTACK : 65
+    DIGDOWN: 83, 	// S
+    DIGLEFT: 65, 	// A
+    DIGRIGHT: 68,	// D
+    DIGUP: 87,		// W
+	PAY: 80,		// P
+	ATTACK : 65,	// A
+	SHOOT : 66	 	// B
   }
   
   var oldKeys = [];

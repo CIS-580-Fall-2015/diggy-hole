@@ -6,7 +6,7 @@
  * - Nathan Bean
  */
 module.exports = (function() {
-  const MAX_ENTITIES = 100;
+  const MAX_ENTITIES = 200;
 
 
   var entities = [],
@@ -76,7 +76,7 @@ module.exports = (function() {
         for (var j = 0; j < entityCount; j++) {
           // don't check for collisions with ourselves
           // and don't bother checking non-existing entities
-          if (i != j && entities[j]) {
+          if (i != j && entities[j] && entities[i]) {
             var boundsA = entities[i].boundingBox();
             var boundsB = entities[j].boundingBox();
             if (boundsA.left < boundsB.right &&
@@ -84,9 +84,14 @@ module.exports = (function() {
               boundsA.top < boundsB.bottom &&
               boundsA.bottom > boundsB.top
             ) {
-              entities[i].collide(entities[j]);
-              entities[j].collide(entities[i]);
-            }
+				entities[i].collide(entities[j]);
+				
+				// check again if entities[j] exists as it could
+				// have been killed by entities[i]
+				if(entities[j]){
+					entities[j].collide(entities[i]);
+				}
+			}
           }
         }
       }
@@ -145,7 +150,7 @@ module.exports = (function() {
 
   function getPlayer() {
     for (var i = 0; i < entityCount; i++) {
-      if (entities[i] && entities[i] instanceof Player) {
+      if (entities[i] && entities[i].type == "player") {
         return entities[i];
       }
     }

@@ -136,11 +136,15 @@ module.exports = (function (){
 		if (i < 3) {
 			turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
 			entityManager.add(turret);
+			
 		}
-		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 500));
-		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 12, './img/powerUps/crystal_enhanced.png', true, 500));
-		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
-		//entityManager.add(barrel);
+		dynamiteDwarf = new DynamiteDwarf(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
+	entityManager.add(dynamiteDwarf);
+		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
+		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
+		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 12, './img/powerUps/crystal_enhanced.png', true, -1));
+		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
+		entityManager.add(barrel);
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
 		
 
@@ -150,8 +154,7 @@ module.exports = (function (){
 	
 	
 
-	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
-	entityManager.add(dynamiteDwarf);
+	
 
 	// Karenfang: Create a Kakao and add it to
     // the entity manager
