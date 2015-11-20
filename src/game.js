@@ -91,7 +91,7 @@ module.exports = (function (){
 
     // Create the player and add them to
     // the entity manager
-    player = new Player(10*64, 840*64, 0, inputManager);
+    player = new Player(400, 240, 0, inputManager);
     entityManager.add(player);
 
     // Set up score engine
