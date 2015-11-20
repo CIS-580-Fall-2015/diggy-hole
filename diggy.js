@@ -2483,6 +2483,7 @@ module.exports = (function(){
     this.isLeft = false;
 	this.isPlayerColliding = false;
 	this.type = 'dynamiteDwarf';
+	this.score = -500;
 	//this.player = playerEntity;
     
     //The animations
@@ -3153,7 +3154,7 @@ module.exports = (function (){
 			turret = new Turret(Math.random()*64*50, Math.random()*64*20, o);
 			entityManager.add(turret);
 		}
-		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png'));
+		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 500));
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
 		//entityManager.add(barrel);
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
@@ -4639,6 +4640,7 @@ module.exports = (function() {
     this.isLeft = false;
     this.SPEED = 150;
 	this.type = "player";
+	this.superPickaxe = false;
 
     //The animations
     this.animations = {
@@ -4888,9 +4890,27 @@ module.exports = (function() {
 	  }
 	  */
 	  if (powerUp.type == 'pick') {
-		  console.log("super pickaxe");
+		  console.log("super pickaxe activated");
+		  this.superPickaxe = true;
 	  }
-	  this.entityManager.remove(powerUp);
+	  
+	  if(powerUp.effectDuration == 0){//if power up lasts 4ever
+		   this.entityManager.remove(powerUp);
+	  }
+	 
+  }
+  
+  /*
+     This method gets called when a power up effect vanishes
+  */
+  Player.prototype.clearEffect = function(powerUp) {
+	  // Delete power up from entity manager
+	  if (powerUp.type == 'pick') {
+		  console.log("super pickaxe expired");
+		  this.superPickaxe = false;
+		  this.entityManager.remove(powerUp);
+	  }
+	 
   }
 
   /* Player Render Function
@@ -4980,9 +5000,11 @@ module.exports = (function(){
 		height		- height of one animation image
 		frameNum	- number of frames of its animation
 		imgPath		- path to the animation's spritesheet
+		flying      - if the gravity applies to this power up then false
+		duration - how long will the effect last in ticks
 	*/
 	function PowerUp(locationX, locationY, mapLayer,
-					 type, width, height, frameNum, imgPath) {
+					 type, width, height, frameNum, imgPath, flying, duration) {
 		this.x = locationX;
 		this.y = locationY;
 		this.type = type;
@@ -5001,13 +5023,16 @@ module.exports = (function(){
 		this.pickedUpSound = new Audio('./sounds/powerUp.wav');
 		this.layerIndex = mapLayer;
 		this.falling = true;
+		this.flying = flying;
 		this.velocityY = 0;
+		this.effectDuration = duration;
 	}
 	
 	
 	PowerUp.prototype.update = function(elapsedTime, tilemap, entityManager)
 	{
-		if(this.falling){
+		if(!this.flying){
+			if(this.falling){
 			this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
 			this.y += this.velocityY * elapsedTime;
 			if(this.onGround(tilemap)) {
@@ -5016,11 +5041,22 @@ module.exports = (function(){
 				this.falling = false;
 			}
 		}
+		}
+		
 		
 		  
-		if (this.img.complete == false || this.pickedUp == true) return;
+		
 		
 		this.animation.update(elapsedTime);
+		if(this.pickedUp){
+			this.effectDuration--;
+		}
+		
+		if(this.effectDuration == 0){
+			this.player.clearEffect(this);
+		}
+		
+		if (this.img.complete == false || this.pickedUp == true) return;
 	}
 	
 	PowerUp.prototype.render = function(context, debug)
@@ -5072,6 +5108,7 @@ module.exports = (function(){
 			otherEntity.poweredUp(this);
 			this.pickedUpSound.play();
 			this.pickedUp = true;
+			this.player = otherEntity;
 		}
 	}
 	

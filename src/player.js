@@ -69,6 +69,7 @@ module.exports = (function() {
     this.isLeft = false;
     this.SPEED = 150;
 	this.type = "player";
+	this.superPickaxe = false;
 
     //The animations
     this.animations = {
@@ -318,9 +319,27 @@ module.exports = (function() {
 	  }
 	  */
 	  if (powerUp.type == 'pick') {
-		  console.log("super pickaxe");
+		  console.log("super pickaxe activated");
+		  this.superPickaxe = true;
 	  }
-	  this.entityManager.remove(powerUp);
+	  
+	  if(powerUp.effectDuration == 0){//if power up lasts 4ever
+		   this.entityManager.remove(powerUp);
+	  }
+	 
+  }
+  
+  /*
+     This method gets called when a power up effect vanishes
+  */
+  Player.prototype.clearEffect = function(powerUp) {
+	  // Delete power up from entity manager
+	  if (powerUp.type == 'pick') {
+		  console.log("super pickaxe expired");
+		  this.superPickaxe = false;
+		  this.entityManager.remove(powerUp);
+	  }
+	 
   }
 
   /* Player Render Function

@@ -136,7 +136,7 @@ module.exports = (function (){
 			turret = new Turret(Math.random()*64*50, Math.random()*64*20, o);
 			entityManager.add(turret);
 		}
-		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png'));
+		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 500));
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
 		//entityManager.add(barrel);
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
