@@ -2677,6 +2677,10 @@ module.exports = (function(){
     
   }
   
+  Dwarf.prototype.die = function(){
+	  this.state = DYING;
+  }
+  
   /* Dwarf Render Function
    * arguments:
    * - ctx, the rendering context
@@ -5167,14 +5171,10 @@ module.exports = (function() {
 		  ...
 	  }
 	  */
-	  if (powerUp.type == 'pick') {	  
+	  if (powerUp.type == 'pick') {
+		  
 		  console.log("super pickaxe activated");
 		  this.superPickaxe = true;
-	  }
-	  
-	  if(powerUp.type == 'medicine'){
-		console.log("medicine picked up");
-		this.SPEED = 150; //speed back to normal
 	  }
 	  
 	  if(powerUp.effectDuration < 0){//if power up lasts 4ever

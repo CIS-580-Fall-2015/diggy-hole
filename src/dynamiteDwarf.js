@@ -285,6 +285,10 @@ module.exports = (function(){
     
   }
   
+  Dwarf.prototype.die = function(){
+	  this.state = DYING;
+  }
+  
   /* Dwarf Render Function
    * arguments:
    * - ctx, the rendering context
