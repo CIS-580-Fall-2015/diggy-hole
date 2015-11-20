@@ -2229,6 +2229,8 @@ module.exports = (function(){
   explosionImg.src = './img/explosionSpriteBig.png';
   var detonationTimer = 0;
   var explosionTimer = 0;
+  
+  var explosion = new Audio('./sounds/explosion.wav');
 
   //The Dynamite constructor
   function Dynamite(locationX, locationY, layerIndex, inputManager, sourceEntity) {
@@ -2314,6 +2316,7 @@ module.exports = (function(){
 			}
 		break;
         case DETONATE:
+		  explosion.play();
 		  if(explosionTimer < 15){
 			  explosionTimer++;
 			  if(explosionTimer == 8){
@@ -2508,6 +2511,8 @@ module.exports = (function(){
   var detonate = new Image();
   detonate.src = "./img/dwarfDetonate.png";
   
+  var explosion = new Audio('./sounds/explosion.wav');
+  
   var walkTimer = 0,
 	idleTimer = 0,
 	settingChargesTimer = 0,
@@ -2618,7 +2623,7 @@ module.exports = (function(){
       switch(sprite.state) {
         case STANDING:
 			sprite.isPlayerColliding = false;
-			if(isKeyDown(commands.ATTACK)){
+			if(isKeyDown(commands.DIGDOWN)|isKeyDown(commands.DIGUP)|isKeyDown(commands.DIGLEFT)|isKeyDown(commands.DIGRIGHT)){
 				sprite.state = DYING;
 			}
 			if(!sprite.onGround(tilemap)) {
@@ -2682,6 +2687,7 @@ module.exports = (function(){
 				if((tileY-GROUNDLVL) <= 0){//if above surface just use just constant force
 					player.velocityY = -1500;
 				}
+				explosion.play();
 				player.state = 2;//jumping
 				sprite.state = WALKING;
 			}
