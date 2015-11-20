@@ -69,6 +69,7 @@ module.exports = (function(){
 			this.player.clearEffect(this);
 		}
 		
+		
 		if (this.img.complete == false || this.pickedUp == true) return;
 	}
 	

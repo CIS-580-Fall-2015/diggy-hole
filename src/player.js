@@ -252,11 +252,11 @@ module.exports = (function() {
                   /* replace the set tile at this layer */
                   var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
                   if (layerType == 0) {
-                    tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex);
+                    tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
                   } else if (layerType == 1) {
-                    tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex);
+                    tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
                   } else if (layerType == 2) {
-                    tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex);
+                    tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
                   }
 
                   /* setup the callback for when the animation is complete */
@@ -473,11 +473,12 @@ module.exports = (function() {
 	  }
 	  */
 	  if (powerUp.type == 'pick') {
+		  
 		  console.log("super pickaxe activated");
 		  this.superPickaxe = true;
 	  }
 	  
-	  if(powerUp.effectDuration == 0){//if power up lasts 4ever
+	  if(powerUp.effectDuration < 0){//if power up lasts 4ever
 		   this.entityManager.remove(powerUp);
 	  }
 	 

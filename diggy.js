@@ -3160,8 +3160,8 @@ module.exports = (function (){
 			turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
 			entityManager.add(turret);
 		}
-		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 500));
-		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 12, './img/powerUps/crystal_enhanced.png', true, 500));
+		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
+		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 12, './img/powerUps/crystal_enhanced.png', true, -1));
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
 		//entityManager.add(barrel);
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
@@ -4944,11 +4944,11 @@ module.exports = (function() {
                   /* replace the set tile at this layer */
                   var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
                   if (layerType == 0) {
-                    tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex);
+                    tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
                   } else if (layerType == 1) {
-                    tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex);
+                    tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
                   } else if (layerType == 2) {
-                    tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex);
+                    tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
                   }
 
                   /* setup the callback for when the animation is complete */
@@ -5165,11 +5165,12 @@ module.exports = (function() {
 	  }
 	  */
 	  if (powerUp.type == 'pick') {
+		  
 		  console.log("super pickaxe activated");
 		  this.superPickaxe = true;
 	  }
 	  
-	  if(powerUp.effectDuration == 0){//if power up lasts 4ever
+	  if(powerUp.effectDuration < 0){//if power up lasts 4ever
 		   this.entityManager.remove(powerUp);
 	  }
 	 
@@ -5330,6 +5331,7 @@ module.exports = (function(){
 		if(this.effectDuration == 0){
 			this.player.clearEffect(this);
 		}
+		
 		
 		if (this.img.complete == false || this.pickedUp == true) return;
 	}
@@ -7180,7 +7182,8 @@ module.exports = (function (){
           },
           5: { // Stone w grass
             type: "StoneWithGrass",
-            solid: true
+            solid: true,
+			notDiggable: true
           },
           6: { // Water
             type: "Water",
@@ -7201,6 +7204,7 @@ module.exports = (function (){
           10: { // stone
             type: "Stone",
             solid: true,
+			notDiggable: true
           },
           11: { // water
             type: "Water",
@@ -7528,13 +7532,13 @@ module.exports = (function (){
     }
   };
 
-  //change the type of tile in a given position
+  //change the type of tile in a given position.....duplicate of setTileAt
   //author: Shanshan Wu
-  var mineAt = function(newType, x, y, layer) {
+  var mineAt = function(newType, x, y, layer, digAll) {
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
       return undefined;
 
-    if(tileAt(x, y, layer).data.solid)
+    if((tileAt(x, y, layer).data.solid & !tileAt(x, y, layer).data.notDiggable) | digAll)
       layers[layer].data[x + y * mapWidth] = newType;
   };
 
