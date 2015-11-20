@@ -94,6 +94,7 @@ module.exports = (function(){
     this.isLeft = false;
 	this.isPlayerColliding = false;
 	this.type = 'dynamiteDwarf';
+	this.score = -500;
 	//this.player = playerEntity;
     
     //The animations

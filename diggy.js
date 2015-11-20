@@ -2483,6 +2483,7 @@ module.exports = (function(){
     this.isLeft = false;
 	this.isPlayerColliding = false;
 	this.type = 'dynamiteDwarf';
+	this.score = -500;
 	//this.player = playerEntity;
     
     //The animations
@@ -3102,8 +3103,8 @@ module.exports = (function (){
     });
 
     for (var i = 0; i < 35; i += 7){
-      stoneMonster = new StoneMonster(64*i, 0, 0);
-      entityManager.add(stoneMonster);
+      //stoneMonster = new StoneMonster(64*i, 0, 0);
+      //entityManager.add(stoneMonster);
     }
 
     // Create the player and add them to
@@ -3153,14 +3154,17 @@ module.exports = (function (){
 			turret = new Turret(Math.random()*64*50, Math.random()*64*20, o);
 			entityManager.add(turret);
 		}
+		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 500));
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
-		entityManager.add(barrel);
+		//entityManager.add(barrel);
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
+		
 
 	}
-	powerUp = new PowerUp(258, 14912, 0,
-					 'demo', 44, 40, 10, './img/powerUps/coin.png');
-	entityManager.add(powerUp);
+	//powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
+					 
+	
+	
 
 	dynamiteDwarf = new DynamiteDwarf(280, 240, 0, inputManager);
 	entityManager.add(dynamiteDwarf);
@@ -3990,6 +3994,7 @@ module.exports = (function (){
      * The exit() method hides the menu
      */
     var exit = function() {
+        // delete the canvas object
         document.getElementById("player-tester").removeChild(document.getElementById("player-tester").firstChild);
         menu.style.display = "none";
     }
@@ -4749,6 +4754,7 @@ module.exports = (function() {
     this.isLeft = false;
     this.SPEED = 150;
 	this.type = "player";
+	this.superPickaxe = false;
 
     //The animations
     this.animations = {
@@ -4816,7 +4822,7 @@ module.exports = (function() {
    */
   Player.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
-
+	sprite.entityManager = entityManager;
     // The "with" keyword allows us to change the
     // current scope, i.e. 'this' becomes our
     // inputManager
@@ -5123,6 +5129,28 @@ module.exports = (function() {
 		  ...
 	  }
 	  */
+	  if (powerUp.type == 'pick') {
+		  console.log("super pickaxe activated");
+		  this.superPickaxe = true;
+	  }
+	  
+	  if(powerUp.effectDuration == 0){//if power up lasts 4ever
+		   this.entityManager.remove(powerUp);
+	  }
+	 
+  }
+  
+  /*
+     This method gets called when a power up effect vanishes
+  */
+  Player.prototype.clearEffect = function(powerUp) {
+	  // Delete power up from entity manager
+	  if (powerUp.type == 'pick') {
+		  console.log("super pickaxe expired");
+		  this.superPickaxe = false;
+		  this.entityManager.remove(powerUp);
+	  }
+	 
   }
 
   /* Player Render Function
@@ -5202,7 +5230,7 @@ module.exports = (function(){
 		Entity = require('./entity.js'),
 		Player = require('./player.js'),
 		EntityManager = require('./entity-manager.js');
-	
+	const GRAVITY = -250;
 	/**
 		locationX 	- posX
 		locationY 	- posY
@@ -5212,9 +5240,11 @@ module.exports = (function(){
 		height		- height of one animation image
 		frameNum	- number of frames of its animation
 		imgPath		- path to the animation's spritesheet
+		flying      - if the gravity applies to this power up then false
+		duration - how long will the effect last in ticks
 	*/
 	function PowerUp(locationX, locationY, mapLayer,
-					 type, width, height, frameNum, imgPath) {
+					 type, width, height, frameNum, imgPath, flying, duration) {
 		this.x = locationX;
 		this.y = locationY;
 		this.type = type;
@@ -5231,14 +5261,42 @@ module.exports = (function(){
 		
 		this.pickedUp = false;
 		this.pickedUpSound = new Audio('./sounds/powerUp.wav');
+		this.layerIndex = mapLayer;
+		this.falling = true;
+		this.flying = flying;
+		this.velocityY = 0;
+		this.effectDuration = duration;
 	}
 	
 	
 	PowerUp.prototype.update = function(elapsedTime, tilemap, entityManager)
 	{
-		if (this.img.complete == false || this.pickedUp == true) return;
+		if(!this.flying){
+			if(this.falling){
+			this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+			this.y += this.velocityY * elapsedTime;
+			if(this.onGround(tilemap)) {
+				this.velocityY = 0;
+				this.y = ((this.boundingBox().bottom/64)-1)*64;
+				this.falling = false;
+			}
+		}
+		}
+		
+		
+		  
+		
 		
 		this.animation.update(elapsedTime);
+		if(this.pickedUp){
+			this.effectDuration--;
+		}
+		
+		if(this.effectDuration == 0){
+			this.player.clearEffect(this);
+		}
+		
+		if (this.img.complete == false || this.pickedUp == true) return;
 	}
 	
 	PowerUp.prototype.render = function(context, debug)
@@ -5290,6 +5348,7 @@ module.exports = (function(){
 			otherEntity.poweredUp(this);
 			this.pickedUpSound.play();
 			this.pickedUp = true;
+			this.player = otherEntity;
 		}
 	}
 	
@@ -5311,6 +5370,15 @@ module.exports = (function(){
 			radius: this.radius
 		}
 	}
+	
+	PowerUp.prototype.onGround = function(tilemap) {
+    var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (this.width/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+  }
 	
 	
 	return PowerUp;
