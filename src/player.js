@@ -40,6 +40,10 @@ module.exports = (function() {
   const GRAVITY = -250;
   const TERMINAL_VELOCITY = GRAVITY * -8;
   const JUMP_VELOCITY = -900;
+  const GRAVITY_IN_WATER = -80;
+  const SWIM_UP = -164;
+  const SPEED_IN_LIQUID = 80;
+
 
   //The Right facing dwarf spritesheet
   var dwarfRight = new Image();
@@ -447,15 +451,8 @@ module.exports = (function() {
             sprite.state = FALLING;
             sprite.currentY += sprite.velocityY * elapsedTime;
           }
+              break;
 
-          // A counter for the health bar to check if player is drowning
-          if(breathCount > 4){
-            //Player is dead!
-            //<progress id="health" value="100" max="100"></progress>
-            // var health = document.getElementById("health")
-            // health.value = health.value (add, subtract health, whatever.)
-          }
-          break;
       }
 
       // countdown to next bone projectile
