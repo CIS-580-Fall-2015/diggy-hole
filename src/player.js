@@ -68,7 +68,7 @@ module.exports = (function(){
     };
       // Player's Swimming properties
       this.swimmingProperty = {
-          breathCount: true,
+          breathCount: 0,
           escapeSwimming: false,
       };
     //The right-facing animations
@@ -327,11 +327,12 @@ module.exports = (function(){
             }
 
             // A counter for the health bar to check if player is drowning
-            if(breathCount > 4){
+            if (this.swimmingProperty.breathCount > 20) {
                 //Player is dead!
               //<progress id="health" value="100" max="100"></progress>
                 // var health = document.getElementById("health")
                 // health.value = health.value (add, subtract health, whatever.)
+                this.swimmingProperty.breathCount = 0;
             }
               break;
       }
@@ -339,10 +340,10 @@ module.exports = (function(){
       swapBuffers();
     }
        if(sprite.holdBreath && sprite.inWater(tilemap)){
-         breathCount = elapsedTime + breathCount
+           this.swimmingProperty.breathCount += elapsedTime;
        }
         else{
-         breathCount = 0; // If player is not in water reset breath count to zero
+           this.swimmingProperty.breathCount = 0; // If player is not in water reset breath count to zero
        }
     // Update animation
     if(this.isLeft)
@@ -363,7 +364,16 @@ module.exports = (function(){
     if(this.isLeft)
       this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
     else
-      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
+        this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
+
+    if (this.holdBreath && this.state == SWIMMING) {
+        var bb = this.boundingBox();
+        var width = (bb.right - bb.left) - ((Math.floor(this.swimmingProperty.breathCount) / 20) * (bb.right - bb.left));
+
+        ctx.fillStyle = "#21C8FF";
+        ctx.fillRect(bb.left, bb.top - 15, width, 10);
+        ctx.fill();
+    }
     
     if(debug) renderDebug(this, ctx);
   }
