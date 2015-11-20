@@ -79,38 +79,31 @@ module.exports = (function(){
 
 	// Update projectile
 	if(this.enabled){
-			if(this.isLeft){
-				this.currentX -= elapsedTime * this.xSpeed;
-			} else {
-				this.currentX += elapsedTime * this.xSpeed;
-			}
-			this.distTraveled += elapsedTime * this.xSpeed;
+		if(this.isLeft){
+			this.currentX -= elapsedTime * this.xSpeed;
+		} else {
+			this.currentX += elapsedTime * this.xSpeed;
+		}
+		this.distTraveled += elapsedTime * this.xSpeed;
 
 
-			if(this.distTraveled >= this.range){
-				this.distTraveled = 0;
-				this.enabled = false;
-			}
+		if(this.distTraveled >= this.range){
+			this.distTraveled = 0;
+			this.enabled = false;
+		}
 
-			if(this.isLeft){
-		var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.enabled = false;
-
-
-
-	} else {
-		var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.enabled = false;
-	}
-
+		if(this.isLeft){
+			var box = this.boundingBox(),
+				tileX = Math.floor(box.left/64),
+				tileY = Math.floor(box.bottom / 64) - 1;
+		} else {
+			var box = this.boundingBox(),
+				tileX = Math.floor(box.right/64),
+				tileY = Math.floor(box.bottom / 64) - 1;
+		}
+		var tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+		if (tile && tile.data.solid)
+			this.enabled = false;
 	}
 
 	// Update projectile animation

@@ -80,38 +80,31 @@ module.exports = (function(){
 
 	// Update projectile
 	if(this.enabled){
-			if(this.isLeft){
-				this.currentX -= elapsedTime * this.xSpeed;
-			} else {
-				this.currentX += elapsedTime * this.xSpeed;
-			}
-			this.distTraveled += elapsedTime * this.xSpeed;
+		if(this.isLeft){
+			this.currentX -= elapsedTime * this.xSpeed;
+		} else {
+			this.currentX += elapsedTime * this.xSpeed;
+		}
+		this.distTraveled += elapsedTime * this.xSpeed;
 
 
-			if(this.distTraveled >= this.range){
-				this.distTraveled = 0;
-				this.enabled = false;
-			}
+		if(this.distTraveled >= this.range){
+			this.distTraveled = 0;
+			this.enabled = false;
+		}
 
-			if(this.isLeft){
-		var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.enabled = false;
-
-
-
-	} else {
-		var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.enabled = false;
-	}
-
+		if(this.isLeft){
+			var box = this.boundingBox(),
+				tileX = Math.floor(box.left/64),
+				tileY = Math.floor(box.bottom / 64) - 1;
+		} else {
+			var box = this.boundingBox(),
+				tileX = Math.floor(box.right/64),
+				tileY = Math.floor(box.bottom / 64) - 1;
+		}
+		var tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+		if (tile && tile.data.solid)
+			this.enabled = false;
 	}
 
 	// Update projectile animation
@@ -3114,7 +3107,7 @@ module.exports = (function() {
    * - debug, the flag to trigger visual debugging
    */
   function render(ctx, debug) {
-	//used for determining the area of the screen/what entities are on/near screen to be updated
+	//used for determining the area of the screen/what entities are on/near screen to be rendered
     var play = getPlayer();
 	var x = play.currentX;
 	var y = play.currentY;
@@ -4213,6 +4206,8 @@ module.exports = (function (){
         scroll = 0,
         Player = require('./player.js'),
         player,
+        Bone = require('./bone.js'),
+        bone,
         screenCtx,
         backBuffer,
         backBufferCtx,
@@ -4252,6 +4247,17 @@ module.exports = (function (){
      */
     var update = function(elapsedTime) {
         player.demoUpdate(elapsedTime, null);
+        if(bone) {
+            if(bone.isLeft){
+                bone.currentX -= elapsedTime * bone.xSpeed;
+            } else {
+                bone.currentX += elapsedTime * bone.xSpeed;
+            }
+            if(bone.boundingBox().right <= 0)
+                bone = null;
+            else if(bone.boundingBox().left >= 128)
+                bone = null;
+        }
     }
 
     /*
@@ -4261,12 +4267,15 @@ module.exports = (function (){
      */
     var render = function() {
         // Clear the back buffer
-        screenCtx.fillStyle = 'rgb(255,255,255)';
+        screenCtx.fillStyle = 'rgb(0,0,0)';
         screenCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
         screenCtx.save();
 
         player.render(screenCtx, false);
+
+        if(bone)
+            bone.render(screenCtx);
 
         screenCtx.restore();
     }
@@ -4276,13 +4285,15 @@ module.exports = (function (){
      * events for the menu.
      */
     var keyDown = function(event) {
+        event.preventDefault();
         switch(event.keyCode) {
             case 27: // ESC
-                event.preventDefault();
                 stateManager.popState();
                 break;
+            case inputManager.commands.SHOOT:
+                bone = new Bone(player.currentX, player.currentY, 0, player.isLeft, player);
+                break;
             default:
-                event.preventDefault();
                 inputManager.keyDown(event);
                 break;
         }
@@ -4302,7 +4313,7 @@ module.exports = (function (){
     }
 
 })();
-},{"./input-manager.js":22,"./player.js":28}],22:[function(require,module,exports){
+},{"./bone.js":9,"./input-manager.js":22,"./player.js":28}],22:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -7765,6 +7776,10 @@ module.exports = (function (){
       }
     }
 
+	for(var x = 0; x < height/20; x++){
+		map = consolidateLiquids(map, width, height, width-1, 0, 0, height-1, width, 2);
+	}
+
     // Create mapData object
     var mapData = {
       height: height,
@@ -7787,7 +7802,73 @@ module.exports = (function (){
     return load(mapData, options);
   }
 
-
+ function shiftWaterDown(map, width, height, rightStart, bottomStart, viewWidth, viewHeight){
+	  for(var j = bottomStart; j > bottomStart-viewHeight; j--){
+		  for(var i = rightStart; i > rightStart-viewWidth; i--){
+			  index = j*width + i;
+			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1){
+				  if(map[index+height] == 14+1 || map[index+height] == 12+1 || map[index+height] == 7+1 || map[index+height] == 15+1){
+					  var temp = map[index];
+					  map[index] = map[index+height];
+					  map[index+height] = temp;
+				  }
+			  }
+		  }
+	  }
+	  
+	  return map;
+  }
+  
+  function shiftWaterRight(map, width, height, leftStart, topStart, viewWidth, viewHeight){  
+	for(var i = leftStart; i < leftStart+viewWidth; i++){
+	  for(var j = topStart; j < topStart+viewHeight; j++){
+			  index = j*width + i;
+			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1 /*&& index+1 < width*/){
+				  if(map[index+1] == 14+1 || map[index+1] == 12+1|| map[index+1] == 7+1|| map[index+1] == 15+1){
+					  var temp = map[index];
+					  map[index] = map[index+1];
+					  map[index+1] = temp;
+				  }
+			  }
+		  }
+	  }
+	  
+	  return map;
+  }
+  
+  function shiftWaterLeft(map, width, height, leftStart, topStart, viewWidth, viewHeight){
+	  for(var j = topStart; j < topStart+viewHeight; j++){
+		  for(var i = leftStart; i < leftStart+viewWidth; i++){
+			  index = j*width + i;
+			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1 /*&& index+1 < width*/){
+				  if(map[index-1] == 14+1 || map[index-1] == 12+1|| map[index-1] == 7+1 || map[index-1] == 15+1){
+					  var temp = map[index];
+					  map[index] = map[index-1];
+					  map[index-1] = temp;
+				  }
+			  }
+		  }
+	  }
+	  
+	  return map;
+  }
+  
+  // Consolidate Liquids and called shifting functions made by Wyatt Watson
+  function consolidateLiquids(map, width, height, rightStart, leftStart, topStart, bottomStart, viewWidth, viewHeight){
+	  for(var i = 0; i < viewHeight; i++){
+		  //Shift Down
+		  map = shiftWaterDown(map, width, height, rightStart+3, bottomStart+3, viewWidth+6, viewHeight+6);
+		  //Shift Right
+		  map = shiftWaterRight(map, width, height, leftStart-3, topStart-3, viewWidth+6, viewHeight+6);
+	  }
+	  for(var i = 0; i < viewHeight; i++){
+		  //Shift Down
+		  map = shiftWaterDown(map, width, height, rightStart+3, bottomStart+3, viewWidth+6, viewHeight+6);
+		  //Shift Right
+		  map = shiftWaterLeft(map, width, height, leftStart-3, topStart-3, viewWidth+6, viewHeight+6);
+	  }
+	  return map;
+  }
 
   /* GenerateObjectMap generates an object map based on the previously generated game map
    * mapWidth - the overall map's width
@@ -7840,6 +7921,18 @@ module.exports = (function (){
     /*Place player in the middle*/
     objectMap[surface * width + width/2] = 1;
     return objectMap;
+  }
+
+// Added by Wyatt Watson
+var update = function(){
+	  layers.forEach(function(layer){
+		  var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
+          var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
+          var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
+          var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
+		  
+		  consolidateLiquids(layer.data, layer.width, layer.height, endX, startX, startY, endY, endX-startX, endY-startY);
+	  });
   }
 
   /* */
@@ -7969,7 +8062,9 @@ module.exports = (function (){
     setCameraPosition: setCameraPosition,
     returnTileLayer: returnTileLayer,
     getCameraPosition: getCameraPosition,
-    mineAt: mineAt
+    mineAt: mineAt,
+	consolidateLiquids: consolidateLiquids,
+	update: update
   }
 
 
