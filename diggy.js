@@ -1844,7 +1844,7 @@ function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, grav
 	this.gravity = gravity;
 	this.projectileTime = 0;
 	this.projectileTimeExploding = 0;
-	this.explosionSound = new Audio('./sounds/explosion.wav');
+	this.explosionSound = new Audio('./resources/sounds/explosion.wav');
 	
 	// constants
 	this.projectileTimeToReachTop = undefined;
@@ -3230,7 +3230,8 @@ module.exports = (function (){
 	entityManager.add(dynamiteDwarf);
 		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
 		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
-		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 12, './img/powerUps/crystal_enhanced.png', true, -1));
+		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
+		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1)); 
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
 		entityManager.add(barrel);
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
@@ -5280,9 +5281,13 @@ module.exports = (function() {
 	  
 	  if (powerUp.type == 'boneUp') {
 		  this.bones++;
-	  }
+	  } else if (powerUp.type == 'coin') {
+		  // add points
 	  
-	  if (powerUp.type == 'pick') {
+	  } else if (powerUp.type == 'crystal') {
+		  // add points
+		  
+	  } else if (powerUp.type == 'pick') {
 		  
 		  console.log("super pickaxe activated");
 		  this.superPickaxe = true;
@@ -5454,7 +5459,7 @@ module.exports = (function(){
 		this.img.src = imgPath;
 		
 		this.pickedUp = false;
-		this.pickedUpSound = new Audio('.resources/sounds/powerUp.wav');
+		this.pickedUpSound = new Audio('./resources/sounds/powerUp.wav');
 		this.layerIndex = mapLayer;
 		this.falling = true;
 		this.flying = flying;
@@ -7863,7 +7868,7 @@ module.exports = (function(){
 			for (var i = 0; i < cannonballNum; i ++) {
 				this.cannonballs[i] = new Cannonball(this.posX, this.posY, 0, 0, 0, this.gravity, centerOffsetX, centerOffsetY);
 				entityManager.add(this.cannonballs[i]);
-				this.shotSound[i] = new Audio('./sounds/shot.wav');
+				this.shotSound[i] = new Audio('./resources/sounds/shot.wav');
 			}
 		}
 		
