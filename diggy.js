@@ -1949,7 +1949,7 @@ Cannonball.prototype = new Entity();
 return Cannonball;
 	
 }())
-},{"./animation.js":4,"./entity.js":15,"./tilemap.js":35}],10:[function(require,module,exports){
+},{"./animation.js":4,"./entity.js":15,"./tilemap.js":36}],10:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -3267,7 +3267,7 @@ module.exports = (function (){
 
 })();
 
-},{"./DemonicGroundH.js":1,"./Kakao.js":2,"./barrel.js":5,"./bird.js":6,"./blobber.js":7,"./dynamiteDwarf.js":13,"./entity-manager.js":14,"./goblin-miner.js":17,"./goblin-shaman.js":18,"./input-manager.js":20,"./main-menu.js":21,"./octopus.js":24,"./player.js":26,"./powerUp.js":27,"./rat.js":28,"./robo-killer.js":29,"./score.js":30,"./slime.js":31,"./stone-monster.js":32,"./sudo_chan.js":34,"./tilemap.js":35,"./turret.js":36,"./wolf.js":37}],17:[function(require,module,exports){
+},{"./DemonicGroundH.js":1,"./Kakao.js":2,"./barrel.js":5,"./bird.js":6,"./blobber.js":7,"./dynamiteDwarf.js":13,"./entity-manager.js":14,"./goblin-miner.js":17,"./goblin-shaman.js":18,"./input-manager.js":20,"./main-menu.js":21,"./octopus.js":24,"./player.js":26,"./powerUp.js":27,"./rat.js":28,"./robo-killer.js":29,"./score.js":30,"./slime.js":31,"./stone-monster.js":33,"./sudo_chan.js":35,"./tilemap.js":36,"./turret.js":37,"./wolf.js":38}],17:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -4284,12 +4284,13 @@ window.onload = function() {
     if(state) state.exit();
     return state;
   }
-  
+
   var game = require('./game');
   pushState(game);
   
-  var mainMenu = require('./main-menu');
-  pushState(mainMenu);
+  //edited the main to go to the splash-screen first
+  var splash = require('./splash-screen');
+  pushState(splash);
   
   // Event handlers for key events
   window.onkeydown = function(event) {
@@ -4309,7 +4310,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":16,"./main-menu":21}],23:[function(require,module,exports){
+},{"./game":16,"./splash-screen":32}],23:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -6403,6 +6404,73 @@ module.exports = (function(){
   
 }());
 },{"./animation.js":4,"./entity.js":15}],32:[function(require,module,exports){
+/* MainMenu GameState module
+ * Provides the main menu for the Diggy Hole game.
+ * Authors:
+ * - Ian Speer, Austin Boerger
+ */
+module.exports = (function (){
+  var menu = document.getElementById("splash-screen"),
+      stateManager;
+
+  /*
+   * The load() method initializes the menu 
+   * and tells the DOM to render the menu HTML
+   * parameters:
+   * - sm the state manager
+   */
+  var load = function(sm) {
+    stateManager = sm;
+    menu.style.display = "flex";
+  }
+  
+  /*
+   * The exit() method hides the menu
+   */
+  var exit = function() {
+    menu.style.display = "none";
+  }
+    
+  /* 
+   * The update() method updates the menu
+   * (in this case, a no-op)
+   */
+  var update = function() {}
+  
+  /* 
+   * The render() method renders the menu
+   * (in this case, a no-op as the menu is 
+   * HTML elements renderd by the DOM)
+   */
+  var render = function() {}
+    
+  /* 
+   * The keyDown() method handles 
+   * the key down event for the menu.
+   */
+  var keyDown = function(event) {
+    switch(event.keyCode) {
+      case 13: // ENTER
+        event.preventDefault();
+		stateManager.popState();
+        break;
+    }
+  }
+  
+  /* The keyUp() method handles the key up event */
+  function keyUp(event) {}
+  
+  return {
+    load: load,
+    exit: exit,
+    update: update,
+    render: render,
+    keyDown: keyDown,
+    keyUp: keyUp
+  }
+  
+})();
+},{}],33:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -6686,7 +6754,7 @@ module.exports = (function(){
     return StoneMonster;
 }());
 
-},{"./animation.js":4,"./entity.js":15,"./player.js":26}],33:[function(require,module,exports){
+},{"./animation.js":4,"./entity.js":15,"./player.js":26}],34:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -6756,7 +6824,7 @@ module.exports = (function() {
     return Sudo_Animation;
 
 }());
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -7004,7 +7072,7 @@ module.exports = (function(){
     return Sudo_Chan;
 }());
 
-},{"./entity.js":15,"./sudo-chan-animation.js":33}],35:[function(require,module,exports){
+},{"./entity.js":15,"./sudo-chan-animation.js":34}],36:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -7582,7 +7650,7 @@ module.exports = (function (){
 
 })();
 
-},{"./noise.js":23}],36:[function(require,module,exports){
+},{"./noise.js":23}],37:[function(require,module,exports){
 
 
 
@@ -7974,7 +8042,7 @@ module.exports = (function(){
 	return Turret;
 	
 }())
-},{"./animation.js":4,"./cannonball.js":9,"./entity-manager.js":14,"./entity.js":15,"./player.js":26}],37:[function(require,module,exports){
+},{"./animation.js":4,"./cannonball.js":9,"./entity-manager.js":14,"./entity.js":15,"./player.js":26}],38:[function(require,module,exports){
 /* Wolf module
  * Implements the entity pattern and provides
  * the DiggyHole Wolf info.
