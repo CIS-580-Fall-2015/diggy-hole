@@ -2880,6 +2880,7 @@ module.exports = (function() {
     for (i = 0; i < entityCount; i++) {
       if (entities[i]) entities[i].update(elapsedTime, tilemap, this);
     }
+    scoreEngine.update();
     checkCollisions();
   }
 
@@ -2892,6 +2893,7 @@ module.exports = (function() {
     for (var i = 0; i < entityCount; i++) {
       if (entities[i]) entities[i].render(ctx, debug);
     }
+    scoreEngine.render(ctx);
   }
 
   function getPlayer() {
@@ -3117,6 +3119,7 @@ module.exports = (function (){
     
     // Set up score engine
     scoreEngine = new ScoreEngine();
+    scoreEngine.setPositionFunction(tilemap.getCameraPosition)
     entityManager.setScoreEngine(scoreEngine);
 
     //add wolf to
@@ -6005,11 +6008,47 @@ module.exports = (function() {
 module.exports = (function (){
 
   function ScoreEngine() {
-    this.score = 0;
+    this.img             = new Image();
+    this.img.src         = './img/score/clear_background_yellow_num.png';
+    this.score           = 0;
+    this.tickCount       = [0, 0, 0, 0];
+    this.frameIndex      = [0, 0, 0, 0];
+    this.frameGoal       = [0, 0, 0, 0];
+    this.numFramesPerRow = 4;
+    this.numRows         = 10;
+    this.ticksPerFrame   = 9;
+
+    this.xpos            = 0;
+    this.ypos            = 0;
+    
+    this.height          = 32;
+    this.width           = 32;
   }
 
   ScoreEngine.prototype.addScore = function(amount) {
+    var scoreString;
     this.score += amount;
+    if (this.score < 10)
+    {
+      scoreString = "000" + this.score.toString();
+    }
+    else if (this.score < 100)
+    {
+      scoreString = "00" + this.score.toString();
+    }
+    else if (this.score < 1000)
+    {
+      scoreString = "0" + this.score.toString();
+    }
+    else
+    {
+      scoreString = this.score.toString();
+    }
+    for (var i = 0; i < scoreString.length; i++)
+    {
+      var temp = parseInt(scoreString[i]);
+      this.frameGoal[i] = temp * 4;
+    }
   };
 
   ScoreEngine.prototype.getScore = function() {
@@ -6019,6 +6058,69 @@ module.exports = (function (){
   ScoreEngine.prototype.subScore = function(amount) {
     this.score -= amount;
   };
+
+  ScoreEngine.prototype.update = function()
+  {
+    this.updatePosition();
+    this.updateAnimation();
+  }
+
+  ScoreEngine.prototype.setPositionFunction = function(func) {
+    this.positionFunction = func;
+  }
+
+  ScoreEngine.prototype.render = function(context)
+  {
+    //console.log("Score Render");
+    for (var i = 0; i < this.frameIndex.length; i++)
+    {
+      var sx = (this.frameIndex[i] % this.numFramesPerRow) * this.width;
+      var sy = Math.floor(this.frameIndex[i] / this.numFramesPerRow) * this.height;
+      context.drawImage(
+        this.img,
+        sx,
+        sy,
+        this.width,
+        this.height,
+        this.xpos + (32 * i),
+        this.ypos,
+        this.width,
+        this.height
+      );
+    }
+  }
+
+  ScoreEngine.prototype.updatePosition = function() {
+    if (this.positionFunction)
+    {
+      var pos = this.positionFunction();
+      this.xpos = pos[0];
+      this.ypos = pos[1];
+    }
+  };
+
+  ScoreEngine.prototype.updateAnimation = function()
+  {
+    for (var i = 0; i < this.frameGoal.length; i++)
+    {
+      if (this.frameIndex[i] != this.frameGoal[i])
+      {
+        this.tickCount[i] += 1;
+        if (this.tickCount[i] > this.ticksPerFrame)
+        {
+          this.tickCount[i] = 0;
+          if (this.frameIndex[i] < 39)
+          {
+            this.frameIndex[i] += 1;
+          }
+          else
+          {
+            this.frameIndex[i] = 0;
+          }
+        }
+      }
+    }
+  }
 
   return ScoreEngine;
 
@@ -6882,7 +6984,7 @@ module.exports = (function(){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
- * - Nathan Bean 
+ * - Nathan Bean
  * - Wyatt Watson
  */
 module.exports = (function (){
@@ -6901,7 +7003,7 @@ module.exports = (function (){
       viewportTileWidth = 0,
       viewportTileHeight = 0,
 	  tileset;
-   
+
   /* Clamps the provided value to the provided range
    * Arguments:
    * - value, the value to clamp
@@ -6909,23 +7011,23 @@ module.exports = (function (){
    * - max, the maximum of the range to clamp value to
    * Returns:
    *   The clamped value.
-   */   
+   */
   function clamp(value, min, max) {
     return (value < min ? min : (value > max ? max : value));
   }
-  
+
   /* Resizes the viewport.
    * Arguments:
    * - width, the width of the viewport
    * - height, the height of hte viewport
-   */   
+   */
   var setViewportSize = function(width, height) {
     viewportHalfWidth = width / 2;
     viewportHalfHeight = height / 2;
     viewportTileWidth = Math.ceil(width / tileWidth) + 2;
     viewportTileHeight = Math.ceil(height / tileHeight) + 2;
   }
-  
+
   /* Sets the camera position
    * Arguments:
    * - x, the upper-left hand x-coordinate of the viewport
@@ -6935,31 +7037,42 @@ module.exports = (function (){
     cameraX = x;
     cameraY = y;
   }
-   
-  /* Loads the tilemap 
+
+  /**
+   * Function: getCameraPosition
+   *     gets the x-y position of the viewport
+   * Returns:
+   *     x-y postion
+   */
+  var getCameraPosition = function()
+  {
+    return [cameraX - viewportHalfWidth - 32, cameraY - viewportHalfHeight + 32];
+  }
+
+  /* Loads the tilemap
    * - mapData, the JavaScript object
    * - options, options for loading, currently:
    *  > onload, a callback to trigger once the load finishes
-   */   
+   */
   var load = function(mapData, options) {
-      
+
     var loading = 0;
-    
+
     // Release old tiles & tilesets
     tiles = [];
     tilesets = [];
-    
+
     // Resize the map
     tileWidth = mapData.tilewidth;
     tileHeight = mapData.tileheight;
     mapWidth = mapData.width;
     mapHeight = mapData.height;
-    
-    if(options.viewport) 
+
+    if(options.viewport)
       setViewportSize(options.viewport.width, options.viewport.height);
     else
       setViewportSize(mapData.width * mapData.tilewidth, mapData.height * mapData.tileheight);
-    
+
     // Load the tileset(s)
     mapData.tilesets.forEach( function(tilesetmapData, index) {
       // Load the tileset image
@@ -6971,7 +7084,7 @@ module.exports = (function (){
       }
       tileset.src = tilesetmapData.image;
       tilesets.push(tileset);
-      
+
       // Create the tileset's tiles
       var colCount = Math.floor(tilesetmapData.imagewidth / tileWidth),
           rowCount = Math.floor(tilesetmapData.imageheight / tileHeight),
@@ -6986,7 +7099,7 @@ module.exports = (function (){
           image: tileset,
           // Source x position.  i % colCount == col number (as we remove full rows)
           sx: (i % colCount) * tileWidth,
-          // Source y position. i / colWidth (integer division) == row number 
+          // Source y position. i / colWidth (integer division) == row number
           sy: Math.floor(i / rowCount) * tileHeight,
           // The tile's data (solid/liquid, etc.)
           data: data
@@ -6994,10 +7107,10 @@ module.exports = (function (){
         tiles.push(tile);
       }
     });
-    
+
     // Parse the layers in the map
     mapData.layers.forEach( function(layerData) {
-      
+
       // Tile layers need to be stored in the engine for later
       // rendering
       if(layerData.type == "tilelayer") {
@@ -7008,16 +7121,16 @@ module.exports = (function (){
           height: layerData.height,
           visible: layerData.visible
         }
-      
+
         // Set up the layer's data array.  We'll try to optimize
         // by keeping the index data type as small as possible
         if(tiles.length < Math.pow(2,8))
           layer.data = new Uint8Array(layerData.data);
         else if (tiles.length < Math.Pow(2, 16))
           layer.data = new Uint16Array(layerData.data);
-        else 
+        else
           layer.data = new Uint32Array(layerData.data);
-      
+
         // save the tile layer
         layers.push(layer);
       }
@@ -7034,7 +7147,7 @@ module.exports = (function (){
     var map = new Array(width*height);
     var noise = noisy.generateNoise(width, height);
     noise = noisy.generatePerlinNoise(width, noise, 7);
-    
+
     var tileWidth = 64, tileHeight = 64;
     var tilesets = [
       {
@@ -7112,9 +7225,9 @@ module.exports = (function (){
         tileheight: 64
       }
     ]
-    
+
     // Determines where the surface is (and end of the sky)
-    var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));  
+    var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));
     this.surface = surface;
     // Determines where the crust layer of the earth ends
     var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
@@ -7122,7 +7235,7 @@ module.exports = (function (){
     // Used to help clump up the sky islands
     var skyEarthCount = 0;
     var cloudCount = 0;
-  
+
     /* As a key the tile numbers are as follows:
      * SkyBackground: 0, Clouds: 1, SkyEarth: 2, GemsWithGrass: 3, DirtWithGrass: 4, StoneWithGrass: 5, Water: 6,
      * CaveBackground: 7, Gems: 8, Dirt: 9, Stone: 10, Water(Again): 11, CaveBackground(Again): 12, Lava: 13, DarkBackground: 14, DugTile: 15
@@ -7164,7 +7277,7 @@ module.exports = (function (){
           map[index] = 1;
         }
         //Surface blocks - Start of Crust Layer
-        else if(j == surface){ 
+        else if(j == surface){
           if(temp < .5){ //Gems w grass
             map[index] = 4;
           }
@@ -7174,7 +7287,7 @@ module.exports = (function (){
           else if(temp < 6){ //Stone w grass
             map[index] = 6;
           }
-          else if(temp < 8){ //Water 
+          else if(temp < 8){ //Water
             map[index] = 7;
           }
           else{ //Cave Background
@@ -7229,10 +7342,10 @@ module.exports = (function (){
             map[index] = 15;
           }
         }
-		
+
       }
     }
-    
+
     // Create mapData object
     var mapData = {
       height: height,
@@ -7254,9 +7367,9 @@ module.exports = (function (){
     }
     return load(mapData, options);
   }
-  
-  
-  
+
+
+
   /* GenerateObjectMap generates an object map based on the previously generated game map
    * mapWidth - the overall map's width
    * map - the game map
@@ -7269,14 +7382,14 @@ module.exports = (function (){
        3 - G, 4 - D, 5 - S, 6 - W, 7 - CB
        8      9      10     11     12
        13 - L, 14 - S, 15 - DB */
-    
+
     var objectMap = new Array(width*height);
     var surface = 0;
-    
+
     /* 0 - Nothing
        1 - Player
        2 - Enemy */
-    
+
     /* place enemies (NOT FULLY IMPLEMENTED) and locates the surface of the game map */
     for(i = 0; i < width; i++){
       for(j = 0; j < height; j++){
@@ -7304,12 +7417,12 @@ module.exports = (function (){
         }
       }
     }
-    
+
     /*Place player in the middle*/
     objectMap[surface * width + width/2] = 1;
     return objectMap;
   }
-  
+
   /* */
   var render = function(screenCtx) {
     // Render tilemap layers - note this assumes
@@ -7318,37 +7431,37 @@ module.exports = (function (){
     // see http://en.wikipedia.org/wiki/Painter%27s_algorithm
     layers.forEach(function(layer){
       // Only draw layers that are currently visible
-      if(layer.visible) { 
-        
+      if(layer.visible) {
+
         // Only draw tiles that are within the viewport
         var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
         var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
         var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
         var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
-   
+
         for(y = startY; y < endY; y++) {
           for(x = startX; x < endX; x++) {
             var tileId = layer.data[x + layer.width * y];
-            
+
             // tiles with an id of < 0 don't exist
             if(tileId > 0) {
               var tile = tiles[tileId-1];
               if(tile.image) { // Make sure the image has loaded
                 screenCtx.drawImage(
-                  tile.image,     // The image to draw 
+                  tile.image,     // The image to draw
                   tile.sx, tile.sy, tileWidth, tileHeight, // The portion of image to draw
                   x*tileWidth, y*tileHeight, tileWidth, tileHeight // Where to draw the image on-screen
                 );
               }
             }
-            
+
           }
         }
       }
-      
+
     });
   }
-  
+
   /* Returns the tile at a given position.
    * - x, the x coordinate of the tile
    * - y, the y coordinate of the tile
@@ -7356,25 +7469,25 @@ module.exports = (function (){
    */
   var tileAt = function(x, y, layer) {
     // sanity check
-    if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight) 
-      return undefined;  
+    if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
+      return undefined;
     return tiles[layers[layer].data[x + y*mapWidth] - 1];
   }
-  
+
   /*
 	Changes the type of tile at a given position
 	author: Alexander Duben
   */
   var setTileAt = function(newType, x,y, layer){
-	 if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){ 
-      return undefined; 
+	 if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){
+      return undefined;
 	 }else{
 		 var tile = {
           // Reference to the image, shared amongst all tiles in the tileset
           image: tileset,
           // Source x position.  i % colCount == col number (as we remove full rows)
           sx: x,
-          // Source y position. i / colWidth (integer division) == row number 
+          // Source y position. i / colWidth (integer division) == row number
           sy: y,
           // The tile's data (solid/liquid, etc.)
           data: newType
@@ -7382,22 +7495,22 @@ module.exports = (function (){
 		layers[layer].data[x + y*mapWidth] = tile;
 	 }
   }
-  
+
   // Sets tile to skies
   // author: Milan Zelenka
   var destroyTileAt = function(newType, x,y, layer){
-	 if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){ 
-      return undefined; 
+	 if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){
+      return undefined;
 	 }else{
 		layers[layer].data[x + y * mapWidth] = 1;
 	 }
   }
-  
+
   //Dig tile out at x, y
   var removeTileAt = function(x, y, layer) {
-	if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight) 
+	if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
       return undefined;
-    layers[layer].data[x + y*mapWidth] =  16; 
+    layers[layer].data[x + y*mapWidth] =  16;
   }
 
   //return current tile layer, 0: sky, 1: crust 2: magma
@@ -7423,7 +7536,7 @@ module.exports = (function (){
     if(tileAt(x, y, layer).data.solid)
       layers[layer].data[x + y * mapWidth] = newType;
   };
-  
+
   // Expose the module's public API
   return {
     load: load,
@@ -7436,10 +7549,11 @@ module.exports = (function (){
     setViewportSize: setViewportSize,
     setCameraPosition: setCameraPosition,
     returnTileLayer: returnTileLayer,
+    getCameraPosition: getCameraPosition,
     mineAt: mineAt
   }
-  
-  
+
+
 })();
 
 },{"./noise.js":23}],36:[function(require,module,exports){
@@ -8089,4 +8203,4 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":4,"./entity.js":15}]},{},[22]);
+},{"./animation.js":4,"./entity.js":15}]},{},[22,16]);
