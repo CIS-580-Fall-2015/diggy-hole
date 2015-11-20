@@ -50,6 +50,7 @@ module.exports = (function (){
       ScoreEngine = require('./score.js'),
 	  PowerUp = require('./powerUp.js'),
     Collectible = require('./collectible.js');
+    ParticleManager = require('./particle-manager.js');
 
   /* Loads the GameState, triggered by the StateManager
    * This function sets up the screen canvas, the tilemap,
@@ -191,8 +192,9 @@ module.exports = (function (){
    */
   var update = function(elapsedTime) {
     //player.update(elapsedTime, tilemap);
-    entityManager.update(elapsedTime, tilemap);
+    entityManager.update(elapsedTime, tilemap, ParticleManager);
 	tilemap.update();
+  ParticleManager.update(elapsedTime);
     inputManager.swapBuffers();
     octopus.getPlayerPosition(player.boundingBox());
   };
@@ -216,6 +218,7 @@ module.exports = (function (){
     tilemap.render(backBufferCtx);
     entityManager.render(backBufferCtx, true);
     //player.render(backBufferCtx, true);
+    ParticleManager.render(backBufferCtx);
 
     backBufferCtx.restore();
 
