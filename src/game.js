@@ -132,8 +132,8 @@ module.exports = (function (){
 
   // Create collectibles.
   // WHOEVER IS IN CHARGE OF ENTITY PLACEMENT: Feel free to change the coordiates (first 2 parameters - x,y).
-  entityManager.add(new Collectible(500, 240, 0,'bit_coin', 64, 64, 8, './img/bit_coin.png'));
-
+  entityManager.add(new Collectible(500, 240, 0,'bit_coin', 64, 64, 8, './img/bit_coin.png', 10));
+  // entityManager.add(new Collectible(600, 240, 0,'lost_cat', 64, 64, 14, './img/lost_cat.png', 15));
 
 	// Spawn 10 barrels close to player
 	 // And some turrets
@@ -172,7 +172,7 @@ module.exports = (function (){
     blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
     entityManager.add(blobber);
 
-			
+
 	// Kyle Brown: Background Music
 	var bgMusic = new Audio('./resources/sounds/DiggyHoleBGMusicAm.wav');
 	   bgMusic.addEventListener('ended', function() {
