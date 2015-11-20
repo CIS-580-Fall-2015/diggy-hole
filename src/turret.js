@@ -74,7 +74,7 @@ module.exports = (function(){
 			for (var i = 0; i < cannonballNum; i ++) {
 				this.cannonballs[i] = new Cannonball(this.posX, this.posY, 0, 0, 0, this.gravity, centerOffsetX, centerOffsetY);
 				entityManager.add(this.cannonballs[i]);
-				this.shotSound[i] = new Audio('./sounds/shot.wav');
+				this.shotSound[i] = new Audio('./resources/sounds/shot.wav');
 			}
 		}
 		

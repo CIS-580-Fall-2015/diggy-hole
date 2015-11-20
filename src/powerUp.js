@@ -33,7 +33,11 @@ module.exports = (function(){
 		this.img.src = imgPath;
 		
 		this.pickedUp = false;
+<<<<<<< HEAD
 		this.pickedUpSound = new Audio('resources/sounds/powerUp.wav');
+=======
+		this.pickedUpSound = new Audio('./resources/sounds/powerUp.wav');
+>>>>>>> refs/remotes/origin/master
 		this.layerIndex = mapLayer;
 		this.falling = true;
 		this.flying = flying;
