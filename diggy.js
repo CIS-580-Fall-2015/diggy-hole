@@ -4762,6 +4762,8 @@ module.exports = (function() {
     this.SPEED = 150;
 	this.type = "player";
 	this.superPickaxe = false;
+	this.superAxeImg = new Image();
+	this.superAxeImg.src = "./img/powerUps/pick.png";
 
     //The animations
     this.animations = {
@@ -5202,8 +5204,22 @@ module.exports = (function() {
     else
       this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
 
+    //draw powerups
+	if(this.superPickaxe){
+		ctx.drawImage(
+        this.superAxeImg,
+        0,
+        0,
+        64,
+        64,
+        this.currentX + 500,
+        this.currentY - 350,
+        64,
+        64);
+	}
+	
     if (debug) renderDebug(this, ctx);
-  };
+  }
 
   // Draw debugging visual elements
   function renderDebug(player, ctx) {
