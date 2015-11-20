@@ -13,7 +13,11 @@ module.exports = (function() {
     jump_sound = new Audio('resources/sounds/jumping_sound.mp3');
 	dig_sound = new Audio('resources/sounds/digging_sound.mp3');
 	walk_sound = new Audio('resources/sounds/walking_sound.mp3');
-	fallGround_sound = new Audio ('resources/sounds/fallToGround.wav');
+	//fallGround_sound = new Audio ('resources/sounds/fallToGround.wav');
+	
+	//Dwarf sound responses
+	dwarf_sound = new Audio('resources/sounds/dwarfSound.mp3');
+	
 
   /* The following are player States (Swimming is not implemented) */
   const STANDING = 0;
@@ -174,9 +178,10 @@ module.exports = (function() {
               sprite.state = JUMPING;
               sprite.velocityY = JUMP_VELOCITY;
             } else if (isKeyDown(commands.LEFT)) {
-				
 			  /*Added walking sound*/
 			  walk_sound.play();
+			  
+			  dwarf_sound.play();
 		  
               sprite.isLeft = true;
               sprite.state = WALKING;

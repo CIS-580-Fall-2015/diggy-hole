@@ -4492,6 +4492,10 @@ module.exports = (function() {
 	dig_sound = new Audio('resources/sounds/digging_sound.mp3');
 	walk_sound = new Audio('resources/sounds/walking_sound.mp3');
 	fallGround_sound = new Audio ('resources/sounds/fallToGround.wav');
+	
+	//Dwarf sound responses
+	dwarf_sound = new Audio('resources/sounds/dwarfSound.mp3');
+	
 
   /* The following are player States (Swimming is not implemented) */
   const STANDING = 0;
@@ -4646,15 +4650,16 @@ module.exports = (function() {
               sprite.isLeft = false;
             } else if (isKeyDown(commands.UP)) {
 				
-				/* Added sound effect for jumping */
-				jump_sound.play();
+			  /* Added sound effect for jumping */
+			  jump_sound.play();
 				
               sprite.state = JUMPING;
               sprite.velocityY = JUMP_VELOCITY;
             } else if (isKeyDown(commands.LEFT)) {
-				
 			  /*Added walking sound*/
 			  walk_sound.play();
+			  
+			  dwarf_sound.play();
 		  
               sprite.isLeft = true;
               sprite.state = WALKING;
@@ -4681,7 +4686,7 @@ module.exports = (function() {
             var currentPlayer = this;
 			
 			/*Added digging sound*/
-			//Not tested yet for digging not working
+			//Not tested yet because digging not working yet
 			dig_sound.play();
 			
             var digComplete = function() {
