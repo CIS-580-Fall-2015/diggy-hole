@@ -27,6 +27,8 @@ module.exports = (function(){
   explosionImg.src = './img/explosionSpriteBig.png';
   var detonationTimer = 0;
   var explosionTimer = 0;
+  
+  var explosion = new Audio('./sounds/explosion.wav');
 
   //The Dynamite constructor
   function Dynamite(locationX, locationY, layerIndex, inputManager, sourceEntity) {
@@ -112,6 +114,7 @@ module.exports = (function(){
 			}
 		break;
         case DETONATE:
+		  explosion.play();
 		  if(explosionTimer < 15){
 			  explosionTimer++;
 			  if(explosionTimer == 8){

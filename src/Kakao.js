@@ -38,7 +38,7 @@ module.exports = (function(){
 
     this.currentTileIndex = 0;
     this.constSpeed = 15;
-    this.gravity = .5;
+    this.gravity = 0.5;
     this.angle = 0;
     this.xSpeed = 10;
     this.ySpeed = 15;
@@ -46,6 +46,8 @@ module.exports = (function(){
     this.hurtFrame =0;
     this.hasDiamond = false;
     this.moveDiamond = false;
+
+    this.score = 3;
 
     //The animations
     this.animations = {

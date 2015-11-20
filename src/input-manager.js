@@ -3,11 +3,15 @@ module.exports = (function() {
   var commands = {	
     RIGHT: 39,
     LEFT: 37,
-	  UP: 38,
-	  DOWN: 40,
-    DIG: 32,
-	PAY: 80,
-	ATTACK : 65
+    UP: 38,
+    DOWN: 40,
+    DIGDOWN: 83, 	// S
+    DIGLEFT: 65, 	// A
+    DIGRIGHT: 68,	// D
+    DIGUP: 87,		// W
+	PAY: 80,		// P
+	ATTACK : 65,	// A
+	SHOOT : 66	 	// B
   }
   
   var oldKeys = [];

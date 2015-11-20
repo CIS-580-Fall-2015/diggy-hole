@@ -18,7 +18,7 @@ module.exports = (function(){
 
   // The Sprite Size
   const SIZE = 64;
-  
+
   // Movement constants
   const SPEED = 100;
   const GRAVITY = -150;

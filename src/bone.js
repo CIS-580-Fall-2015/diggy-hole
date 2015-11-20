@@ -1,76 +1,82 @@
 /* Class of the Barrel Skeleton entity
  *
  * Author:
- * - Matej Petrlik 
+ * - Matej Petrlik
  */
- 
- 
+
+
 module.exports = (function(){
   var Entity = require('./entity.js'),
 		Player = require('./player.js'),
       Animation = require('./animation.js');
-  
-  
+	  entityManager = require('./entity-manager.js');
+	  PowerUp = require('./powerUp.js');
+
+      var spritesheet = new Image();
+      spritesheet.src = './img/blobber.png';
+
+
   const DEBUG = true;
-  
+
   const PROJECTILE = 0;
-  
+
   // The Sprite Size
   const SIZE = 64;
 
   // Movement constants
-  
+
     var boneLeft = new Image();
   boneLeft.src = 'img/BoneLeft.png';
-  
+
 
   //The Bone constructor
-  function Bone(locationX, locationY, layerIndex, isLeft) {
+  function Bone(locationX, locationY, layerIndex, isLeft, parent) {
     this.layerIndex = layerIndex;
-    this.currentX = locationX; 
-    this.currentY = locationY; 
-    this.xSpeed = 200; 
+    this.currentX = locationX;
+    this.currentY = locationY;
+    this.xSpeed = 200;
     this.isLeft = isLeft;
-	
+	this.parent = parent;
+
 	this.type = "Bone";
-	
+
 	this.range = 5*SIZE;
 	this.enabled = true;
 	this.distTraveled = 0;
 	this.size = SIZE/2;
 	this.playerHit = false;
-	
-    
+
+
     //The animations
     this.animations = {
       left: [],
       right: [],
     }
-    
+
     //The right-facing animations
 	this.animations.right[PROJECTILE] = new Animation(boneLeft, SIZE, SIZE, 0, 0, 8);
-    
+
     //The left-facing animations
 	this.animations.left[PROJECTILE] = new Animation(boneLeft, SIZE, SIZE, 0, 0, 8);
   }
-  
+
   // Bone inherits from Entity
 	Bone.prototype = new Entity();
-  
+
 	Bone.prototype.onGround = function(tilemap) {
     var box = this.boundingBox(),
         tileX = Math.floor((box.left + (SIZE/2))/64),
         tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     return (tile && tile.data.solid) ? true : false;
   }
-  
-  
+
+
 
   Bone.prototype.update = function(elapsedTime, tilemap, entityManager) {
-    
+
 	var entities = entityManager.queryRadius(this.currentX, this.currentY, this.range);
-	  
+
 	// Update projectile
 	if(this.enabled){
 			if(this.isLeft){
@@ -78,24 +84,24 @@ module.exports = (function(){
 			} else {
 				this.currentX += elapsedTime * this.xSpeed;
 			}
-			this.distTraveled += elapsedTime * this.xSpeed;	
-			
-			
+			this.distTraveled += elapsedTime * this.xSpeed;
+
+
 			if(this.distTraveled >= this.range){
 				this.distTraveled = 0;
 				this.enabled = false;
 			}
-			
+
 			if(this.isLeft){
 		var box = this.boundingBox(),
         tileX = Math.floor(box.left/64),
         tileY = Math.floor(box.bottom / 64) - 1,
         tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid) 
+    if (tile && tile.data.solid)
       this.enabled = false;
 
-			
-		
+
+
 	} else {
 		var box = this.boundingBox(),
         tileX = Math.floor(box.right/64),
@@ -103,22 +109,22 @@ module.exports = (function(){
         tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     if (tile && tile.data.solid)
       this.enabled = false;
-	}  
-       
-	} 
-	
+	}
+
+	}
+
 	// Update projectile animation
 	if(this.isLeft){
 		this.animations.left[PROJECTILE].update(elapsedTime);
 	} else {
 		this.animations.right[PROJECTILE].update(elapsedTime);
 	}
-	
+
 	if(!this.enabled){
 		entityManager.remove(this);
 	}
   }
-  
+
   Bone.prototype.render = function(ctx, debug) {
 	if(this.enabled){
 		if(this.isLeft){
@@ -127,15 +133,15 @@ module.exports = (function(){
 			this.animations.right[PROJECTILE].render(ctx, this.currentX, this.currentY);
 		}
 	}
-	
+
 	   if(debug) renderDebug(this, ctx);
   }
-  
+
   // Draw debugging visual elements
   function renderDebug(bone, ctx) {
     var bounds = bone.boundingBox();
     ctx.save();
-    
+
     // Draw bone bounding box
     ctx.strokeStyle = "red";
     ctx.beginPath();
@@ -145,7 +151,7 @@ module.exports = (function(){
     ctx.lineTo(bounds.left, bounds.bottom);
     ctx.closePath();
     ctx.stroke();
-    
+
     // Outline tile underfoot
     var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
         tileY = 64 * (Math.floor(bounds.bottom / 64));
@@ -157,11 +163,11 @@ module.exports = (function(){
     ctx.lineTo(tileX, tileY + 64);
     ctx.closePath();
     ctx.stroke();
-    
+
     ctx.restore();
   }
-  
-  
+
+
   Bone.prototype.boundingBox = function() {
     return {
       left: this.currentX,
@@ -170,8 +176,8 @@ module.exports = (function(){
       bottom: this.currentY + this.size*2
     }
   }
-  
-  
+
+
     Bone.prototype.boundingCircle = function() {
      return {
 		 cx: this.currentX + this.size/2,
@@ -179,29 +185,60 @@ module.exports = (function(){
 		 radius: this.size/2
 	 }
    }
-   
+
       /* Collide function
     * This function is called by the entityManager when it determines
     * a possible collision.
     * parameters:
     * - otherEntity is the entity this enemy collided with
-    *   You will likely want to use 
-    *     'otherEntity instanceof <Type>' 
-    *   to determine what type it is to know what to 
+    *   You will likely want to use
+    *     'otherEntity instanceof <Type>'
+    *   to determine what type it is to know what to
     *   do with it.
     */
-   Bone.prototype.collide = function(otherEntity) {
-	   if( otherEntity instanceof Player){
+   Bone.prototype.collide = function(otherEntity) {	   
+	   if(!this.enabled || otherEntity.type == this.parent.type || otherEntity.type == "Bone" || otherEntity.type == "Pickaxe" || otherEntity instanceof PowerUp){
+		   return
+		   
+	   }
+	   
+	   if( otherEntity.type == "player"){
 		   this.enabled = false;
 		   if(DEBUG){
-		   console.log("Player hit by bone");	 			   
-		   } 
+		   console.log("Player hit by bone");
+		   entityManager.scoreEngine.subScore(1000);
+		   }
+	   } else if(otherEntity.lives){
+		   this.enabled = false;
+		   if(--otherEntity.lives < 1){
+			   
+				if(DEBUG){
+					console.log("Entity "+otherEntity.type+" killed by bone.");
+				}
+				if(otherEntity.die){
+					otherEntity.die();				
+				} else {
+					entityManager.remove(otherEntity);
+				}
+		   }
+		   if(DEBUG){
+					console.log("Entity "+otherEntity.type+" has "+otherEntity.lives+" lives left.");
+			}
+	   } else {
+		   this.enabled = false;
+		   if(DEBUG){
+				console.log("Entity "+otherEntity.type+" killed by bone.");
+			}
+		   if(otherEntity.die){
+					otherEntity.die();				
+				} else {
+					entityManager.remove(otherEntity);
+				}
 	   }
    }
-   
-   
-  
+
+
+
   return Bone;
 
 }());
-

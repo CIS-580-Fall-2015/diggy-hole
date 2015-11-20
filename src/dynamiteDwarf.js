@@ -68,6 +68,8 @@ module.exports = (function(){
   var detonate = new Image();
   detonate.src = "./img/dwarfDetonate.png";
   
+  var explosion = new Audio('./sounds/explosion.wav');
+  
   var walkTimer = 0,
 	idleTimer = 0,
 	settingChargesTimer = 0,
@@ -94,6 +96,7 @@ module.exports = (function(){
     this.isLeft = false;
 	this.isPlayerColliding = false;
 	this.type = 'dynamiteDwarf';
+	this.score = -500;
 	//this.player = playerEntity;
     
     //The animations
@@ -177,7 +180,7 @@ module.exports = (function(){
       switch(sprite.state) {
         case STANDING:
 			sprite.isPlayerColliding = false;
-			if(isKeyDown(commands.ATTACK)){
+			if(isKeyDown(commands.DIGDOWN)|isKeyDown(commands.DIGUP)|isKeyDown(commands.DIGLEFT)|isKeyDown(commands.DIGRIGHT)){
 				sprite.state = DYING;
 			}
 			if(!sprite.onGround(tilemap)) {
@@ -241,6 +244,7 @@ module.exports = (function(){
 				if((tileY-GROUNDLVL) <= 0){//if above surface just use just constant force
 					player.velocityY = -1500;
 				}
+				explosion.play();
 				player.state = 2;//jumping
 				sprite.state = WALKING;
 			}
@@ -282,6 +286,10 @@ module.exports = (function(){
     else
       this.animations.right[this.state].update(elapsedTime);
     
+  }
+  
+  Dwarf.prototype.die = function(){
+	  this.state = DYING;
   }
   
   /* Dwarf Render Function
