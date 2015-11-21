@@ -5267,6 +5267,7 @@ module.exports = (function() {
 	this.superAxeImg.src = "./img/powerUps/pick.png";
 	this.boneImg = new Image();
 	this.boneImg.src = "./img/BoneLeft.png";
+    this.stoneShield = false;
 
 	// bone powerup
 	this.attackFrequency = 1;
@@ -5708,7 +5709,11 @@ module.exports = (function() {
 
 		  console.log("super pickaxe activated");
 		  this.superPickaxe = true;
-	  }
+
+      } else if (powerUp.type == 'stone-shield') {
+          this.stoneShield = true;
+      }
+
 
 	  if(powerUp.effectDuration < 0){//if power up lasts 4ever
 		   this.entityManager.remove(powerUp);
@@ -5725,8 +5730,10 @@ module.exports = (function() {
 		  console.log("super pickaxe expired");
 		  this.superPickaxe = false;
 		  this.entityManager.remove(powerUp);
-	  }
 
+	  } else if (powerUp.type == 'stone-shield') {
+          this.stoneShield = false;
+      }
   }
 
   	/*
