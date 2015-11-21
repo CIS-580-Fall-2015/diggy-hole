@@ -3339,11 +3339,6 @@ module.exports = (function (){
       }
     });
 
-    for (var i = 0; i < 35; i += 7){
-      //stoneMonster = new StoneMonster(64*i, 0, 0);
-      //entityManager.add(stoneMonster);
-    }
-
     // Create the player and add them to
     // the entity manager
     player = new Player(400, 240, 0, inputManager);
@@ -3358,6 +3353,11 @@ module.exports = (function (){
     // the entity manager
     //wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
     //entityManager.add(wolf);
+
+    for (var i = 0; i < 35; i += 7){
+      stoneMonster = new StoneMonster(64*i, 300, 0);
+      entityManager.add(stoneMonster);
+    }
 
     bird = new Bird(600, 100);
     entityManager.add(bird);
@@ -3404,6 +3404,7 @@ module.exports = (function (){
 		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
 		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
 		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
+        entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, -1));
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
 		entityManager.add(barrel);
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
@@ -5265,6 +5266,7 @@ module.exports = (function() {
 	this.superAxeImg.src = "./img/powerUps/pick.png";
 	this.boneImg = new Image();
 	this.boneImg.src = "./img/BoneLeft.png";
+    this.stoneShield = false;
 
 	// bone powerup
 	this.attackFrequency = 1;
@@ -5706,7 +5708,11 @@ module.exports = (function() {
 
 		  console.log("super pickaxe activated");
 		  this.superPickaxe = true;
-	  }
+
+      } else if (powerUp.type == 'stone-shield') {
+          this.stoneShield = true;
+      }
+
 
 	  if(powerUp.effectDuration < 0){//if power up lasts 4ever
 		   this.entityManager.remove(powerUp);
@@ -5723,8 +5729,10 @@ module.exports = (function() {
 		  console.log("super pickaxe expired");
 		  this.superPickaxe = false;
 		  this.entityManager.remove(powerUp);
-	  }
 
+	  } else if (powerUp.type == 'stone-shield') {
+          this.stoneShield = false;
+      }
   }
 
   	/*
