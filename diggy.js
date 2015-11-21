@@ -7400,6 +7400,9 @@ module.exports = (function (){
       viewportTileHeight = 0,
 	  tileset;
 
+    var parallaxBackground = new Image();
+    parallaxBackground.src = "./img/background.png";
+
   /* Clamps the provided value to the provided range
    * Arguments:
    * - value, the value to clamp
@@ -7836,6 +7839,30 @@ module.exports = (function (){
     // layers are sorted back-to-front so foreground
     // layers obscure background ones.
     // see http://en.wikipedia.org/wiki/Painter%27s_algorithm
+
+    var offset = cameraY%600*0.1;
+    var offsetx = cameraX%600*0.2
+    var alerted = false;
+    if (!alerted) {
+      console.log("zomg: " + offset + "___" + cameraY);
+      alerted = true;
+    }
+
+    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-300,cameraY,600,600);
+    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-300,cameraY-600,600,600);
+    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-900,cameraY,600,600);
+    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-900,cameraY-600,600,600);
+    screenCtx.drawImage(parallaxBackground,cameraX-offsetx+300,cameraY,600,600);
+    screenCtx.drawImage(parallaxBackground,cameraX-offsetx+300,cameraY-600,600,600);
+/*
+    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-300,cameraY-offset,600,600);
+    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-300,cameraY-600-offset,600,600);
+    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-900,cameraY-offset,600,600);
+    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-900,cameraY-600-offset,600,600);
+    screenCtx.drawImage(parallaxBackground,cameraX-offsetx+300,cameraY-offset,600,600);
+    screenCtx.drawImage(parallaxBackground,cameraX-offsetx+300,cameraY-600-offset,600,600);
+*/
+
     layers.forEach(function(layer){
       // Only draw layers that are currently visible
       if(layer.visible) {
@@ -7851,7 +7878,7 @@ module.exports = (function (){
             var tileId = layer.data[x + layer.width * y];
 
             // tiles with an id of < 0 don't exist
-            if(tileId > 0) {
+            if(tileId > 1) {
               var tile = tiles[tileId-1];
               if(tile.image) { // Make sure the image has loaded
                 screenCtx.drawImage(
