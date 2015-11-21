@@ -2385,7 +2385,11 @@ module.exports = (function(){
   var detonationTimer = 0;
   var explosionTimer = 0;
   
+<<<<<<< HEAD
   var explosion = new Audio('resources/sounds/explosion.wav');
+=======
+  var explosion = new Audio('./sounds/explosion.wav');
+>>>>>>> refs/remotes/origin/master
 
   //The Dynamite constructor
   function Dynamite(locationX, locationY, layerIndex, inputManager, sourceEntity) {
@@ -2666,7 +2670,11 @@ module.exports = (function(){
   var detonate = new Image();
   detonate.src = "./img/dwarfDetonate.png";
   
+<<<<<<< HEAD
   var explosion = new Audio('resources/sounds/explosion.wav');
+=======
+  var explosion = new Audio('./sounds/explosion.wav');
+>>>>>>> refs/remotes/origin/master
   
   var walkTimer = 0,
 	idleTimer = 0,
@@ -5190,10 +5198,16 @@ module.exports = (function() {
     Animation = require('./animation.js');
 
 	/*Audio sources*/
+<<<<<<< HEAD
     jump_sound = new Audio('resources/sounds/jumping_sound.wav');
 	dig_sound = new Audio('resources/sounds/digging_sound.mp3');
 	walk_sound = new Audio('resources/sounds/walking_sound.mp3');
 	throw_sound = new Audio('resources/sounds/throwing_sound.mp3');
+=======
+    jump_sound = new Audio('resources/sounds/jumping_sound.mp3');
+	dig_sound = new Audio('resources/sounds/digging_sound.mp3');
+	walk_sound = new Audio('resources/sounds/walking_sound.mp3');
+>>>>>>> refs/remotes/origin/master
 
     Animation = require('./animation.js'),
     Pickaxe = require('./Pickaxe.js'),
@@ -5732,8 +5746,11 @@ module.exports = (function() {
 	*/
    Player.prototype.shoot = function(){
 		if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
+<<<<<<< HEAD
 			//Added sound for throwing bone
 			throw_sound.play();
+=======
+>>>>>>> refs/remotes/origin/master
 			var bone = new Bone(this.currentX, this.currentY, 0, this.isLeft, this);
 			this.entityManager.add(bone);
 			this.bones--;
