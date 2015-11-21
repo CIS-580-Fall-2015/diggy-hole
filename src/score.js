@@ -52,6 +52,18 @@ module.exports = (function (){
 
   ScoreEngine.prototype.subScore = function(amount) {
     this.score -= amount;
+    if (this.score < 0)
+    {
+      this.score = 0;
+    }
+  };
+
+  ScoreEngine.prototype.scoreToZero = function() {
+    this.score = 0;
+    for (var i = 0; i < this.frameGoal.length; i++)
+    {
+      this.frameGoal[i] = 0;
+    }
   };
 
   ScoreEngine.prototype.update = function()
@@ -94,7 +106,11 @@ module.exports = (function (){
     }
   };
 
-  ScoreEngine.prototype.updateAnimation = function()
+  /**
+   * Parameters:
+   *     forward - true is forward, false is backward
+   */
+  ScoreEngine.prototype.updateAnimation = function(forward)
   {
     for (var i = 0; i < this.frameGoal.length; i++)
     {
@@ -112,6 +128,21 @@ module.exports = (function (){
           {
             this.frameIndex[i] = 0;
           }
+          // if (forward)
+          // {
+            
+          // }
+          // else // backward
+          // {
+          //   if (this.frameIndex[i] > 0)
+          //   {
+          //     this.frameIndex[i] -= 1;
+          //   }
+          //   else
+          //   {
+          //     this.frameIndex[i] = 39;
+          //   }
+          // }
         }
       }
     }
