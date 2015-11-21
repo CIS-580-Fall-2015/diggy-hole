@@ -86,11 +86,6 @@ module.exports = (function (){
       }
     });
 
-    for (var i = 0; i < 35; i += 7){
-      //stoneMonster = new StoneMonster(64*i, 0, 0);
-      //entityManager.add(stoneMonster);
-    }
-
     // Create the player and add them to
     // the entity manager
     player = new Player(400, 240, 0, inputManager);
@@ -105,6 +100,11 @@ module.exports = (function (){
     // the entity manager
     //wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
     //entityManager.add(wolf);
+
+    for (var i = 0; i < 35; i += 7){
+      stoneMonster = new StoneMonster(64*i, 300, 0);
+      entityManager.add(stoneMonster);
+    }
 
     bird = new Bird(600, 100);
     entityManager.add(bird);
