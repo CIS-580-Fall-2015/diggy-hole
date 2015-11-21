@@ -10,9 +10,14 @@ module.exports = (function() {
     Animation = require('./animation.js');
 
 	/*Audio sources*/
+<<<<<<< HEAD
+    jump_sound = new Audio('resources/sounds/jumping_sound.wav');
+=======
     jump_sound = new Audio('resources/sounds/jumping_sound.mp3');
+>>>>>>> refs/remotes/origin/master
 	dig_sound = new Audio('resources/sounds/digging_sound.mp3');
 	walk_sound = new Audio('resources/sounds/walking_sound.mp3');
+	throw_sound = new Audio('resources/sounds/throwing_sound.mp3');
 
     Animation = require('./animation.js'),
     Pickaxe = require('./Pickaxe.js'),
@@ -551,6 +556,8 @@ module.exports = (function() {
 	*/
    Player.prototype.shoot = function(){
 		if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
+			//Added sound for throwing bone
+			throw_sound.play();
 			var bone = new Bone(this.currentX, this.currentY, 0, this.isLeft, this);
 			this.entityManager.add(bone);
 			this.bones--;
