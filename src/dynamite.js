@@ -28,7 +28,7 @@ module.exports = (function(){
   var detonationTimer = 0;
   var explosionTimer = 0;
   
-  var explosion = new Audio('./sounds/explosion.wav');
+  var explosion = new Audio('resources/sounds/explosion.wav');
 
   //The Dynamite constructor
   function Dynamite(locationX, locationY, layerIndex, inputManager, sourceEntity) {

@@ -237,7 +237,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":5,"./entity-manager.js":16,"./entity.js":17,"./player.js":28,"./powerUp.js":29}],2:[function(require,module,exports){
+},{"./animation.js":5,"./entity-manager.js":16,"./entity.js":17,"./player.js":29,"./powerUp.js":30}],2:[function(require,module,exports){
 /* DemonicGroundHog
  * Authors:
 	Nathan Bean
@@ -1392,7 +1392,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":5,"./bone.js":9,"./entity-manager.js":16,"./entity.js":17,"./player.js":28,"./powerUp.js":29}],7:[function(require,module,exports){
+},{"./animation.js":5,"./bone.js":9,"./entity-manager.js":16,"./entity.js":17,"./player.js":29,"./powerUp.js":30}],7:[function(require,module,exports){
 /* Bird Module
 	Authors: Josh Benard
 */
@@ -1539,7 +1539,7 @@ module.exports = (function(){
 	return Bird;
 
 }());
-},{"./animation.js":5,"./entity.js":17,"./player.js":28}],8:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":17,"./player.js":29}],8:[function(require,module,exports){
 module.exports = (function(){
   var Entity = require('./entity.js');
   var PlayerClass = require('./player.js');
@@ -1800,9 +1800,9 @@ var everal = false;
 
 }());
 
-},{"./entity.js":17,"./player.js":28}],9:[function(require,module,exports){
+},{"./entity.js":17,"./player.js":29}],9:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"./animation.js":5,"./entity-manager.js":16,"./entity.js":17,"./player.js":28,"./powerUp.js":29,"dup":1}],10:[function(require,module,exports){
+},{"./animation.js":5,"./entity-manager.js":16,"./entity.js":17,"./player.js":29,"./powerUp.js":30,"dup":1}],10:[function(require,module,exports){
 module.exports = (function(){
 
 var Animation = require('./animation.js'),
@@ -1990,7 +1990,7 @@ Cannonball.prototype = new Entity();
 return Cannonball;
 	
 }())
-},{"./animation.js":5,"./entity.js":17,"./tilemap.js":38}],11:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":17,"./tilemap.js":39}],11:[function(require,module,exports){
 /* The construct for a collectible. Inherits from entity.
  * Removed from entity manager upon being collected by player.
  * Certain strategies derived from the powerup class.
@@ -2385,7 +2385,7 @@ module.exports = (function(){
   var detonationTimer = 0;
   var explosionTimer = 0;
   
-  var explosion = new Audio('./sounds/explosion.wav');
+  var explosion = new Audio('resources/sounds/explosion.wav');
 
   //The Dynamite constructor
   function Dynamite(locationX, locationY, layerIndex, inputManager, sourceEntity) {
@@ -2666,7 +2666,7 @@ module.exports = (function(){
   var detonate = new Image();
   detonate.src = "./img/dwarfDetonate.png";
   
-  var explosion = new Audio('./sounds/explosion.wav');
+  var explosion = new Audio('resources/sounds/explosion.wav');
   
   var walkTimer = 0,
 	idleTimer = 0,
@@ -3051,7 +3051,7 @@ module.exports = (function() {
               boundsA.bottom > boundsB.top
             ) {
 				entities[i].collide(entities[j]);
-				
+
 				// check again if entities[j] exists as it could
 				// have been killed by entities[i]
 				if(entities[j]){
@@ -3094,7 +3094,7 @@ module.exports = (function() {
    *   and this one.
    * - tilemap, the current tilemap for the game.
    */
-  function update(elapsedTime, tilemap) {
+  function update(elapsedTime, tilemap, ParticleManager) {
 	//used for determining the area of the screen/what entities are on/near screen to be updated
     var play = getPlayer();
 	var x = play.currentX;
@@ -3102,7 +3102,7 @@ module.exports = (function() {
 	var pow = Math.sqrt(1282*1282+722*722);
 	//loops through entities
 	for (i = 0; i < entityCount; i++) {
-      if (entities[i]&&playerDistance(entities[i])<pow+x+10&&playerDistance(entities[i])<pow+y) entities[i].update(elapsedTime, tilemap, this);
+      if (entities[i]&&playerDistance(entities[i])<pow+x+10&&playerDistance(entities[i])<pow+y) entities[i].update(elapsedTime, tilemap, this, ParticleManager);
     }
     scoreEngine.update();
     checkCollisions();
@@ -3172,7 +3172,7 @@ module.exports = (function() {
 
 }());
 
-},{"./player.js":28}],17:[function(require,module,exports){
+},{"./player.js":29}],17:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -3303,6 +3303,7 @@ module.exports = (function (){
       ScoreEngine = require('./score.js'),
 	  PowerUp = require('./powerUp.js'),
     Collectible = require('./collectible.js');
+    ParticleManager = require('./particle-manager.js');
 
   /* Loads the GameState, triggered by the StateManager
    * This function sets up the screen canvas, the tilemap,
@@ -3427,12 +3428,12 @@ module.exports = (function (){
 
 
 	// Kyle Brown: Background Music
-	var bgMusic = new Audio('./resources/sounds/DiggyHoleBGMusicAm.wav');
+	/*var bgMusic = new Audio('./resources/sounds/DiggyHoleBGMusicAm.wav');
 	   bgMusic.addEventListener('ended', function() {
     this.currentTime = 0;
     this.play();
 	}, false);
-	bgMusic.play();
+	bgMusic.play();*/
 
 
   };
@@ -3444,8 +3445,9 @@ module.exports = (function (){
    */
   var update = function(elapsedTime) {
     //player.update(elapsedTime, tilemap);
-    entityManager.update(elapsedTime, tilemap);
+    entityManager.update(elapsedTime, tilemap, ParticleManager);
 	tilemap.update();
+  ParticleManager.update(elapsedTime);
     inputManager.swapBuffers();
     octopus.getPlayerPosition(player.boundingBox());
   };
@@ -3469,6 +3471,7 @@ module.exports = (function (){
     tilemap.render(backBufferCtx);
     entityManager.render(backBufferCtx, true);
     //player.render(backBufferCtx, true);
+    ParticleManager.render(backBufferCtx);
 
     backBufferCtx.restore();
 
@@ -3510,7 +3513,7 @@ module.exports = (function (){
 
 })();
 
-},{"./DemonicGroundH.js":2,"./Kakao.js":3,"./barrel.js":6,"./bird.js":7,"./blobber.js":8,"./collectible.js":11,"./dynamiteDwarf.js":15,"./entity-manager.js":16,"./goblin-miner.js":19,"./goblin-shaman.js":20,"./input-manager.js":22,"./main-menu.js":23,"./octopus.js":26,"./player.js":28,"./powerUp.js":29,"./rat.js":30,"./robo-killer.js":31,"./score.js":32,"./slime.js":33,"./stone-monster.js":35,"./sudo_chan.js":37,"./tilemap.js":38,"./turret.js":39,"./wolf.js":40}],19:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./Kakao.js":3,"./barrel.js":6,"./bird.js":7,"./blobber.js":8,"./collectible.js":11,"./dynamiteDwarf.js":15,"./entity-manager.js":16,"./goblin-miner.js":19,"./goblin-shaman.js":20,"./input-manager.js":22,"./main-menu.js":23,"./octopus.js":26,"./particle-manager.js":28,"./player.js":29,"./powerUp.js":30,"./rat.js":31,"./robo-killer.js":32,"./score.js":33,"./slime.js":34,"./stone-monster.js":36,"./sudo_chan.js":38,"./tilemap.js":39,"./turret.js":40,"./wolf.js":41}],19:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -4328,7 +4331,7 @@ module.exports = (function (){
     }
 
 })();
-},{"./bone.js":9,"./input-manager.js":22,"./player.js":28}],22:[function(require,module,exports){
+},{"./bone.js":9,"./input-manager.js":22,"./player.js":29}],22:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -4572,7 +4575,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":18,"./splash-screen":34}],25:[function(require,module,exports){
+},{"./game":18,"./splash-screen":35}],25:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -4958,6 +4961,223 @@ module.exports = (function() {
 
 }());
 },{}],28:[function(require,module,exports){
+/* The particle manager maintains the list of particles currently in the world,
+*  and handles the update and rendering functions for it
+*
+* Author: Daniel Marts
+*/
+module.exports = (function() {
+const GRAVITY = -250;
+const TERMINAL_VELOCITY = GRAVITY * -8;
+const MAX_PARTICLES = 250;
+
+/* Constructor for each particle
+* x = starting x Pos, y = starting y Pos, velX, velY starting velocities
+* grav = if the particle follows the effect of gravity
+* r = radius of the particle, c = color of particle,
+* life = lifespan of particle in seconds
+*/
+function Particle(x, y, velX, velY, grav, r, c, life) {
+  this.xPos = x;
+  this.yPos = y;
+  this.velocityX = velX;
+  this.velocityY = velY;
+  this.gravity = grav;
+  this.radius = r;
+  this.color = c;
+  this.lifeLeft = life;
+}
+
+var Count = 0;
+var particles = [];
+    //start = 0, end = 0;
+
+/* adds a particle to the world
+* x = starting x Pos, y = starting y Pos, velX, velY starting velocities
+* grav = if the particle follows the effect of gravity
+* r = radius of the particle, c = color of particle,
+* life = lifespan of particle in seconds
+*/
+function add(x, y, velX, velY, grav, r, c, life){
+  /*
+  if ((end) > MAX_PARTICLES)
+  {
+    end = 0;
+    particles[0] = new Particle(x, y, velX, velY, grav, r, c, life);
+  }
+  else {
+    particles[end++] = new Particle(x, y, velX, velY, grav, r, c, life);
+  }*/
+  particles.push(new Particle(x, y, velX, velY, grav, r, c, life));
+  Count++;
+}
+
+//Adds dirt particles with a small lifespan
+//Player calls this when he digs a tile
+function addDirtParticles(tileX, tileY) {
+  var xoff = tileX * 64 + 32;
+  var yoff = tileY * 64 + 32;
+  for (var i = 0; i < 5; i++) {
+    var xv = 200*(Math.random()-0.5),
+        yv = -100+-200*Math.random(),
+        rad = 5*Math.random();
+
+    add(xoff,yoff, xv, yv, "true", rad, "#361718", 1);
+
+  }
+}
+
+//Adds stone particles with a small lifespan
+//Player calls this when he digs a tile
+function addStoneParticles(tileX, tileY) {
+  var xoff = tileX * 64 + 32;
+  var yoff = tileY * 64 + 32;
+  for (var i = 0; i < 5; i++) {
+    var xv = 200*(Math.random()-0.5),
+        yv = -100+-200*Math.random(),
+        rad = 5*Math.random();
+
+    add(xoff,yoff, xv, yv, "true", rad, "#4d4d4d", 1);
+
+  }
+}
+
+//Adds lava level particles with a small lifespan
+//Player calls this when he digs a tile
+function addDeepParticles(tileX, tileY) {
+  var xoff = tileX * 64 + 32;
+  var yoff = tileY * 64 + 32;
+  for (var i = 0; i < 5; i++) {
+    var xv = 200*(Math.random()-0.5),
+        yv = -100+-200*Math.random(),
+        rad = 5*Math.random();
+
+    add(xoff,yoff, xv, yv, "true", rad, "#000000", 1);
+
+  }
+}
+
+/*Removes the particle at the location given and increments start until it points
+* to the first element still in the array
+*/
+function remove(loc) {
+  //particles[loc] = undefined;
+  particles.splice(loc, 1);
+  Count--;
+  /*
+  if (loc == start) {
+    while (typeof(particles[start]) !== "undefined")
+      start++;
+  }
+  */
+}
+
+/* Updates the particle at the current location
+*/
+function updateCurrent(i, elapsedTime) {
+  particles[i].lifeLeft -= elapsedTime;
+  if (particles[i].lifeLeft <= 0) {
+    remove(i);
+  }
+  else {
+    if (particles[i].gravity == "true") {
+      particles[i].xPos += elapsedTime * particles[i].velocityX;
+      if(particles[i].velocityY < TERMINAL_VELOCITY) {
+        particles[i].velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+      }
+      particles[i].yPos += particles[i].velocityY * elapsedTime;
+    }
+    else {
+      particles[i].xPos += elapsedTime * particles[i].velocityX;
+      particles[i].yPos += elapsedTime * particles[i].velocityY;
+    }
+  }
+}
+
+/* Updates all particles
+*/
+function update(elapsedTime){
+  for (var i = 0; i < MAX_PARTICLES; i++) {
+    if (typeof(particles[i]) !== "undefined"){
+      updateCurrent(i, elapsedTime);
+    }
+  }
+  /*
+  if (start > end) {
+    for (var i = start; start < MAX_PARTICLES; i++) {
+      if (typeof(particles[i]) !== "undefined"){
+        updateCurrent(i, elapsedTime);
+      }
+    }
+    for (var i = 0; i <=start ; i++) {
+      if (typeof(particles[i]) !== "undefined"){
+        updateCurrent(i, elapsedTime);
+      }
+    }
+  }
+  else {
+    for (var i = start; i < end; i++) {
+      if (typeof(particles[i]) !== "undefined"){
+        updateCurrent(i, elapsedTime);
+      }
+    }
+  }*/
+}
+
+/* Draws particle at the index on the current contextual
+*/
+function renderCurrent(index, ctx) {
+  ctx.beginPath();
+  ctx.arc(particles[index].xPos, particles[index].yPos, particles[index].radius, 2* Math.PI, false );
+  ctx.closePath();
+  ctx.fillStyle = particles[index].color;
+  ctx.fill();
+}
+
+/* Draws all particles on the given context
+*/
+function render(ctx) {
+  for (var i = 0; i < MAX_PARTICLES; i++) {
+    if (typeof(particles[i]) !== "undefined"){
+      renderCurrent(i, ctx);
+    }
+  }
+  /*
+  if (start > end) {
+    for (var i = start; start < MAX_PARTICLES; i++) {
+      if (typeof(particles[i]) !== "undefined"){
+        renderCurrent(i, ctx);
+      }
+    }
+    for (var i = 0; i <=start ; i++) {
+      if (typeof(particles[i]) !== "undefined"){
+        renderCurrent(i, ctx);
+      }
+    }
+  }
+  else {
+    for (var i = start; i < end; i++) {
+      if (typeof(particles[i]) !== "undefined"){
+        renderCurrent(i, ctx);
+      }
+    }
+  }
+  */
+}
+
+return {
+  add: add,
+  addDirtParticles: addDirtParticles,
+  addStoneParticles: addStoneParticles,
+  addDeepParticles: addDeepParticles,
+  remove: remove,
+  update: update,
+  render: render
+};
+
+}());
+
+},{}],29:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -4968,11 +5188,12 @@ module.exports = (function() {
 module.exports = (function() {
   var Entity = require('./entity.js'),
     Animation = require('./animation.js');
-	
-	/*Audio sources*/	
-    jump_sound = new Audio('resources/sounds/jumping_sound.mp3');
+
+	/*Audio sources*/
+    jump_sound = new Audio('resources/sounds/jumping_sound.wav');
 	dig_sound = new Audio('resources/sounds/digging_sound.mp3');
 	walk_sound = new Audio('resources/sounds/walking_sound.mp3');
+	throw_sound = new Audio('resources/sounds/throwing_sound.mp3');
 
     Animation = require('./animation.js'),
     Pickaxe = require('./Pickaxe.js'),
@@ -5014,8 +5235,8 @@ module.exports = (function() {
 
   var ratLeft = new Image();
   ratLeft.src = "img/ratLeft2.png";
-  
-  
+
+
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
@@ -5041,10 +5262,10 @@ module.exports = (function() {
 	this.type = "player";
 	this.superPickaxe = false;
 	this.superAxeImg = new Image();
-	this.superAxeImg.src = "./img/powerUps/pick.png";	
+	this.superAxeImg.src = "./img/powerUps/pick.png";
 	this.boneImg = new Image();
 	this.boneImg.src = "./img/BoneLeft.png";
-	
+
 	// bone powerup
 	this.attackFrequency = 1;
 	this.lastAttack = 0;
@@ -5131,7 +5352,7 @@ module.exports = (function() {
    * - tilemap, the tilemap that corresponds to
    *   the current game world.
    */
-  Player.prototype.update = function(elapsedTime, tilemap, entityManager) {
+  Player.prototype.update = function(elapsedTime, tilemap, entityManager, ParticleManager) {
     var sprite = this;
 	sprite.entityManager = entityManager;
     // The "with" keyword allows us to change the
@@ -5142,53 +5363,53 @@ module.exports = (function() {
       // Process player state
       switch (sprite.state) {
         case STANDING:
-        case WALKING:	
+        case WALKING:
           // If there is no ground underneath, fall
-          if (!sprite.onGround(tilemap)) {			  
+          if (!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
             sprite.velocityY = 0;
           } else {
             if (isKeyDown(commands.DIGDOWN)) {
-			  dig_sound.play();				
+			  dig_sound.play();
               this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true);
               sprite.state = DIGGING;
               sprite.digState = DOWN_DIGGING;
             } else if(isKeyDown(commands.DIGLEFT)) {
-			  dig_sound.play();				
+			  dig_sound.play();
               this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = LEFT_DIGGING;
               sprite.isLeft = true;
             } else if(isKeyDown(commands.DIGRIGHT)) {
-			  dig_sound.play();				
+			  dig_sound.play();
               this.pick = new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = RIGHT_DIGGING;
               sprite.isLeft = false;
-            } else if(isKeyDown(commands.DIGUP)) {				
-			  dig_sound.play();				
+            } else if(isKeyDown(commands.DIGUP)) {
+			  dig_sound.play();
                 this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY }, true);
               sprite.state = DIGGING;
               sprite.digState = UP_DIGGING;
             } else if (isKeyDown(commands.UP)) {
-				
+
 			  /* Added sound effect for jumping */
 			  jump_sound.play();
-				
+
               sprite.state = JUMPING;
               sprite.velocityY = JUMP_VELOCITY;
             } else if (isKeyDown(commands.LEFT)) {
 			  /*Added walking sound*/
-			  walk_sound.play();		  
+			  walk_sound.play();
               sprite.isLeft = true;
               sprite.state = WALKING;
               sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
             }
             else if(isKeyDown(commands.RIGHT)) {
-				
+
 			  /* Added walking sound */
 			  walk_sound.play();
-		  
+
               sprite.isLeft = false;
               sprite.state = WALKING;
               sprite.moveRight(elapsedTime * this.SPEED, tilemap);
@@ -5246,10 +5467,13 @@ module.exports = (function() {
                   var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
                   if (layerType == 0) {
                     tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
+                    ParticleManager.addDirtParticles(tileX, tileY);
                   } else if (layerType == 1) {
                     tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
+                    ParticleManager.addStoneParticles(tileX, tileY);
                   } else if (layerType == 2) {
                     tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
+                    ParticleManager.addDeepParticles(tileX, tileY);
                   }
 
                   /* setup the callback for when the animation is complete */
@@ -5308,16 +5532,16 @@ module.exports = (function() {
         case SWIMMING:
           // NOT IMPLEMENTED YET
       }
-		
+
 		// countdown to next bone projectile
 	  	if(this.lastAttack <= this.attackFrequency){
 			this.lastAttack += elapsedTime;
 		}
-	
+
 		if (isKeyDown(commands.SHOOT)) {
             this.shoot();
          }
-		  
+
       // Swap input buffers
       swapBuffers();
     }
@@ -5467,29 +5691,29 @@ module.exports = (function() {
 	 It should eventually delete the power up from the game
   */
   Player.prototype.poweredUp = function(powerUp) {
-	  
+
 	  console.log("Picked up power up: " + powerUp.type);
-	  
+
 	  if (powerUp.type == 'boneUp') {
 		  this.bones++;
 	  } else if (powerUp.type == 'coin') {
 		  // add points
-	  
+
 	  } else if (powerUp.type == 'crystal') {
 		  // add points
-		  
+
 	  } else if (powerUp.type == 'pick') {
-		  
+
 		  console.log("super pickaxe activated");
 		  this.superPickaxe = true;
 	  }
-	  
+
 	  if(powerUp.effectDuration < 0){//if power up lasts 4ever
 		   this.entityManager.remove(powerUp);
 	  }
-	 
+
   }
-  
+
   /*
      This method gets called when a power up effect vanishes
   */
@@ -5500,20 +5724,22 @@ module.exports = (function() {
 		  this.superPickaxe = false;
 		  this.entityManager.remove(powerUp);
 	  }
-	 
+
   }
-  
+
   	/*
-		Bone projectile powerup	
+		Bone projectile powerup
 	*/
    Player.prototype.shoot = function(){
 		if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
+			//Added sound for throwing bone
+			throw_sound.play();
 			var bone = new Bone(this.currentX, this.currentY, 0, this.isLeft, this);
 			this.entityManager.add(bone);
 			this.bones--;
 			this.lastAttack = 0;
-		}		   
-   } 
+		}
+   }
 
   /* Player Render Function
    * arguments:
@@ -5541,7 +5767,7 @@ module.exports = (function() {
         64,
         64);
 	}
-	
+
 		ctx.drawImage(
         this.boneImg,
         0,
@@ -5555,7 +5781,7 @@ module.exports = (function() {
 		ctx.font = "20pt Calibri";
 		ctx.fillText("x"+this.bones, this.currentX + 445, this.currentY - 300);
 
-	
+
     if (debug) renderDebug(this, ctx);
   }
 
@@ -5614,7 +5840,7 @@ module.exports = (function() {
 
 }());
 
-},{"./Bone.js":1,"./Pickaxe.js":4,"./animation.js":5,"./entity.js":17}],29:[function(require,module,exports){
+},{"./Bone.js":1,"./Pickaxe.js":4,"./animation.js":5,"./entity.js":17}],30:[function(require,module,exports){
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Entity = require('./entity.js'),
@@ -5775,7 +6001,7 @@ module.exports = (function(){
 	return PowerUp;
 
 }())
-},{"./animation.js":5,"./entity-manager.js":16,"./entity.js":17,"./player.js":28}],30:[function(require,module,exports){
+},{"./animation.js":5,"./entity-manager.js":16,"./entity.js":17,"./player.js":29}],31:[function(require,module,exports){
 /* Enemy module
  * Authors:
  * Kien Le
@@ -6045,7 +6271,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":5,"./entity.js":17}],31:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":17}],32:[function(require,module,exports){
 /* Entity: Robo-Killer module
  * Implements the entity pattern, provides specific robo-killer constructs.
  *
@@ -6359,7 +6585,7 @@ module.exports = (function() {
 
 }());
 
-},{"./animation.js":5,"./entity.js":17}],32:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":17}],33:[function(require,module,exports){
 /* Score engine */
 
 module.exports = (function (){
@@ -6514,7 +6740,7 @@ module.exports = (function (){
 
 })();
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -6766,7 +6992,7 @@ module.exports = (function(){
    return Slime;
   
 }());
-},{"./animation.js":5,"./entity.js":17}],34:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":17}],35:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -6833,7 +7059,7 @@ module.exports = (function (){
   }
   
 })();
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -7117,7 +7343,7 @@ module.exports = (function(){
     return StoneMonster;
 }());
 
-},{"./animation.js":5,"./entity.js":17,"./player.js":28}],36:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":17,"./player.js":29}],37:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -7187,7 +7413,7 @@ module.exports = (function() {
     return Sudo_Animation;
 
 }());
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -7435,7 +7661,7 @@ module.exports = (function(){
     return Sudo_Chan;
 }());
 
-},{"./entity.js":17,"./sudo-chan-animation.js":36}],38:[function(require,module,exports){
+},{"./entity.js":17,"./sudo-chan-animation.js":37}],39:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -8106,7 +8332,7 @@ var update = function(){
 
 })();
 
-},{"./noise.js":25}],39:[function(require,module,exports){
+},{"./noise.js":25}],40:[function(require,module,exports){
 
 
 
@@ -8498,7 +8724,7 @@ module.exports = (function(){
 	return Turret;
 	
 }())
-},{"./animation.js":5,"./cannonball.js":10,"./entity-manager.js":16,"./entity.js":17,"./player.js":28}],40:[function(require,module,exports){
+},{"./animation.js":5,"./cannonball.js":10,"./entity-manager.js":16,"./entity.js":17,"./player.js":29}],41:[function(require,module,exports){
 /* Wolf module
  * Implements the entity pattern and provides
  * the DiggyHole Wolf info.
