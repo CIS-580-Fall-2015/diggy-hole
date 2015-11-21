@@ -450,7 +450,6 @@ module.exports = (function() {
                             this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true);
                             sprite.state = DIGGING;
                             sprite.digState = DOWN_DIGGING;
-                            console.log("DIG")
                         } else if(isKeyDown(commands.DIGLEFT)) {
                             dig_sound.play();
                             this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
@@ -497,37 +496,75 @@ module.exports = (function() {
                         sprite.state = FALLING;
                         sprite.currentY += sprite.velocityY * elapsedTime;
                     }
+                    // Exact copy of walking state code, might be a bit redudant, possibly make it a global function?
                     if(sprite.state == DIGGING) {
-                        var digComplete = function() {
-                            console.log("I am called");
+                        //if we just entered the digging state we need to spawn the hitbox of our pickaxe
+                        //this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
+                        entityManager.add(this.pick);
+
+
+                        var currentPlayerr = this;
+                        var digCompleted = function() {
+                            /* Add score */
+                            //TODO different scores for different blocks?
+                            entityManager.scoreEngine.addScore(1);
+
+                            var box = currentPlayerr.boundingBox(),
+                                tileX,
+                                tileY;
 
                             /* set the tile location that we are deleting */
                             switch(sprite.digState) {
                                 case DOWN_DIGGING:
-                                    sprite.state = STANDING;
+                                    tileX = Math.floor((box.left + (SIZE / 2)) / 64);
+                                    tileY = Math.floor(box.bottom / 64);
+
+                                    /* we also know we will be falling if digging down, so start fall */
+                                    sprite.state = FALLING;
+                                    sprite.velocityY = 0;
                                     break;
                                 case LEFT_DIGGING:
+                                    tileX = Math.floor((box.left - 5)/ 64);
+                                    tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
                                     sprite.state = STANDING;
                                     break;
                                 case RIGHT_DIGGING:
+                                    tileX = Math.floor((box.right + 5)/ 64);
+                                    tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
                                     sprite.state = STANDING;
                                     break;
                                 case UP_DIGGING:
+                                    tileX = Math.floor((box.left + (SIZE / 2)) / 64);
+                                    tileY = Math.floor((box.top - 5) / 64);
                                     sprite.state = STANDING;
                                     break;
                                 default:
                                     return;
                             }
 
+                            /* replace the set tile at this layer */
+                            var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayerr.layerIndex);
+                            if (layerType == 0) {
+                                tilemap.mineAt(1, tileX, tileY, currentPlayerr.layerIndex, sprite.superPickaxe);
+                                ParticleManager.addDirtParticles(tileX, tileY);
+                            } else if (layerType == 1) {
+                                tilemap.mineAt(13, tileX, tileY, currentPlayerr.layerIndex, sprite.superPickaxe);
+                                ParticleManager.addStoneParticles(tileX, tileY);
+                            } else if (layerType == 2) {
+                                tilemap.mineAt(15, tileX, tileY, currentPlayerr.layerIndex, sprite.superPickaxe);
+                                ParticleManager.addDeepParticles(tileX, tileY);
+                            }
+
                             /* setup the callback for when the animation is complete */
-                            sprite.animations.left[sprite.state].donePlayingCallback = function() {};
-                            sprite.animations.right[sprite.state].donePlayingCallback = function() {};
+                            currentPlayerr.animations.left[currentPlayerr.state].donePlayingCallback = function() {};
+                            currentPlayerr.animations.right[currentPlayerr.state].donePlayingCallback = function() {};
+                            entityManager.remove(currentPlayerr.pick);
 
                             /* reset the digging state */
                             sprite.digState = NOT_DIGGING;
                         };
-                        this.animations.left[this.state].donePlayingCallback = digComplete;
-                        this.animations.right[this.state].donePlayingCallback = digComplete;
+                        this.animations.left[this.state].donePlayingCallback = digCompleted;
+                        this.animations.right[this.state].donePlayingCallback = digCompleted;
                     }
                     // A counter for the health bar to check if player is drowning
                     if (this.swimmingProperty.breathCount > 20) {
