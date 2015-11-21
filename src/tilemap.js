@@ -4,6 +4,7 @@
  * - Nathan Bean
  * - Wyatt Watson
  */
+
 module.exports = (function (){
   var noisy = require('./noise.js'),
       tiles = [],
@@ -23,6 +24,20 @@ module.exports = (function (){
 
     var parallaxBackground = new Image();
     parallaxBackground.src = "./img/background.png";
+    var bigclouds = new Image();
+    bigclouds.src = "./img/backclouds.png";
+    var smallclouds = new Image();
+    smallclouds.src = "./img/frontclouds.png";
+
+    var cloudlaxscalars = {};
+    var cloudxs = {};
+    var cloudys = {};
+    var cloudsize = {};
+
+    var smallcloudlaxscalars = {};
+    var smallcloudxs = {};
+    var smallcloudys = {};
+    var smallcloudsize = {};
 
   /* Clamps the provided value to the provided range
    * Arguments:
@@ -75,7 +90,25 @@ module.exports = (function (){
    *  > onload, a callback to trigger once the load finishes
    */
   var load = function(mapData, options) {
+    // Make some random background big clouds
+    for (var i = 0; i < 30; i++) {
+      cloudlaxscalars[i] = Math.random();
+      while (cloudlaxscalars[i]<0.3 || cloudlaxscalars[i]>0.66)
+        cloudlaxscalars[i] = Math.random();
+      cloudxs[i]=4000*Math.random();
+      cloudys[i]=13000*Math.random();
+      cloudsize[i] = 0.7+Math.random();
+    }
 
+    //Make some random foreground big clouds
+    for (var i = 0; i < 250; i++) {
+      smallcloudlaxscalars[i] = 1+ 2.5* Math.random();
+      // (cloudlaxscalars[i]<0.3 || cloudlaxscalars[i]>0.66)
+      //  cloudlaxscalars[i] = Math.random();
+      smallcloudxs[i]=5000*Math.random()-1000;
+      smallcloudys[i]=28000*Math.random();
+      smallcloudsize[i] = 0.7+Math.random();
+    }
     var loading = 0;
 
     // Release old tiles & tilesets
@@ -461,28 +494,38 @@ module.exports = (function (){
     // layers obscure background ones.
     // see http://en.wikipedia.org/wiki/Painter%27s_algorithm
 
-    var offset = cameraY%600*0.1;
-    var offsetx = cameraX%600*0.2
+    // For continuous scrolling
+    var offsety = cameraY%(600);
+    var offsetx = cameraX%600;
+
+    // For parallax effect
+
+
     var alerted = false;
     if (!alerted) {
-      console.log("zomg: " + offset + "___" + cameraY);
+      //console.log("zomg: " + offset + "___" + cameraY);
       alerted = true;
     }
 
-    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-300,cameraY,600,600);
-    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-300,cameraY-600,600,600);
-    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-900,cameraY,600,600);
-    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-900,cameraY-600,600,600);
-    screenCtx.drawImage(parallaxBackground,cameraX-offsetx+300,cameraY,600,600);
-    screenCtx.drawImage(parallaxBackground,cameraX-offsetx+300,cameraY-600,600,600);
-/*
-    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-300,cameraY-offset,600,600);
-    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-300,cameraY-600-offset,600,600);
-    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-900,cameraY-offset,600,600);
-    screenCtx.drawImage(parallaxBackground,cameraX-offsetx-900,cameraY-600-offset,600,600);
-    screenCtx.drawImage(parallaxBackground,cameraX-offsetx+300,cameraY-offset,600,600);
-    screenCtx.drawImage(parallaxBackground,cameraX-offsetx+300,cameraY-600-offset,600,600);
-*/
+    // Starry night
+
+    console.log(cameraX);
+    for (var i = -1; i*600+cameraY*0.3 < cameraY+1000; i++) {
+      for (var j = -1; j*600+cameraX*0.3 < cameraX+2000; j++) {
+        screenCtx.drawImage(parallaxBackground,j*600+cameraX*0.3,i*600+cameraY*0.3,600,600);
+      }
+    }
+
+    // Ground is at 14912 +/- camera size
+
+    // Big far clouds
+    for (var i = 0; i < 30; i++) {
+
+      screenCtx.drawImage(bigclouds,cloudxs[i]+cameraX*cloudlaxscalars[i],cloudys[i]+cameraY*cloudlaxscalars[i],1500*cloudsize[i],1500*cloudsize[i]);
+    }
+
+    // Small close clouds
+    //screenCtx.drawImage(bigclouds,cameraX,cameraY,800,400);
 
     layers.forEach(function(layer){
       // Only draw layers that are currently visible
@@ -499,7 +542,7 @@ module.exports = (function (){
             var tileId = layer.data[x + layer.width * y];
 
             // tiles with an id of < 0 don't exist
-            if(tileId > 1) {
+            if(tileId > 2) {
               var tile = tiles[tileId-1];
               if(tile.image) { // Make sure the image has loaded
                 screenCtx.drawImage(
@@ -515,6 +558,14 @@ module.exports = (function (){
       }
 
     });
+
+  }
+
+  var renderfrontclouds = function(screenCtx) {
+    // Close fast small clouds
+    for (var i = 0; i < 250; i++ ) {
+      screenCtx.drawImage(smallclouds,smallcloudxs[i]+cameraX*smallcloudlaxscalars[i]*smallcloudsize[i]-3000,smallcloudys[i]-cameraY*smallcloudlaxscalars[i]+5000,300*smallcloudsize[i],100*smallcloudsize[i]);
+    }
   }
 
   /* Returns the tile at a given position.
@@ -597,6 +648,7 @@ module.exports = (function (){
     load: load,
     generate: generate,
     render: render,
+    renderfrontclouds: renderfrontclouds,
     tileAt: tileAt,
 	setTileAt: setTileAt,
 	destroyTileAt: destroyTileAt,
