@@ -68,7 +68,7 @@ module.exports = (function(){
   var detonate = new Image();
   detonate.src = "./img/dwarfDetonate.png";
   
-  var explosion = new Audio('./sounds/explosion.wav');
+  var explosion = new Audio('resources/sounds/explosion.wav');
   
   var walkTimer = 0,
 	idleTimer = 0,

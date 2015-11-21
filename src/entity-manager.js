@@ -85,7 +85,7 @@ module.exports = (function() {
               boundsA.bottom > boundsB.top
             ) {
 				entities[i].collide(entities[j]);
-				
+
 				// check again if entities[j] exists as it could
 				// have been killed by entities[i]
 				if(entities[j]){
@@ -128,9 +128,15 @@ module.exports = (function() {
    *   and this one.
    * - tilemap, the current tilemap for the game.
    */
-  function update(elapsedTime, tilemap) {
-    for (i = 0; i < entityCount; i++) {
-      if (entities[i]) entities[i].update(elapsedTime, tilemap, this);
+  function update(elapsedTime, tilemap, ParticleManager) {
+	//used for determining the area of the screen/what entities are on/near screen to be updated
+    var play = getPlayer();
+	var x = play.currentX;
+	var y = play.currentY;
+	var pow = Math.sqrt(1282*1282+722*722);
+	//loops through entities
+	for (i = 0; i < entityCount; i++) {
+      if (entities[i]&&playerDistance(entities[i])<pow+x+10&&playerDistance(entities[i])<pow+y) entities[i].update(elapsedTime, tilemap, this, ParticleManager);
     }
     scoreEngine.update();
     checkCollisions();
@@ -142,8 +148,14 @@ module.exports = (function() {
    * - debug, the flag to trigger visual debugging
    */
   function render(ctx, debug) {
+	//used for determining the area of the screen/what entities are on/near screen to be rendered
+    var play = getPlayer();
+	var x = play.currentX;
+	var y = play.currentY;
+	var pow = Math.sqrt(1282*1282+722*722);
+	//loops through entities
     for (var i = 0; i < entityCount; i++) {
-      if (entities[i]) entities[i].render(ctx, debug);
+      if (entities[i]&&playerDistance(entities[i])<pow+x+10&&playerDistance(entities[i])<pow+y) entities[i].render(ctx, debug);
     }
     scoreEngine.render(ctx);
   }

@@ -44,6 +44,12 @@
   text-align: center;
   align-items: center;
   position: relative;
+  height: 400px;
+}
+
+#control-header {
+  margin-top: 0px;
+  margin-bottom: 15px;
 }
 
 .splash{

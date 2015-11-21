@@ -8,15 +8,12 @@
 module.exports = (function() {
   var Entity = require('./entity.js'),
     Animation = require('./animation.js');
-	
-	/*Audio sources*/	
-    jump_sound = new Audio('resources/sounds/jumping_sound.mp3');
+
+	/*Audio sources*/
+    jump_sound = new Audio('resources/sounds/jumping_sound.wav');
 	dig_sound = new Audio('resources/sounds/digging_sound.mp3');
 	walk_sound = new Audio('resources/sounds/walking_sound.mp3');
-	//fallGround_sound = new Audio ('resources/sounds/fallToGround.wav');
-	
-	//Dwarf sound responses
-	dwarf_sound = new Audio('resources/sounds/dwarfSound.mp3');
+	throw_sound = new Audio('resources/sounds/throwing_sound.mp3');
 
     Animation = require('./animation.js'),
     Pickaxe = require('./Pickaxe.js'),
@@ -58,8 +55,8 @@ module.exports = (function() {
 
   var ratLeft = new Image();
   ratLeft.src = "img/ratLeft2.png";
-  
-  
+
+
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
@@ -85,10 +82,11 @@ module.exports = (function() {
 	this.type = "player";
 	this.superPickaxe = false;
 	this.superAxeImg = new Image();
-	this.superAxeImg.src = "./img/powerUps/pick.png";	
+	this.superAxeImg.src = "./img/powerUps/pick.png";
 	this.boneImg = new Image();
 	this.boneImg.src = "./img/BoneLeft.png";
-	
+    this.stoneShield = false;
+
 	// bone powerup
 	this.attackFrequency = 1;
 	this.lastAttack = 0;
@@ -175,7 +173,7 @@ module.exports = (function() {
    * - tilemap, the tilemap that corresponds to
    *   the current game world.
    */
-  Player.prototype.update = function(elapsedTime, tilemap, entityManager) {
+  Player.prototype.update = function(elapsedTime, tilemap, entityManager, ParticleManager) {
     var sprite = this;
 	sprite.entityManager = entityManager;
     // The "with" keyword allows us to change the
@@ -186,65 +184,59 @@ module.exports = (function() {
       // Process player state
       switch (sprite.state) {
         case STANDING:
-        case WALKING:	
+        case WALKING:
           // If there is no ground underneath, fall
-          if (!sprite.onGround(tilemap)) {			  
+          if (!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
             sprite.velocityY = 0;
           } else {
             if (isKeyDown(commands.DIGDOWN)) {
-			  dig_sound.play();				
+			  dig_sound.play();
               this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true);
               sprite.state = DIGGING;
               sprite.digState = DOWN_DIGGING;
             } else if(isKeyDown(commands.DIGLEFT)) {
-			  dig_sound.play();				
+			  dig_sound.play();
               this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = LEFT_DIGGING;
               sprite.isLeft = true;
             } else if(isKeyDown(commands.DIGRIGHT)) {
-			  dig_sound.play();				
+			  dig_sound.play();
               this.pick = new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = RIGHT_DIGGING;
               sprite.isLeft = false;
-            } else if(isKeyDown(commands.DIGUP)) {				
-			  dig_sound.play();				
+            } else if(isKeyDown(commands.DIGUP)) {
+			  dig_sound.play();
                 this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY }, true);
               sprite.state = DIGGING;
               sprite.digState = UP_DIGGING;
             } else if (isKeyDown(commands.UP)) {
-				
+
 			  /* Added sound effect for jumping */
 			  jump_sound.play();
-				
+
               sprite.state = JUMPING;
               sprite.velocityY = JUMP_VELOCITY;
             } else if (isKeyDown(commands.LEFT)) {
 			  /*Added walking sound*/
 			  walk_sound.play();
-			  
-			  dwarf_sound.play();
-		  
               sprite.isLeft = true;
               sprite.state = WALKING;
               sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
             }
             else if(isKeyDown(commands.RIGHT)) {
-				
+
 			  /* Added walking sound */
 			  walk_sound.play();
-		  
+
               sprite.isLeft = false;
               sprite.state = WALKING;
               sprite.moveRight(elapsedTime * this.SPEED, tilemap);
             }
             else {
               sprite.state = STANDING;
-			  /* Added fall to the ground sound 
-			  fallGround_sound.loop = false;
-			  fallGround_sound.play();*/
             }
 
             if(sprite.state == DIGGING) {
@@ -296,10 +288,13 @@ module.exports = (function() {
                   var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
                   if (layerType == 0) {
                     tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
+                    ParticleManager.addDirtParticles(tileX, tileY);
                   } else if (layerType == 1) {
                     tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
+                    ParticleManager.addStoneParticles(tileX, tileY);
                   } else if (layerType == 2) {
                     tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
+                    ParticleManager.addDeepParticles(tileX, tileY);
                   }
 
                   /* setup the callback for when the animation is complete */
@@ -358,16 +353,16 @@ module.exports = (function() {
         case SWIMMING:
           // NOT IMPLEMENTED YET
       }
-		
+
 		// countdown to next bone projectile
 	  	if(this.lastAttack <= this.attackFrequency){
 			this.lastAttack += elapsedTime;
 		}
-	
+
 		if (isKeyDown(commands.SHOOT)) {
             this.shoot();
          }
-		  
+
       // Swap input buffers
       swapBuffers();
     }
@@ -517,29 +512,33 @@ module.exports = (function() {
 	 It should eventually delete the power up from the game
   */
   Player.prototype.poweredUp = function(powerUp) {
-	  
+
 	  console.log("Picked up power up: " + powerUp.type);
-	  
+
 	  if (powerUp.type == 'boneUp') {
 		  this.bones++;
 	  } else if (powerUp.type == 'coin') {
 		  // add points
-	  
+
 	  } else if (powerUp.type == 'crystal') {
 		  // add points
-		  
+
 	  } else if (powerUp.type == 'pick') {
-		  
+
 		  console.log("super pickaxe activated");
 		  this.superPickaxe = true;
-	  }
-	  
+
+      } else if (powerUp.type == 'stone-shield') {
+          this.stoneShield = true;
+      }
+
+
 	  if(powerUp.effectDuration < 0){//if power up lasts 4ever
 		   this.entityManager.remove(powerUp);
 	  }
-	 
+
   }
-  
+
   /*
      This method gets called when a power up effect vanishes
   */
@@ -549,21 +548,25 @@ module.exports = (function() {
 		  console.log("super pickaxe expired");
 		  this.superPickaxe = false;
 		  this.entityManager.remove(powerUp);
-	  }
-	 
+
+	  } else if (powerUp.type == 'stone-shield') {
+          this.stoneShield = false;
+      }
   }
-  
+
   	/*
-		Bone projectile powerup	
+		Bone projectile powerup
 	*/
    Player.prototype.shoot = function(){
 		if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
+			//Added sound for throwing bone
+			throw_sound.play();
 			var bone = new Bone(this.currentX, this.currentY, 0, this.isLeft, this);
 			this.entityManager.add(bone);
 			this.bones--;
 			this.lastAttack = 0;
-		}		   
-   } 
+		}
+   }
 
   /* Player Render Function
    * arguments:
@@ -591,7 +594,7 @@ module.exports = (function() {
         64,
         64);
 	}
-	
+
 		ctx.drawImage(
         this.boneImg,
         0,
@@ -605,7 +608,7 @@ module.exports = (function() {
 		ctx.font = "20pt Calibri";
 		ctx.fillText("x"+this.bones, this.currentX + 445, this.currentY - 300);
 
-	
+
     if (debug) renderDebug(this, ctx);
   }
 

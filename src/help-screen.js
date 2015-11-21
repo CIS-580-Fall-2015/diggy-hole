@@ -13,6 +13,8 @@ module.exports = (function (){
         scroll = 0,
         Player = require('./player.js'),
         player,
+        Bone = require('./bone.js'),
+        bone,
         screenCtx,
         backBuffer,
         backBufferCtx,
@@ -52,6 +54,17 @@ module.exports = (function (){
      */
     var update = function(elapsedTime) {
         player.demoUpdate(elapsedTime, null);
+        if(bone) {
+            if(bone.isLeft){
+                bone.currentX -= elapsedTime * bone.xSpeed;
+            } else {
+                bone.currentX += elapsedTime * bone.xSpeed;
+            }
+            if(bone.boundingBox().right <= 0)
+                bone = null;
+            else if(bone.boundingBox().left >= 128)
+                bone = null;
+        }
     }
 
     /*
@@ -61,12 +74,15 @@ module.exports = (function (){
      */
     var render = function() {
         // Clear the back buffer
-        screenCtx.fillStyle = 'rgb(255,255,255)';
+        screenCtx.fillStyle = 'rgb(0,0,0)';
         screenCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
         screenCtx.save();
 
         player.render(screenCtx, false);
+
+        if(bone)
+            bone.render(screenCtx);
 
         screenCtx.restore();
     }
@@ -76,13 +92,15 @@ module.exports = (function (){
      * events for the menu.
      */
     var keyDown = function(event) {
+        event.preventDefault();
         switch(event.keyCode) {
             case 27: // ESC
-                event.preventDefault();
                 stateManager.popState();
                 break;
+            case inputManager.commands.SHOOT:
+                bone = new Bone(player.currentX, player.currentY, 0, player.isLeft, player);
+                break;
             default:
-                event.preventDefault();
                 inputManager.keyDown(event);
                 break;
         }

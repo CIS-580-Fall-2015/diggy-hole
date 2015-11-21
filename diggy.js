@@ -80,38 +80,31 @@ module.exports = (function(){
 
 	// Update projectile
 	if(this.enabled){
-			if(this.isLeft){
-				this.currentX -= elapsedTime * this.xSpeed;
-			} else {
-				this.currentX += elapsedTime * this.xSpeed;
-			}
-			this.distTraveled += elapsedTime * this.xSpeed;
+		if(this.isLeft){
+			this.currentX -= elapsedTime * this.xSpeed;
+		} else {
+			this.currentX += elapsedTime * this.xSpeed;
+		}
+		this.distTraveled += elapsedTime * this.xSpeed;
 
 
-			if(this.distTraveled >= this.range){
-				this.distTraveled = 0;
-				this.enabled = false;
-			}
+		if(this.distTraveled >= this.range){
+			this.distTraveled = 0;
+			this.enabled = false;
+		}
 
-			if(this.isLeft){
-		var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.enabled = false;
-
-
-
-	} else {
-		var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.enabled = false;
-	}
-
+		if(this.isLeft){
+			var box = this.boundingBox(),
+				tileX = Math.floor(box.left/64),
+				tileY = Math.floor(box.bottom / 64) - 1;
+		} else {
+			var box = this.boundingBox(),
+				tileX = Math.floor(box.right/64),
+				tileY = Math.floor(box.bottom / 64) - 1;
+		}
+		var tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+		if (tile && tile.data.solid)
+			this.enabled = false;
 	}
 
 	// Update projectile animation
@@ -207,7 +200,7 @@ module.exports = (function(){
 		   this.enabled = false;
 		   if(DEBUG){
 		   console.log("Player hit by bone");
-		   entityManager.scoreEngine.subScore(1000);
+		   entityManager.scoreEngine.scoreToZero();
 		   }
 	   } else if(otherEntity.lives){
 		   this.enabled = false;
@@ -244,7 +237,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":5,"./entity-manager.js":16,"./entity.js":17,"./player.js":28,"./powerUp.js":29}],2:[function(require,module,exports){
+},{"./animation.js":5,"./entity-manager.js":16,"./entity.js":17,"./player.js":29,"./powerUp.js":30}],2:[function(require,module,exports){
 /* DemonicGroundHog
  * Authors:
 	Nathan Bean
@@ -1399,7 +1392,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":5,"./bone.js":9,"./entity-manager.js":16,"./entity.js":17,"./player.js":28,"./powerUp.js":29}],7:[function(require,module,exports){
+},{"./animation.js":5,"./bone.js":9,"./entity-manager.js":16,"./entity.js":17,"./player.js":29,"./powerUp.js":30}],7:[function(require,module,exports){
 /* Bird Module
 	Authors: Josh Benard
 */
@@ -1546,7 +1539,7 @@ module.exports = (function(){
 	return Bird;
 
 }());
-},{"./animation.js":5,"./entity.js":17,"./player.js":28}],8:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":17,"./player.js":29}],8:[function(require,module,exports){
 module.exports = (function(){
   var Entity = require('./entity.js');
   var PlayerClass = require('./player.js');
@@ -1807,9 +1800,9 @@ var everal = false;
 
 }());
 
-},{"./entity.js":17,"./player.js":28}],9:[function(require,module,exports){
+},{"./entity.js":17,"./player.js":29}],9:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"./animation.js":5,"./entity-manager.js":16,"./entity.js":17,"./player.js":28,"./powerUp.js":29,"dup":1}],10:[function(require,module,exports){
+},{"./animation.js":5,"./entity-manager.js":16,"./entity.js":17,"./player.js":29,"./powerUp.js":30,"dup":1}],10:[function(require,module,exports){
 module.exports = (function(){
 
 var Animation = require('./animation.js'),
@@ -1997,7 +1990,7 @@ Cannonball.prototype = new Entity();
 return Cannonball;
 	
 }())
-},{"./animation.js":5,"./entity.js":17,"./tilemap.js":38}],11:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":17,"./tilemap.js":39}],11:[function(require,module,exports){
 /* The construct for a collectible. Inherits from entity.
  * Removed from entity manager upon being collected by player.
  * Certain strategies derived from the powerup class.
@@ -2021,9 +2014,10 @@ module.exports = (function(){
 		height - Height of one animation image.
 		frameNum - The number of frames in the collectible's sprite sheet.
 		imgPath - Relative path to the animation's sprite sheet.
+    score - The amount of points that the collectible is worth.
 	*/
 	function Collectible(locationX, locationY, mapLayer,
-					 type, width, height, frameNum, imgPath) {
+					 type, width, height, frameNum, imgPath, score) {
     // Establish coordinates.
 		this.x = locationX;
 		this.y = locationY;
@@ -2043,6 +2037,10 @@ module.exports = (function(){
 		this.animation = new Animation(this.img, this.width, this.height, 0, 0, frameNum);
     // Has the collectible been collected by the player? False to begin with.
 		this.collected = false;
+    // Establish the score of the entity.
+    this.score = score;
+
+    console.log("A " + this.type + " was created.");
 
     // A pickedUpSound might be implemented in the future (similar to the powerup).
 		//this.pickedUpSound = new Audio('');
@@ -2061,6 +2059,7 @@ module.exports = (function(){
     if (this.collected == true)
     {
       entityManager.remove(this);
+      console.log("A " + this.type + " was removed.");
     }
 	}
 
@@ -2113,7 +2112,8 @@ module.exports = (function(){
 			// Sounds may be implemented in the future.
 			//this.pickedUpSound.play();
 			this.collected = true;
-			this.player = otherEntity;
+      // Tell the player to add this to its list of collectibles.
+			// otherEntity.collected(this);
 		}
 	}
 
@@ -2385,7 +2385,7 @@ module.exports = (function(){
   var detonationTimer = 0;
   var explosionTimer = 0;
   
-  var explosion = new Audio('./sounds/explosion.wav');
+  var explosion = new Audio('resources/sounds/explosion.wav');
 
   //The Dynamite constructor
   function Dynamite(locationX, locationY, layerIndex, inputManager, sourceEntity) {
@@ -2666,7 +2666,7 @@ module.exports = (function(){
   var detonate = new Image();
   detonate.src = "./img/dwarfDetonate.png";
   
-  var explosion = new Audio('./sounds/explosion.wav');
+  var explosion = new Audio('resources/sounds/explosion.wav');
   
   var walkTimer = 0,
 	idleTimer = 0,
@@ -3051,7 +3051,7 @@ module.exports = (function() {
               boundsA.bottom > boundsB.top
             ) {
 				entities[i].collide(entities[j]);
-				
+
 				// check again if entities[j] exists as it could
 				// have been killed by entities[i]
 				if(entities[j]){
@@ -3094,9 +3094,15 @@ module.exports = (function() {
    *   and this one.
    * - tilemap, the current tilemap for the game.
    */
-  function update(elapsedTime, tilemap) {
-    for (i = 0; i < entityCount; i++) {
-      if (entities[i]) entities[i].update(elapsedTime, tilemap, this);
+  function update(elapsedTime, tilemap, ParticleManager) {
+	//used for determining the area of the screen/what entities are on/near screen to be updated
+    var play = getPlayer();
+	var x = play.currentX;
+	var y = play.currentY;
+	var pow = Math.sqrt(1282*1282+722*722);
+	//loops through entities
+	for (i = 0; i < entityCount; i++) {
+      if (entities[i]&&playerDistance(entities[i])<pow+x+10&&playerDistance(entities[i])<pow+y) entities[i].update(elapsedTime, tilemap, this, ParticleManager);
     }
     scoreEngine.update();
     checkCollisions();
@@ -3108,8 +3114,14 @@ module.exports = (function() {
    * - debug, the flag to trigger visual debugging
    */
   function render(ctx, debug) {
+	//used for determining the area of the screen/what entities are on/near screen to be rendered
+    var play = getPlayer();
+	var x = play.currentX;
+	var y = play.currentY;
+	var pow = Math.sqrt(1282*1282+722*722);
+	//loops through entities
     for (var i = 0; i < entityCount; i++) {
-      if (entities[i]) entities[i].render(ctx, debug);
+      if (entities[i]&&playerDistance(entities[i])<pow+x+10&&playerDistance(entities[i])<pow+y) entities[i].render(ctx, debug);
     }
     scoreEngine.render(ctx);
   }
@@ -3160,7 +3172,7 @@ module.exports = (function() {
 
 }());
 
-},{"./player.js":28}],17:[function(require,module,exports){
+},{"./player.js":29}],17:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -3291,6 +3303,7 @@ module.exports = (function (){
       ScoreEngine = require('./score.js'),
 	  PowerUp = require('./powerUp.js'),
     Collectible = require('./collectible.js');
+    ParticleManager = require('./particle-manager.js');
 
   /* Loads the GameState, triggered by the StateManager
    * This function sets up the screen canvas, the tilemap,
@@ -3326,11 +3339,6 @@ module.exports = (function (){
       }
     });
 
-    for (var i = 0; i < 35; i += 7){
-      //stoneMonster = new StoneMonster(64*i, 0, 0);
-      //entityManager.add(stoneMonster);
-    }
-
     // Create the player and add them to
     // the entity manager
     player = new Player(400, 240, 0, inputManager);
@@ -3341,28 +3349,33 @@ module.exports = (function (){
     scoreEngine.setPositionFunction(tilemap.getCameraPosition)
     entityManager.setScoreEngine(scoreEngine);
 
-    //add wolf to
+   //add wolf to
     // the entity manager
-    wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
-    entityManager.add(wolf);
+    //wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
+    //entityManager.add(wolf);
 
-    bird = new Bird(400, 100);
+    for (var i = 0; i < 35; i += 7){
+      stoneMonster = new StoneMonster(64*i, 300, 0);
+      entityManager.add(stoneMonster);
+    }
+
+    bird = new Bird(600, 100);
     entityManager.add(bird);
 
     // Add a robo-killer to the entity manager.
-    robo_killer = new Robo_Killer(450, 240, 0);
+    robo_killer = new Robo_Killer(450, 1240, 0);
     entityManager.add(robo_killer);
 
-	rat = new Rat(500, 360, 0);
+	rat = new Rat(500, 1360, 0);
 	entityManager.add(rat);
 
-	slime = new Slime(400, 20, 0);
+	slime = new Slime(400, 1120, 0);
 	entityManager.add(slime);
 
-    sudo_chan = new Sudo_Chan(490, 240, 0);
+    sudo_chan = new Sudo_Chan(490, 1240, 0);
     entityManager.add(sudo_chan);
 
-    octopus = new Octopus(120, 240, 0);
+    octopus = new Octopus(120, 2240, 0);
     entityManager.add(octopus);
 
 	DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
@@ -3373,8 +3386,8 @@ module.exports = (function (){
 
   // Create collectibles.
   // WHOEVER IS IN CHARGE OF ENTITY PLACEMENT: Feel free to change the coordiates (first 2 parameters - x,y).
-  entityManager.add(new Collectible(500, 240, 0,'bit_coin', 64, 64, 8, './img/bit_coin.png'));
-
+  entityManager.add(new Collectible(500, 240, 0,'bit_coin', 64, 64, 8, './img/bit_coin.png', 10));
+  // entityManager.add(new Collectible(600, 240, 0,'lost_cat', 64, 64, 14, './img/lost_cat.png', 15));
 
 	// Spawn 10 barrels close to player
 	 // And some turrets
@@ -3391,6 +3404,7 @@ module.exports = (function (){
 		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
 		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
 		entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
+        entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, -1));
 		barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
 		entityManager.add(barrel);
         entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
@@ -3406,13 +3420,21 @@ module.exports = (function (){
 
 	// Karenfang: Create a Kakao and add it to
     // the entity manager
-    kakao = new Kakao(310,240,0);  //two tiles to the right of the player
+    kakao = new Kakao(310,1240,0);  //two tiles to the right of the player
     entityManager.add(kakao);
 
     extantBlobbers = 1;
     blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
     entityManager.add(blobber);
 
+
+	// Kyle Brown: Background Music
+	var bgMusic = new Audio('./resources/sounds/DiggyHoleBGMusicAm.wav');
+	   bgMusic.addEventListener('ended', function() {
+    this.currentTime = 0;
+    this.play();
+	}, false);
+	bgMusic.play();
 
 
   };
@@ -3424,9 +3446,10 @@ module.exports = (function (){
    */
   var update = function(elapsedTime) {
     //player.update(elapsedTime, tilemap);
-    entityManager.update(elapsedTime, tilemap);
+    entityManager.update(elapsedTime, tilemap, ParticleManager);
+	tilemap.update();
+  ParticleManager.update(elapsedTime);
     inputManager.swapBuffers();
-
     octopus.getPlayerPosition(player.boundingBox());
   };
 
@@ -3449,6 +3472,7 @@ module.exports = (function (){
     tilemap.render(backBufferCtx);
     entityManager.render(backBufferCtx, true);
     //player.render(backBufferCtx, true);
+    ParticleManager.render(backBufferCtx);
 
     backBufferCtx.restore();
 
@@ -3490,7 +3514,7 @@ module.exports = (function (){
 
 })();
 
-},{"./DemonicGroundH.js":2,"./Kakao.js":3,"./barrel.js":6,"./bird.js":7,"./blobber.js":8,"./collectible.js":11,"./dynamiteDwarf.js":15,"./entity-manager.js":16,"./goblin-miner.js":19,"./goblin-shaman.js":20,"./input-manager.js":22,"./main-menu.js":23,"./octopus.js":26,"./player.js":28,"./powerUp.js":29,"./rat.js":30,"./robo-killer.js":31,"./score.js":32,"./slime.js":33,"./stone-monster.js":35,"./sudo_chan.js":37,"./tilemap.js":38,"./turret.js":39,"./wolf.js":40}],19:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./Kakao.js":3,"./barrel.js":6,"./bird.js":7,"./blobber.js":8,"./collectible.js":11,"./dynamiteDwarf.js":15,"./entity-manager.js":16,"./goblin-miner.js":19,"./goblin-shaman.js":20,"./input-manager.js":22,"./main-menu.js":23,"./octopus.js":26,"./particle-manager.js":28,"./player.js":29,"./powerUp.js":30,"./rat.js":31,"./robo-killer.js":32,"./score.js":33,"./slime.js":34,"./stone-monster.js":36,"./sudo_chan.js":38,"./tilemap.js":39,"./turret.js":40,"./wolf.js":41}],19:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -4201,6 +4225,8 @@ module.exports = (function (){
         scroll = 0,
         Player = require('./player.js'),
         player,
+        Bone = require('./bone.js'),
+        bone,
         screenCtx,
         backBuffer,
         backBufferCtx,
@@ -4240,6 +4266,17 @@ module.exports = (function (){
      */
     var update = function(elapsedTime) {
         player.demoUpdate(elapsedTime, null);
+        if(bone) {
+            if(bone.isLeft){
+                bone.currentX -= elapsedTime * bone.xSpeed;
+            } else {
+                bone.currentX += elapsedTime * bone.xSpeed;
+            }
+            if(bone.boundingBox().right <= 0)
+                bone = null;
+            else if(bone.boundingBox().left >= 128)
+                bone = null;
+        }
     }
 
     /*
@@ -4249,12 +4286,15 @@ module.exports = (function (){
      */
     var render = function() {
         // Clear the back buffer
-        screenCtx.fillStyle = 'rgb(255,255,255)';
+        screenCtx.fillStyle = 'rgb(0,0,0)';
         screenCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
         screenCtx.save();
 
         player.render(screenCtx, false);
+
+        if(bone)
+            bone.render(screenCtx);
 
         screenCtx.restore();
     }
@@ -4264,13 +4304,15 @@ module.exports = (function (){
      * events for the menu.
      */
     var keyDown = function(event) {
+        event.preventDefault();
         switch(event.keyCode) {
             case 27: // ESC
-                event.preventDefault();
                 stateManager.popState();
                 break;
+            case inputManager.commands.SHOOT:
+                bone = new Bone(player.currentX, player.currentY, 0, player.isLeft, player);
+                break;
             default:
-                event.preventDefault();
                 inputManager.keyDown(event);
                 break;
         }
@@ -4290,7 +4332,7 @@ module.exports = (function (){
     }
 
 })();
-},{"./input-manager.js":22,"./player.js":28}],22:[function(require,module,exports){
+},{"./bone.js":9,"./input-manager.js":22,"./player.js":29}],22:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -4534,7 +4576,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":18,"./splash-screen":34}],25:[function(require,module,exports){
+},{"./game":18,"./splash-screen":35}],25:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -4920,6 +4962,223 @@ module.exports = (function() {
 
 }());
 },{}],28:[function(require,module,exports){
+/* The particle manager maintains the list of particles currently in the world,
+*  and handles the update and rendering functions for it
+*
+* Author: Daniel Marts
+*/
+module.exports = (function() {
+const GRAVITY = -250;
+const TERMINAL_VELOCITY = GRAVITY * -8;
+const MAX_PARTICLES = 250;
+
+/* Constructor for each particle
+* x = starting x Pos, y = starting y Pos, velX, velY starting velocities
+* grav = if the particle follows the effect of gravity
+* r = radius of the particle, c = color of particle,
+* life = lifespan of particle in seconds
+*/
+function Particle(x, y, velX, velY, grav, r, c, life) {
+  this.xPos = x;
+  this.yPos = y;
+  this.velocityX = velX;
+  this.velocityY = velY;
+  this.gravity = grav;
+  this.radius = r;
+  this.color = c;
+  this.lifeLeft = life;
+}
+
+var Count = 0;
+var particles = [];
+    //start = 0, end = 0;
+
+/* adds a particle to the world
+* x = starting x Pos, y = starting y Pos, velX, velY starting velocities
+* grav = if the particle follows the effect of gravity
+* r = radius of the particle, c = color of particle,
+* life = lifespan of particle in seconds
+*/
+function add(x, y, velX, velY, grav, r, c, life){
+  /*
+  if ((end) > MAX_PARTICLES)
+  {
+    end = 0;
+    particles[0] = new Particle(x, y, velX, velY, grav, r, c, life);
+  }
+  else {
+    particles[end++] = new Particle(x, y, velX, velY, grav, r, c, life);
+  }*/
+  particles.push(new Particle(x, y, velX, velY, grav, r, c, life));
+  Count++;
+}
+
+//Adds dirt particles with a small lifespan
+//Player calls this when he digs a tile
+function addDirtParticles(tileX, tileY) {
+  var xoff = tileX * 64 + 32;
+  var yoff = tileY * 64 + 32;
+  for (var i = 0; i < 5; i++) {
+    var xv = 200*(Math.random()-0.5),
+        yv = -100+-200*Math.random(),
+        rad = 5*Math.random();
+
+    add(xoff,yoff, xv, yv, "true", rad, "#361718", 1);
+
+  }
+}
+
+//Adds stone particles with a small lifespan
+//Player calls this when he digs a tile
+function addStoneParticles(tileX, tileY) {
+  var xoff = tileX * 64 + 32;
+  var yoff = tileY * 64 + 32;
+  for (var i = 0; i < 5; i++) {
+    var xv = 200*(Math.random()-0.5),
+        yv = -100+-200*Math.random(),
+        rad = 5*Math.random();
+
+    add(xoff,yoff, xv, yv, "true", rad, "#4d4d4d", 1);
+
+  }
+}
+
+//Adds lava level particles with a small lifespan
+//Player calls this when he digs a tile
+function addDeepParticles(tileX, tileY) {
+  var xoff = tileX * 64 + 32;
+  var yoff = tileY * 64 + 32;
+  for (var i = 0; i < 5; i++) {
+    var xv = 200*(Math.random()-0.5),
+        yv = -100+-200*Math.random(),
+        rad = 5*Math.random();
+
+    add(xoff,yoff, xv, yv, "true", rad, "#000000", 1);
+
+  }
+}
+
+/*Removes the particle at the location given and increments start until it points
+* to the first element still in the array
+*/
+function remove(loc) {
+  //particles[loc] = undefined;
+  particles.splice(loc, 1);
+  Count--;
+  /*
+  if (loc == start) {
+    while (typeof(particles[start]) !== "undefined")
+      start++;
+  }
+  */
+}
+
+/* Updates the particle at the current location
+*/
+function updateCurrent(i, elapsedTime) {
+  particles[i].lifeLeft -= elapsedTime;
+  if (particles[i].lifeLeft <= 0) {
+    remove(i);
+  }
+  else {
+    if (particles[i].gravity == "true") {
+      particles[i].xPos += elapsedTime * particles[i].velocityX;
+      if(particles[i].velocityY < TERMINAL_VELOCITY) {
+        particles[i].velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+      }
+      particles[i].yPos += particles[i].velocityY * elapsedTime;
+    }
+    else {
+      particles[i].xPos += elapsedTime * particles[i].velocityX;
+      particles[i].yPos += elapsedTime * particles[i].velocityY;
+    }
+  }
+}
+
+/* Updates all particles
+*/
+function update(elapsedTime){
+  for (var i = 0; i < MAX_PARTICLES; i++) {
+    if (typeof(particles[i]) !== "undefined"){
+      updateCurrent(i, elapsedTime);
+    }
+  }
+  /*
+  if (start > end) {
+    for (var i = start; start < MAX_PARTICLES; i++) {
+      if (typeof(particles[i]) !== "undefined"){
+        updateCurrent(i, elapsedTime);
+      }
+    }
+    for (var i = 0; i <=start ; i++) {
+      if (typeof(particles[i]) !== "undefined"){
+        updateCurrent(i, elapsedTime);
+      }
+    }
+  }
+  else {
+    for (var i = start; i < end; i++) {
+      if (typeof(particles[i]) !== "undefined"){
+        updateCurrent(i, elapsedTime);
+      }
+    }
+  }*/
+}
+
+/* Draws particle at the index on the current contextual
+*/
+function renderCurrent(index, ctx) {
+  ctx.beginPath();
+  ctx.arc(particles[index].xPos, particles[index].yPos, particles[index].radius, 2* Math.PI, false );
+  ctx.closePath();
+  ctx.fillStyle = particles[index].color;
+  ctx.fill();
+}
+
+/* Draws all particles on the given context
+*/
+function render(ctx) {
+  for (var i = 0; i < MAX_PARTICLES; i++) {
+    if (typeof(particles[i]) !== "undefined"){
+      renderCurrent(i, ctx);
+    }
+  }
+  /*
+  if (start > end) {
+    for (var i = start; start < MAX_PARTICLES; i++) {
+      if (typeof(particles[i]) !== "undefined"){
+        renderCurrent(i, ctx);
+      }
+    }
+    for (var i = 0; i <=start ; i++) {
+      if (typeof(particles[i]) !== "undefined"){
+        renderCurrent(i, ctx);
+      }
+    }
+  }
+  else {
+    for (var i = start; i < end; i++) {
+      if (typeof(particles[i]) !== "undefined"){
+        renderCurrent(i, ctx);
+      }
+    }
+  }
+  */
+}
+
+return {
+  add: add,
+  addDirtParticles: addDirtParticles,
+  addStoneParticles: addStoneParticles,
+  addDeepParticles: addDeepParticles,
+  remove: remove,
+  update: update,
+  render: render
+};
+
+}());
+
+},{}],29:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -4930,15 +5189,12 @@ module.exports = (function() {
 module.exports = (function() {
   var Entity = require('./entity.js'),
     Animation = require('./animation.js');
-	
-	/*Audio sources*/	
-    jump_sound = new Audio('resources/sounds/jumping_sound.mp3');
+
+	/*Audio sources*/
+    jump_sound = new Audio('resources/sounds/jumping_sound.wav');
 	dig_sound = new Audio('resources/sounds/digging_sound.mp3');
 	walk_sound = new Audio('resources/sounds/walking_sound.mp3');
-	//fallGround_sound = new Audio ('resources/sounds/fallToGround.wav');
-	
-	//Dwarf sound responses
-	dwarf_sound = new Audio('resources/sounds/dwarfSound.mp3');
+	throw_sound = new Audio('resources/sounds/throwing_sound.mp3');
 
     Animation = require('./animation.js'),
     Pickaxe = require('./Pickaxe.js'),
@@ -4980,8 +5236,8 @@ module.exports = (function() {
 
   var ratLeft = new Image();
   ratLeft.src = "img/ratLeft2.png";
-  
-  
+
+
 
   //The Player constructor
   function Player(locationX, locationY, layerIndex, inputManager) {
@@ -5007,10 +5263,11 @@ module.exports = (function() {
 	this.type = "player";
 	this.superPickaxe = false;
 	this.superAxeImg = new Image();
-	this.superAxeImg.src = "./img/powerUps/pick.png";	
+	this.superAxeImg.src = "./img/powerUps/pick.png";
 	this.boneImg = new Image();
 	this.boneImg.src = "./img/BoneLeft.png";
-	
+    this.stoneShield = false;
+
 	// bone powerup
 	this.attackFrequency = 1;
 	this.lastAttack = 0;
@@ -5097,7 +5354,7 @@ module.exports = (function() {
    * - tilemap, the tilemap that corresponds to
    *   the current game world.
    */
-  Player.prototype.update = function(elapsedTime, tilemap, entityManager) {
+  Player.prototype.update = function(elapsedTime, tilemap, entityManager, ParticleManager) {
     var sprite = this;
 	sprite.entityManager = entityManager;
     // The "with" keyword allows us to change the
@@ -5108,65 +5365,59 @@ module.exports = (function() {
       // Process player state
       switch (sprite.state) {
         case STANDING:
-        case WALKING:	
+        case WALKING:
           // If there is no ground underneath, fall
-          if (!sprite.onGround(tilemap)) {			  
+          if (!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
             sprite.velocityY = 0;
           } else {
             if (isKeyDown(commands.DIGDOWN)) {
-			  dig_sound.play();				
+			  dig_sound.play();
               this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true);
               sprite.state = DIGGING;
               sprite.digState = DOWN_DIGGING;
             } else if(isKeyDown(commands.DIGLEFT)) {
-			  dig_sound.play();				
+			  dig_sound.play();
               this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = LEFT_DIGGING;
               sprite.isLeft = true;
             } else if(isKeyDown(commands.DIGRIGHT)) {
-			  dig_sound.play();				
+			  dig_sound.play();
               this.pick = new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 });
               sprite.state = DIGGING;
               sprite.digState = RIGHT_DIGGING;
               sprite.isLeft = false;
-            } else if(isKeyDown(commands.DIGUP)) {				
-			  dig_sound.play();				
+            } else if(isKeyDown(commands.DIGUP)) {
+			  dig_sound.play();
                 this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY }, true);
               sprite.state = DIGGING;
               sprite.digState = UP_DIGGING;
             } else if (isKeyDown(commands.UP)) {
-				
+
 			  /* Added sound effect for jumping */
 			  jump_sound.play();
-				
+
               sprite.state = JUMPING;
               sprite.velocityY = JUMP_VELOCITY;
             } else if (isKeyDown(commands.LEFT)) {
 			  /*Added walking sound*/
 			  walk_sound.play();
-			  
-			  dwarf_sound.play();
-		  
               sprite.isLeft = true;
               sprite.state = WALKING;
               sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
             }
             else if(isKeyDown(commands.RIGHT)) {
-				
+
 			  /* Added walking sound */
 			  walk_sound.play();
-		  
+
               sprite.isLeft = false;
               sprite.state = WALKING;
               sprite.moveRight(elapsedTime * this.SPEED, tilemap);
             }
             else {
               sprite.state = STANDING;
-			  /* Added fall to the ground sound 
-			  fallGround_sound.loop = false;
-			  fallGround_sound.play();*/
             }
 
             if(sprite.state == DIGGING) {
@@ -5218,10 +5469,13 @@ module.exports = (function() {
                   var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
                   if (layerType == 0) {
                     tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
+                    ParticleManager.addDirtParticles(tileX, tileY);
                   } else if (layerType == 1) {
                     tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
+                    ParticleManager.addStoneParticles(tileX, tileY);
                   } else if (layerType == 2) {
                     tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
+                    ParticleManager.addDeepParticles(tileX, tileY);
                   }
 
                   /* setup the callback for when the animation is complete */
@@ -5280,16 +5534,16 @@ module.exports = (function() {
         case SWIMMING:
           // NOT IMPLEMENTED YET
       }
-		
+
 		// countdown to next bone projectile
 	  	if(this.lastAttack <= this.attackFrequency){
 			this.lastAttack += elapsedTime;
 		}
-	
+
 		if (isKeyDown(commands.SHOOT)) {
             this.shoot();
          }
-		  
+
       // Swap input buffers
       swapBuffers();
     }
@@ -5439,29 +5693,33 @@ module.exports = (function() {
 	 It should eventually delete the power up from the game
   */
   Player.prototype.poweredUp = function(powerUp) {
-	  
+
 	  console.log("Picked up power up: " + powerUp.type);
-	  
+
 	  if (powerUp.type == 'boneUp') {
 		  this.bones++;
 	  } else if (powerUp.type == 'coin') {
 		  // add points
-	  
+
 	  } else if (powerUp.type == 'crystal') {
 		  // add points
-		  
+
 	  } else if (powerUp.type == 'pick') {
-		  
+
 		  console.log("super pickaxe activated");
 		  this.superPickaxe = true;
-	  }
-	  
+
+      } else if (powerUp.type == 'stone-shield') {
+          this.stoneShield = true;
+      }
+
+
 	  if(powerUp.effectDuration < 0){//if power up lasts 4ever
 		   this.entityManager.remove(powerUp);
 	  }
-	 
+
   }
-  
+
   /*
      This method gets called when a power up effect vanishes
   */
@@ -5471,21 +5729,25 @@ module.exports = (function() {
 		  console.log("super pickaxe expired");
 		  this.superPickaxe = false;
 		  this.entityManager.remove(powerUp);
-	  }
-	 
+
+	  } else if (powerUp.type == 'stone-shield') {
+          this.stoneShield = false;
+      }
   }
-  
+
   	/*
-		Bone projectile powerup	
+		Bone projectile powerup
 	*/
    Player.prototype.shoot = function(){
 		if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
+			//Added sound for throwing bone
+			throw_sound.play();
 			var bone = new Bone(this.currentX, this.currentY, 0, this.isLeft, this);
 			this.entityManager.add(bone);
 			this.bones--;
 			this.lastAttack = 0;
-		}		   
-   } 
+		}
+   }
 
   /* Player Render Function
    * arguments:
@@ -5513,7 +5775,7 @@ module.exports = (function() {
         64,
         64);
 	}
-	
+
 		ctx.drawImage(
         this.boneImg,
         0,
@@ -5527,7 +5789,7 @@ module.exports = (function() {
 		ctx.font = "20pt Calibri";
 		ctx.fillText("x"+this.bones, this.currentX + 445, this.currentY - 300);
 
-	
+
     if (debug) renderDebug(this, ctx);
   }
 
@@ -5586,7 +5848,7 @@ module.exports = (function() {
 
 }());
 
-},{"./Bone.js":1,"./Pickaxe.js":4,"./animation.js":5,"./entity.js":17}],29:[function(require,module,exports){
+},{"./Bone.js":1,"./Pickaxe.js":4,"./animation.js":5,"./entity.js":17}],30:[function(require,module,exports){
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Entity = require('./entity.js'),
@@ -5747,6 +6009,7 @@ module.exports = (function(){
 	return PowerUp;
 
 }())
+<<<<<<< HEAD
 },{"./animation.js":5,"./entity-manager.js":16,"./entity.js":17,"./player.js":28}],30:[function(require,module,exports){
 /* Enemy module
  * Authors:
@@ -7986,11 +8249,2340 @@ module.exports = (function (){
     getCameraPosition: getCameraPosition,
     mineAt: mineAt
   }
+=======
+},{"./animation.js":5,"./entity-manager.js":16,"./entity.js":17,"./player.js":29}],31:[function(require,module,exports){
+/* Enemy module
+ * Authors:
+ * Kien Le
+ */
+module.exports = (function(){
+  var Entity = require('./entity.js'),
+      Animation = require('./animation.js');
+
+  /* The following are enemy States */
+  const STANDING = 0;
+  const WALKING = 1;
+  const FALLING = 2;
+  const ATTACKING = 3;
+
+  // The Sprite Size
+  const SIZE = 64;
+
+  // Movement constants
+  const SPEED = 100;
+  const GRAVITY = -250;
+  const JUMP_VELOCITY = -600;
+
+  var ratIdleRight = new Image();
+  ratIdleRight.src = 'img/ratIdleRight.png';
+
+  var ratIdleLeft = new Image();
+  ratIdleLeft.src = 'img/ratIdleLeft.png';
+
+  var ratRight = new Image();
+  ratRight.src = 'img/ratRight2.png';
+
+  var ratLeft = new Image();
+  ratLeft.src = "img/ratLeft2.png";
+
+  //The enemy constructor
+  function Rat(locationX, locationY, layerIndex)
+  {
+    this.state = WALKING;
+    this.layerIndex = layerIndex;
+    this.currentX = locationX;
+    this.currentY = locationY;
+    this.nextX = 0;
+    this.nextY = 0;
+    this.currentTileIndex = 0;
+    this.nextTileIndex = 0;
+    this.constSpeed = 15;
+    this.gravity = .5;
+    this.angle = 0;
+    this.xSpeed = 10;
+    this.ySpeed = 15;
+    this.isLeft = false;
+	this.type = "rat";
+
+    //The animations
+    this.animations = {
+      left: [],
+      right: [],
+    }
+
+    //The right-facing animations
+    this.animations.right[STANDING] = new Animation(ratIdleRight, SIZE, SIZE, SIZE*2, SIZE);
+    this.animations.right[WALKING] = new Animation(ratRight, SIZE, SIZE, 0, 0, 8);
+    this.animations.right[FALLING] = new Animation(ratIdleRight, SIZE, SIZE, 0, 0, 8);
+	this.animations.right[ATTACKING] = new Animation(ratRight, SIZE, SIZE, 0, 0, 8);
+
+    //The left-facing animations
+    this.animations.left[STANDING] = new Animation(ratIdleLeft, SIZE, SIZE, SIZE*2, SIZE);
+    this.animations.left[WALKING] = new Animation(ratLeft, SIZE, SIZE, 0, 0, 8);
+    this.animations.left[FALLING] = new Animation(ratIdleLeft, SIZE, SIZE, 0, 0, 8);
+	this.animations.left[ATTACKING] = new Animation(ratLeft, SIZE, SIZE, 0, 0, 8);
+  }
+
+  // Player inherits from Entity
+  Rat.prototype = new Entity();
+
+  // Determines if the player is on the ground
+  Rat.prototype.onGround = function(tilemap)
+  {
+    var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (SIZE/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+  }
+
+  Rat.prototype.checkLeft = function(tilemap)
+  {
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.left/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    return (tile && tile.data.solid) ? true : false;
+  }
+
+  Rat.prototype.checkRight = function(tilemap)
+  {
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.right/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    return (tile && tile.data.solid) ? true : false;
+  }
+
+  // Moves the enemy to the left, colliding with solid tiles
+  Rat.prototype.moveLeft = function(distance, tilemap)
+  {
+    this.currentX -= distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.left/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
+  }
+
+  // Moves the enemy to the right, colliding with solid tiles
+  Rat.prototype.moveRight = function(distance, tilemap)
+  {
+    this.currentX += distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.right/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+  }
+
+  /* Enemy update function
+   * arguments:
+   * - elapsedTime, the time that has passed
+   *   between this and the last frame.
+   * - tilemap, the tilemap that corresponds to
+   *   the current game world.
+   */
+  Rat.prototype.update = function(elapsedTime, tilemap) {
+    var sprite = this;
+
+      // Process enemy state
+      switch(sprite.state) {
+        case STANDING:
+        case WALKING:
+          // If there is no ground underneath, fall
+          if(!sprite.onGround(tilemap))
+		  {
+            sprite.state = FALLING;
+            sprite.velocityY = 0;
+          }
+		  else
+		  {
+            if(sprite.onGround(tilemap) && sprite.checkLeft(tilemap))
+			{
+              sprite.isLeft = false;
+              sprite.state = WALKING;
+              sprite.moveRight(elapsedTime * SPEED, tilemap);
+            }
+            else if(sprite.onGround(tilemap) && sprite.checkRight(tilemap))
+			{
+              sprite.isLeft = true;
+              sprite.state = WALKING;
+              sprite.moveLeft(elapsedTime * SPEED, tilemap);
+            }
+            else
+			{
+              sprite.state = STANDING;
+            }
+          }
+          break;
+        case FALLING:
+          sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          sprite.currentY += sprite.velocityY * elapsedTime;
+          if(sprite.onGround(tilemap)) {
+            sprite.state = STANDING;
+            sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+          }
+          break;
+        //case SWIMMING:
+          // NOT IMPLEMENTED YET
+		case ATTACKING:
+		  sprite.state = STANDING;
+		  //TODO: attack player
+      }
+
+    // Update animation
+    if(this.isLeft)
+      this.animations.left[this.state].update(elapsedTime);
+    else
+      this.animations.right[this.state].update(elapsedTime);
+
+  }
+
+  /* Enemy Render Function
+   * arguments:
+   * - ctx, the rendering context
+   * - debug, a flag that indicates turning on
+   * visual debugging
+   */
+  Rat.prototype.render = function(ctx, debug) {
+    // Draw the enemy (and the correct animation)
+    if(this.isLeft)
+      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
+    else
+      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
+
+    if(debug) renderDebug(this, ctx);
+  }
+
+  // Draw debugging visual elements
+  function renderDebug(player, ctx) {
+    var bounds = player.boundingBox();
+    ctx.save();
+
+    // Draw player bounding box
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Outline tile underfoot
+    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.moveTo(tileX, tileY);
+    ctx.lineTo(tileX + 64, tileY);
+    ctx.lineTo(tileX + 64, tileY + 64);
+    ctx.lineTo(tileX, tileY + 64);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+   }
+
+   Rat.prototype.collide = function (otherEntity)
+   {
+        if (otherEntity.type != "player") {
+            if (this.onGround(tilemap)) {
+                this.state = ATTACKING;
+            }
+        }
+    };
+
+  Rat.prototype.boundingBox = function()
+  {
+    return {
+      left: this.currentX,
+      top: this.currentY,
+      right: this.currentX + SIZE,
+      bottom: this.currentY + SIZE
+    }
+  }
+
+  Rat.prototype.boundingCircle = function ()
+  {
+        return {
+            cx: this.currentX + SIZE / 2,
+            cy: this.currentY + SIZE / 2,
+            radius: SIZE / 2
+        }
+    };
+
+  return Rat;
+
+}());
+>>>>>>> origin/master
+
+},{"./animation.js":5,"./entity.js":17}],32:[function(require,module,exports){
+/* Entity: Robo-Killer module
+ * Implements the entity pattern, provides specific robo-killer constructs.
+ *
+ * Author: Christian Hughes
+ *
+ * Image labled for reuse. Source: http://4.bp.blogspot.com/-iu9fsSz_L5I/T9X-dz3AFhI/AAAAAAAAAfQ/bG6hvI_eKzo/s1600/robotboy.png
+ */
+module.exports = (function() {
+  var Entity = require('./entity.js'),
+  Animation = require('./animation.js');
+
+  // States for the robo-killer
+  const PATROLING = 0;
+  const ATTACKING = 1;
+  const IDLE = 2;
+  const FALLING = 3;
+
+  // The sprite size (It's a square 64 pixels x 64 pixels)
+  const SIZE = 64;
+
+  // Movement constants, which are in line with that of the player (player.js)
+  const SPEED = 150;
+  const GRAVITY = -250;
+  const JUMP_VELOCITY = -600;
+
+  // The right walking robo-killer spritesheet
+  var roboKillerWalkRight = new Image();
+  roboKillerWalkRight.src = './img/robo-killer_walk_right.png';
+
+  // The left walking robo-killer spritesheet
+  var roboKillerWalkLeft = new Image();
+  roboKillerWalkLeft.src = "./img/robo-killer_walk_left.png";
+
+  // The right attacking robo-killer spritesheet
+  var roboKillerAttackRight = new Image();
+  roboKillerAttackRight.src = "./img/robo-killer_attack_right.png";
+
+  // The left attacking robo-killer spritesheet
+  var roboKillerAttackLeft = new Image();
+  roboKillerAttackLeft.src = "./img/robo-killer_attack_left.png";
+
+
+  // Constructor for the robo-killer enemy. It inherits from entity (entity.js).
+  function Robo_Killer(locationX, locationY, layerIndex){
+    // Establish entity type.
+    this.type = "robo-killer";
+
+    // Establish visual layer.
+    this.layerIndex = layerIndex;
+
+    // Establish current position.
+    this.currentX = locationX;
+    this.currentY = locationY;
+
+    this.state  = PATROLING; // The default state is patrolling. Set the state accordingly.
+    this.isLeft = false; // The robo-killer begins facing to the right.
+
+    this.patrolDirectionCounter = 0; // A counter denoting how long the robo-killer should patrol in one direction. 0-100 by deafault.
+    this.attackCounter = 0; // Determines how long the robo-killer will attack for upon seeing the player. 0-10 by default.
+
+
+    // Create an animations property, with arrays for each direction of animations.
+    this.animations = {
+      left: [],
+      right: []
+    };
+
+    // The right-facing animations.
+    this.animations.right[PATROLING] = new Animation(roboKillerWalkRight, SIZE, SIZE, 0, 0, 3, .2);
+    this.animations.right[ATTACKING] = new Animation(roboKillerAttackRight, SIZE, SIZE, 0, 0, 3, .2);
+    this.animations.right[IDLE] = new Animation(roboKillerWalkRight, SIZE, SIZE, 0, 0, 1);
+    this.animations.right[FALLING] = new Animation(roboKillerWalkRight, SIZE, SIZE, 0, 0, 1);
+
+    //The left-facing animations
+    this.animations.left[PATROLING] = new Animation(roboKillerWalkLeft, SIZE, SIZE, 0, 0, 3, .2);
+    this.animations.left[ATTACKING] = new Animation(roboKillerAttackLeft, SIZE, SIZE, 0, 0, 3, .2);
+    this.animations.left[IDLE] = new Animation(roboKillerWalkLeft, SIZE, SIZE, 0, 0, 1);
+    this.animations.left[FALLING] = new Animation(roboKillerWalkLeft, SIZE, SIZE, 0, 0, 1);
+
+  }
+  // Robo-Killer inherits from Entity
+  Robo_Killer.prototype = new Entity();
+
+  /* Update function for Robo_Killer
+   *
+   * The robot patrols a fixed distance. He will attack the player if the player comes near.
+   * He will fall off ledges, and contine patrolling upon landing on solid ground.
+   */
+  Robo_Killer.prototype.update = function(elapsedTime, tilemap, entityManager) {
+      // Determins what the robo-killer will do.
+      var sprite = this;
+
+      switch (sprite.state)
+      {
+          case PATROLING:
+            // If there is no ground underneath, fall down.
+            if(!sprite.onGround(tilemap))
+            {
+              sprite.state = FALLING;
+              sprite.velocityY = 0;
+            }
+            else // Otherwise, begin the patrolling sequence.
+            {
+              if(sprite.isLeft) // Patrols to the left for a specified period.
+              {
+                sprite.moveLeft(elapsedTime * SPEED, tilemap);
+                sprite.patrolDirectionCounter++;
+                if (sprite.patrolDirectionCounter === 100)
+                {
+                  sprite.patrolDirectionCounter = 0;
+                  sprite.isLeft = false;
+                }
+              }
+              else // Patrols to the right for a specified duration.
+              {
+                sprite.moveRight(elapsedTime * SPEED, tilemap);
+                sprite.patrolDirectionCounter++;
+                if (sprite.patrolDirectionCounter === 100)
+                {
+                  sprite.patrolDirectionCounter = 0;
+                  sprite.isLeft = true;
+                }
+              }
+            }
+            break;
+          case ATTACKING:
+            // Trigger attack animation upon contact with the Player.
+            // Possibly implement some sort of damage later on.
+            sprite.attackCounter++;
+            if (sprite.attackCounter === 20)
+            {
+              sprite.attackCounter = 0;
+              sprite.state = PATROLING;
+            }
+            break;
+          // I may implement an idle state later. For the time being, the entity will simply attack the player if the player ends up in the patrol zone.
+          // In my opinion, the lack of idle behavior may be more fitting
+          // case IDLE: // Goes to idle state if the robo-killer loses site of the player. He will stay there for several seconds.
+          //   // If he sees the player, he will chase after them.
+          //
+          //   // Otherwise he will return back to patrolling.
+          //
+          //   break;
+          case FALLING: // Fall down at an accelerating speed until solid ground is hit. He will fall straight down, then continue to patrol at the landing zone.
+            sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+            sprite.currentY += sprite.velocityY * elapsedTime;
+            if (sprite.onGround(tilemap))
+            {
+              sprite.state = PATROLING;
+              sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+            }
+            break;
+      };
+
+      // Update animation each time the update() function runs.
+      if(this.isLeft)
+      {
+        this.animations.left[this.state].update(elapsedTime);
+      }
+      else
+      {
+        this.animations.right[this.state].update(elapsedTime);
+      }
+  }
+
+  /* Render function
+   *
+   * Renders the character based on state (direction facing/if debugging is enabled).
+   *
+   * params:
+   * context - The context from the canvas being drawn to.
+   * debug - A binary flag denoting whether debug mode is on (draws bounding box around Robo-Killer).
+   */
+   Robo_Killer.prototype.render = function(context, debug) {
+     // Draw the Robo-Killer (and the correct animation).
+     if (this.isLeft)
+     {
+       this.animations.left[this.state].render(context, this.currentX, this.currentY);
+     }
+     else
+     {
+       this.animations.right[this.state].render(context, this.currentX, this.currentY);
+     }
+
+     if (debug)
+     {
+       renderDebug(this, context);
+     }
+   };
+
+   // Draws debugging visual elements. Same method used in player.js.
+   function renderDebug(robo_killer, ctx) {
+     var bounds = robo_killer.boundingBox();
+     ctx.save();
+
+     // Draw player bounding box
+     ctx.strokeStyle = "red";
+     ctx.beginPath();
+     ctx.moveTo(bounds.left, bounds.top);
+     ctx.lineTo(bounds.right, bounds.top);
+     ctx.lineTo(bounds.right, bounds.bottom);
+     ctx.lineTo(bounds.left, bounds.bottom);
+     ctx.closePath();
+     ctx.stroke();
+
+     // Outline tile underneath the robo-killer.
+     var tileX = 64 * Math.floor((bounds.left + (SIZE / 2)) / 64),
+       tileY = 64 * (Math.floor(bounds.bottom / 64));
+     ctx.strokeStyle = "black";
+     ctx.beginPath();
+     ctx.moveTo(tileX, tileY);
+     ctx.lineTo(tileX + 64, tileY);
+     ctx.lineTo(tileX + 64, tileY + 64);
+     ctx.lineTo(tileX, tileY + 64);
+     ctx.closePath();
+     ctx.stroke();
+
+     ctx.restore();
+   }
+
+   // Determines if the robo killer is on the ground (method copied from player.js).
+   Robo_Killer.prototype.onGround = function(tilemap) {
+     var box = this.boundingBox(),
+       tileX = Math.floor((box.left + (SIZE / 2)) / 64),
+       tileY = Math.floor(box.bottom / 64),
+       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+     // find the tile we are standing on.
+     return (tile && tile.data.solid) ? true : false;
+   };
+
+   // Moves the robo-killer to the left, colliding with solid tiles (method copied from player.js).
+   Robo_Killer.prototype.moveLeft = function(distance, tilemap) {
+     this.currentX -= distance;
+     var box = this.boundingBox(),
+       tileX = Math.floor(box.left / 64),
+       tileY = Math.floor(box.bottom / 64) - 1,
+       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+     if (tile && tile.data.solid)
+       this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
+   };
+
+   // Moves the robo-killer to the right, colliding with solid tiles (method copied from player.js).
+   Robo_Killer.prototype.moveRight = function(distance, tilemap) {
+     this.currentX += distance;
+     var box = this.boundingBox(),
+       tileX = Math.floor(box.right / 64),
+       tileY = Math.floor(box.bottom / 64) - 1,
+       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+     if (tile && tile.data.solid)
+       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+   };
+
+   /* Collide function
+    *
+    * This robot hates slime. He will telport away from the slime as soon as contact is made.
+    *
+    * params:
+    * otherEntity - The entity being colided with.
+    */
+   Robo_Killer.prototype.collide = function(otherEntity) {
+     // The robo-killer is terrifed of slime. He will teleport in the opposite direction upon touching the slime.
+     if (otherEntity.type == "Slime")
+     {
+       if (this.isLeft)
+       {
+         // If hit from the left, teleport to the right.
+         this.CurrentX += SIZE * 3;
+       }
+       else
+       {
+         //If hit from the right, teleport to the left.
+         this.CurrentX -= SIZE * 3;
+       }
+     }
+     else if (otherEntity.type == "player") // If we touch the player, begin attacking.
+     {
+       this.state = ATTACKING;
+     }
+   }
+
+   /* BoundingBox function
+    *
+    * Returns a bounding box (which is 64 x 64 pixels) denoting the bounds
+    * of the Robo-Killer.
+    */
+   Robo_Killer.prototype.boundingBox = function() {
+     // Return a bounding box for Robo-Killer
+     return {
+       left: this.currentX,
+       top: this.currentY,
+       right: this.currentX + SIZE,
+       bottom: this.currentY + SIZE
+     };
+   };
+
+   /* BoundingCircle function
+    *
+    * Returns a bouding circle that surrounds the Robo-Killer.
+    * The cirlce has a radius of 32 pixels, and a diameter of 64 pixels.
+    */
+   Robo_Killer.prototype.boundingCircle = function() {
+     // Return a bounding circle Robo-Killer
+     return {
+       cx: this.currentX + SIZE / 2,
+       cy: this.currentY + SIZE / 2,
+       radius: SIZE / 2
+     };
+   };
+
+   return Robo_Killer;
+
+}());
+
+},{"./animation.js":5,"./entity.js":17}],33:[function(require,module,exports){
+/* Score engine */
+
+module.exports = (function (){
+
+  function ScoreEngine() {
+    this.img             = new Image();
+    this.img.src         = './img/score/clear_background_yellow_num.png';
+    this.score           = 0;
+    this.tickCount       = [0, 0, 0, 0];
+    this.frameIndex      = [0, 0, 0, 0];
+    this.frameGoal       = [0, 0, 0, 0];
+    this.numFramesPerRow = 4;
+    this.numRows         = 10;
+    this.ticksPerFrame   = 9;
+
+    this.xpos            = 0;
+    this.ypos            = 0;
+    
+    this.height          = 32;
+    this.width           = 32;
+  }
+
+  ScoreEngine.prototype.addScore = function(amount) {
+    var scoreString;
+    this.score += amount;
+    if (this.score < 10)
+    {
+      scoreString = "000" + this.score.toString();
+    }
+    else if (this.score < 100)
+    {
+      scoreString = "00" + this.score.toString();
+    }
+    else if (this.score < 1000)
+    {
+      scoreString = "0" + this.score.toString();
+    }
+    else
+    {
+      scoreString = this.score.toString();
+    }
+    for (var i = 0; i < scoreString.length; i++)
+    {
+      var temp = parseInt(scoreString[i]);
+      this.frameGoal[i] = temp * 4;
+    }
+  };
+
+  ScoreEngine.prototype.getScore = function() {
+    return this.score;
+  };
+
+  ScoreEngine.prototype.subScore = function(amount) {
+    this.score -= amount;
+    if (this.score < 0)
+    {
+      this.score = 0;
+    }
+  };
+
+  ScoreEngine.prototype.scoreToZero = function() {
+    this.score = 0;
+    for (var i = 0; i < this.frameGoal.length; i++)
+    {
+      this.frameGoal[i] = 0;
+    }
+  };
+
+  ScoreEngine.prototype.update = function()
+  {
+    this.updatePosition();
+    this.updateAnimation();
+  }
+
+  ScoreEngine.prototype.setPositionFunction = function(func) {
+    this.positionFunction = func;
+  }
+
+  ScoreEngine.prototype.render = function(context)
+  {
+    //console.log("Score Render");
+    for (var i = 0; i < this.frameIndex.length; i++)
+    {
+      var sx = (this.frameIndex[i] % this.numFramesPerRow) * this.width;
+      var sy = Math.floor(this.frameIndex[i] / this.numFramesPerRow) * this.height;
+      context.drawImage(
+        this.img,
+        sx,
+        sy,
+        this.width,
+        this.height,
+        this.xpos + (32 * i),
+        this.ypos,
+        this.width,
+        this.height
+      );
+    }
+  }
+
+  ScoreEngine.prototype.updatePosition = function() {
+    if (this.positionFunction)
+    {
+      var pos = this.positionFunction();
+      this.xpos = pos[0];
+      this.ypos = pos[1];
+    }
+  };
+
+  /**
+   * Parameters:
+   *     forward - true is forward, false is backward
+   */
+  ScoreEngine.prototype.updateAnimation = function(forward)
+  {
+    for (var i = 0; i < this.frameGoal.length; i++)
+    {
+      if (this.frameIndex[i] != this.frameGoal[i])
+      {
+        this.tickCount[i] += 1;
+        if (this.tickCount[i] > this.ticksPerFrame)
+        {
+          this.tickCount[i] = 0;
+          if (this.frameIndex[i] < 39)
+          {
+            this.frameIndex[i] += 1;
+          }
+          else
+          {
+            this.frameIndex[i] = 0;
+          }
+          // if (forward)
+          // {
+            
+          // }
+          // else // backward
+          // {
+          //   if (this.frameIndex[i] > 0)
+          //   {
+          //     this.frameIndex[i] -= 1;
+          //   }
+          //   else
+          //   {
+          //     this.frameIndex[i] = 39;
+          //   }
+          // }
+        }
+      }
+    }
+  }
+
+  return ScoreEngine;
+
+})();
+
+},{}],34:[function(require,module,exports){
+/* Base class for all game entities,
+ * implemented as a common JS module
+ * Authors:
+ * - Austin Boerger
+ * - Nathan Bean 
+ */
+module.exports = (function(){
+  var Entity = require('./entity.js'),
+	  Animation = require('./animation.js');
+	  
+  // SLime States
+  const IDLE = 0;
+  const MOVING = 1;
+  const FALLING = 2;
+  
+   const SPEED = 90;
+   const GRAVITY = -250;
+   const JUMP_VELOCITY = -600;
+   const IDLE_COUNT = 50;
+  
+  // Slime Size
+  const SIZE = 64;
+  
+  // Slime Sprite
+  var slimage = new Image();
+  slimage.src = 'img/slime.png';
+  
+  /* Constructor
+   * Generally speaking, you'll want to set
+   * the X and Y position, as well as the layerX
+   * of the map the entity is located on
+   */
+  function Slime(locationX, locationY, layerIndex){
+    this.type = "Slime";
+	this.currentX = locationX;
+    this.curentY = locationY;
+    this.layerIndex = layerIndex;
+	this.state = MOVING;
+	this.score = 100;
+	
+	this.animations = {
+		left: [],
+		right: []
+	}
+	
+	//Slime Moving Left
+	this.animations.left[MOVING] = new Animation(slimage, SIZE, SIZE, 0, SIZE, 3);
+	
+	//Slime Moving Right
+	this.animations.right[MOVING] = new Animation(slimage, SIZE, SIZE, 0, SIZE*2, 3);
+	
+	//Slime Idling
+	this.animations.left[IDLE] = new Animation(slimage, SIZE, SIZE, 0, 0, 3);
+	this.animations.right[IDLE] = new Animation(slimage, SIZE, SIZE, 0, 0, 3);
+	
+	//Slime falling
+	this.animations.left[FALLING] = new Animation(slimage, SIZE, SIZE, 0, 0, 3);
+	this.animations.right[FALLING] = new Animation(slimage, SIZE, SIZE, 0, 0, 3);
+  }
+  
+  Slime.prototype = new Entity();
+  
+  
+  // Determines if the Slime is on the ground
+  Slime.prototype.onGround = function(tilemap) {
+    var box = this.boundingBox(),
+      tileX = Math.floor((box.left + (SIZE / 2)) / 64),
+      tileY = Math.floor(box.bottom / 64),
+      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+  };
+  
+  // Moves the Slime to the left, colliding with solid tiles
+  Slime.prototype.moveLeft = function(distance, tilemap) {
+    this.currentX -= distance;
+    var box = this.boundingBox(),
+      tileX = Math.floor(box.left / 64),
+      tileY = Math.floor(box.bottom / 64) - 1,
+      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid){
+      this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
+	  return true;
+	}
+	return false;
+  };
+
+  // Moves the Slime to the right, colliding with solid tiles
+  Slime.prototype.moveRight = function(distance, tilemap) {
+    this.currentX += distance;
+    var box = this.boundingBox(),
+      tileX = Math.floor(box.right / 64),
+      tileY = Math.floor(box.bottom / 64) - 1,
+      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid){
+      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+  	  return true;
+	}
+	return false;
+  };
+  
+  /* Update function
+   * parameters:
+   * - elapsedTime is the time that has passed since the
+   *   previous frame 
+   * - tilemap is the currently loaded tilemap; you'll 
+   *   probably want to call its tileAt and setTile methods.
+   * - entityManager is the game's entity manager, and
+   *   keeps track of where all game entities are.
+   *   you can call its query functions
+   */
+  Slime.prototype.update = function(elapsedTime, tilemap, entityManager) {
+      // TODO: Determine what your entity will do
+	  var sprite = this;
+	  var i = 0;
+	  switch(sprite.state){
+		case IDLE:
+		  if(sprite.onGround(tilemap)){
+			  if(i < IDLE_COUNT){
+				i++;}
+			  else{
+				  sprite.state = MOVING;
+			  }
+		  }else{
+			  sprite.state = FALLING;
+			  sprite.velocityY = 0;
+		  }
+		  break;
+		case MOVING:
+			if(!sprite.onGround(tilemap)){
+				sprite.state = FALLING;
+				sprite.velocityY = 0;
+			  }else{
+				if(sprite.isLeft){
+				  sprite.moveLeft(elapsedTime * SPEED, tilemap);
+				}else{
+				  sprite.moveRight(elapsedTime * SPEED, tilemap);
+				}  
+			  }
+		case FALLING:
+		  sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+          sprite.currentY += sprite.velocityY * elapsedTime;
+          if(sprite.onGround(tilemap)) {
+            sprite.state = IDLE;
+            sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+		  }
+		  break;
+	  }
+	  
+	  // Update Slimation
+	  if(sprite.isLeft)
+		sprite.animations.left[sprite.state].update(elapsedTime);
+	  else
+		sprite.animations.right[sprite.state].update(elapsedTime);
+  }
+  
+  /* Render function
+   * parameters:
+   *  - context is the rendering context.  It may be transformed
+   *    to account for the camera 
+   */
+   Slime.prototype.render = function(ctx, debug) {
+     // TODO: Draw your entity sprite
+	 if(this.isLeft)
+      this.animations.left[MOVING].render(ctx, this.currentX, this.currentY);
+    else
+      this.animations.right[MOVING].render(ctx, this.currentX, this.currentY);
+  
+	 if(debug) renderDebug(this, ctx);
+   }
+   
+   // Draw debugging visual elements
+  function renderDebug(Slime, ctx) {
+    var bounds = Slime.boundingBox();
+    ctx.save();
+
+    // Draw Slime bounding box
+    ctx.strokeStyle = "blue";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Outline tile underfoot
+    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+        tileY = 64 * (Math.floor(bounds.bottom / 64));
+    ctx.strokeStyle = "green";
+    ctx.beginPath();
+    ctx.moveTo(tileX, tileY);
+    ctx.lineTo(tileX + 64, tileY);
+    ctx.lineTo(tileX + 64, tileY + 64);
+    ctx.lineTo(tileX, tileY + 64);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+  }   
+   
+   /* Collide function
+    * This function is called by the entityManager when it determines
+    * a possible collision.
+    * parameters:
+    * - otherEntity is the entity this enemy collided with
+    *   You will likely want to use 
+    *     'otherEntity instanceof <Type>' 
+    *   to determine what type it is to know what to 
+    *   do with it.
+    */
+   Slime.prototype.collide = function(otherEntity) {
+		if(otherEntity.type = 'player'){
+			
+		}
+   }
+   
+   /* BoundingBox function
+    * This function returns an axis-aligned bounding
+    * box, i.e {top: 0, left: 0, right: 20, bottom: 50}
+    * the box should contain your entity or at least the
+    * part that can be collided with.
+    */
+   Slime.prototype.boundingBox = function() {
+     // Return a bounding box for your entity
+	 return{
+		 left: this.currentX,
+		 top: this.currentX,
+		 right: this.currentX + SIZE,
+		 bottom: this.currentY + SIZE
+	 }
+   }
+   
+   /* BoundingCircle function
+    * This function returns a bounding circle, i.e.
+    * {cx: 0, cy: 0, radius: 20}
+    * the circle should contain your entity or at 
+    * least the part that can be collided with.
+    */
+   Slime.prototype.boundingCircle = function() {
+     // Return a bounding circle for your entity
+	 return {
+		 cx: this.currentX + SIZE/2,
+		 cy: this.currentY + SIZE/2,
+		 radius: SIZE/2
+	 }
+   }
+   
+   return Slime;
+  
+}());
+},{"./animation.js":5,"./entity.js":17}],35:[function(require,module,exports){
+/* MainMenu GameState module
+ * Provides the main menu for the Diggy Hole game.
+ * Authors:
+ * - Ian Speer, Austin Boerger
+ */
+module.exports = (function (){
+  var menu = document.getElementById("splash-screen"),
+      stateManager;
+
+  /*
+   * The load() method initializes the menu 
+   * and tells the DOM to render the menu HTML
+   * parameters:
+   * - sm the state manager
+   */
+  var load = function(sm) {
+    stateManager = sm;
+    menu.style.display = "flex";
+  }
+  
+  /*
+   * The exit() method hides the menu
+   */
+  var exit = function() {
+    menu.style.display = "none";
+  }
+    
+  /* 
+   * The update() method updates the menu
+   * (in this case, a no-op)
+   */
+  var update = function() {}
+  
+  /* 
+   * The render() method renders the menu
+   * (in this case, a no-op as the menu is 
+   * HTML elements renderd by the DOM)
+   */
+  var render = function() {}
+    
+  /* 
+   * The keyDown() method handles 
+   * the key down event for the menu.
+   */
+  var keyDown = function(event) {
+    switch(event.keyCode) {
+      case 13: // ENTER
+        event.preventDefault();
+		stateManager.popState();
+        break;
+    }
+  }
+  
+  /* The keyUp() method handles the key up event */
+  function keyUp(event) {}
+  
+  return {
+    load: load,
+    exit: exit,
+    update: update,
+    render: render,
+    keyDown: keyDown,
+    keyUp: keyUp
+  }
+  
+})();
+},{}],36:[function(require,module,exports){
+/* Stone monster module
+ * Implements the entity pattern
+ * Authors:
+ * - Filip Stanek
+ */
+module.exports = (function(){
+    var Entity = require('./entity.js'),
+        Animation = require('./animation.js'),
+        Player = require('./player.js');
+
+    const SIZE = 64;
+    const GRAVITY = -250;
+    const SPEED = 50;
+
+    // StoneMonster States
+    const WAITING = 0;
+    const MOVING = 1;
+    const FALLING = 2;
+    const SMASHED = 3;
+    const STUCK = 4;
+
+    const SPRITE_WIDTH = 82;
+    const SPRITE_HEIGHT = 80;
+
+    const CLOSE_TO_PLAYER = SIZE * 4;
+    const WAIT_TIME = 3;
+
+    const TIME_TO_LIVE = 25;
+
+    function StoneMonster(locationX, locationY, layerIndex) {
+        this.type = "StoneMonster";
+        this.layerIndex = layerIndex;
+        this.currentX = locationX;
+        this.currentY = locationY;
+        this.speedY = 0;
+        this.state = MOVING;
+        this.isMovingRight = true;
+        this.bounced = false;
+        this.waitingTime = 0;
+        this.timeToLive = TIME_TO_LIVE;
+        this.renderBoundingCircle = false;
+
+        this.score = 3;
+
+        this.idle_image = new Image();
+        this.idle_image.src = 'img/stone-monster-img/stone_monster_idle.png';
+
+
+        var moving_image_left = new Image();
+        moving_image_left.src = 'img/stone-monster-img/stone-monster-moving-left.png';
+        var moving_image_right = new Image();
+        moving_image_right.src = 'img/stone-monster-img/stone-monster-moving-right.png';
+        var destroyed_image = new Image();
+        destroyed_image.src = 'img/stone-monster-img/stone_monster_destroyed.png';
+
+        this.animation_right = new Animation(moving_image_right, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
+        this.animation_left = new Animation(moving_image_left, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
+        this.animation_destroyed = new Animation(destroyed_image, SIZE, SIZE, 0, 0, 8, 0.05, true);
+    }
+
+    StoneMonster.prototype = new Entity();
+
+    StoneMonster.prototype.moveLeft = function(distance, tilemap) {
+        this.currentX -= distance;
+        var box = this.boundingBox(),
+            tileX = Math.floor(box.left/64),
+            tileY = Math.floor(box.bottom / 64) - 1,
+            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+        if (tile && tile.data.solid) {
+            this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
+            return true;
+        }
+        return false;
+    };
+
+    StoneMonster.prototype.moveRight = function(distance, tilemap) {
+        this.currentX += distance;
+        var box = this.boundingBox(),
+            tileX = Math.floor(box.right/64),
+            tileY = Math.floor(box.bottom / 64) - 1,
+            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+        if (tile && tile.data.solid) {
+            this.currentX = (Math.ceil(this.currentX / 64) - 1) * 64;
+            return true;
+        }
+        return false;
+    };
+
+    StoneMonster.prototype.move = function(elapsedTime, tilemap, entityManager){
+        var collided = false;
+        if(this.isMovingRight){
+            collided = this.moveRight(elapsedTime * SPEED, tilemap);
+        }
+        else{
+            collided = this.moveLeft(elapsedTime * SPEED, tilemap);
+        }
+        if(collided){
+            if(this.bounced){
+                this.state = STUCK;
+                return;
+            }
+            this.isMovingRight = !this.isMovingRight;
+            this.bounced = true;
+        }
+        else if(!this.bounced){
+            var player = entityManager.getPlayer();
+            if (player) {
+                if (this.currentX < player.currentX - CLOSE_TO_PLAYER) {
+                    this.isMovingRight = true;
+                }
+                else if (this.currentX > player.currentX + CLOSE_TO_PLAYER) {
+                    this.isMovingRight = false;
+                }
+                else if (this.currentY > player.currentY){
+                    this.state = WAITING;
+                }
+            }
+        }
+    };
+
+    StoneMonster.prototype.update = function(elapsedTime, tilemap, entityManager) {
+        switch (this.state) {
+            case WAITING:
+                this.waitingTime += elapsedTime;
+                if (this.waitingTime < WAIT_TIME) {
+                    break;
+                }
+                var player = entityManager.getPlayer();
+                if (player && (this.currentX <= 64*Math.floor((player.currentX - CLOSE_TO_PLAYER)/64)
+                    || this.currentX >= 64*Math.floor((player.currentX + CLOSE_TO_PLAYER)/64)
+                    || this.currentY < player.currentY )) {
+                    this.waitingTime = 0;
+                    this.state = MOVING;
+                }
+                break;
+            case MOVING:
+                if (!this.onGround(tilemap)) {
+                    this.state = FALLING;
+                    this.speedY = 0;
+                    break;
+                }
+                this.move(elapsedTime, tilemap, entityManager);
+                break;
+            case FALLING:
+                this.bounced = false;
+                this.speedY += Math.pow(GRAVITY * elapsedTime, 2);
+                this.currentY += this.speedY * elapsedTime;
+                if (this.onGround(tilemap)) {
+                    this.state = MOVING;
+                    this.currentY = 64 * Math.floor(this.currentY / 64);
+                }
+                break;
+            case SMASHED:
+                this.animation_destroyed.update(elapsedTime);
+                this.timeToLive -= elapsedTime;
+                if(this.timeToLive < 0){
+                    entityManager.remove(this);
+                }
+                break;
+            case STUCK:
+                var player = entityManager.getPlayer();
+                if (player && (this.currentX <= 64*Math.floor((player.currentX - CLOSE_TO_PLAYER)/64)
+                    || this.currentX >= 64*Math.floor((player.currentX + CLOSE_TO_PLAYER)/64)
+                    || this.currentY < player.currentY )) {
+                    this.timeToLive -= elapsedTime;
+                }
+                else{
+                    this.timeToLive = TIME_TO_LIVE;
+                }
+                if(this.timeToLive < 0){
+                    entityManager.remove(this);
+                }
+                break;
+        }
+        if (this.state == MOVING) {
+            if (this.isMovingRight) {
+                this.animation_right.update(elapsedTime);
+            }
+            else {
+                this.animation_left.update(elapsedTime);
+            }
+        }
+    };
+
+    StoneMonster.prototype.render = function(ctx, debug) {
+        if(this.state == WAITING || this.state == FALLING || this.state == STUCK) {
+            ctx.drawImage(this.idle_image, this.currentX, this.currentY);
+        }
+        else if(this.state == MOVING) {
+            if(this.isMovingRight){
+                this.animation_right.render(ctx, this.currentX - 19, this.currentY - 16);
+            }
+            else {
+                this.animation_left.render(ctx, this.currentX, this.currentY - 16);
+            }
+        }
+        else if(this.state == SMASHED){
+            this.animation_destroyed.render(ctx, this.currentX, this.currentY);
+        }
+        if(debug){
+            this.renderDebug(ctx);
+        }
+    };
+
+    StoneMonster.prototype.renderDebug = function(ctx) {
+        var bounds = this.boundingBox();
+        ctx.save();
+        ctx.strokeStyle = "purple";
+        ctx.beginPath();
+        ctx.moveTo(bounds.left, bounds.top);
+        ctx.lineTo(bounds.right, bounds.top);
+        ctx.lineTo(bounds.right, bounds.bottom);
+        ctx.lineTo(bounds.left, bounds.bottom);
+        ctx.closePath();
+        ctx.stroke();
+        if(this.renderBoundingCircle){
+            var boundingCircle = this.boundingCircle();
+            ctx.beginPath();
+            ctx.arc(boundingCircle.cx, boundingCircle.cy, boundingCircle.radius, 0, 2*Math.PI);
+            ctx.closePath();
+            ctx.stroke();
+        }
+        ctx.restore();
+    };
+
+    StoneMonster.prototype.onGround = function(tilemap) {
+        var box = this.boundingBox(),
+            tileX = Math.floor((box.left + (SIZE/3))/64),
+            tileY = Math.floor(box.bottom / 64),
+            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+        return (tile && tile.data.solid) ? true : false;
+    };
+
+    StoneMonster.prototype.boundingBox = function() {
+        return {
+            left: this.currentX,
+            top: this.currentY,
+            right: this.currentX + SIZE,
+            bottom: this.currentY + SIZE
+        }
+    };
+
+    StoneMonster.prototype.boundingCircle = function() {
+        return {
+            cx: this.currentX + SIZE/2,
+            cy: this.currentY + SIZE/2,
+            radius: Math.sqrt(2*SIZE*SIZE)/2
+        }
+    };
+
+    StoneMonster.prototype.collide = function(otherEntity){
+        if(!otherEntity || otherEntity instanceof StoneMonster){
+            return;
+        }
+        if(otherEntity instanceof Player && this.state != FALLING
+            && otherEntity.currentY + SIZE/2 <= this.currentY){
+            this.state = SMASHED;
+        }
+        var entityRect = otherEntity.boundingBox();
+        var thisRect = this.boundingBox();
+
+
+        if(entityRect.bottom > thisRect.top){
+            if(otherEntity instanceof Player) {
+                otherEntity.currentY = thisRect.top - SIZE - 2;
+                if (this.state == SMASHED) {
+                    //otherEntity.health -= DAMAGE;
+                    console.log("damage");
+                }
+            }
+        }
+        else if(entityRect.right - SIZE/3 >= thisRect.left){
+            otherEntity.currentX -= (entityRect.right - thisRect.left);
+        }
+        else if(entityRect.left - SIZE/3 <= thisRect.right){
+            console.log(thisRect.right - entityRect.left);
+            otherEntity.currentX = this.currentX + SIZE + 2;
+        }
+    };
+
+    return StoneMonster;
+}());
+
+},{"./animation.js":5,"./entity.js":17,"./player.js":29}],37:[function(require,module,exports){
+/**
+ * Created by Administrator on 11/12/15.
+ */
+/**
+ * Created by Administrator on 11/12/15.
+ */
+/**
+ * Created by Administrator on 11/7/15.
+ * Author Uzzi Emuchay
+ * Animation for sudo-chan monster
+ */
+module.exports = (function() {
+
+    function Sudo_Animation(image, width, height, top, left, numberOfFrames,secondsPerFrame) {
+        this.frameIndex = 0,
+            this.time = 0,
+            this.secondsPerFrame = secondsPerFrame || (1/16),
+            this.numberOfFrames = numberOfFrames || 0;
+
+
+        this.width = width;
+        this.height = height;
+        this.image = image;
+
+        this.drawLocationX = top || 0;
+        this.drawLocationY = left || 0;
+    }
+
+    Sudo_Animation.prototype.setStats = function(frameCount, locationX, locationY){
+        this.numberOfFrames = frameCount;
+        this.drawLocationY = locationY;
+        this.drawLocationX = locationX;
+        console.log("I am called");
+    };
+
+    Sudo_Animation.prototype.update = function (elapsedTime, tilemap) {
+        this.time += elapsedTime;
+        // Update animation
+        if (this.time > this.secondsPerFrame) {
+            if(this.time > this.secondsPerFrame) this.time -= this.secondsPerFrame;
+            // If the current frame index is in range
+            if (this.frameIndex < this.numberOfFrames - 1) {
+                this.frameIndex += 1;
+            } else {
+                this.frameIndex = 0;
+            }
+        }
+    };
+
+    Sudo_Animation.prototype.render = function(ctx, x, y) {
+
+        // Draw the current frame
+        //console.log("image name "+ this.image);
+        //console.log("This is the index of frame " + this.frameIndex);
+        ctx.drawImage(
+            this.image,
+            this.drawLocationX + this.frameIndex * this.width,
+            this.drawLocationY,
+            this.width,
+            this.height,
+            x,
+            y,
+            this.width,
+            this.height);
+    }
+
+    return Sudo_Animation;
+
+}());
+},{}],38:[function(require,module,exports){
+/**
+ * Created by Administrator on 11/12/15.
+ */
+/**
+ * Created by Administrator on 11/6/15.
+ * Author: Uzzi Emuchay
+ * Sudo-Chan Monster Entity For Diggy Hole Game
+ */
+module.exports = (function(){
+    var Entity = require('./entity.js'),
+        Sudo_Animation = require('./sudo-chan-animation.js');
+    const STANDING = 0;
+    const WALKING = 1;
+    const JUMPING = 2;
+    const PUNCHING = 3;
+    const FALLING = 4;
+    const HIT = 5;
+    const STOP = 6;
+
+    const SIZE = 64;
+    const GRAVITY = -250;
+    const SPEED_OF_MOVEMENT = 50;
+    const JUMPING_VELOCITY = -600;
+    //The right face sudo-chan spritesheet
+    var sudo_chan_right_idle = new Image();
+    sudo_chan_right_idle.src = 'img/sudo-chan-images/idle_sudo_chan.png';
+    var sudo_chan_right_walk = new Image();
+    sudo_chan_right_walk.src = 'img/sudo-chan-images/walking_sudo_chan.png';
+    var sudo_chan_right_jump = new Image();
+    sudo_chan_right_jump.src = 'img/sudo-chan-images/jumping_sudo_chan.png';
+    var sudo_chan_right_punch = new Image();
+    sudo_chan_right_punch.src = 'img/sudo-chan-images/celebrating_sudo_chan.png';
+    var sudo_chan_right_fall = new Image();
+    sudo_chan_right_fall.src = 'img/sudo-chan-images/falling_sudo_chan.png';
+    var sudo_chan_right_hit =  new Image();
+    sudo_chan_right_hit.src = 'img/sudo-chan-images/hurt_sudo_chan.png';
+
+    function Sudo_Chan(locationX, locationY, mapLayer) {
+        this.positionX = locationX;
+        this.positionY = locationY;
+        this.mapLayer = mapLayer;
+        this.state_of_player = STANDING;
+        this.constant_speed = 15;
+        this.facing_left = false;
+        this.type = "sudo_chan";
+        this.sudo_chan_collided_with_knight = false;
+
+        this.animations = {
+            left: [],
+            right: [],
+        };
+
+        this.animations.right[STANDING] = new Sudo_Animation(sudo_chan_right_idle, SIZE, SIZE, 0, 0, 10);
+        this.animations.right[WALKING] = new Sudo_Animation(sudo_chan_right_walk, SIZE, SIZE, 0, 0, 10);
+        this.animations.right[JUMPING] = new Sudo_Animation(sudo_chan_right_jump, SIZE, SIZE, 0, 0, 10);
+        this.animations.right[PUNCHING] = new Sudo_Animation(sudo_chan_right_punch, SIZE, SIZE, 0, 0, 10);
+        this.animations.right[FALLING] = new Sudo_Animation(sudo_chan_right_fall, SIZE, SIZE, 0, 0, 10);
+        this.animations.right[HIT] = new Sudo_Animation(sudo_chan_right_hit, SIZE, SIZE, 0, 0, 10);
+        this.animations.right[STOP] = new Sudo_Animation(sudo_chan_right_idle, SIZE, SIZE, 0, 0, 10);
+
+    };
+    //Player inherits from entity
+    Sudo_Chan.prototype = new Entity();
+    Sudo_Chan.prototype.onGround = function(tilemap) {
+        var box = this.boundingBox(),
+            tileX = Math.floor((box.left + (SIZE/2) + 10)/64), //Gets the rounded off value of tile's x coordinate
+            tileY = Math.floor((box.bottom/64)), //Gets the rounded off value of the tile's y value
+            tile = tilemap.tileAt(tileX, tileY, this.mapLayer);
+        return (tile && tile.data.solid) ? true : false;
+    };
+
+    Sudo_Chan.prototype.boundingBox = function(){
+        return{
+            left: this.positionX,
+            top: this.positionY,
+            right: this.positionX + SIZE,
+            bottom: this.positionY + SIZE
+        }
+    };
+    
+     Sudo_Chan.prototype.boundingCircle = function() {
+    return {
+      cx: this.positionX + SIZE / 2,
+      cy: this.positionY + SIZE / 2,
+      radius: SIZE / 2
+    };
+  };
+
+    // Draw Player
+    Sudo_Chan.prototype.render = function(ctx, debug) {
+        if(this.facing_left){
+            this.animations.left[this.state_of_player].render(ctx, this.positionX, this.positionY);
+        }
+        else{
+            this.animations.right[this.state_of_player].render(ctx, this.positionX, this.positionY);
+            //this.state_of_player = STANDING;
+        }
+        if(debug) {
+            renderDebug(this, ctx);
+        }
+
+    };
+    Sudo_Chan.prototype.rightMove = function (elaspedtime, tilemap){
+        var speed_of_movements;
+        if(this.sudo_chan_collided_with_knight == true){
+            speed_of_movements = SPEED_OF_MOVEMENT * 2;
+        }
+        else{
+            speed_of_movements = SPEED_OF_MOVEMENT;
+        }
+        this.positionX += speed_of_movements * elaspedtime;
+        var box = this.boundingBox(),
+            tileX = Math.floor(box.right/64),
+            tileY = Math.floor(box.bottom/64) - 1;
+        //console.log("This is tileX: "+tileX + " this is tileY: "+tileY + "layer's index "+ this.mapLayer);
+        var tile = tilemap.tileAt(tileX, tileY, this.mapLayer);
+        if(tile && tile.data.solid){
+            //this.positionX = (Math.floor(this.positionX/64) + 1) * 64;
+            this.state_of_player = STOP;
+        }
+    };
+    Sudo_Chan.prototype.leftMove = function (elaspedtime, tilemap){
+
+        this.positionX += SPEED_OF_MOVEMENT * elaspedtime;
+        var box = this.boundingBox(),
+            tileX = Math.floor(box.left/64),
+            tileY = Math.floor(box.bottom/64) - 1,
+            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+        if(tile && tile.data.solid){
+            this.positionX = (Math.floor(this.positionX/64) + 1) * 64;
+            this.state_of_player = STOP;
+        }
+    };
+    Sudo_Chan.prototype.update = function(elapsedtime, tilemap) {
+        var sudo_chan_sprite = this;
+        var celebration_count = 0;
+        switch (sudo_chan_sprite.state_of_player) {
+            case STOP:
+                sudo_chan_sprite.state_of_player = JUMPING;
+                sudo_chan_sprite.sprite_velocityY = JUMPING_VELOCITY;
+                //console.log("punching");
+                break;
+            // Case when there is no ground beneath sudo-chan
+            case STANDING:
+                if (!sudo_chan_sprite.onGround(tilemap)) {
+                    //loop through for loop rendering the animation sprite
+                    sudo_chan_sprite.state_of_player = FALLING;
+                    sudo_chan_sprite.sprite_velocityY = 0;
+                    //console.log("this should cause monster to drop")
+                }
+                else {
+                    //changed state of sudo-chan to walking
+                    sudo_chan_sprite.state_of_player = WALKING;
+                    //console.log("this should cause monster to walk");
+                }
+                break;
+            // Case when sudo-chan is already falling, if there is ground sudo-chan stops falling
+            case FALLING:
+                sudo_chan_sprite.sprite_velocityY = sudo_chan_sprite.sprite_velocityY + Math.pow(GRAVITY * elapsedtime, 2);
+                sudo_chan_sprite.positionY = sudo_chan_sprite.positionY + sudo_chan_sprite.sprite_velocityY * elapsedtime;
+                if (sudo_chan_sprite.onGround(tilemap)) {
+                    sudo_chan_sprite.state_of_player = STANDING;
+                    sudo_chan_sprite.positionY = 64 * Math.floor(sudo_chan_sprite.positionY / 64);
+                }
+                break;
+            case WALKING:
+                if (!sudo_chan_sprite.onGround(tilemap)) {
+                    //loop through for loop rendring the animation sprite
+                    sudo_chan_sprite.state_of_player = STOP;
+                    sudo_chan_sprite.sprite_velocityY = 0;
+                }
+                if(sudo_chan_sprite.isLeft){
+                    sudo_chan_sprite.leftMove(elapsedtime, tilemap);
+                }
+                else {
+                    sudo_chan_sprite.rightMove(elapsedtime, tilemap);
+                }
+                sudo_chan_sprite.sudo_chan_collided_with_knight = false;
+                break;
+            case PUNCHING:
+                celebration_count += 1;
+                break;
+            case JUMPING:
+                sudo_chan_sprite.sprite_velocityY += Math.pow(GRAVITY * elapsedtime, 2);
+                sudo_chan_sprite.positionY += sudo_chan_sprite.sprite_velocityY * elapsedtime;
+                if(sudo_chan_sprite.sprite_velocityY > 0)
+                {
+                    if(sudo_chan_sprite.isLeft){
+                        sudo_chan_sprite.leftMove(elapsedtime, tilemap);
+                    }
+                    else{
+                        sudo_chan_sprite.rightMove(elapsedtime, tilemap);
+                    }
+                    sudo_chan_sprite.state_of_player = FALLING;
+                }
+                break;
+        }
+
+        if (this.isLeft) {
+            this.animations.left[this.state_of_player].update(elapsedtime);
+        }
+        else {
+            this.animations.right[this.state_of_player].update(elapsedtime);
+        }
+    };
+
+    //When Sudo Chan colides with player it squares up!
+    Sudo_Chan.prototype.collide = function (otherEntity) {
+        if(otherEntity.type == "knight"){
+            this.state_of_player = PUNCHING;
+            this.state_of_player = STANDING;
+        }
+    };
+
+    function renderDebug(player, ctx) {
+        var bounds = player.boundingBox();
+        ctx.save();
+
+        // Draw player bounding box
+        ctx.strokeStyle = "red";
+        ctx.beginPath();
+        ctx.moveTo(bounds.left, bounds.top);
+        ctx.lineTo(bounds.right, bounds.top);
+        ctx.lineTo(bounds.right, bounds.bottom);
+        ctx.lineTo(bounds.left, bounds.bottom);
+        ctx.closePath();
+        ctx.stroke();
+
+        // Outline tile underfoot
+        var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
+            tileY = 64 * (Math.floor(bounds.bottom / 64));
+        ctx.strokeStyle = "black";
+        ctx.beginPath();
+        ctx.moveTo(tileX, tileY);
+        ctx.lineTo(tileX + 64, tileY);
+        ctx.lineTo(tileX + 64, tileY + 64);
+        ctx.lineTo(tileX, tileY + 64);
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+
+    return Sudo_Chan;
+}());
+
+},{"./entity.js":17,"./sudo-chan-animation.js":37}],39:[function(require,module,exports){
+/* Tilemap engine providing the static world
+ * elements for Diggy Hole
+ * Authors:
+ * - Nathan Bean
+ * - Wyatt Watson
+ */
+module.exports = (function (){
+  var noisy = require('./noise.js'),
+      tiles = [],
+      tilesets = [],
+      layers = [],
+      tileWidth = 0,
+      tileHeight = 0,
+      mapWidth = 0,
+      mapHeight = 0,
+      cameraX = 0,
+      cameraY = 0,
+      viewportHalfWidth = 0,
+      viewportHalfHeight = 0,
+      viewportTileWidth = 0,
+      viewportTileHeight = 0,
+	  tileset;
+
+  /* Clamps the provided value to the provided range
+   * Arguments:
+   * - value, the value to clamp
+   * - min, the minimum of the range to clamp value to
+   * - max, the maximum of the range to clamp value to
+   * Returns:
+   *   The clamped value.
+   */
+  function clamp(value, min, max) {
+    return (value < min ? min : (value > max ? max : value));
+  }
+
+  /* Resizes the viewport.
+   * Arguments:
+   * - width, the width of the viewport
+   * - height, the height of hte viewport
+   */
+  var setViewportSize = function(width, height) {
+    viewportHalfWidth = width / 2;
+    viewportHalfHeight = height / 2;
+    viewportTileWidth = Math.ceil(width / tileWidth) + 2;
+    viewportTileHeight = Math.ceil(height / tileHeight) + 2;
+  }
+
+  /* Sets the camera position
+   * Arguments:
+   * - x, the upper-left hand x-coordinate of the viewport
+   * - y, the upper-left-hand y-coordinate of the viewport
+   */
+  var setCameraPosition = function(x, y) {
+    cameraX = x;
+    cameraY = y;
+  }
+
+  /**
+   * Function: getCameraPosition
+   *     gets the x-y position of the viewport
+   * Returns:
+   *     x-y postion
+   */
+  var getCameraPosition = function()
+  {
+    return [cameraX - viewportHalfWidth - 32, cameraY - viewportHalfHeight + 32];
+  }
+
+  /* Loads the tilemap
+   * - mapData, the JavaScript object
+   * - options, options for loading, currently:
+   *  > onload, a callback to trigger once the load finishes
+   */
+  var load = function(mapData, options) {
+
+    var loading = 0;
+
+    // Release old tiles & tilesets
+    tiles = [];
+    tilesets = [];
+
+    // Resize the map
+    tileWidth = mapData.tilewidth;
+    tileHeight = mapData.tileheight;
+    mapWidth = mapData.width;
+    mapHeight = mapData.height;
+
+    if(options.viewport)
+      setViewportSize(options.viewport.width, options.viewport.height);
+    else
+      setViewportSize(mapData.width * mapData.tilewidth, mapData.height * mapData.tileheight);
+
+    // Load the tileset(s)
+    mapData.tilesets.forEach( function(tilesetmapData, index) {
+      // Load the tileset image
+      tileset = new Image();
+      loading++;
+      tileset.onload = function() {
+        loading--;
+        if(loading == 0 && options.onload) options.onload();
+      }
+      tileset.src = tilesetmapData.image;
+      tilesets.push(tileset);
+
+      // Create the tileset's tiles
+      var colCount = Math.floor(tilesetmapData.imagewidth / tileWidth),
+          rowCount = Math.floor(tilesetmapData.imageheight / tileHeight),
+          tileCount = colCount * rowCount;
+      for(i = 0; i < tileCount; i++) {
+        var data = {}
+        for (var key in tilesetmapData.tileproperties[i]) {
+          data[key] = tilesetmapData.tileproperties[i][key];
+        }
+        var tile = {
+          // Reference to the image, shared amongst all tiles in the tileset
+          image: tileset,
+          // Source x position.  i % colCount == col number (as we remove full rows)
+          sx: (i % colCount) * tileWidth,
+          // Source y position. i / colWidth (integer division) == row number
+          sy: Math.floor(i / rowCount) * tileHeight,
+          // The tile's data (solid/liquid, etc.)
+          data: data
+        }
+        tiles.push(tile);
+      }
+    });
+
+    // Parse the layers in the map
+    mapData.layers.forEach( function(layerData) {
+
+      // Tile layers need to be stored in the engine for later
+      // rendering
+      if(layerData.type == "tilelayer") {
+        // Create a layer object to represent this tile layer
+        var layer = {
+          name: layerData.name,
+          width: layerData.width,
+          height: layerData.height,
+          visible: layerData.visible
+        }
+
+        // Set up the layer's data array.  We'll try to optimize
+        // by keeping the index data type as small as possible
+        if(tiles.length < Math.pow(2,8))
+          layer.data = new Uint8Array(layerData.data);
+        else if (tiles.length < Math.Pow(2, 16))
+          layer.data = new Uint16Array(layerData.data);
+        else
+          layer.data = new Uint32Array(layerData.data);
+
+        // save the tile layer
+        layers.push(layer);
+      }
+    });
+  }
+
+  /* Generates a random tilemap
+   * Arguments:
+   * - width, the width of the tilemap
+   * - height, the height of the tilemap
+   * - options, options to trigger
+   */
+  var generate = function(width, height, options) {
+    var map = new Array(width*height);
+    var noise = noisy.generateNoise(width, height);
+    noise = noisy.generatePerlinNoise(width, noise, 7);
+
+    var tileWidth = 64, tileHeight = 64;
+    var tilesets = [
+      {
+        firstgid: 0,
+        image: "Tileset.png",
+        imageheight: 256,
+        imagewidth: 256,
+        margin: 0,
+        name: "Tileset",
+        tileproperties: {
+          0: { // Sky background
+            type: "SkyBackground",
+            notDiggable: true
+          },
+          1: { // Clouds
+             type: "Clouds",
+             notDiggable: true
+          },
+          2: { // Sky Earth
+            type: "Sky Earth",
+            solid: true
+          },
+          3: { // Gems w grass
+            type: "GemsWithGrass",
+            solid: true,
+            gems: true
+          },
+          4: { // Dirt w grass
+            type: "DirtWithGrass",
+            solid: true
+          },
+          5: { // Stone w grass
+            type: "StoneWithGrass",
+            solid: true,
+			notDiggable: true
+          },
+          6: { // Water
+            type: "Water",
+            liquid: true,
+            notDiggable: true
+          },
+          7: { // Cave background
+            type: "CaveBackground",
+            notDiggable: true
+          },
+          8: { // Gems
+            type: "Gems",
+            solid: true,
+            gems: true
+          },
+          9: { // dirt
+            type: "Dirt",
+            solid: true,
+          },
+          10: { // stone
+            type: "Stone",
+            solid: true,
+			notDiggable: true
+          },
+          11: { // water
+            type: "Water",
+            liquid: true,
+            notDiggable: true
+          },
+          12: { // cave background
+            type: "CaveBackground",
+            notDiggable: true
+          },
+          13: { // lava
+            type: "Lava",
+            liquid: true,
+            damage: 10,
+            notDiggable: true
+          },
+          14: { // dark background
+            type: "DarkBackground",
+            notDiggable: true
+          },
+          15: { // dug background
+            type: "DugBackground",
+            notDiggable: true
+          }
+        },
+        spacing: 0,
+        tilewidth: 64,
+        tileheight: 64
+      }
+    ]
+
+    // Determines where the surface is (and end of the sky)
+    var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));
+    this.surface = surface;
+    // Determines where the crust layer of the earth ends
+    var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
+	this.midEarth = midEarth;
+    // Used to help clump up the sky islands
+    var skyEarthCount = 0;
+    var cloudCount = 0;
+
+    /* As a key the tile numbers are as follows:
+     * SkyBackground: 0, Clouds: 1, SkyEarth: 2, GemsWithGrass: 3, DirtWithGrass: 4, StoneWithGrass: 5, Water: 6,
+     * CaveBackground: 7, Gems: 8, Dirt: 9, Stone: 10, Water(Again): 11, CaveBackground(Again): 12, Lava: 13, DarkBackground: 14, DugTile: 15
+     * you can replace any of the tiles that are unwanted (or wanted) at any point and it will preserve initial functionality*/
+    for(j = 0; j < height; j++){
+      var rand = noisy.randomNumber(0, 3);
+      var rand2 = noisy.randomNumber(0, 1);
+      for(i = 0; i < width; i++){
+        var index = j * width + i;
+        var temp = noise[index];
+        //Ensure first row is sky
+        if(j == 0){
+          map[index] = 1;
+        }
+        //Sky Area
+        else if(j < surface-2){
+          if(temp < 8 && skyEarthCount == 0 && cloudCount == 0){ //Sky Background
+            map[index] = 1;
+          }
+          else if(temp < 9.4 && skyEarthCount == 0){ //Clouds
+            map[index] = 2;
+            cloudCount++;
+            if(cloudCount > rand2){
+              rand2 = noisy.randomNumber(0, 3);
+              cloudCount = 0;
+            }
+          }
+          else{ //Sky Earth
+            map[index] = 3;
+            skyEarthCount++;
+            if(skyEarthCount > rand){
+              skyEarthCount = 0;
+              rand = noisy.randomNumber(0, 3);
+            }
+          }
+        }
+        //Ensure row before the surface is sky
+        else if(j < surface){
+          map[index] = 1;
+        }
+        //Surface blocks - Start of Crust Layer
+        else if(j == surface){
+          if(temp < .5){ //Gems w grass
+            map[index] = 4;
+          }
+          else if(temp < 5){ //Dirt w grass
+            map[index] = 5;
+          }
+          else if(temp < 6){ //Stone w grass
+            map[index] = 6;
+          }
+          else if(temp < 8){ //Water
+            map[index] = 7;
+          }
+          else{ //Cave Background
+            map[index] = 13;
+          }
+        }
+        //Crust Area
+        else if(j < midEarth-1){
+          if(temp < .5){ //Gems
+            map[index] = 9;
+          }
+          else if(temp < 4){ //Dirt
+            map[index] = 10;
+          }
+          else if(temp < 6){ //Stone
+            map[index] = 11;
+          }
+          else if(temp < 8){ //Water 11
+            map[index] = 12;
+          }
+          else{ //Cave Background
+            map[index] = 13;
+          }
+        }
+        //Solid layer between crust and deep earth
+        else if(j < midEarth){
+          if(temp < .5){ //Gems
+            map[index] = 9;
+          }
+          else if(temp < 4){ //Dirt
+            map[index] = 10;
+          }
+          else if(temp < 6){ //Stone
+            map[index] = 11;
+          }
+          else if(temp < 8){ //Water 11
+            map[index] = 10;
+          }
+          else{ //Cave Background
+            map[index] = 11;
+          }
+        }
+        //Deep Earth
+        else{
+          if(temp < 4){ // Lava
+            map[index] = 14;
+          }
+          else if(temp < 6){ // Stone
+            map[index] = 11;
+          }
+          else{ // Dark Background
+            map[index] = 15;
+          }
+        }
+
+      }
+    }
+
+	for(var x = 0; x < height/20; x++){
+		map = consolidateLiquids(map, width, height, width-1, 0, 0, height-1, width, 2);
+	}
+
+    // Create mapData object
+    var mapData = {
+      height: height,
+      width: width,
+      tilewidth: tileWidth,
+      tileheight: tileHeight,
+      layers: [{
+          data: map,
+          name: "Interaction Layer",
+          type: "tilelayer",
+          height: height,
+          width: width,
+          visible: true,
+          x: 0,
+          y: 0
+      }],
+      tilesets: tilesets,
+      options: options
+    }
+    return load(mapData, options);
+  }
+
+ function shiftWaterDown(map, width, height, rightStart, bottomStart, viewWidth, viewHeight){
+	  for(var j = bottomStart; j > bottomStart-viewHeight; j--){
+		  for(var i = rightStart; i > rightStart-viewWidth; i--){
+			  index = j*width + i;
+			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1){
+				  if(map[index+height] == 14+1 || map[index+height] == 12+1 || map[index+height] == 7+1 || map[index+height] == 15+1){
+					  var temp = map[index];
+					  map[index] = map[index+height];
+					  map[index+height] = temp;
+				  }
+			  }
+		  }
+	  }
+	  
+	  return map;
+  }
+  
+  function shiftWaterRight(map, width, height, leftStart, topStart, viewWidth, viewHeight){  
+	for(var i = leftStart; i < leftStart+viewWidth; i++){
+	  for(var j = topStart; j < topStart+viewHeight; j++){
+			  index = j*width + i;
+			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1 /*&& index+1 < width*/){
+				  if(map[index+1] == 14+1 || map[index+1] == 12+1|| map[index+1] == 7+1|| map[index+1] == 15+1){
+					  var temp = map[index];
+					  map[index] = map[index+1];
+					  map[index+1] = temp;
+				  }
+			  }
+		  }
+	  }
+	  
+	  return map;
+  }
+  
+  function shiftWaterLeft(map, width, height, leftStart, topStart, viewWidth, viewHeight){
+	  for(var j = topStart; j < topStart+viewHeight; j++){
+		  for(var i = leftStart; i < leftStart+viewWidth; i++){
+			  index = j*width + i;
+			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1 /*&& index+1 < width*/){
+				  if(map[index-1] == 14+1 || map[index-1] == 12+1|| map[index-1] == 7+1 || map[index-1] == 15+1){
+					  var temp = map[index];
+					  map[index] = map[index-1];
+					  map[index-1] = temp;
+				  }
+			  }
+		  }
+	  }
+	  
+	  return map;
+  }
+  
+  // Consolidate Liquids and called shifting functions made by Wyatt Watson
+  function consolidateLiquids(map, width, height, rightStart, leftStart, topStart, bottomStart, viewWidth, viewHeight){
+	  for(var i = 0; i < viewHeight; i++){
+		  //Shift Down
+		  map = shiftWaterDown(map, width, height, rightStart+3, bottomStart+3, viewWidth+6, viewHeight+6);
+		  //Shift Right
+		  map = shiftWaterRight(map, width, height, leftStart-3, topStart-3, viewWidth+6, viewHeight+6);
+	  }
+	  for(var i = 0; i < viewHeight; i++){
+		  //Shift Down
+		  map = shiftWaterDown(map, width, height, rightStart+3, bottomStart+3, viewWidth+6, viewHeight+6);
+		  //Shift Right
+		  map = shiftWaterLeft(map, width, height, leftStart-3, topStart-3, viewWidth+6, viewHeight+6);
+	  }
+	  return map;
+  }
+
+  /* GenerateObjectMap generates an object map based on the previously generated game map
+   * mapWidth - the overall map's width
+   * map - the game map
+   * returns: the object map */
+  function GenerateObjectMap(mapWidth, map){
+    var width = mapWidth;
+    var height = map.length / width;
+
+    /* 0 - SB, 1 - C, 2 - SE
+       3 - G, 4 - D, 5 - S, 6 - W, 7 - CB
+       8      9      10     11     12
+       13 - L, 14 - S, 15 - DB */
+
+    var objectMap = new Array(width*height);
+    var surface = 0;
+
+    /* 0 - Nothing
+       1 - Player
+       2 - Enemy */
+
+    /* place enemies (NOT FULLY IMPLEMENTED) and locates the surface of the game map */
+    for(i = 0; i < width; i++){
+      for(j = 0; j < height; j++){
+        var temp = map[j * width + 1];
+        var num = noisy.randomNumber(0, 10);
+        if(temp < 3){
+          if(temp == 2 && j > 0){
+            if(num > 9.8)
+              objectMap[j-1 * width + i] = 2;
+          }
+        }
+        else if(temp > 2 && temp < 13){
+          if(surface == 0)
+            surface = j-1;
+          if(temp == 7 || temp == 12){
+            if(num > 9.8)
+              objectMap[j * width + i] = 2;
+          }
+        }
+        else{
+          if(temp == 15){
+            if(num > 9.8)
+              objectMap[j * width + i] = 2;
+          }
+        }
+      }
+    }
+
+    /*Place player in the middle*/
+    objectMap[surface * width + width/2] = 1;
+    return objectMap;
+  }
+
+// Added by Wyatt Watson
+var update = function(){
+	  layers.forEach(function(layer){
+		  var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
+          var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
+          var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
+          var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
+		  
+		  consolidateLiquids(layer.data, layer.width, layer.height, endX, startX, startY, endY, endX-startX, endY-startY);
+	  });
+  }
+
+  /* */
+  var render = function(screenCtx) {
+    // Render tilemap layers - note this assumes
+    // layers are sorted back-to-front so foreground
+    // layers obscure background ones.
+    // see http://en.wikipedia.org/wiki/Painter%27s_algorithm
+    layers.forEach(function(layer){
+      // Only draw layers that are currently visible
+      if(layer.visible) {
+
+        // Only draw tiles that are within the viewport
+        var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
+        var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
+        var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
+        var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
+
+        for(y = startY; y < endY; y++) {
+          for(x = startX; x < endX; x++) {
+            var tileId = layer.data[x + layer.width * y];
+
+            // tiles with an id of < 0 don't exist
+            if(tileId > 0) {
+              var tile = tiles[tileId-1];
+              if(tile.image) { // Make sure the image has loaded
+                screenCtx.drawImage(
+                  tile.image,     // The image to draw
+                  tile.sx, tile.sy, tileWidth, tileHeight, // The portion of image to draw
+                  x*tileWidth, y*tileHeight, tileWidth, tileHeight // Where to draw the image on-screen
+                );
+              }
+            }
+
+          }
+        }
+      }
+
+    });
+  }
+
+  /* Returns the tile at a given position.
+   * - x, the x coordinate of the tile
+   * - y, the y coordinate of the tile
+   * - layer, the layer of the tilemap
+   */
+  var tileAt = function(x, y, layer) {
+    // sanity check
+    if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
+      return undefined;
+    return tiles[layers[layer].data[x + y*mapWidth] - 1];
+  }
+
+  /*
+	Changes the type of tile at a given position
+	author: Alexander Duben
+  */
+  var setTileAt = function(newType, x,y, layer){
+	 if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){
+      return undefined;
+	 }else{
+		 var tile = {
+          // Reference to the image, shared amongst all tiles in the tileset
+          image: tileset,
+          // Source x position.  i % colCount == col number (as we remove full rows)
+          sx: x,
+          // Source y position. i / colWidth (integer division) == row number
+          sy: y,
+          // The tile's data (solid/liquid, etc.)
+          data: newType
+        }
+		layers[layer].data[x + y*mapWidth] = tile;
+	 }
+  }
+
+  // Sets tile to skies
+  // author: Milan Zelenka
+  var destroyTileAt = function(newType, x,y, layer){
+	 if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){
+      return undefined;
+	 }else{
+		layers[layer].data[x + y * mapWidth] = 1;
+	 }
+  }
+
+  //Dig tile out at x, y
+  var removeTileAt = function(x, y, layer) {
+	if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
+      return undefined;
+    layers[layer].data[x + y*mapWidth] =  16;
+  }
+
+  //return current tile layer, 0: sky, 1: crust 2: magma
+  //author: Shanshan Wu
+  var returnTileLayer = function(x, y, layer) {
+    if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
+      return undefined;
+    if (y < this.surface) {
+      return 0;
+    } else if ( y >= this.surface && y < this.midEarth) {
+      return 1;
+    } else {
+      return 2;
+    }
+  };
+
+  //change the type of tile in a given position.....duplicate of setTileAt
+  //author: Shanshan Wu
+  var mineAt = function(newType, x, y, layer, digAll) {
+    if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
+      return undefined;
+
+    if(tileAt(x, y, layer).data.solid && ((!tileAt(x, y, layer).data.notDiggable) || digAll))
+      layers[layer].data[x + y * mapWidth] = newType;
+  };
+
+  // Expose the module's public API
+  return {
+    load: load,
+    generate: generate,
+    render: render,
+    tileAt: tileAt,
+	setTileAt: setTileAt,
+	destroyTileAt: destroyTileAt,
+    removeTileAt: removeTileAt,
+    setViewportSize: setViewportSize,
+    setCameraPosition: setCameraPosition,
+    returnTileLayer: returnTileLayer,
+    getCameraPosition: getCameraPosition,
+    mineAt: mineAt,
+	consolidateLiquids: consolidateLiquids,
+	update: update
+  }
 
 
 })();
 
-},{"./noise.js":25}],39:[function(require,module,exports){
+},{"./noise.js":25}],40:[function(require,module,exports){
 
 
 
@@ -8382,7 +10974,7 @@ module.exports = (function(){
 	return Turret;
 	
 }())
-},{"./animation.js":5,"./cannonball.js":10,"./entity-manager.js":16,"./entity.js":17,"./player.js":28}],40:[function(require,module,exports){
+},{"./animation.js":5,"./cannonball.js":10,"./entity-manager.js":16,"./entity.js":17,"./player.js":29}],41:[function(require,module,exports){
 /* Wolf module
  * Implements the entity pattern and provides
  * the DiggyHole Wolf info.
