@@ -206,7 +206,8 @@ module.exports = (function (){
 
     // Redraw the map & entities
     tilemap.render(backBufferCtx);
-    entityManager.render(backBufferCtx, true);
+    entityManager.render(backBufferCtx, false);
+    tilemap.renderfrontclouds(backBufferCtx);
     //player.render(backBufferCtx, true);
 
     backBufferCtx.restore();
