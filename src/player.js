@@ -10,8 +10,7 @@ module.exports = (function() {
     Animation = require('./animation.js');
 
 	/*Audio sources*/
-
-    jump_sound = new Audio('resources/sounds/jumping_sound.mp3');
+    jump_sound = new Audio('resources/sounds/jumping_sound.wav');
 	dig_sound = new Audio('resources/sounds/digging_sound.mp3');
 	walk_sound = new Audio('resources/sounds/walking_sound.mp3');
 	throw_sound = new Audio('resources/sounds/throwing_sound.mp3');
