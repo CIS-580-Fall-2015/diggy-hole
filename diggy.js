@@ -7324,7 +7324,7 @@ module.exports = (function(){
             return;
         }
         if(otherEntity instanceof Player && this.state != FALLING
-            && otherEntity.currentY + SIZE/2 <= this.currentY){
+            && otherEntity.currentY + SIZE/2 <= this.currentY && !otherEntity.stoneShield){
             this.state = SMASHED;
         }
         var entityRect = otherEntity.boundingBox();
