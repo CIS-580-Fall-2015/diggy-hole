@@ -3428,12 +3428,12 @@ module.exports = (function (){
 
 
 	// Kyle Brown: Background Music
-	/*var bgMusic = new Audio('./resources/sounds/DiggyHoleBGMusicAm.wav');
+	var bgMusic = new Audio('./resources/sounds/DiggyHoleBGMusicAm.wav');
 	   bgMusic.addEventListener('ended', function() {
     this.currentTime = 0;
     this.play();
 	}, false);
-	bgMusic.play();*/
+	bgMusic.play();
 
 
   };
