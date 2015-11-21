@@ -533,6 +533,33 @@ module.exports = (function (){
     });
   }
 
+  /*Karenfang*/
+  var renderWater = function(screenCtx){
+    layers.forEach(function(layer){
+      var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
+      var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
+      var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
+      var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
+
+      var map = layer.data;
+
+      for(var i = startX; i < endX; i++){
+        for(var j = startY; j < endY; j++){
+          index = j*layer.width + i;
+          //Todo: Lava covered by red
+          if(map[index] == 6+1 || map[index] == 11+1){
+            screenCtx.fillStyle="rgba(142,167,214,0.3)"; //color similar but lighter than the water tile
+            screenCtx.fillRect(i*tileWidth,j*tileHeight,tileWidth,tileHeight);
+          }else if (map[index] == 13+1) {
+            screenCtx.fillStyle="rgba(182,56,46,0.3)"; //color similar but lighter than the lava tile
+            screenCtx.fillRect(i*tileWidth,j*tileHeight,tileWidth,tileHeight);
+          }
+        }
+      }
+
+    });
+  };
+
   /* */
   var render = function(screenCtx) {
     // Render tilemap layers - note this assumes
