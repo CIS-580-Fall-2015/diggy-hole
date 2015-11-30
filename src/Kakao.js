@@ -121,26 +121,26 @@ module.exports = (function(){
     // Process Kakao state
     switch(sprite.state) {
       case WALKING:
-      // If there is no ground underneath, fall
-      if(!sprite.onGround(tilemap)) {
-        sprite.state = FALLING;
-        sprite.velocityY = 0;
-      } else {
-        if(sprite.isLeft){  //is not passable, turn
-          sprite.moveLeft(elapsedTime * SPEED, tilemap);
-        }else{
-          sprite.moveRight(elapsedTime * SPEED, tilemap);
+        // If there is no ground underneath, fall
+        if(!sprite.onGround(tilemap)) {
+          sprite.state = FALLING;
+          sprite.velocityY = 0;
+        } else {
+          if(sprite.isLeft){  //is not passable, turn
+            sprite.moveLeft(elapsedTime * SPEED, tilemap);
+          }else{
+            sprite.moveRight(elapsedTime * SPEED, tilemap);
+          }
         }
-      }
-      break;
+        break;
       case FALLING:
-      sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-      sprite.currentY += sprite.velocityY * elapsedTime;
-      if(sprite.onGround(tilemap)) {
-        sprite.state = WALKING;
-        sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-      }
-      break;
+        sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+        sprite.currentY += sprite.velocityY * elapsedTime;
+        if(sprite.onGround(tilemap)) {
+          sprite.state = WALKING;
+          sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
+        }
+        break;
       case HURT:
         //1/elapsedTime is the number of frames per min
         //Each frame of HURT state is 1/4 min, thus the total HURT animation takes 1 min
@@ -150,17 +150,17 @@ module.exports = (function(){
         }else {
           /*
            *PLAN A: Relocate after HURT
-          */
+           */
           //sprite.hurtFrame = 0;  //for relocation
           //sprite.currentX += 3*SIZE;  //for relocation
           //console.log("Kakao: Relocating to "+"( "+sprite.currentX+" , "+sprite.currentY+" )...");
           /*
            *PLAN B: Remove after HURT
-          */
+           */
           entityManager.remove(this);
           console.log("Kakao: Entity Kakao removed.");
         }
-      break;
+        break;
     }
     //console.log("Kakao: State: "+this.state+" Direction: "+this.isLeft);
 

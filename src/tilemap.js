@@ -20,7 +20,7 @@ module.exports = (function (){
       viewportHalfHeight = 0,
       viewportTileWidth = 0,
       viewportTileHeight = 0,
-	  tileset;
+      tileset;
 
     var parallaxBackground = new Image();
     parallaxBackground.src = "./img/background.png";
@@ -216,8 +216,8 @@ module.exports = (function (){
             notDiggable: true
           },
           1: { // Clouds
-             type: "Clouds",
-             notDiggable: true
+            type: "Clouds",
+            notDiggable: true
           },
           2: { // Sky Earth
             type: "Sky Earth",
@@ -235,7 +235,7 @@ module.exports = (function (){
           5: { // Stone w grass
             type: "StoneWithGrass",
             solid: true,
-			notDiggable: true
+            notDiggable: true
           },
           6: { // Water
             type: "Water",
@@ -258,7 +258,7 @@ module.exports = (function (){
           10: { // stone
             type: "Stone",
             solid: true,
-			notDiggable: true
+            notDiggable: true
           },
           11: { // water
             type: "Water",
@@ -295,7 +295,7 @@ module.exports = (function (){
     this.surface = surface;
     // Determines where the crust layer of the earth ends
     var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
-	this.midEarth = midEarth;
+    this.midEarth = midEarth;
     // Used to help clump up the sky islands
     var skyEarthCount = 0;
     var cloudCount = 0;
@@ -410,9 +410,9 @@ module.exports = (function (){
       }
     }
 
-	for(var x = 0; x < height/20; x++){
-		map = consolidateLiquids(map, width, height, width-1, 0, 0, height-1, width, 2);
-	}
+    for(var x = 0; x < height/20; x++){
+      map = consolidateLiquids(map, width, height, width-1, 0, 0, height-1, width, 2);
+    }
 
     // Create mapData object
     var mapData = {
@@ -421,14 +421,14 @@ module.exports = (function (){
       tilewidth: tileWidth,
       tileheight: tileHeight,
       layers: [{
-          data: map,
-          name: "Interaction Layer",
-          type: "tilelayer",
-          height: height,
-          width: width,
-          visible: true,
-          x: 0,
-          y: 0
+        data: map,
+        name: "Interaction Layer",
+        type: "tilelayer",
+        height: height,
+        width: width,
+        visible: true,
+        x: 0,
+        y: 0
       }],
       tilesets: tilesets,
       options: options
@@ -436,72 +436,72 @@ module.exports = (function (){
     return load(mapData, options);
   }
 
- function shiftWaterDown(map, width, height, rightStart, bottomStart, viewWidth, viewHeight){
-	  for(var j = bottomStart; j > bottomStart-viewHeight; j--){
-		  for(var i = rightStart; i > rightStart-viewWidth; i--){
-			  index = j*width + i;
-			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1){
-				  if(map[index+height] == 14+1 || map[index+height] == 12+1 || map[index+height] == 7+1 || map[index+height] == 15+1){
-					  var temp = map[index];
-					  map[index] = map[index+height];
-					  map[index+height] = temp;
-				  }
-			  }
-		  }
-	  }
-	  
-	  return map;
+  function shiftWaterDown(map, width, height, rightStart, bottomStart, viewWidth, viewHeight){
+    for(var j = bottomStart; j > bottomStart-viewHeight; j--){
+      for(var i = rightStart; i > rightStart-viewWidth; i--){
+        index = j*width + i;
+        if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1){
+          if(map[index+height] == 14+1 || map[index+height] == 12+1 || map[index+height] == 7+1 || map[index+height] == 15+1){
+            var temp = map[index];
+            map[index] = map[index+height];
+            map[index+height] = temp;
+          }
+        }
+      }
+    }
+
+    return map;
   }
-  
-  function shiftWaterRight(map, width, height, leftStart, topStart, viewWidth, viewHeight){  
-	for(var i = leftStart; i < leftStart+viewWidth; i++){
-	  for(var j = topStart; j < topStart+viewHeight; j++){
-			  index = j*width + i;
-			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1 /*&& index+1 < width*/){
-				  if(map[index+1] == 14+1 || map[index+1] == 12+1|| map[index+1] == 7+1|| map[index+1] == 15+1){
-					  var temp = map[index];
-					  map[index] = map[index+1];
-					  map[index+1] = temp;
-				  }
-			  }
-		  }
-	  }
-	  
-	  return map;
+
+  function shiftWaterRight(map, width, height, leftStart, topStart, viewWidth, viewHeight){
+    for(var i = leftStart; i < leftStart+viewWidth; i++){
+      for(var j = topStart; j < topStart+viewHeight; j++){
+        index = j*width + i;
+        if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1 /*&& index+1 < width*/){
+          if(map[index+1] == 14+1 || map[index+1] == 12+1|| map[index+1] == 7+1|| map[index+1] == 15+1){
+            var temp = map[index];
+            map[index] = map[index+1];
+            map[index+1] = temp;
+          }
+        }
+      }
+    }
+
+    return map;
   }
-  
+
   function shiftWaterLeft(map, width, height, leftStart, topStart, viewWidth, viewHeight){
-	  for(var j = topStart; j < topStart+viewHeight; j++){
-		  for(var i = leftStart; i < leftStart+viewWidth; i++){
-			  index = j*width + i;
-			  if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1 /*&& index+1 < width*/){
-				  if(map[index-1] == 14+1 || map[index-1] == 12+1|| map[index-1] == 7+1 || map[index-1] == 15+1){
-					  var temp = map[index];
-					  map[index] = map[index-1];
-					  map[index-1] = temp;
-				  }
-			  }
-		  }
-	  }
-	  
-	  return map;
+    for(var j = topStart; j < topStart+viewHeight; j++){
+      for(var i = leftStart; i < leftStart+viewWidth; i++){
+        index = j*width + i;
+        if(map[index] == 6+1 || map[index] == 11+1 || map[index] == 13+1 /*&& index+1 < width*/){
+          if(map[index-1] == 14+1 || map[index-1] == 12+1|| map[index-1] == 7+1 || map[index-1] == 15+1){
+            var temp = map[index];
+            map[index] = map[index-1];
+            map[index-1] = temp;
+          }
+        }
+      }
+    }
+
+    return map;
   }
-  
+
   // Consolidate Liquids and called shifting functions made by Wyatt Watson
   function consolidateLiquids(map, width, height, rightStart, leftStart, topStart, bottomStart, viewWidth, viewHeight){
-	  for(var i = 0; i < viewHeight; i++){
-		  //Shift Down
-		  map = shiftWaterDown(map, width, height, rightStart+3, bottomStart+3, viewWidth+6, viewHeight+6);
-		  //Shift Right
-		  map = shiftWaterRight(map, width, height, leftStart-3, topStart-3, viewWidth+6, viewHeight+6);
-	  }
-	  for(var i = 0; i < viewHeight; i++){
-		  //Shift Down
-		  map = shiftWaterDown(map, width, height, rightStart+3, bottomStart+3, viewWidth+6, viewHeight+6);
-		  //Shift Right
-		  map = shiftWaterLeft(map, width, height, leftStart-3, topStart-3, viewWidth+6, viewHeight+6);
-	  }
-	  return map;
+    for(var i = 0; i < viewHeight; i++){
+      //Shift Down
+      map = shiftWaterDown(map, width, height, rightStart+3, bottomStart+3, viewWidth+6, viewHeight+6);
+      //Shift Right
+      map = shiftWaterRight(map, width, height, leftStart-3, topStart-3, viewWidth+6, viewHeight+6);
+    }
+    for(var i = 0; i < viewHeight; i++){
+      //Shift Down
+      map = shiftWaterDown(map, width, height, rightStart+3, bottomStart+3, viewWidth+6, viewHeight+6);
+      //Shift Right
+      map = shiftWaterLeft(map, width, height, leftStart-3, topStart-3, viewWidth+6, viewHeight+6);
+    }
+    return map;
   }
 
   /* GenerateObjectMap generates an object map based on the previously generated game map
@@ -513,16 +513,16 @@ module.exports = (function (){
     var height = map.length / width;
 
     /* 0 - SB, 1 - C, 2 - SE
-       3 - G, 4 - D, 5 - S, 6 - W, 7 - CB
-       8      9      10     11     12
-       13 - L, 14 - S, 15 - DB */
+     3 - G, 4 - D, 5 - S, 6 - W, 7 - CB
+     8      9      10     11     12
+     13 - L, 14 - S, 15 - DB */
 
     var objectMap = new Array(width*height);
     var surface = 0;
 
     /* 0 - Nothing
-       1 - Player
-       2 - Enemy */
+     1 - Player
+     2 - Enemy */
 
     /* place enemies (NOT FULLY IMPLEMENTED) and locates the surface of the game map */
     for(i = 0; i < width; i++){
@@ -558,16 +558,43 @@ module.exports = (function (){
   }
 
 // Added by Wyatt Watson
-var update = function(){
-	  layers.forEach(function(layer){
-		  var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
-          var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
-          var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
-          var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
-		  
-		  consolidateLiquids(layer.data, layer.width, layer.height, endX, startX, startY, endY, endX-startX, endY-startY);
-	  });
+  var update = function(){
+    layers.forEach(function(layer){
+      var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
+      var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
+      var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
+      var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
+
+      consolidateLiquids(layer.data, layer.width, layer.height, endX, startX, startY, endY, endX-startX, endY-startY);
+    });
   }
+
+  /*Karenfang*/
+  var renderWater = function(screenCtx){
+    layers.forEach(function(layer){
+      var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
+      var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
+      var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
+      var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
+
+      var map = layer.data;
+
+      for(var i = startX; i < endX; i++){
+        for(var j = startY; j < endY; j++){
+          index = j*layer.width + i;
+          //Todo: Lava covered by red
+          if(map[index] == 6+1 || map[index] == 11+1){
+            screenCtx.fillStyle="rgba(142,167,214,0.3)"; //color similar but lighter than the water tile
+            screenCtx.fillRect(i*tileWidth,j*tileHeight,tileWidth,tileHeight);
+          }else if (map[index] == 13+1) {
+            screenCtx.fillStyle="rgba(182,56,46,0.3)"; //color similar but lighter than the lava tile
+            screenCtx.fillRect(i*tileWidth,j*tileHeight,tileWidth,tileHeight);
+          }
+        }
+      }
+
+    });
+  };
 
   /* */
   var render = function(screenCtx) {
@@ -628,9 +655,9 @@ var update = function(){
               var tile = tiles[tileId-1];
               if(tile.image) { // Make sure the image has loaded
                 screenCtx.drawImage(
-                  tile.image,     // The image to draw
-                  tile.sx, tile.sy, tileWidth, tileHeight, // The portion of image to draw
-                  x*tileWidth, y*tileHeight, tileWidth, tileHeight // Where to draw the image on-screen
+                    tile.image,     // The image to draw
+                    tile.sx, tile.sy, tileWidth, tileHeight, // The portion of image to draw
+                    x*tileWidth, y*tileHeight, tileWidth, tileHeight // Where to draw the image on-screen
                 );
               }
             }
@@ -663,40 +690,40 @@ var update = function(){
   }
 
   /*
-	Changes the type of tile at a given position
-	author: Alexander Duben
-  */
+   Changes the type of tile at a given position
+   author: Alexander Duben
+   */
   var setTileAt = function(newType, x,y, layer){
-	 if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){
+    if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){
       return undefined;
-	 }else{
-		 var tile = {
-          // Reference to the image, shared amongst all tiles in the tileset
-          image: tileset,
-          // Source x position.  i % colCount == col number (as we remove full rows)
-          sx: x,
-          // Source y position. i / colWidth (integer division) == row number
-          sy: y,
-          // The tile's data (solid/liquid, etc.)
-          data: newType
-        }
-		layers[layer].data[x + y*mapWidth] = tile;
-	 }
+    }else{
+      var tile = {
+        // Reference to the image, shared amongst all tiles in the tileset
+        image: tileset,
+        // Source x position.  i % colCount == col number (as we remove full rows)
+        sx: x,
+        // Source y position. i / colWidth (integer division) == row number
+        sy: y,
+        // The tile's data (solid/liquid, etc.)
+        data: newType
+      }
+      layers[layer].data[x + y*mapWidth] = tile;
+    }
   }
 
   // Sets tile to skies
   // author: Milan Zelenka
   var destroyTileAt = function(newType, x,y, layer){
-	 if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){
+    if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){
       return undefined;
-	 }else{
-		layers[layer].data[x + y * mapWidth] = 1;
-	 }
+    }else{
+      layers[layer].data[x + y * mapWidth] = 1;
+    }
   }
 
   //Dig tile out at x, y
   var removeTileAt = function(x, y, layer) {
-	if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
+    if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
       return undefined;
     layers[layer].data[x + y*mapWidth] =  16;
   }
@@ -732,16 +759,16 @@ var update = function(){
     render: render,
     renderfrontclouds: renderfrontclouds,
     tileAt: tileAt,
-	setTileAt: setTileAt,
-	destroyTileAt: destroyTileAt,
+    setTileAt: setTileAt,
+    destroyTileAt: destroyTileAt,
     removeTileAt: removeTileAt,
     setViewportSize: setViewportSize,
     setCameraPosition: setCameraPosition,
     returnTileLayer: returnTileLayer,
     getCameraPosition: getCameraPosition,
     mineAt: mineAt,
-	consolidateLiquids: consolidateLiquids,
-	update: update
+    consolidateLiquids: consolidateLiquids,
+    update: update
   }
 
 

@@ -7,7 +7,7 @@
 module.exports = (function(){
   var Entity = require('./entity.js'),
 	  Animation = require('./animation.js');
-	  
+
   // SLime States
   const IDLE = 0;
   const MOVING = 1;
