@@ -49,8 +49,8 @@ module.exports = (function (){
         stateManager,
         ScoreEngine = require('./score.js'),
         PowerUp = require('./powerUp.js'),
-        Collectible = require('./collectible.js');
-    ParticleManager = require('./particle-manager.js');
+        Collectible = require('./collectible.js'),
+        ParticleManager = require('./particle-manager.js');
 
     /* Loads the GameState, triggered by the StateManager
      * This function sets up the screen canvas, the tilemap,
@@ -250,46 +250,14 @@ module.exports = (function (){
     /* Exits the game */
     var exit = function() {}
 
-<<<<<<< HEAD
-    // TODO: Calculate rubberbanding
-    var bounds = player.boundingBox();
-    var offsetX = SCREEN_WIDTH / 2,
-        offsetY = SCREEN_HEIGHT / 2;
-
-    // Apply camera transforms
-    backBufferCtx.save();backBufferCtx.translate(offsetX - bounds.left, offsetY - bounds.top);
-    tilemap.setCameraPosition(bounds.left, bounds.top);
-
-    // Redraw the map & entities
-    tilemap.render(backBufferCtx);
-    entityManager.render(backBufferCtx, false);
-    tilemap.renderfrontclouds(backBufferCtx);
-    //player.render(backBufferCtx, true);
-    ParticleManager.render(backBufferCtx);
-
-    backBufferCtx.restore();
-
-    // Flip the back buffer
-    screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-  };
-
-  /* Event handler for key down events
-   * arguments:
-   * - event, the key down event to process
-   */
-  function keyDown(event) {
-    if(event.keyCode == 27) { // ESC
-      var mainMenu = require('./main-menu.js');
-      stateManager.pushState(mainMenu);
-=======
+  
     return {
-        load: load,
-        exit: exit,
-        update: update,
-        render: render,
-        keyDown: keyDown,
-        keyUp: keyUp
->>>>>>> origin/master
+      load: load,
+      exit: exit,
+      update: update,
+      render: render,
+      keyDown: keyDown,
+      keyUp: keyUp  
     }
 
 })();
