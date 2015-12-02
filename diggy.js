@@ -7147,9 +7147,9 @@ module.exports = (function(){
 module.exports = (function() {
     var Shaman = require('./goblin-shaman.js');
     //var DemonGHog = require('./DemonicGroundH.js');
-    var Barrel = require('./barrel.js');
+    //var Barrel = require('./barrel.js');
     var Miner = require('./goblin-miner.js');
-    var Turret = require('./turret.js');
+    //var Turret = require('./turret.js');
 
     var updatePeriodSeconds = 1;
 
@@ -7169,10 +7169,10 @@ module.exports = (function() {
             this.entityManager.add(new Shaman(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
         
         	        
-            this.entityManager.add(new Turret(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            //this.entityManager.add(new Turret(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
             this.entityManager.add(new Miner(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
             //this.entityManager.add(new DemonGHog(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-            this.entityManager.add(new Barrel(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            //this.entityManager.add(new Barrel(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
 
         	
         }
