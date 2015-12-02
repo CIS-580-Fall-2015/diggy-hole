@@ -5786,17 +5786,27 @@ module.exports = (function() {
                     return;
             }
 
+
+
             /* replace the set tile at this layer */
             var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
+            var tileNum = 0;
             if (layerType === 0) {
+                tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
-                ParticleManager.addDirtParticles(tileX, tileY);
             } else if (layerType == 1) {
+                tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
-                ParticleManager.addStoneParticles(tileX, tileY);
             } else if (layerType == 2) {
+                tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
-                ParticleManager.addDeepParticles(tileX, tileY);
+            }
+
+            if (tileNum.data.type === "Sky Earth" || tileNum.data.type === "DirtWithGrass" || tileNum.data.type === "Dirt"){
+              ParticleManager.addDirtParticles(tileX, tileY);
+            }
+            else if (tileNum.data.type === "GemsWithGrass" || tileNum.data.type === "StoneWithGrass" || tileNum.data.type === "Gems" || tileNum.data.type === "Stone"){
+              ParticleManager.addStoneParticles(tileX, tileY);
             }
 
             /* setup the callback for when the animation is complete */
