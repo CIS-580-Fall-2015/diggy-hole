@@ -4,6 +4,7 @@
  * - Nathan Bean
  */
 module.exports = (function (){
+    /* jshint esnext: true */
 
     // The width & height of the screen
     const SCREEN_WIDTH = 1280,
@@ -18,6 +19,7 @@ module.exports = (function (){
         inputManager = require('./input-manager.js'),
         tilemap = require('./tilemap.js'),
         entityManager = require('./entity-manager.js'),
+        SpawningManager = require('./spawning-manager.js'),
         StoneMonster = require('./stone-monster.js'),
         DemonicGroundHog = require('./DemonicGroundH.js'),
         Barrel = require('./barrel.js'),
@@ -61,6 +63,7 @@ module.exports = (function (){
     var load = function(sm) {
         stateManager = sm;
 
+
         // Set up the screen canvas
         var screen = document.createElement("canvas");
         screen.width = SCREEN_WIDTH;
@@ -93,8 +96,10 @@ module.exports = (function (){
 
         // Set up score engine
         scoreEngine = new ScoreEngine();
-        scoreEngine.setPositionFunction(tilemap.getCameraPosition)
+        scoreEngine.setPositionFunction(tilemap.getCameraPosition);
         entityManager.setScoreEngine(scoreEngine);
+
+        this.spawningManager = new SpawningManager(entityManager, scoreEngine, player);
 
         //add wolf to
         // the entity manager
@@ -139,7 +144,7 @@ module.exports = (function (){
         // Spawn 10 barrels close to player
         // And some turrets
         // and some shamans
-        for(var i = 0; i < 10; i++){
+        for(i = 0; i < 10; i++) {
             if (i < 3) {
                 turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
                 entityManager.add(turret);
@@ -159,10 +164,6 @@ module.exports = (function (){
 
         }
         //powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
-
-
-
-
 
 
         // Karenfang: Create a Kakao and add it to
@@ -192,7 +193,7 @@ module.exports = (function (){
      * this and the prior frame.
      */
     var update = function(elapsedTime) {
-        //player.update(elapsedTime, tilemap);
+//this.spawningManager.update();
         entityManager.update(elapsedTime, tilemap, ParticleManager);
         tilemap.update();
         ParticleManager.update(elapsedTime);
@@ -248,16 +249,16 @@ module.exports = (function (){
     }
 
     /* Exits the game */
-    var exit = function() {}
+    var exit = function() {};
 
-  
+
     return {
-      load: load,
-      exit: exit,
-      update: update,
-      render: render,
-      keyDown: keyDown,
-      keyUp: keyUp  
-    }
+        load: load,
+        exit: exit,
+        update: update,
+        render: render,
+        keyDown: keyDown,
+        keyUp: keyUp
+    };
 
 })();
