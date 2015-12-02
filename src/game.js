@@ -106,74 +106,74 @@ module.exports = (function (){
         //wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
         //entityManager.add(wolf);
 
-        for (var i = 0; i < 35; i += 7){
-            stoneMonster = new StoneMonster(64*i, 300, 0);
-            entityManager.add(stoneMonster);
-        }
+        // for (var i = 0; i < 35; i += 7){
+        //     stoneMonster = new StoneMonster(64*i, 300, 0);
+        //     entityManager.add(stoneMonster);
+        // }
 
-        bird = new Bird(600, 100);
-        entityManager.add(bird);
-
-        // Add a robo-killer to the entity manager.
-        robo_killer = new Robo_Killer(450, 1240, 0);
-        entityManager.add(robo_killer);
-
-        rat = new Rat(500, 1360, 0);
-        entityManager.add(rat);
-
-        slime = new Slime(400, 1120, 0);
-        entityManager.add(slime);
-
-        sudo_chan = new Sudo_Chan(490, 1240, 0);
-        entityManager.add(sudo_chan);
-
+        // bird = new Bird(600, 100);
+        // entityManager.add(bird);
+        //
+        // // Add a robo-killer to the entity manager.
+        // robo_killer = new Robo_Killer(450, 1240, 0);
+        // entityManager.add(robo_killer);
+        //
+        // rat = new Rat(500, 1360, 0);
+        // entityManager.add(rat);
+        //
+        // slime = new Slime(400, 1120, 0);
+        // entityManager.add(slime);
+        //
+        // sudo_chan = new Sudo_Chan(490, 1240, 0);
+        // entityManager.add(sudo_chan);
+        //
         octopus = new Octopus(120, 2240, 0);
         entityManager.add(octopus);
-
-        DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
-        entityManager.add(DemonicGroundHog);
-
-        goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
-        entityManager.add(goblinMiner);
+        //
+        // DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
+        // entityManager.add(DemonicGroundHog);
+        //
+        // goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
+        // entityManager.add(goblinMiner);
 
         // Create collectibles.
         // WHOEVER IS IN CHARGE OF ENTITY PLACEMENT: Feel free to change the coordiates (first 2 parameters - x,y).
-        entityManager.add(new Collectible(500, 240, 0,'bit_coin', 64, 64, 8, './img/bit_coin.png', 10));
+        // entityManager.add(new Collectible(500, 240, 0,'bit_coin', 64, 64, 8, './img/bit_coin.png', 10));
         // entityManager.add(new Collectible(600, 240, 0,'lost_cat', 64, 64, 14, './img/lost_cat.png', 15));
 
         // Spawn 10 barrels close to player
         // And some turrets
         // and some shamans
-        for(i = 0; i < 10; i++) {
-            if (i < 3) {
-                turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
-                entityManager.add(turret);
-
-            }
-            dynamiteDwarf = new DynamiteDwarf(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
-            entityManager.add(dynamiteDwarf);
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, -1));
-            barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
-            entityManager.add(barrel);
-            entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
-
-
-        }
+        // for(i = 0; i < 10; i++) {
+        //     if (i < 3) {
+        //         turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
+        //         entityManager.add(turret);
+        //
+        //     }
+        //     dynamiteDwarf = new DynamiteDwarf(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
+        //     entityManager.add(dynamiteDwarf);
+        //     entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
+        //     entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
+        //     entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
+        //     entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
+        //     entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, -1));
+        //     barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
+        //     entityManager.add(barrel);
+        //     entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
+        //
+        //
+        // }
         //powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
 
 
         // Karenfang: Create a Kakao and add it to
         // the entity manager
-        kakao = new Kakao(310,1240,0);  //two tiles to the right of the player
-        entityManager.add(kakao);
-
-        extantBlobbers = 1;
-        blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
-        entityManager.add(blobber);
+        // kakao = new Kakao(310,1240,0);  //two tiles to the right of the player
+        // entityManager.add(kakao);
+        //
+        // extantBlobbers = 1;
+        // blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
+        // entityManager.add(blobber);
 
 
         // Kyle Brown: Background Music
@@ -193,7 +193,7 @@ module.exports = (function (){
      * this and the prior frame.
      */
     var update = function(elapsedTime) {
-//this.spawningManager.update();
+        this.spawningManager.update(elapsedTime);
         entityManager.update(elapsedTime, tilemap, ParticleManager);
         tilemap.update();
         ParticleManager.update(elapsedTime);

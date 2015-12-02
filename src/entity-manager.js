@@ -157,7 +157,7 @@ function render(ctx, debug) {
     var pow = Math.sqrt(1282*1282+722*722);
     //loops through entities
     for (var i = 0; i < entityCount; i++) {
-        if (entities[i] && playerDistance(entities[i]) < pow + x + 10 && playerDistance(entities[i]) < pow + y) {
+        if(entities[i]) {
             entities[i].render(ctx, debug);
         }
     }

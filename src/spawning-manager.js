@@ -6,7 +6,7 @@ module.exports = (function() {
     function SpawningManager(entityManager, scoreEngine, player) {
         this.entityManager = entityManager;
         this.scoreEngine = scoreEngine;
-        this.previousScore =
+        this.player = player;
         this.updateTimeLeft = 0;
     }
 
@@ -16,7 +16,7 @@ module.exports = (function() {
             this.updateTimeLeft = updatePeriodSeconds;
 
             //TODO implement this, so that enemies spawn in waves, etc
-            this.entityManager.add(new Shaman(Math.random()*64*15, Math.random()*64*15, 0));
+            this.entityManager.add(new Shaman(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
         }
     };
 
