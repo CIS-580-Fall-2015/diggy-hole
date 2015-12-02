@@ -182,8 +182,8 @@ module.exports = (function() {
     // Check that player's head is above water
     Player.prototype.headOverWater = function (tilemap){
         var box = this.boundingBox();
-        return (tilemap.tileAt(Math.floor(box.right / 64), Math.floor(box.top / 64),
-            this.layerIndex).data.type == "SkyBackground");
+        tile = tilemap.tileAt(Math.floor(box.right / 64), Math.floor(box.top / 64), this.layerIndex);
+        return (tile && tile.data.type == "SkyBackground");
     };
 
     // Determines if the player will ram his head into a block above
