@@ -5,7 +5,7 @@ module.exports = (function() {
     var Miner = require('./goblin-miner.js');
     var Turret = require('./turret.js');
 
-    var updatePeriodSeconds = 1;
+    var updatePeriodSeconds = 5;
 
     function SpawningManager(entityManager, scoreEngine, player) {
         this.entityManager = entityManager;
@@ -21,6 +21,11 @@ module.exports = (function() {
 
             //TODO implement this, so that enemies spawn in waves, etc
             this.entityManager.add(new Shaman(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+        
+            this.entityManager.add(new Turret(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.entityManager.add(new Miner(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.entityManager.add(new DemonGHog(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.entityManager.add(new Barrel(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
         }
     };
 
