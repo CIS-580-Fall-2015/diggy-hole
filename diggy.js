@@ -1990,7 +1990,7 @@ Cannonball.prototype = new Entity();
 return Cannonball;
 	
 }())
-},{"./animation.js":5,"./entity.js":17,"./tilemap.js":39}],11:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":17,"./tilemap.js":40}],11:[function(require,module,exports){
 /* The construct for a collectible. Inherits from entity.
  * Removed from entity manager upon being collected by player.
  * Certain strategies derived from the powerup class.
@@ -3261,6 +3261,7 @@ module.exports = (function(){
  * - Nathan Bean
  */
 module.exports = (function (){
+    /* jshint esnext: true */
 
     // The width & height of the screen
     const SCREEN_WIDTH = 1280,
@@ -3275,6 +3276,7 @@ module.exports = (function (){
         inputManager = require('./input-manager.js'),
         tilemap = require('./tilemap.js'),
         entityManager = require('./entity-manager.js'),
+        SpawningManager = require('./spawning-manager.js'),
         StoneMonster = require('./stone-monster.js'),
         DemonicGroundHog = require('./DemonicGroundH.js'),
         Barrel = require('./barrel.js'),
@@ -3318,6 +3320,7 @@ module.exports = (function (){
     var load = function(sm) {
         stateManager = sm;
 
+
         // Set up the screen canvas
         var screen = document.createElement("canvas");
         screen.width = SCREEN_WIDTH;
@@ -3350,8 +3353,10 @@ module.exports = (function (){
 
         // Set up score engine
         scoreEngine = new ScoreEngine();
-        scoreEngine.setPositionFunction(tilemap.getCameraPosition)
+        scoreEngine.setPositionFunction(tilemap.getCameraPosition);
         entityManager.setScoreEngine(scoreEngine);
+
+        this.spawningManager = new SpawningManager(entityManager, scoreEngine, player);
 
         //add wolf to
         // the entity manager
@@ -3396,7 +3401,7 @@ module.exports = (function (){
         // Spawn 10 barrels close to player
         // And some turrets
         // and some shamans
-        for(var i = 0; i < 10; i++){
+        for(i = 0; i < 10; i++) {
             if (i < 3) {
                 turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
                 entityManager.add(turret);
@@ -3416,10 +3421,6 @@ module.exports = (function (){
 
         }
         //powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
-
-
-
-
 
 
         // Karenfang: Create a Kakao and add it to
@@ -3449,7 +3450,7 @@ module.exports = (function (){
      * this and the prior frame.
      */
     var update = function(elapsedTime) {
-        //player.update(elapsedTime, tilemap);
+//this.spawningManager.update();
         entityManager.update(elapsedTime, tilemap, ParticleManager);
         tilemap.update();
         ParticleManager.update(elapsedTime);
@@ -3505,21 +3506,21 @@ module.exports = (function (){
     }
 
     /* Exits the game */
-    var exit = function() {}
+    var exit = function() {};
 
-  
+
     return {
-      load: load,
-      exit: exit,
-      update: update,
-      render: render,
-      keyDown: keyDown,
-      keyUp: keyUp  
-    }
+        load: load,
+        exit: exit,
+        update: update,
+        render: render,
+        keyDown: keyDown,
+        keyUp: keyUp
+    };
 
 })();
 
-},{"./DemonicGroundH.js":2,"./Kakao.js":3,"./barrel.js":6,"./bird.js":7,"./blobber.js":8,"./collectible.js":11,"./dynamiteDwarf.js":15,"./entity-manager.js":16,"./goblin-miner.js":19,"./goblin-shaman.js":20,"./input-manager.js":22,"./main-menu.js":23,"./octopus.js":26,"./particle-manager.js":28,"./player.js":29,"./powerUp.js":30,"./rat.js":31,"./robo-killer.js":32,"./score.js":33,"./slime.js":34,"./stone-monster.js":36,"./sudo_chan.js":38,"./tilemap.js":39,"./turret.js":40,"./wolf.js":41}],19:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./Kakao.js":3,"./barrel.js":6,"./bird.js":7,"./blobber.js":8,"./collectible.js":11,"./dynamiteDwarf.js":15,"./entity-manager.js":16,"./goblin-miner.js":19,"./goblin-shaman.js":20,"./input-manager.js":22,"./main-menu.js":23,"./octopus.js":26,"./particle-manager.js":28,"./player.js":29,"./powerUp.js":30,"./rat.js":31,"./robo-killer.js":32,"./score.js":33,"./slime.js":34,"./spawning-manager.js":35,"./stone-monster.js":37,"./sudo_chan.js":39,"./tilemap.js":40,"./turret.js":41,"./wolf.js":42}],19:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -4581,7 +4582,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":18,"./splash-screen":35}],25:[function(require,module,exports){
+},{"./game":18,"./splash-screen":36}],25:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -7143,6 +7144,33 @@ module.exports = (function(){
   
 }());
 },{"./animation.js":5,"./entity.js":17}],35:[function(require,module,exports){
+module.exports = (function() {
+    var Shaman = require('./goblin-shaman.js');
+
+    var updatePeriodSeconds = 1;
+
+    function SpawningManager(entityManager, scoreEngine, player) {
+        this.entityManager = entityManager;
+        this.scoreEngine = scoreEngine;
+        this.previousScore =
+        this.updateTimeLeft = 0;
+    }
+
+    SpawningManager.prototype.update = function (elapsedTime) {
+        this.updateTimeLeft -= elapsedTime;
+        if(this.updateTimeLeft < 0) {
+            this.updateTimeLeft = updatePeriodSeconds;
+
+            //TODO implement this, so that enemies spawn in waves, etc
+            this.entityManager.add(new Shaman(Math.random()*64*15, Math.random()*64*15, 0));
+        }
+    };
+
+
+    return SpawningManager;
+})();
+
+},{"./goblin-shaman.js":20}],36:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -7209,7 +7237,7 @@ module.exports = (function (){
   }
   
 })();
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -7493,7 +7521,7 @@ module.exports = (function(){
     return StoneMonster;
 }());
 
-},{"./animation.js":5,"./entity.js":17,"./player.js":29}],37:[function(require,module,exports){
+},{"./animation.js":5,"./entity.js":17,"./player.js":29}],38:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -7563,7 +7591,7 @@ module.exports = (function() {
     return Sudo_Animation;
 
 }());
-},{}],38:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -7811,7 +7839,7 @@ module.exports = (function(){
     return Sudo_Chan;
 }());
 
-},{"./entity.js":17,"./sudo-chan-animation.js":37}],39:[function(require,module,exports){
+},{"./entity.js":17,"./sudo-chan-animation.js":38}],40:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -8589,7 +8617,7 @@ module.exports = (function (){
 
 })();
 
-},{"./noise.js":25}],40:[function(require,module,exports){
+},{"./noise.js":25}],41:[function(require,module,exports){
 
 
 
@@ -8981,7 +9009,7 @@ module.exports = (function(){
 	return Turret;
 	
 }())
-},{"./animation.js":5,"./cannonball.js":10,"./entity-manager.js":16,"./entity.js":17,"./player.js":29}],41:[function(require,module,exports){
+},{"./animation.js":5,"./cannonball.js":10,"./entity-manager.js":16,"./entity.js":17,"./player.js":29}],42:[function(require,module,exports){
 
 /* Wolf module
  * Implements the entity pattern and provides
