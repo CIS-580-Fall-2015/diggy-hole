@@ -5244,8 +5244,6 @@ module.exports = (function() {
     var ratLeft = new Image();
     ratLeft.src = "img/ratLeft2.png";
 
-
-
     //The Player constructor
     function Player(locationX, locationY, layerIndex, inputManager) {
         this.inputManager = inputManager;
@@ -5415,6 +5413,24 @@ module.exports = (function() {
         var sprite = this;
         sprite.entityManager = entityManager;
 
+        if(this.digState == NOT_DIGGING) {
+            if (this.inputManager.isKeyDown(this.inputManager.commands.DIGDOWN)) {
+                this.digState = DOWN_DIGGING;
+                this.setupDig(new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true), entityManager, ParticleManager);
+            } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGLEFT)) {
+                this.digState = LEFT_DIGGING;
+                this.isLeft = true;
+                this.setupDig(new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 }), entityManager, ParticleManager);
+            } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGRIGHT)) {
+                this.digState = RIGHT_DIGGING;
+                this.isLeft = false;
+                this.setupDig(new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 }), entityManager, ParticleManager);
+            } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGUP)) {
+                this.digState = UP_DIGGING;
+                this.setupDig(new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY }, true), entityManager, ParticleManager);
+            }
+        }
+
         // Process player state
         switch (this.state) {
             case STANDING:
@@ -5437,30 +5453,7 @@ module.exports = (function() {
                     }
                 }
                 else {
-                    if (this.inputManager.isKeyDown(this.inputManager.commands.DIGDOWN)) {
-                        dig_sound.play();
-                        this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true);
-                        this.state = DIGGING;
-                        this.digState = DOWN_DIGGING;
-                    } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGLEFT)) {
-                        dig_sound.play();
-                        this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
-                        this.state = DIGGING;
-                        this.digState = LEFT_DIGGING;
-                        this.isLeft = true;
-                    } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGRIGHT)) {
-                        dig_sound.play();
-                        this.pick = new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 });
-                        this.state = DIGGING;
-                        this.digState = RIGHT_DIGGING;
-                        this.isLeft = false;
-                    } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGUP)) {
-                        dig_sound.play();
-                        this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY }, true);
-                        this.state = DIGGING;
-                        this.digState = UP_DIGGING;
-                    } else if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
-
+                    if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
                         /* Added sound effect for jumping */
                         jump_sound.play();
 
@@ -5485,16 +5478,7 @@ module.exports = (function() {
                     else {
                         this.state = STANDING;
                     }
-
-                    /* If we just entered the digging state,
-                    we need to spawn the hitbox of our pickaxe */
-                    if(this.state == DIGGING) {
-
-                        this.setupDig(entityManager, ParticleManager);
-                    }
                 }
-                break;
-            case DIGGING:
                 break;
             case JUMPING:
                 this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
@@ -5558,29 +5542,6 @@ module.exports = (function() {
                         this.velocityY = SWIM_UP;
                         console.log("SWIMING UP");
                     }
-                    else if (this.inputManager.isKeyDown(this.inputManager.commands.DIGDOWN)) {
-                        dig_sound.play();
-                        this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true);
-                        this.state = DIGGING;
-                        this.digState = DOWN_DIGGING;
-                    } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGLEFT)) {
-                        dig_sound.play();
-                        this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
-                        this.state = DIGGING;
-                        this.digState = LEFT_DIGGING;
-                        this.isLeft = true;
-                    } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGRIGHT)) {
-                        dig_sound.play();
-                        this.pick = new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 });
-                        this.state = DIGGING;
-                        this.digState = RIGHT_DIGGING;
-                        this.isLeft = false;
-                    } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGUP)) {
-                        dig_sound.play();
-                        this.pick = new Pickaxe({x: this.currentX + SIZE / 2, y: this.currentY}, true);
-                        this.state = DIGGING;
-                        this.digState = UP_DIGGING;
-                    }
                     else if (!this.inWater(tilemap) && !this.headOverWater(tilemap)) {
                         this.state = FALLING;
                         console.log("Player hit its head on something");
@@ -5611,11 +5572,7 @@ module.exports = (function() {
                 }
                 // Exact copy of walking state code, might be a bit redudant, possibly make it a global function?
 
-                /* If we just entered the digging state,
-                we need to spawn the hitbox of our pickaxe */
-                if(this.state == DIGGING) {
-                    this.setupDig(entityManager, ParticleManager);
-                }
+
                 // A counter for the health bar to check if player is drowning
                 if (this.swimmingProperty.breathCount > 20) {
                     //Player is dead!
@@ -5648,10 +5605,14 @@ module.exports = (function() {
         }
 
         // Update animation
-        if (this.isLeft)
-            this.animations.left[this.state].update(elapsedTime);
-        else
-            this.animations.right[this.state].update(elapsedTime);
+        var animationSet = this.isLeft ? this.animations.left : this.animations.right;
+
+        if(this.digState == NOT_DIGGING) {
+            animationSet[this.state].update(elapsedTime);
+        } else {
+            //TODO create animations for each dig state
+            animationSet[DIGGING].update(elapsedTime);
+        }
 
     };
 
@@ -5788,7 +5749,9 @@ module.exports = (function() {
     };
 
 
-    Player.prototype.setupDig = function(entityManager, ParticleManager) {
+    Player.prototype.setupDig = function(pickaxe, entityManager, ParticleManager) {
+        dig_sound.play();
+        this.pick = pickaxe;
         entityManager.add(this.pick);
 
         var currentPlayer = this;
@@ -5806,25 +5769,18 @@ module.exports = (function() {
                 case DOWN_DIGGING:
                     tileX = Math.floor((box.left + (SIZE / 2)) / 64);
                     tileY = Math.floor(box.bottom / 64);
-
-                    /* we also know we will be falling if digging down, so start fall */
-                    currentPlayer.state = FALLING;
-                    currentPlayer.velocityY = 0;
                     break;
                 case LEFT_DIGGING:
                     tileX = Math.floor((box.left - 5)/ 64);
                     tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
-                    currentPlayer.state = STANDING;
                     break;
                 case RIGHT_DIGGING:
                     tileX = Math.floor((box.right + 5)/ 64);
                     tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
-                    currentPlayer.state = STANDING;
                     break;
                 case UP_DIGGING:
                     tileX = Math.floor((box.left + (SIZE / 2)) / 64);
                     tileY = Math.floor((box.top - 5) / 64);
-                    currentPlayer.state = STANDING;
                     break;
                 default:
                     return;
@@ -5844,15 +5800,17 @@ module.exports = (function() {
             }
 
             /* setup the callback for when the animation is complete */
-            currentPlayer.animations.left[currentPlayer.state].donePlayingCallback = function() {};
-            currentPlayer.animations.right[currentPlayer.state].donePlayingCallback = function() {};
+            currentPlayer.animations.left[DIGGING].donePlayingCallback = function() {};
+            currentPlayer.animations.right[DIGGING].donePlayingCallback = function() {};
             entityManager.remove(currentPlayer.pick);
+            currentPlayer.pick = undefined;
 
             /* reset the digging state */
             currentPlayer.digState = NOT_DIGGING;
         };
-        this.animations.left[this.state].donePlayingCallback = digComplete;
-        this.animations.right[this.state].donePlayingCallback = digComplete;
+        //TODO update animations for each direction
+        this.animations.left[DIGGING].donePlayingCallback = digComplete;
+        this.animations.right[DIGGING].donePlayingCallback = digComplete;
     };
 
     /*
@@ -5924,10 +5882,15 @@ module.exports = (function() {
      */
     Player.prototype.render = function(ctx, debug) {
         // Draw the player (and the correct animation)
-        if (this.isLeft)
-            this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
-        else
-            this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
+        var animationSet = this.isLeft ? this.animations.left : this.animations.right;
+
+        if(this.digState == NOT_DIGGING) {
+            animationSet[this.state].render(ctx, this.currentX, this.currentY);
+        } else {
+            //TODO create animations for each dig state
+            animationSet[DIGGING].render(ctx, this.currentX, this.currentY);
+        }
+
 
         if (this.holdBreath && this.state == SWIMMING) {
             var bb = this.boundingBox();
