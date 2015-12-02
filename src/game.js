@@ -80,7 +80,7 @@ module.exports = (function (){
         // Generate the tilemap
         tilemap.generate(1000, 1000, {
             viewport: {
-                width: 1028,
+                width: 1280,
                 height: 720
             },
             onload: function() {

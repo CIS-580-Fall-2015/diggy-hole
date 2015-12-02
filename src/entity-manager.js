@@ -122,6 +122,20 @@ function queryRadius(x, y, r) {
 return entitiesInRadius;
 }
 
+function queryRectangle(rect) {
+    var entitiesInRect = [];
+    for (var i = 0; i < entityCount; i++) {
+        // Only check existing entities
+        if (entities[i]) {
+            entityHitbox = entities[i].boundingBox();
+            if( entityHitbox.left > rect.right || entityHitbox.right < rect.left ||
+                entityHitbox.top > rect.bottom || entityHitbox.bottom < rect.top) continue;
+            entitiesInRect.push(entities[i]);
+        }
+    }
+    return entitiesInRect;
+}
+
 /* Updates all managed entities
 * Arguments:
 * - elapsedTime, how much time has passed between the prior frameElement
@@ -129,11 +143,6 @@ return entitiesInRadius;
 * - tilemap, the current tilemap for the game.
 */
 function update(elapsedTime, tilemap, ParticleManager) {
-    //used for determining the area of the screen/what entities are on/near screen to be updated
-    var play = getPlayer();
-    var x = play.currentX;
-    var y = play.currentY;
-    var pow = Math.sqrt(1282*1282+722*722);
     //loops through entities
     for (var i = 0; i < entityCount; i++) {
         if(entities[i]) {
@@ -152,13 +161,13 @@ function update(elapsedTime, tilemap, ParticleManager) {
 function render(ctx, debug) {
     //used for determining the area of the screen/what entities are on/near screen to be rendered
     var play = getPlayer();
-    var x = play.currentX;
-    var y = play.currentY;
-    var pow = Math.sqrt(1282*1282+722*722);
+    var viewPortArea = tilemap.getViewPort();
+
+    var entitiesOnScreen = queryRectangle(viewPortArea);
     //loops through entities
-    for (var i = 0; i < entityCount; i++) {
-        if(entities[i]) {
-            entities[i].render(ctx, debug);
+    for (var i = 0; i < entitiesOnScreen.length; i++) {
+        if(entitiesOnScreen[i]) {
+            entitiesOnScreen[i].render(ctx, debug);
         }
     }
     scoreEngine.render(ctx);
@@ -177,15 +186,22 @@ function getEntity(index) {
 }
 
 /* Gets distance between entity and player */
-function playerDistance(entity) {
-    var d = Math.pow(entity.currentX - entities[0].currentX, 2) + Math.pow(entity.currentY - entities[0].currentY, 2);
-    d = Math.sqrt(d);
-    return d;
+function playerDistanceSquaredFrom(entity) {
+    if(typeof(entity) === "undefined" || entity === null) return Number.MAX_VALUE;
+    var playerHitbox = getPlayer().boundingBox();
+    var entityHitbox = entity.boundingBox();
+
+    return (entityHitbox.left - playerHitbox.left) * (entityHitbox.left - playerHitbox.left) +
+            (entityHitbox.top - playerHitbox.top) * (entityHitbox.top - playerHitbox.top);
 }
 
 /* Gets direction relative to player */
 function playerDirection(entity) {
-    if (entities[0].currentX < entity.currentX) {
+    if(typeof(entity) === "undefined" || entity === null) return false; // TODO ?
+    var playerHitbox = getPlayer().boundingBox();
+    var entityHitbox = entity.boundingBox();
+
+    if (playerHitbox.right < entityHitbox.left) {
         return true;
     }
     return false;
@@ -201,7 +217,7 @@ return {
     queryRadius: queryRadius,
     update: update,
     render: render,
-    playerDistance: playerDistance,
+    playerDistanceSquaredFrom: playerDistanceSquaredFrom,
     playerDirection: playerDirection,
     getPlayer: getPlayer,
     getEntity: getEntity,

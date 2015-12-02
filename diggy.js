@@ -3088,6 +3088,20 @@ function queryRadius(x, y, r) {
 return entitiesInRadius;
 }
 
+function queryRectangle(rect) {
+    var entitiesInRect = [];
+    for (var i = 0; i < entityCount; i++) {
+        // Only check existing entities
+        if (entities[i]) {
+            entityHitbox = entities[i].boundingBox();
+            if( entityHitbox.left > rect.right || entityHitbox.right < rect.left ||
+                entityHitbox.top > rect.bottom || entityHitbox.bottom < rect.top) continue;
+            entitiesInRect.push(entities[i]);
+        }
+    }
+    return entitiesInRect;
+}
+
 /* Updates all managed entities
 * Arguments:
 * - elapsedTime, how much time has passed between the prior frameElement
@@ -3095,11 +3109,6 @@ return entitiesInRadius;
 * - tilemap, the current tilemap for the game.
 */
 function update(elapsedTime, tilemap, ParticleManager) {
-    //used for determining the area of the screen/what entities are on/near screen to be updated
-    var play = getPlayer();
-    var x = play.currentX;
-    var y = play.currentY;
-    var pow = Math.sqrt(1282*1282+722*722);
     //loops through entities
     for (var i = 0; i < entityCount; i++) {
         if(entities[i]) {
@@ -3118,13 +3127,13 @@ function update(elapsedTime, tilemap, ParticleManager) {
 function render(ctx, debug) {
     //used for determining the area of the screen/what entities are on/near screen to be rendered
     var play = getPlayer();
-    var x = play.currentX;
-    var y = play.currentY;
-    var pow = Math.sqrt(1282*1282+722*722);
+    var viewPortArea = tilemap.getViewPort();
+
+    var entitiesOnScreen = queryRectangle(viewPortArea);
     //loops through entities
-    for (var i = 0; i < entityCount; i++) {
-        if(entities[i]) {
-            entities[i].render(ctx, debug);
+    for (var i = 0; i < entitiesOnScreen.length; i++) {
+        if(entitiesOnScreen[i]) {
+            entitiesOnScreen[i].render(ctx, debug);
         }
     }
     scoreEngine.render(ctx);
@@ -3143,15 +3152,22 @@ function getEntity(index) {
 }
 
 /* Gets distance between entity and player */
-function playerDistance(entity) {
-    var d = Math.pow(entity.currentX - entities[0].currentX, 2) + Math.pow(entity.currentY - entities[0].currentY, 2);
-    d = Math.sqrt(d);
-    return d;
+function playerDistanceSquaredFrom(entity) {
+    if(typeof(entity) === "undefined" || entity === null) return Number.MAX_VALUE;
+    var playerHitbox = getPlayer().boundingBox();
+    var entityHitbox = entity.boundingBox();
+
+    return (entityHitbox.left - playerHitbox.left) * (entityHitbox.left - playerHitbox.left) +
+            (entityHitbox.top - playerHitbox.top) * (entityHitbox.top - playerHitbox.top);
 }
 
 /* Gets direction relative to player */
 function playerDirection(entity) {
-    if (entities[0].currentX < entity.currentX) {
+    if(typeof(entity) === "undefined" || entity === null) return false; // TODO ?
+    var playerHitbox = getPlayer().boundingBox();
+    var entityHitbox = entity.boundingBox();
+
+    if (playerHitbox.right < entityHitbox.left) {
         return true;
     }
     return false;
@@ -3167,7 +3183,7 @@ return {
     queryRadius: queryRadius,
     update: update,
     render: render,
-    playerDistance: playerDistance,
+    playerDistanceSquaredFrom: playerDistanceSquaredFrom,
     playerDirection: playerDirection,
     getPlayer: getPlayer,
     getEntity: getEntity,
@@ -3337,7 +3353,7 @@ module.exports = (function (){
         // Generate the tilemap
         tilemap.generate(1000, 1000, {
             viewport: {
-                width: 1028,
+                width: 1280,
                 height: 720
             },
             onload: function() {
@@ -7146,12 +7162,12 @@ module.exports = (function(){
 },{"./animation.js":5,"./entity.js":17}],35:[function(require,module,exports){
 module.exports = (function() {
     var Shaman = require('./goblin-shaman.js');
-    //var DemonGHog = require('./DemonicGroundH.js');
-    //var Barrel = require('./barrel.js');
-    //var Miner = require('./goblin-miner.js');
-    //var Turret = require('./turret.js');
+    var DemonGHog = require('./DemonicGroundH.js');
+    var Barrel = require('./barrel.js');
+    var Miner = require('./goblin-miner.js');
+    var Turret = require('./turret.js');
 
-    var updatePeriodSeconds = 1;
+    var updatePeriodSeconds = 5;
 
     function SpawningManager(entityManager, scoreEngine, player) {
         this.entityManager = entityManager;
@@ -7168,13 +7184,10 @@ module.exports = (function() {
             //TODO implement this, so that enemies spawn in waves, etc
             this.entityManager.add(new Shaman(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
         
-        	        
-            //this.entityManager.add(new Turret(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-            //this.entityManager.add(new Miner(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-            //this.entityManager.add(new DemonGHog(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-            //this.entityManager.add(new Barrel(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-
-        	
+            this.entityManager.add(new Turret(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.entityManager.add(new Miner(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.entityManager.add(new DemonGHog(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.entityManager.add(new Barrel(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
         }
     };
 
@@ -7182,7 +7195,7 @@ module.exports = (function() {
     return SpawningManager;
 })();
 
-},{"./goblin-shaman.js":20}],36:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./barrel.js":6,"./goblin-miner.js":19,"./goblin-shaman.js":20,"./turret.js":41}],36:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -7915,7 +7928,18 @@ module.exports = (function (){
     viewportHalfHeight = height / 2;
     viewportTileWidth = Math.ceil(width / tileWidth) + 2;
     viewportTileHeight = Math.ceil(height / tileHeight) + 2;
-  }
+  };
+
+  var getViewPort = function() {
+      var pos = getCameraPosition();
+      return {
+          left: pos[0],
+          right: pos[0] + 2 * viewportHalfWidth,
+          top: pos[1],
+          bottom: pos[1] + 2 * viewportHalfHeight,
+      };
+  };
+
 
   /* Sets the camera position
    * Arguments:
@@ -7925,7 +7949,7 @@ module.exports = (function (){
   var setCameraPosition = function(x, y) {
     cameraX = x;
     cameraY = y;
-  }
+ };
 
   /**
    * Function: getCameraPosition
@@ -7933,10 +7957,9 @@ module.exports = (function (){
    * Returns:
    *     x-y postion
    */
-  var getCameraPosition = function()
-  {
-    return [cameraX - viewportHalfWidth - 32, cameraY - viewportHalfHeight + 32];
-  }
+  var getCameraPosition = function() {
+    return [cameraX - viewportHalfWidth, cameraY - viewportHalfHeight];
+  };
 
   /* Loads the tilemap
    * - mapData, the JavaScript object
@@ -8618,13 +8641,14 @@ module.exports = (function (){
     destroyTileAt: destroyTileAt,
     removeTileAt: removeTileAt,
     setViewportSize: setViewportSize,
+    getViewPort: getViewPort,
     setCameraPosition: setCameraPosition,
     returnTileLayer: returnTileLayer,
     getCameraPosition: getCameraPosition,
     mineAt: mineAt,
     consolidateLiquids: consolidateLiquids,
     update: update
-  }
+  };
 
 
 })();
