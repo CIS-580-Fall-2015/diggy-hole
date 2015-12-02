@@ -220,6 +220,7 @@ module.exports = (function (){
         entityManager.render(backBufferCtx, true);
         //player.render(backBufferCtx, true);
         ParticleManager.render(backBufferCtx);
+        tilemap.renderWater(backBufferCtx);
 
         backBufferCtx.restore();
 
@@ -250,14 +251,14 @@ module.exports = (function (){
     /* Exits the game */
     var exit = function() {}
 
-  
+
     return {
       load: load,
       exit: exit,
       update: update,
       render: render,
       keyDown: keyDown,
-      keyUp: keyUp  
+      keyUp: keyUp
     }
 
 })();

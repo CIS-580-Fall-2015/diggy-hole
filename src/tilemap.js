@@ -769,7 +769,8 @@ module.exports = (function (){
     getCameraPosition: getCameraPosition,
     mineAt: mineAt,
     consolidateLiquids: consolidateLiquids,
-    update: update
+    update: update,
+    renderWater: renderWater
   }
 
 
