@@ -7146,12 +7146,12 @@ module.exports = (function(){
 },{"./animation.js":5,"./entity.js":17}],35:[function(require,module,exports){
 module.exports = (function() {
     var Shaman = require('./goblin-shaman.js');
-    //var DemonGHog = require('./DemonicGroundH.js');
-    //var Barrel = require('./barrel.js');
-    //var Miner = require('./goblin-miner.js');
-    //var Turret = require('./turret.js');
+    var DemonGHog = require('./DemonicGroundH.js');
+    var Barrel = require('./barrel.js');
+    var Miner = require('./goblin-miner.js');
+    var Turret = require('./turret.js');
 
-    var updatePeriodSeconds = 1;
+    var updatePeriodSeconds = 5;
 
     function SpawningManager(entityManager, scoreEngine, player) {
         this.entityManager = entityManager;
@@ -7168,13 +7168,10 @@ module.exports = (function() {
             //TODO implement this, so that enemies spawn in waves, etc
             this.entityManager.add(new Shaman(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
         
-        	        
-            //this.entityManager.add(new Turret(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-            //this.entityManager.add(new Miner(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-            //this.entityManager.add(new DemonGHog(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-            //this.entityManager.add(new Barrel(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-
-        	
+            this.entityManager.add(new Turret(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.entityManager.add(new Miner(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.entityManager.add(new DemonGHog(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.entityManager.add(new Barrel(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
         }
     };
 
@@ -7182,7 +7179,7 @@ module.exports = (function() {
     return SpawningManager;
 })();
 
-},{"./goblin-shaman.js":20}],36:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./barrel.js":6,"./goblin-miner.js":19,"./goblin-shaman.js":20,"./turret.js":41}],36:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
