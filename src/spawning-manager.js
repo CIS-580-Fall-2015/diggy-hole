@@ -1,5 +1,9 @@
 module.exports = (function() {
     var Shaman = require('./goblin-shaman.js');
+    var DemonGHog = require('./DemonicGroundH.js');
+    var Barrel = require('./barrel.js');
+    var Miner = require('./goblin-miner.js');
+    var Turret = require('./turret.js');
 
     var updatePeriodSeconds = 1;
 
