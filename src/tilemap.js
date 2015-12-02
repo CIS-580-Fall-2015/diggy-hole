@@ -618,7 +618,7 @@ module.exports = (function (){
 
     // Starry night
 
-    console.log(cameraX);
+    //console.log(cameraX);
     for (var i = -1; i*600+cameraY*0.3 < cameraY+1000; i++) {
       for (var j = -1; j*600+cameraX*0.3 < cameraX+2000; j++) {
         screenCtx.drawImage(parallaxBackground,j*600+cameraX*0.3,i*600+cameraY*0.3,600,600);
