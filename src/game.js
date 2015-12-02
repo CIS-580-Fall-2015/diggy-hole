@@ -49,8 +49,8 @@ module.exports = (function (){
         stateManager,
         ScoreEngine = require('./score.js'),
         PowerUp = require('./powerUp.js'),
-        Collectible = require('./collectible.js');
-    ParticleManager = require('./particle-manager.js');
+        Collectible = require('./collectible.js'),
+        ParticleManager = require('./particle-manager.js');
 
     /* Loads the GameState, triggered by the StateManager
      * This function sets up the screen canvas, the tilemap,
@@ -221,6 +221,7 @@ module.exports = (function (){
         entityManager.render(backBufferCtx, true);
         //player.render(backBufferCtx, true);
         ParticleManager.render(backBufferCtx);
+        tilemap.renderWater(backBufferCtx);
 
         backBufferCtx.restore();
 
@@ -251,13 +252,14 @@ module.exports = (function (){
     /* Exits the game */
     var exit = function() {}
 
+
     return {
-        load: load,
-        exit: exit,
-        update: update,
-        render: render,
-        keyDown: keyDown,
-        keyUp: keyUp
+      load: load,
+      exit: exit,
+      update: update,
+      render: render,
+      keyDown: keyDown,
+      keyUp: keyUp
     }
 
 })();
