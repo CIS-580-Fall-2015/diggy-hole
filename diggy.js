@@ -7146,6 +7146,10 @@ module.exports = (function(){
 },{"./animation.js":5,"./entity.js":17}],35:[function(require,module,exports){
 module.exports = (function() {
     var Shaman = require('./goblin-shaman.js');
+    var DemonGHog = require('./DemonicGroundH.js');
+    var Barrel = require('./barrel.js');
+    var Miner = require('./goblin-miner.js');
+    var Turret = require('./turret.js');
 
     var updatePeriodSeconds = 1;
 
@@ -7163,6 +7167,14 @@ module.exports = (function() {
 
             //TODO implement this, so that enemies spawn in waves, etc
             this.entityManager.add(new Shaman(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+        
+        	        
+            this.entityManager.add(new Turret(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.entityManager.add(new Miner(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.entityManager.add(new DemonGHog(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.entityManager.add(new Barrel(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+
+        	
         }
     };
 
