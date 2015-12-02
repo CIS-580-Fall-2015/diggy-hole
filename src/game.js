@@ -83,6 +83,7 @@ module.exports = (function (){
             onload: function() {
                 window.tilemap = tilemap;
                 tilemap.render(screenCtx);
+                //tilemap.renderWater(screenCtx);
             }
         });
 
@@ -93,7 +94,7 @@ module.exports = (function (){
 
         // Set up score engine
         scoreEngine = new ScoreEngine();
-        scoreEngine.setPositionFunction(tilemap.getCameraPosition)
+        scoreEngine.setPositionFunction(tilemap.getCameraPosition);
         entityManager.setScoreEngine(scoreEngine);
 
         //add wolf to

@@ -427,7 +427,7 @@ module.exports = (function() {
                     break;
                 case SWIMMING:
                     //Player Sinks automatically, they have resistance i.e sink slower if fully immersed in water
-                    if(sprite.inWater(tilemap)) {
+                    if(sprite.inWater(tilemap) && !isKeyDown(commands.RIGHT)) {
                         sprite.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2) + (sprite.velocityY / GRAVITY_IN_WATER);
                         console.log("in water");
                         sprite.currentY += sprite.velocityY * elapsedTime;
