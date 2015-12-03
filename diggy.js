@@ -2305,7 +2305,7 @@ function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, grav
 	
 	this.checkCollisions = function(tile) {
 		if (tile && tile.data.solid) {
-			tilemap.destroyTileAt(1, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			tilemap.destroyTileAt(8, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
 			this.state = EXPLODING;
 			this.offsetExploding();
 			this.explosionSound.play();
@@ -2345,6 +2345,8 @@ Cannonball.prototype = new Entity();
 			this.projectileTimeExploding += elapsedTime;
 			if (this.projectileTimeExploding > 2) {
 				this.state = IDLE;
+				//Wyatt Watson - Now removes the explosion left overs
+				entityManager.remove(this);
 			}
 		}
 		
@@ -2423,6 +2425,7 @@ Cannonball.prototype = new Entity();
 return Cannonball;
 	
 }())
+
 },{"./animation.js":6,"./entity.js":18,"./tilemap.js":41}],12:[function(require,module,exports){
 /* The construct for a collectible. Inherits from entity.
  * Removed from entity manager upon being collected by player.
@@ -9046,7 +9049,7 @@ module.exports = (function (){
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){
       return undefined;
     }else{
-      layers[layer].data[x + y * mapWidth] = 1;
+      layers[layer].data[x + y * mapWidth] = newType;
     }
   }
 
@@ -9054,7 +9057,7 @@ module.exports = (function (){
   var removeTileAt = function(x, y, layer) {
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
       return undefined;
-    layers[layer].data[x + y*mapWidth] =  16;
+    layers[layer].data[x + y*mapWidth] =  8;
   }
 
   //return current tile layer, 0: sky, 1: crust 2: magma
@@ -9107,9 +9110,6 @@ module.exports = (function (){
 })();
 
 },{"./noise.js":26}],42:[function(require,module,exports){
-
-
-
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Player = require('./player.js'),
@@ -9401,6 +9401,11 @@ module.exports = (function(){
 
 		if (this.state == DESTROYED) {
 			this.destroyedAnimation.update(elapsedTime);
+			// Wyatt Watson - Now remove entity after it's destroyed
+			this.time += elapsedTime;
+			if (this.time > reloadTime) {
+				entityManager.remove(this);
+			}
 		}
 	}
 
@@ -9469,9 +9474,7 @@ module.exports = (function(){
 			this.state = DESTROYED;
 			this.targeting = false;
 			for (var i = 0; i < this.cannonballs.length; i ++) {
-			// Entity manager doesn't work correctly when I remove an entity
 				entityManager.remove(this.cannonballs[i]);
-				// this.cannonballs[i] = [];
 			}
 		}
 	}
@@ -9496,7 +9499,6 @@ module.exports = (function(){
 	}
 
 	return Turret;
-
 }())
 
 },{"./animation.js":6,"./cannonball.js":11,"./entity-manager.js":17,"./entity.js":18,"./player.js":30}],43:[function(require,module,exports){

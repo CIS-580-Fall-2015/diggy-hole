@@ -1,6 +1,3 @@
-
-
-
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Player = require('./player.js'),
@@ -292,6 +289,11 @@ module.exports = (function(){
 
 		if (this.state == DESTROYED) {
 			this.destroyedAnimation.update(elapsedTime);
+			// Wyatt Watson - Now remove entity after it's destroyed
+			this.time += elapsedTime;
+			if (this.time > reloadTime) {
+				entityManager.remove(this);
+			}
 		}
 	}
 
@@ -385,5 +387,4 @@ module.exports = (function(){
 	}
 
 	return Turret;
-
 }())

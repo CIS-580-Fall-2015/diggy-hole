@@ -727,7 +727,7 @@ module.exports = (function (){
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){
       return undefined;
     }else{
-      layers[layer].data[x + y * mapWidth] = 1;
+      layers[layer].data[x + y * mapWidth] = newType;
     }
   }
 
@@ -735,7 +735,7 @@ module.exports = (function (){
   var removeTileAt = function(x, y, layer) {
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
       return undefined;
-    layers[layer].data[x + y*mapWidth] =  16;
+    layers[layer].data[x + y*mapWidth] =  8;
   }
 
   //return current tile layer, 0: sky, 1: crust 2: magma
