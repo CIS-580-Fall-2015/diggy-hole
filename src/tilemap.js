@@ -727,7 +727,7 @@ module.exports = (function (){
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){
       return undefined;
     }else{
-      layers[layer].data[x + y * mapWidth] = 1;
+      layers[layer].data[x + y * mapWidth] = newType;
     }
   }
 
