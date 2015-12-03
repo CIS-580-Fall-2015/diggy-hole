@@ -9,10 +9,11 @@ module.exports = (function() {
     /* jshint esnext: true */
     const MAX_ENTITIES = 200;
 
+    QuadTree = require('./QuadTree.js');
+
+    var collisionTree = new QuadTree({ x: 0, y: 0, width: 1000*64, height: 1000*64 }, false);
 
     var entities = [],
-
-    Player = require('./player.js');
     entityCount = 0;
 
     /* Adds an entity to those managed.
@@ -70,32 +71,42 @@ function remove(entity) {
 * triggers the collide() event handler.
 */
 function checkCollisions() {
-    for (var i = 0; i < entityCount; i++) {
-        // Don't check for nonexistant entities
-        if (entities[i]) {
-            for (var j = 0; j < entityCount; j++) {
-                // don't check for collisions with ourselves
-                // and don't bother checking non-existing entities
-                if (i != j && entities[j] && entities[i]) {
-                    var boundsA = entities[i].boundingBox();
-                    var boundsB = entities[j].boundingBox();
-                    if (boundsA.left < boundsB.right &&
-                        boundsA.right > boundsB.left &&
-                        boundsA.top < boundsB.bottom &&
-                        boundsA.bottom > boundsB.top
-                    ) {
-                        entities[i].collide(entities[j]);
-
-                        // check again if entities[j] exists as it could
-                        // have been killed by entities[i]
-                        if(entities[j]){
-                            entities[j].collide(entities[i]);
-                        }
-                    }
-                }
-            }
+    var colliders = [];
+    for(var i = 0; i < entityCount; i++) {
+        if(entities[i]) {
+            var hitbox = entities[i].boundingBox();
+            colliders.push({
+                x: hitbox.left,
+                y: hitbox.top,
+                width: hitbox.right - hitbox.left,
+                height: hitbox.bottom - hitbox.top,
+                entity: entities[i]
+            });
         }
     }
+
+    collisionTree.insert(colliders);
+
+    for (i = 0; i < colliders.length; i++) {
+        var possibleCollisions = collisionTree.retrieve(colliders[i]);
+        for (var j = 0; j < possibleCollisions.length; j++) {
+            var boundsA = colliders[i].entity.boundingBox();
+            var boundsB = possibleCollisions[j].entity.boundingBox();
+            if (boundsA.left < boundsB.right &&
+                boundsA.right > boundsB.left &&
+                boundsA.top < boundsB.bottom &&
+                boundsA.bottom > boundsB.top
+            ) {
+                colliders[i].entity.collide(possibleCollisions[j].entity);
+
+                //TODO bug if removed?
+                possibleCollisions[j].entity.collide(colliders[i].entity);
+            }
+
+        }
+
+    }
+    collisionTree.clear(); /* do this now for garbage collector speed */
 }
 
 /* Returns all entities within the given radius.
