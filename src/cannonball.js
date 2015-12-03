@@ -67,7 +67,7 @@ function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, grav
 	
 	this.checkCollisions = function(tile) {
 		if (tile && tile.data.solid) {
-			tilemap.destroyTileAt(1, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			tilemap.destroyTileAt(8, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
 			this.state = EXPLODING;
 			this.offsetExploding();
 			this.explosionSound.play();
@@ -107,6 +107,8 @@ Cannonball.prototype = new Entity();
 			this.projectileTimeExploding += elapsedTime;
 			if (this.projectileTimeExploding > 2) {
 				this.state = IDLE;
+				//Wyatt Watson - Now removes the explosion left overs
+				entityManager.remove(this);
 			}
 		}
 		
