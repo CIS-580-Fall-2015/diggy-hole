@@ -61,7 +61,18 @@ module.exports = (function (){
     viewportHalfHeight = height / 2;
     viewportTileWidth = Math.ceil(width / tileWidth) + 2;
     viewportTileHeight = Math.ceil(height / tileHeight) + 2;
-  }
+  };
+
+  var getViewPort = function() {
+      var pos = getCameraPosition();
+      return {
+          left: pos[0],
+          right: pos[0] + 2 * viewportHalfWidth,
+          top: pos[1],
+          bottom: pos[1] + 2 * viewportHalfHeight,
+      };
+  };
+
 
   /* Sets the camera position
    * Arguments:
@@ -71,7 +82,7 @@ module.exports = (function (){
   var setCameraPosition = function(x, y) {
     cameraX = x;
     cameraY = y;
-  }
+ };
 
   /**
    * Function: getCameraPosition
@@ -79,10 +90,9 @@ module.exports = (function (){
    * Returns:
    *     x-y postion
    */
-  var getCameraPosition = function()
-  {
-    return [cameraX - viewportHalfWidth - 32, cameraY - viewportHalfHeight + 32];
-  }
+  var getCameraPosition = function() {
+    return [cameraX - viewportHalfWidth, cameraY - viewportHalfHeight];
+  };
 
   /* Loads the tilemap
    * - mapData, the JavaScript object
@@ -764,6 +774,7 @@ module.exports = (function (){
     destroyTileAt: destroyTileAt,
     removeTileAt: removeTileAt,
     setViewportSize: setViewportSize,
+    getViewPort: getViewPort,
     setCameraPosition: setCameraPosition,
     returnTileLayer: returnTileLayer,
     getCameraPosition: getCameraPosition,
