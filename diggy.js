@@ -6493,9 +6493,9 @@ module.exports = (function(){
 		var outerObject = this;
 		this.img.onload = function () {
 			outerObject.animation = new Animation(outerObject.img, outerObject.width, outerObject.height, 0, 0, frameNum);
-		}
+		};
 		this.img.src = imgPath;
-		
+
 		this.pickedUp = false;
 		this.pickedUpSound = new Audio('./resources/sounds/powerUp.wav');
 		this.layerIndex = mapLayer;
@@ -6504,51 +6504,48 @@ module.exports = (function(){
 		this.velocityY = 0;
 		this.effectDuration = duration;
 	}
-	
-	
+
+
 	PowerUp.prototype.update = function(elapsedTime, tilemap, entityManager)
 	{
 		if(!this.flying){
 			if(this.falling){
-			this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-			this.y += this.velocityY * elapsedTime;
-			if(this.onGround(tilemap)) {
-				this.velocityY = 0;
-				this.y = ((this.boundingBox().bottom/64)-1)*64;
-				this.falling = false;
+				this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+				this.y += this.velocityY * elapsedTime;
+				if(this.onGround(tilemap)) {
+					this.velocityY = 0;
+					this.y = ((this.boundingBox().bottom/64)-1)*64;
+					this.falling = false;
+				}
 			}
 		}
-		}
-		
-		
-		  
-		
-		
-		this.animation.update(elapsedTime);
+		/* wait for image to load */
+		if(this.animation) this.animation.update(elapsedTime);
+
 		if(this.pickedUp){
 			this.effectDuration--;
 		}
-		
-		if(this.effectDuration == 0){
+
+		if(this.effectDuration === 0){
 			this.player.clearEffect(this);
 		}
-		
-		
-		if (this.img.complete == false || this.pickedUp == true) return;
-	}
-	
+
+
+		if (this.img.complete === false || this.pickedUp === true) return;
+	};
+
 	PowerUp.prototype.render = function(context, debug)
 	{
-		if (this.img.complete == false || this.pickedUp == true || this.animation == null) return;
+		if (this.img.complete === false || this.pickedUp === true || this.animation === null) return;
 		this.animation.render(context, this.x, this.y);
 		if(debug) renderDebug(this, context);
-	}
-	
+	};
+
 	function renderDebug(powerUp, ctx) {
 		var bounds = powerUp.boundingBox();
 		var circle = powerUp.boundingCircle();
 		ctx.save();
-		
+
 		// Draw player bounding box
 		ctx.strokeStyle = "red";
 		ctx.beginPath();
@@ -6559,12 +6556,12 @@ module.exports = (function(){
 		ctx.lineTo(bounds.left, bounds.bottom);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		ctx.strokeStyle = "blue";
 		ctx.beginPath();
 		ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
 		ctx.stroke();
-		
+
 		// Outline tile underfoot
 		var tileX = 64 * Math.floor((bounds.left + (this.width/2))/64),
 			tileY = 64 * (Math.floor(bounds.bottom / 64));
@@ -6576,20 +6573,20 @@ module.exports = (function(){
 		ctx.lineTo(tileX, tileY + 64);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		ctx.restore();
   }
-	
+
 	PowerUp.prototype.collide = function(otherEntity)
 	{
-		if (otherEntity.type == 'player' && this.pickedUp == false) {
+		if (otherEntity.type === 'player' && this.pickedUp === false) {
 			otherEntity.poweredUp(this);
 			this.pickedUpSound.play();
 			this.pickedUp = true;
 			this.player = otherEntity;
 		}
-	}
-	
+	};
+
 	PowerUp.prototype.boundingBox = function()
 	{
 		return {
@@ -6597,8 +6594,8 @@ module.exports = (function(){
 			top: this.y,
 			right: this.x + this.width,
 			bottom: this.y + this.height
-		}
-	}
+		};
+	};
 
 	PowerUp.prototype.boundingCircle = function()
 	{
@@ -6606,22 +6603,23 @@ module.exports = (function(){
 			cx: this.x + this.width / 2,
 			cy: this.y + this.height / 2,
 			radius: this.radius
-		}
-	}
-	
+		};
+	};
+
 	PowerUp.prototype.onGround = function(tilemap) {
     var box = this.boundingBox(),
         tileX = Math.floor((box.left + (this.width/2))/64),
         tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     // find the tile we are standing on.
     return (tile && tile.data.solid) ? true : false;
-  }
-	
-	
+};
+
+
 	return PowerUp;
 
-}())
+}());
+
 },{"./animation.js":6,"./entity-manager.js":17,"./entity.js":18,"./player.js":30}],32:[function(require,module,exports){
 /* Enemy module
  * Authors:
@@ -9122,13 +9120,13 @@ module.exports = (function(){
 		turret.src = './img/turret/turretMany.png';
 		destroyedTurret = new Image();
 		destroyedTurret.src = './img/turret/turretDestroyed2.png';
-		
+
 	const IDLE = 0,
 		  FIRING = 1,
 		  WAITING = 2,
 		  RELOADING = 3,
 		  DESTROYED = 4;
-		
+
 	const 	turretWidth = 88,
 			turretHeight = 86;
 			turretImgCount = 48,
@@ -9141,12 +9139,12 @@ module.exports = (function(){
 			// where to aim
 			playerOffsetX = 64/2,
 			playerOffsetY = playerOffsetX;
-			
+
 	const   cannonballNum = 3,
 			reloadTime = 5,
 			shootingDelay = 0.5,
 			optimizationDelay = 0.00;
-	
+
 	function Turret(locationX, locationY, mapLayer){
 		// computational constants
 		this.posX = locationX,
@@ -9160,7 +9158,7 @@ module.exports = (function(){
 		this.gravityPow2 = this.gravity * this.gravity,
 		this.gravityTimesLSPow2 = this.gravity * this.launchSpeedPow2,
 		this.LSPow2TimesTwoTimesG = 2 * this.launchSpeedPow2 * this.gravity,
-		
+
 		this.player = null;
 		this.state = IDLE;
 		this.targeting = false;
@@ -9176,11 +9174,11 @@ module.exports = (function(){
 		this.parabolaSeries = [];
 		// highlight for laser
 		this.highlight = new Array(Math.round(Math.random()*255), Math.round(Math.random()*255), Math.round(Math.random()*255));
-		
+
 		this.cannonballs = [],
 		this.cnbsFired = 0;
 		this.shotSound = [];
-		
+
 		this.spawnCannonballs = function() {
 			for (var i = 0; i < cannonballNum; i ++) {
 				this.cannonballs[i] = new Cannonball(this.posX, this.posY, 0, 0, 0, this.gravity, centerOffsetX, centerOffsetY);
@@ -9188,7 +9186,7 @@ module.exports = (function(){
 				this.shotSound[i] = new Audio('./resources/sounds/shot.wav');
 			}
 		}
-		
+
 		// Loads animations to animations array
 		this.loadAnimations = function () {
 			for (var i = 0; i < turretImgCount; i ++) {
@@ -9196,7 +9194,7 @@ module.exports = (function(){
 			}
 			this.destroyedAnimation = new Animation(destroyedTurret, turretWidth, turretHeight, 0, 0, 10);
 		}
-		
+
 		// is called to aim the turret in a right angle
 		this.setAngleOfAnimation = function(angle) {
 			if (angle < 0) {
@@ -9207,11 +9205,11 @@ module.exports = (function(){
 				this.renderIdx = turretVertical - angleToFrames;
 			}
 		}
-		
+
 		// compute angle that is necessary for the turret to hit our target
 		this.getAngle = function (targetX, targetY) {
 			var position = this.getDistance(targetX, targetY);
-			
+
 			var rightPart =  Math.sqrt(this.launchSpeedPow4 - (this.gravityPow2 * position[0] * position[0] + this.LSPow2TimesTwoTimesG * position[1]));
 			var res1 = Math.atan((this.launchSpeedPow2 + rightPart) / (this.gravity * position[0])) /** (180 / 3.14159265)*/;
 			var res2 = Math.atan((this.launchSpeedPow2 - rightPart) / (this.gravity * position[0])) /** (180 / 3.14159265)*/;
@@ -9219,19 +9217,19 @@ module.exports = (function(){
 			// console.log(this.getHorizontalVel());
 			return res1;
 		}
-		
+
 		// get distance of the target relative to the turret which is at (0, 0)
 		this.getDistance = function (targetX, targetY) {
 			x = (targetX + playerOffsetX) - (this.posX + centerOffsetX);
 			y = (this.posY + centerOffsetY) - (targetY + playerOffsetY);
 			return [x, y];
 		}
-		
-		// computes initial vertical velocity of the projectile 
+
+		// computes initial vertical velocity of the projectile
 		this.getVerticalVel = function () {
 			return -this.launchSpeed * Math.sin(Math.abs(this.angle) /** (3.14159265/180)*/);
 		}
-		
+
 		// computes horizontal velocity of the projectile
 		this.getHorizontalVel = function () {
 			if (this.angle > 0)
@@ -9239,7 +9237,7 @@ module.exports = (function(){
 			else
 				return -this.launchSpeed * Math.cos(this.angle/* * (3.14159265/180)*/);
 		}
-		
+
 		// computes the time necessary for the projectile to reach the target
 		this.getTimeToReach = function(elevationDifference) {
 			var verticalVel = Math.abs(this.getVerticalVel());
@@ -9249,7 +9247,7 @@ module.exports = (function(){
 			var x2 = left + right;
 			return [x1, x2];
 		}
-		
+
 		// is called when the target gets in the turret's query range
 		this.targetInRange = function(entitie) {
 			if (this.optimizationTimer < optimizationDelay) {
@@ -9261,17 +9259,17 @@ module.exports = (function(){
 			this.buildParabola(entitie);
 			this.setAngleOfAnimation(this.angle);
 		}
-		
+
 		// get position x of the projectile at a given time after it has been fired
 		this.getXAtTime = function(time) {
 			return this.getHorizontalVel() * time;
 		}
-		
+
 		// get position y of the projectile at a given time after it has been fired
 		this.getYAtTime = function(time) {
 			return this.getVerticalVel() * time + this.gravity * time * time / 2;
 		}
-		
+
 		// constructs the parabolaSeries array that is used to approximate a parabola by drawing lines
 		this.buildParabola = function(entitie) {
 			this.parabolaSeries = [];
@@ -9283,13 +9281,13 @@ module.exports = (function(){
 				this.parabolaSeries[i] = { x: this.getXAtTime(intervals * i) + (this.posX + centerOffsetX), y : this.getYAtTime(intervals * i) + (this.posY + centerOffsetY)};
 			}
 		}
-		
+
 		// draws parabola looking like a laser
 		this.drawParabolaSeries = function(context) {
 			context.fillStyle = 'red';
 			context.lineWidth = 5;
 			context.strokeStyle = 'red';
-			
+
 			for (var j = 5; j >= 0; j --) {
 				context.beginPath();
 				context.lineWidth = (j+1)*4-2;
@@ -9307,17 +9305,17 @@ module.exports = (function(){
 				context.stroke();
 				}
 		}
-		
+
 		this.loadAnimations();
 		this.spawnCannonballs();
 	}
-	
+
 	Turret.prototype = new Entity();
-	
+
 	Turret.prototype.update = function(elapsedTime, tilemap, entityManager)
 	{
 		this.optimizationTimer += elapsedTime;
-		
+
 		if (this.onGround(tilemap) == false) {
 			this.falling = true;
 			this.fallingVelocity += elapsedTime * this.gravity * 12;
@@ -9329,7 +9327,7 @@ module.exports = (function(){
 			this.falling = false;
 			this.fallingVelocity = 0;
 		}
-		
+
 		if (this.state == IDLE) {
 			// console.log("IDLE");
 			this.playerInRange = false;
@@ -9353,7 +9351,7 @@ module.exports = (function(){
 				this.player = null;
 			}
 		}
-		
+
 		if (this.targeting == true) {
 			// entitiesInRange = entityManager.queryRadius(this.posX, this.posY, 1500);
 			var angle = this.getAngle(this.player.currentX, this.player.currentY);
@@ -9361,7 +9359,7 @@ module.exports = (function(){
 					this.angle = angle;
 					this.targetInRange(this.player);
 					if (this.state == IDLE) {
-						this.state = FIRING;						
+						this.state = FIRING;
 					}
 				} else {
 					this.parabolaSeries = [];
@@ -9369,7 +9367,7 @@ module.exports = (function(){
 		} else {
 			this.parabolaSeries = [];
 		}
-		
+
 		if (this.state == FIRING) {
 			this.time = 0;
 			// this.shoot(this.getVerticalVel(), this.getHorizontalVel());
@@ -9383,7 +9381,7 @@ module.exports = (function(){
 				this.state = WAITING;
 			}
 		}
-		
+
 		if (this.state == WAITING) {
 			this.time += elapsedTime;
 			if (this.time > shootingDelay) {
@@ -9391,7 +9389,7 @@ module.exports = (function(){
 				this.state = IDLE;
 			}
 		}
-		
+
 		if (this.state == RELOADING) {
 			this.time += elapsedTime;
 			if (this.time > reloadTime) {
@@ -9400,7 +9398,7 @@ module.exports = (function(){
 				this.cnbsFired = 0;
 			}
 		}
-		
+
 		if (this.state == DESTROYED) {
 			this.destroyedAnimation.update(elapsedTime);
 		}
@@ -9416,25 +9414,25 @@ module.exports = (function(){
 		else {
 			this.destroyedAnimation.render(context, this.posX, this.posY);
 		}
-		
-		
+
+
 		if(debug) renderDebug(this, context);
 	}
-	
+
 	Turret.prototype.onGround = function(tilemap) {
 		var box = this.boundingBox(),
         tileX = Math.floor((box.left + (turretWidth/2))/64),
         tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     // find the tile we are standing on.
 		return (tile && tile.data.solid) ? true : false;
 	}
-	
+
 	function renderDebug(turret, ctx) {
 		var bounds = turret.boundingBox();
 		var circle = turret.boundingCircle();
 		ctx.save();
-		
+
 		// Draw player bounding box
 		ctx.strokeStyle = "red";
 		ctx.beginPath();
@@ -9444,12 +9442,12 @@ module.exports = (function(){
 		ctx.lineTo(bounds.left, bounds.bottom);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		ctx.strokeStyle = "blue";
 		ctx.beginPath();
 		ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
 		ctx.stroke();
-		
+
 		// Outline tile underfoot
 		var tileX = 64 * Math.floor((bounds.left + (turretWidth/2))/64),
 			tileY = 64 * (Math.floor(bounds.bottom / 64));
@@ -9461,7 +9459,7 @@ module.exports = (function(){
 		ctx.lineTo(tileX, tileY + 64);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		ctx.restore();
   }
 
@@ -9472,7 +9470,7 @@ module.exports = (function(){
 			this.targeting = false;
 			for (var i = 0; i < this.cannonballs.length; i ++) {
 			// Entity manager doesn't work correctly when I remove an entity
-				// entityManager.remove(this.cannonballs[i]);
+				entityManager.remove(this.cannonballs[i]);
 				// this.cannonballs[i] = [];
 			}
 		}
@@ -9496,10 +9494,11 @@ module.exports = (function(){
 			radius: 45 - 15
 		}
 	}
-	
+
 	return Turret;
-	
+
 }())
+
 },{"./animation.js":6,"./cannonball.js":11,"./entity-manager.js":17,"./entity.js":18,"./player.js":30}],43:[function(require,module,exports){
 
 /* Wolf module
