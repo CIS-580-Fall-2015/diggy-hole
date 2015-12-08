@@ -207,6 +207,7 @@ module.exports = (function (){
         ParticleManager.update(elapsedTime);
         inputManager.swapBuffers();
         octopus.getPlayerPosition(player.boundingBox());
+		hud.update(player.boundingBox());
     };
 
     /* Renders the current state of the game world
@@ -214,7 +215,6 @@ module.exports = (function (){
     var render = function() {
         // Clear the back buffer
         backBufferCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-
         // TODO: Calculate rubberbanding
         var bounds = player.boundingBox();
         var offsetX = SCREEN_WIDTH / 2,
@@ -230,12 +230,12 @@ module.exports = (function (){
         //player.render(backBufferCtx, true);
         ParticleManager.render(backBufferCtx);
         tilemap.renderWater(backBufferCtx);
+		hud.render(backBufferCtx);
 
         backBufferCtx.restore();
-
+		
         // Flip the back buffer
         screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-		hud.render(player.boundingBox());
     };
 
     /* Event handler for key down events

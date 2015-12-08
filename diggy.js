@@ -506,9 +506,8 @@ module.exports = (function(){
 	
 	var HUDelements = [];
 	
-	function HUD(screenCtx, screenWidth, screenHeight) {
+	function HUD(screenWidth, screenHeight) {
 		// Are these necessary?
-		this.screenCtx = screenCtx;
 		this.screeWidth = screenWidth;
 		this.screenHeight = screenHeight;
 		
@@ -519,12 +518,19 @@ module.exports = (function(){
 			HUDelements.push(newElement);
 		}
 		
-		this.render = function(bounds) {
+		this.update = function(bounds) {
+			for (var i = 0; i < HUDelements.length; i ++) {
+				if (HUDelements[i])
+					HUDelements[i].update(bounds.left, bounds.top, this.screeWidth, this.screenHeight);
+			}
+		}
+		
+		this.render = function(screenCtx) {
 			
 			
 			for (var i = 0; i < HUDelements.length; i ++) {
 				if (HUDelements[i])
-					HUDelements[i].render(this.screenCtx, bounds.top, bounds.left, this.screeWidth, this.screenHeight);
+					HUDelements[i].render(screenCtx);
 			}
 		}
 	}
@@ -3959,6 +3965,7 @@ module.exports = (function (){
         ParticleManager.update(elapsedTime);
         inputManager.swapBuffers();
         octopus.getPlayerPosition(player.boundingBox());
+		hud.update(player.boundingBox());
     };
 
     /* Renders the current state of the game world
@@ -3966,7 +3973,6 @@ module.exports = (function (){
     var render = function() {
         // Clear the back buffer
         backBufferCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-
         // TODO: Calculate rubberbanding
         var bounds = player.boundingBox();
         var offsetX = SCREEN_WIDTH / 2,
@@ -3982,12 +3988,12 @@ module.exports = (function (){
         //player.render(backBufferCtx, true);
         ParticleManager.render(backBufferCtx);
         tilemap.renderWater(backBufferCtx);
+		hud.render(backBufferCtx);
 
         backBufferCtx.restore();
-
+		
         // Flip the back buffer
         screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-		hud.render(player.boundingBox());
     };
 
     /* Event handler for key down events
@@ -4723,22 +4729,33 @@ module.exports = (function(){
  module.exports = (function(){
 	 
 	 function HealthBar() {
+		 this.x;
+		 this.y;
 		 
 		 
 		 /**
 			screenCtx: 		canvas
-			x:				top left corner x
-			y:				top left corner y
+			x:				top left corner x of the player
+			y:				top left corner y of the player
 			screenWidth:	screen width
 			screenHeight:	screen height
 		 */
-		 this.render = function(screenCtx, x, y, screenWidth, screenHeight) {
-			 
+		 this.update = function(x, y, screenWidth, screenHeight) {
+			 // console.log("x: " + x + " y: " + y);
+			 this.x = x;
+			 this.y = y;
+		 }
+		 
+		 
+		 /**
+			screenCtx: 		canvas
+		 */
+		 this.render = function(screenCtx) {
 			 screenCtx.beginPath();
 			 screenCtx.lineWidth="60";
 			 screenCtx.strokeStyle="red";
-			 screenCtx.rect(x, y, 290, 140); 
-			 screenCtx.stroke();
+			 screenCtx.rect(this.x, this.y, 290, 140); 
+			 // screenCtx.stroke();
 		 }
 	 }
 	 
