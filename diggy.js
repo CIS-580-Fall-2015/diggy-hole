@@ -506,7 +506,9 @@ module.exports = (function(){
 	
 	var HUDelements = [];
 	
-	function HUD(screenWidth, screenHeight) {
+	function HUD(screenCtx, screenWidth, screenHeight) {
+		// Are these necessary?
+		this.screenCtx = screenCtx;
 		this.screeWidth = screenWidth;
 		this.screenHeight = screenHeight;
 		
@@ -517,10 +519,12 @@ module.exports = (function(){
 			HUDelements.push(newElement);
 		}
 		
-		this.update = function(newElement) {
+		this.render = function(bounds) {
+			
+			
 			for (var i = 0; i < HUDelements.length; i ++) {
 				if (HUDelements[i])
-					HUDelements[i].update();
+					HUDelements[i].render(this.screenCtx, bounds.top, bounds.left, this.screeWidth, this.screenHeight);
 			}
 		}
 	}
@@ -3845,7 +3849,7 @@ module.exports = (function (){
         player = new Player(400, 240, 0, inputManager);
         entityManager.add(player);
 		
-		hud = new HUD(SCREEN_WIDTH, SCREEN_HEIGHT);
+		hud = new HUD(screenCtx, SCREEN_WIDTH, SCREEN_HEIGHT);
 		hb = new healthBar();
 		hud.addElement(hb);
 		
@@ -3955,7 +3959,6 @@ module.exports = (function (){
         ParticleManager.update(elapsedTime);
         inputManager.swapBuffers();
         octopus.getPlayerPosition(player.boundingBox());
-		hud.update(); 
     };
 
     /* Renders the current state of the game world
@@ -3984,6 +3987,7 @@ module.exports = (function (){
 
         // Flip the back buffer
         screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		hud.render(player.boundingBox());
     };
 
     /* Event handler for key down events
@@ -4721,8 +4725,20 @@ module.exports = (function(){
 	 function HealthBar() {
 		 
 		 
-		 
-		 this.update = function() {
+		 /**
+			screenCtx: 		canvas
+			x:				top left corner x
+			y:				top left corner y
+			screenWidth:	screen width
+			screenHeight:	screen height
+		 */
+		 this.render = function(screenCtx, x, y, screenWidth, screenHeight) {
+			 
+			 screenCtx.beginPath();
+			 screenCtx.lineWidth="60";
+			 screenCtx.strokeStyle="red";
+			 screenCtx.rect(x, y, 290, 140); 
+			 screenCtx.stroke();
 		 }
 	 }
 	 

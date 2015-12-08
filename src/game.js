@@ -97,7 +97,7 @@ module.exports = (function (){
         player = new Player(400, 240, 0, inputManager);
         entityManager.add(player);
 		
-		hud = new HUD(SCREEN_WIDTH, SCREEN_HEIGHT);
+		hud = new HUD(screenCtx, SCREEN_WIDTH, SCREEN_HEIGHT);
 		hb = new healthBar();
 		hud.addElement(hb);
 		
@@ -207,7 +207,6 @@ module.exports = (function (){
         ParticleManager.update(elapsedTime);
         inputManager.swapBuffers();
         octopus.getPlayerPosition(player.boundingBox());
-		hud.update(); 
     };
 
     /* Renders the current state of the game world
@@ -236,6 +235,7 @@ module.exports = (function (){
 
         // Flip the back buffer
         screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		hud.render(player.boundingBox());
     };
 
     /* Event handler for key down events

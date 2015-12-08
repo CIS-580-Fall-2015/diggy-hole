@@ -2,7 +2,9 @@ module.exports = (function(){
 	
 	var HUDelements = [];
 	
-	function HUD(screenWidth, screenHeight) {
+	function HUD(screenCtx, screenWidth, screenHeight) {
+		// Are these necessary?
+		this.screenCtx = screenCtx;
 		this.screeWidth = screenWidth;
 		this.screenHeight = screenHeight;
 		
@@ -13,10 +15,12 @@ module.exports = (function(){
 			HUDelements.push(newElement);
 		}
 		
-		this.update = function(newElement) {
+		this.render = function(bounds) {
+			
+			
 			for (var i = 0; i < HUDelements.length; i ++) {
 				if (HUDelements[i])
-					HUDelements[i].update();
+					HUDelements[i].render(this.screenCtx, bounds.top, bounds.left, this.screeWidth, this.screenHeight);
 			}
 		}
 	}
