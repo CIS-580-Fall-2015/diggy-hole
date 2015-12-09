@@ -97,7 +97,7 @@ module.exports = (function (){
         player = new Player(400, 240, 0, inputManager);
         entityManager.add(player);
 		
-		hud = new HUD(screenCtx, SCREEN_WIDTH, SCREEN_HEIGHT);
+		hud = new HUD(SCREEN_WIDTH, SCREEN_HEIGHT);
 		hb = new healthBar();
 		hud.addElement(hb);
 		

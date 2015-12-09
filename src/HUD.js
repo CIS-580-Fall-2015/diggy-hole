@@ -4,7 +4,7 @@ module.exports = (function(){
 	
 	function HUD(screenWidth, screenHeight) {
 		// Are these necessary?
-		this.screeWidth = screenWidth;
+		this.screenWidth = screenWidth;
 		this.screenHeight = screenHeight;
 		
 		
@@ -15,9 +15,11 @@ module.exports = (function(){
 		}
 		
 		this.update = function(bounds) {
+			var topLeftY = bounds.top - this.screenHeight / 2;
+			var topLeftX = bounds.left - this.screenWidth / 2;
 			for (var i = 0; i < HUDelements.length; i ++) {
 				if (HUDelements[i])
-					HUDelements[i].update(bounds.left, bounds.top, this.screeWidth, this.screenHeight);
+					HUDelements[i].update(topLeftX, topLeftY, this.screenWidth, this.screenHeight);
 			}
 		}
 		

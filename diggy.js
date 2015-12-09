@@ -508,7 +508,7 @@ module.exports = (function(){
 	
 	function HUD(screenWidth, screenHeight) {
 		// Are these necessary?
-		this.screeWidth = screenWidth;
+		this.screenWidth = screenWidth;
 		this.screenHeight = screenHeight;
 		
 		
@@ -519,9 +519,11 @@ module.exports = (function(){
 		}
 		
 		this.update = function(bounds) {
+			var topLeftY = bounds.top - this.screenHeight / 2;
+			var topLeftX = bounds.left - this.screenWidth / 2;
 			for (var i = 0; i < HUDelements.length; i ++) {
 				if (HUDelements[i])
-					HUDelements[i].update(bounds.left, bounds.top, this.screeWidth, this.screenHeight);
+					HUDelements[i].update(topLeftX, topLeftY, this.screenWidth, this.screenHeight);
 			}
 		}
 		
@@ -3855,7 +3857,7 @@ module.exports = (function (){
         player = new Player(400, 240, 0, inputManager);
         entityManager.add(player);
 		
-		hud = new HUD(screenCtx, SCREEN_WIDTH, SCREEN_HEIGHT);
+		hud = new HUD(SCREEN_WIDTH, SCREEN_HEIGHT);
 		hb = new healthBar();
 		hud.addElement(hb);
 		
@@ -4729,6 +4731,18 @@ module.exports = (function(){
  module.exports = (function(){
 	 
 	 function HealthBar() {
+		 const 	hbYOffset = 50,
+				hbWidth = 200,
+				hbHeight = 30,
+				lineCount = Math.round(hbWidth / 40),
+				lineOffset = Math.round(hbWidth / 100),
+				alpha = 1/lineCount,
+				hbXOffset = Math.round(hbWidth / 25),
+				hbFrameWidthOffset = 5,
+				hbFrameYOffset = hbYOffset - ((lineCount+1)*4-lineOffset)/2 - hbFrameWidthOffset;
+				
+				
+		 
 		 this.x;
 		 this.y;
 		 
@@ -4751,11 +4765,25 @@ module.exports = (function(){
 			screenCtx: 		canvas
 		 */
 		 this.render = function(screenCtx) {
-			 screenCtx.beginPath();
-			 screenCtx.lineWidth="60";
-			 screenCtx.strokeStyle="red";
-			 screenCtx.rect(this.x, this.y, 290, 140); 
-			 // screenCtx.stroke();
+			 
+			 screenCtx.strokeStyle = 'black';
+			 screenCtx.fillStyle = 'black';
+			 screenCtx.lineWidth = 5;
+			 screenCtx.rect(this.x, this.y + hbFrameYOffset, hbWidth,
+							(lineCount+1)*4-lineOffset + hbFrameWidthOffset*2);
+			 screenCtx.stroke();
+			 
+			 for (var j = lineCount; j >= 0; j --) {
+				 screenCtx.lineWidth = (j+1)*4-lineOffset;
+				 if	(j == 0)
+					 screenCtx.strokeStyle = '#fff';
+				 else
+					 screenCtx.strokeStyle = 'rgba(255,0,0,'+alpha+')';
+				 screenCtx.beginPath();
+				 screenCtx.moveTo(this.x + hbXOffset, this.y + hbYOffset);
+				 screenCtx.lineTo(this.x + hbWidth - hbXOffset, this.y + hbYOffset);
+				 screenCtx.stroke();
+			 }
 		 }
 	 }
 	 
