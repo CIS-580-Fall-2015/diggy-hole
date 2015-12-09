@@ -145,7 +145,7 @@ module.exports = (function() {
       entityManager.remove(this.arm);
       entityManager.remove(this);
     }
-    var pd = entityManager.playerDistance(this);
+    var pd = Math.sqrt(entityManager.playerDistanceSquaredFrom(this));
     // Don't proccess the rest of the state if the player is too far away
     if (pd > 1280) {
       return;

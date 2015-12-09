@@ -6,8 +6,12 @@
  * - Nathan Bean
  */
 module.exports = (function() {
+    /* jshint esnext: true */
+
     var Entity = require('./entity.js'),
-        Animation = require('./animation.js');
+        Animation = require('./animation.js'),
+        Pickaxe = require('./Pickaxe.js'),
+        Bone = require('./Bone.js');
 
     /*Audio sources*/
     jump_sound = new Audio('resources/sounds/jumping_sound.wav');
@@ -15,9 +19,6 @@ module.exports = (function() {
     walk_sound = new Audio('resources/sounds/walking_sound.mp3');
     throw_sound = new Audio('resources/sounds/throwing_sound.mp3');
 
-    Animation = require('./animation.js'),
-        Pickaxe = require('./Pickaxe.js'),
-        Bone = require('./Bone.js');
 
     /* The following are player States (Swimming is not implemented) */
     const STANDING = 0;
@@ -61,11 +62,9 @@ module.exports = (function() {
     var ratLeft = new Image();
     ratLeft.src = "img/ratLeft2.png";
 
-
-
     //The Player constructor
-    function Player(locationX, locationY, layerIndex, inputManager) {
-        this.inputManager = inputManager
+    function Player(locationX, locationY, layerIndex, inputManager, healthBar, scoreEngine) {
+        this.inputManager = inputManager;
         this.state = WALKING;
         this.digState = NOT_DIGGING;
         this.dug = false;
@@ -91,6 +90,8 @@ module.exports = (function() {
         this.boneImg = new Image();
         this.boneImg.src = "./img/BoneLeft.png";
         this.stoneShield = false;
+		this.healthBar = healthBar;
+		this.scoreEngine = scoreEngine;
 
         // bone powerup
         this.attackFrequency = 1;
@@ -131,14 +132,12 @@ module.exports = (function() {
     Player.prototype = new Entity();
 
     // Check to see if player is in water i.e full body immersion (head inside water)
-    Player.prototype.inWater = function(tilemap){
+    Player.prototype.inWater = function(tilemap) {
         var box = this.boundingBox();
+        var tileX = Math.floor((box.right - (SIZE/24))/64);
         // Based on the position that player is facing changed the location of it's X coordinate
-        if(this.isLeft){
-            var tileX = Math.floor((box.left + (SIZE/(3/2)))/64);
-        }
-        else{
-            var tileX = Math.floor((box.right - (SIZE/24))/64);
+        if(this.isLeft) {
+            tileX = Math.floor((box.left + (SIZE/(3/2)))/64);
         }
         var tileY = Math.floor(box.top / 64),
             tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
@@ -151,14 +150,12 @@ module.exports = (function() {
     };
 
     // Check to see if player is on top of water
-    Player.prototype.onWater = function(tilemap){
+    Player.prototype.onWater = function(tilemap) {
         var box = this.boundingBox();
+        var tileX = Math.floor((box.right)/64);
         // Based on the position that player is facing changed the location of it's X coordinate
-        if(this.isLeft){
-            var tileX = Math.floor((box.left)/64)
-        }
-        else{
-            var tileX = Math.floor((box.right)/64);
+        if(this.isLeft) {
+            tileX = Math.floor((box.left)/64);
         }
         var tileY = Math.floor(box.bottom / 64) - 1,// check if player is right above water.
             tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
@@ -187,9 +184,9 @@ module.exports = (function() {
     // Check that player's head is above water
     Player.prototype.headOverWater = function (tilemap){
         var box = this.boundingBox();
-        return (tilemap.tileAt(Math.floor(box.right / 64), Math.floor(box.top / 64),
-            this.layerIndex).data.type == "SkyBackground");
-    }
+        tile = tilemap.tileAt(Math.floor(box.right / 64), Math.floor(box.top / 64), this.layerIndex);
+        return (tile && tile.data.type == "SkyBackground");
+    };
 
     // Determines if the player will ram his head into a block above
     Player.prototype.isBlockAbove = function(tilemap) {
@@ -203,7 +200,7 @@ module.exports = (function() {
         if(!tileL || tileL.data.solid) return true;
         if(!tileR || tileR.data.solid) return true;
         return false;
-    }
+    };
 
     // Moves the player to the left, colliding with solid tiles
     Player.prototype.moveLeft = function(distance, tilemap) {
@@ -224,6 +221,7 @@ module.exports = (function() {
         if (tile && !tile.data.solid)
             this.currentX += distance;
     };
+
     /* Player update function
      * arguments:
      * - elapsedTime, the time that has passed
@@ -234,363 +232,192 @@ module.exports = (function() {
     Player.prototype.update = function(elapsedTime, tilemap, entityManager, ParticleManager) {
         var sprite = this;
         sprite.entityManager = entityManager;
-        // The "with" keyword allows us to change the
-        // current scope, i.e. 'this' becomes our
-        // inputManager
-        with (this.inputManager) {
 
-            // Process player state
-            switch (sprite.state) {
-                case STANDING:
-                case WALKING:
-                    // If there is no ground underneath, fall
-                    if (!sprite.onGround(tilemap)) {
-                        sprite.state = FALLING;
-                        sprite.velocityY = 0;
-                    }
-                    // If player is above water or inside water
-                    else if(sprite.inWater(tilemap)){
-                        if(sprite.swimmingProperty.escapeSwimming){
-                            sprite.state = JUMPING;
-                            sprite.velocityY = JUMP_VELOCITY;
-                            sprite.swimmingProperty.escapeSwimming = false;
-                        }
-                        else{
-                            sprite.state = SWIMMING;
-                            sprite.holdBreath = true;
-                        }
-                    }
-                    else {
-                        if (isKeyDown(commands.DIGDOWN)) {
-                            dig_sound.play();
-                            this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true);
-                            sprite.state = DIGGING;
-                            sprite.digState = DOWN_DIGGING;
-                        } else if(isKeyDown(commands.DIGLEFT)) {
-                            dig_sound.play();
-                            this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
-                            sprite.state = DIGGING;
-                            sprite.digState = LEFT_DIGGING;
-                            sprite.isLeft = true;
-                        } else if(isKeyDown(commands.DIGRIGHT)) {
-                            dig_sound.play();
-                            this.pick = new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 });
-                            sprite.state = DIGGING;
-                            sprite.digState = RIGHT_DIGGING;
-                            sprite.isLeft = false;
-                        } else if(isKeyDown(commands.DIGUP)) {
-                            dig_sound.play();
-                            this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY }, true);
-                            sprite.state = DIGGING;
-                            sprite.digState = UP_DIGGING;
-                        } else if (isKeyDown(commands.UP)) {
+        if(this.digState == NOT_DIGGING) {
+            if (this.inputManager.isKeyDown(this.inputManager.commands.DIGDOWN)) {
+                this.digState = DOWN_DIGGING;
+                this.setupDig(new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true), entityManager, ParticleManager);
+            } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGLEFT)) {
+                this.digState = LEFT_DIGGING;
+                this.isLeft = true;
+                this.setupDig(new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 }), entityManager, ParticleManager);
+            } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGRIGHT)) {
+                this.digState = RIGHT_DIGGING;
+                this.isLeft = false;
+                this.setupDig(new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 }), entityManager, ParticleManager);
+            } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGUP)) {
+                this.digState = UP_DIGGING;
+                this.setupDig(new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY }, true), entityManager, ParticleManager);
+            }
+        }
 
-                            /* Added sound effect for jumping */
-                            jump_sound.play();
-
-                            sprite.state = JUMPING;
-                            sprite.velocityY = JUMP_VELOCITY;
-                        } else if (isKeyDown(commands.LEFT)) {
-                            /*Added walking sound*/
-                            walk_sound.play();
-                            sprite.isLeft = true;
-                            sprite.state = WALKING;
-                            sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
-                        }
-                        else if(isKeyDown(commands.RIGHT)) {
-
-                            /* Added walking sound */
-                            walk_sound.play();
-
-                            sprite.isLeft = false;
-                            sprite.state = WALKING;
-                            sprite.moveRight(elapsedTime * this.SPEED, tilemap);
-                        }
-                        else {
-                            sprite.state = STANDING;
-                        }
-
-                        if(sprite.state == DIGGING) {
-                            //if we just entered the digging state we need to spawn the hitbox of our pickaxe
-                            //this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
-                            entityManager.add(this.pick);
-
-
-                            var currentPlayer = this;
-                            var digComplete = function() {
-                                /* Add score */
-                                //TODO different scores for different blocks?
-                                entityManager.scoreEngine.addScore(1);
-
-                                var box = currentPlayer.boundingBox(),
-                                    tileX,
-                                    tileY;
-
-                                /* set the tile location that we are deleting */
-                                switch(sprite.digState) {
-                                    case DOWN_DIGGING:
-                                        tileX = Math.floor((box.left + (SIZE / 2)) / 64);
-                                        tileY = Math.floor(box.bottom / 64);
-
-                                        /* we also know we will be falling if digging down, so start fall */
-                                        sprite.state = FALLING;
-                                        sprite.velocityY = 0;
-                                        break;
-                                    case LEFT_DIGGING:
-                                        tileX = Math.floor((box.left - 5)/ 64);
-                                        tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
-                                        sprite.state = STANDING;
-                                        break;
-                                    case RIGHT_DIGGING:
-                                        tileX = Math.floor((box.right + 5)/ 64);
-                                        tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
-                                        sprite.state = STANDING;
-                                        break;
-                                    case UP_DIGGING:
-                                        tileX = Math.floor((box.left + (SIZE / 2)) / 64);
-                                        tileY = Math.floor((box.top - 5) / 64);
-                                        sprite.state = STANDING;
-                                        break;
-                                    default:
-                                        return;
-                                }
-
-                                /* replace the set tile at this layer */
-                                var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
-                                if (layerType == 0) {
-                                    tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
-                                    ParticleManager.addDirtParticles(tileX, tileY);
-                                } else if (layerType == 1) {
-                                    tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
-                                    ParticleManager.addStoneParticles(tileX, tileY);
-                                } else if (layerType == 2) {
-                                    tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, sprite.superPickaxe);
-                                    ParticleManager.addDeepParticles(tileX, tileY);
-                                }
-
-                                /* setup the callback for when the animation is complete */
-                                currentPlayer.animations.left[currentPlayer.state].donePlayingCallback = function() {};
-                                currentPlayer.animations.right[currentPlayer.state].donePlayingCallback = function() {};
-                                entityManager.remove(currentPlayer.pick);
-
-                                /* reset the digging state */
-                                sprite.digState = NOT_DIGGING;
-                            };
-                            this.animations.left[this.state].donePlayingCallback = digComplete;
-                            this.animations.right[this.state].donePlayingCallback = digComplete;
-                        }
-                    }
-                    break;
-                case DIGGING:
-                    break;
-                case JUMPING:
-                    sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-                    sprite.currentY += sprite.velocityY * elapsedTime;
-                    if (sprite.velocityY > 0) {
-                        sprite.state = FALLING;
-                        resetJumpingAnimation(sprite);
-                    } else if (sprite.isBlockAbove(tilemap)) {
-                        sprite.state = FALLING;
-                        sprite.velocityY = 0;
-                        resetJumpingAnimation(sprite);
-                    }
-
-                    if (isKeyDown(commands.LEFT)) {
-                        sprite.isLeft = true;
-                        sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
-                    }
-                    if (isKeyDown(commands.RIGHT)) {
-                        sprite.isLeft = false;
-                        sprite.moveRight(elapsedTime * this.SPEED, tilemap);
-                    }
-                    break;
-                case FALLING:
-                    if(sprite.velocityY < TERMINAL_VELOCITY) {
-                        sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-                    }
-                    sprite.currentY += sprite.velocityY * elapsedTime;
-                    if (sprite.onGround(tilemap)) {
-                        sprite.state = STANDING;
-                        sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-                    } else if (isKeyDown(commands.LEFT)) {
-                        sprite.isLeft = true;
-                        sprite.moveLeft(elapsedTime * this.SPEED, tilemap);
-                    }
-                    else if(isKeyDown(commands.RIGHT)) {
-                        sprite.isLeft = false;
-                        sprite.moveRight(elapsedTime * this.SPEED, tilemap);
-                    }
-                    else if(sprite.inWater(tilemap)){
-                        sprite.state = SWIMMING;
-                        sprite.holdBreath = true;
-                    }
-                    break;
-                case SWIMMING:
-                    //Player Sinks automatically, they have resistance i.e sink slower if fully immersed in water
-                    if(sprite.inWater(tilemap)) {
-                        sprite.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2) + (sprite.velocityY / GRAVITY_IN_WATER);
-                        console.log("in water");
-                        sprite.currentY += sprite.velocityY * elapsedTime;
-                        if (isKeyDown(commands.LEFT)) {
-                            sprite.velocityY = 0;
-                            sprite.isLeft = true;
-                            sprite.moveLeft(elapsedTime * SPEED_IN_LIQUID, tilemap);
-                        }
-                        else if (isKeyDown(commands.RIGHT)) {
-                            sprite.velocityY = 0;
-                            sprite.isLeft = false;
-                            sprite.moveRight(elapsedTime * SPEED_IN_LIQUID, tilemap);
-                        }
-                        else if (isKeyDown(commands.UP)) {
-                            sprite.velocityY = SWIM_UP;
-                            console.log("SWIMING UP");
-                        }
-                        else if (isKeyDown(commands.DIGDOWN)) {
-                            dig_sound.play();
-                            this.pick = new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true);
-                            sprite.state = DIGGING;
-                            sprite.digState = DOWN_DIGGING;
-                        } else if(isKeyDown(commands.DIGLEFT)) {
-                            dig_sound.play();
-                            this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
-                            sprite.state = DIGGING;
-                            sprite.digState = LEFT_DIGGING;
-                            sprite.isLeft = true;
-                        } else if(isKeyDown(commands.DIGRIGHT)) {
-                            dig_sound.play();
-                            this.pick = new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 });
-                            sprite.state = DIGGING;
-                            sprite.digState = RIGHT_DIGGING;
-                            sprite.isLeft = false;
-                        } else if(isKeyDown(commands.DIGUP)) {
-                            dig_sound.play();
-                            this.pick = new Pickaxe({x: this.currentX + SIZE / 2, y: this.currentY}, true);
-                            sprite.state = DIGGING;
-                            sprite.digState = UP_DIGGING;
-                        }
-                        else if (!sprite.inWater(tilemap) && !sprite.headOverWater(tilemap)) {
-                            sprite.state = FALLING;
-                            console.log("Player hit its head on something");
-                            sprite.holdBreath = false;
-                        }
-                        else if (sprite.onGround(tilemap) && !sprite.inWater(tilemap)) {
-                            sprite.velocityY = 0;
-                            sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-                            sprite.state = STANDING;
-                            console.log("standing");
-                        }
-                        else if (sprite.onGround(tilemap) && sprite.inWater(tilemap)) {
-                            sprite.velocityY = 0;
-                            sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-                            console.log("floating in water");
-                        }
-                        sprite.swimmingProperty.escapeSwimming = false;
-                    }
-                    else if (sprite.headOverWater(tilemap)) {
-                        sprite.state = STANDING;
-                        sprite.swimmingProperty.escapeSwimming = true;
-                        console.log("Can escape swimming");
-                        sprite.currentY += sprite.velocityY * elapsedTime;
+        // Process player state
+        switch (this.state) {
+            case STANDING:
+            case WALKING:
+                // If there is no ground underneath, fall
+                if (!this.onGround(tilemap)) {
+                    this.state = FALLING;
+                    this.velocityY = 0;
+                }
+                // If player is above water or inside water
+                else if(this.inWater(tilemap)){
+                    if(this.swimmingProperty.escapeSwimming){
+                        this.state = JUMPING;
+                        this.velocityY = JUMP_VELOCITY;
+                        this.swimmingProperty.escapeSwimming = false;
                     }
                     else{
-                        sprite.state = FALLING;
-                        sprite.currentY += sprite.velocityY * elapsedTime;
+                        this.state = SWIMMING;
+                        this.holdBreath = true;
                     }
-                    // Exact copy of walking state code, might be a bit redudant, possibly make it a global function?
-                    if(sprite.state == DIGGING) {
-                        //if we just entered the digging state we need to spawn the hitbox of our pickaxe
-                        //this.pick = new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 });
-                        entityManager.add(this.pick);
+                }
+                else {
+                    if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
+                        /* Added sound effect for jumping */
+                        jump_sound.play();
 
-
-                        var currentPlayerr = this;
-                        var digCompleted = function() {
-                            /* Add score */
-                            //TODO different scores for different blocks?
-                            entityManager.scoreEngine.addScore(1);
-
-                            var box = currentPlayerr.boundingBox(),
-                                tileX,
-                                tileY;
-
-                            /* set the tile location that we are deleting */
-                            switch(sprite.digState) {
-                                case DOWN_DIGGING:
-                                    tileX = Math.floor((box.left + (SIZE / 2)) / 64);
-                                    tileY = Math.floor(box.bottom / 64);
-
-                                    /* we also know we will be falling if digging down, so start fall */
-                                    sprite.state = FALLING;
-                                    sprite.velocityY = 0;
-                                    break;
-                                case LEFT_DIGGING:
-                                    tileX = Math.floor((box.left - 5)/ 64);
-                                    tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
-                                    sprite.state = STANDING;
-                                    break;
-                                case RIGHT_DIGGING:
-                                    tileX = Math.floor((box.right + 5)/ 64);
-                                    tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
-                                    sprite.state = STANDING;
-                                    break;
-                                case UP_DIGGING:
-                                    tileX = Math.floor((box.left + (SIZE / 2)) / 64);
-                                    tileY = Math.floor((box.top - 5) / 64);
-                                    sprite.state = STANDING;
-                                    break;
-                                default:
-                                    return;
-                            }
-
-                            /* replace the set tile at this layer */
-                            var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayerr.layerIndex);
-                            if (layerType == 0) {
-                                tilemap.mineAt(1, tileX, tileY, currentPlayerr.layerIndex, sprite.superPickaxe);
-                                ParticleManager.addDirtParticles(tileX, tileY);
-                            } else if (layerType == 1) {
-                                tilemap.mineAt(13, tileX, tileY, currentPlayerr.layerIndex, sprite.superPickaxe);
-                                ParticleManager.addStoneParticles(tileX, tileY);
-                            } else if (layerType == 2) {
-                                tilemap.mineAt(15, tileX, tileY, currentPlayerr.layerIndex, sprite.superPickaxe);
-                                ParticleManager.addDeepParticles(tileX, tileY);
-                            }
-
-                            /* setup the callback for when the animation is complete */
-                            currentPlayerr.animations.left[currentPlayerr.state].donePlayingCallback = function() {};
-                            currentPlayerr.animations.right[currentPlayerr.state].donePlayingCallback = function() {};
-                            entityManager.remove(currentPlayerr.pick);
-
-                            /* reset the digging state */
-                            sprite.digState = NOT_DIGGING;
-                        };
-                        this.animations.left[this.state].donePlayingCallback = digCompleted;
-                        this.animations.right[this.state].donePlayingCallback = digCompleted;
+                        this.state = JUMPING;
+                        this.velocityY = JUMP_VELOCITY;
+                    } else if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
+                        /*Added walking sound*/
+                        walk_sound.play();
+                        this.isLeft = true;
+                        this.state = WALKING;
+                        this.moveLeft(elapsedTime * this.SPEED, tilemap);
                     }
-                    // A counter for the health bar to check if player is drowning
-                    if (this.swimmingProperty.breathCount > 20) {
-                        //Player is dead!
-                        //<progress id="health" value="100" max="100"></progress>
-                        // var health = document.getElementById("health")
-                        // health.value = health.value (add, subtract health, whatever.)
-                        this.swimmingProperty.breathCount = 0;
+                    else if(this.inputManager.isKeyDown(this.inputManager.commands.RIGHT)) {
+
+                        /* Added walking sound */
+                        walk_sound.play();
+
+                        this.isLeft = false;
+                        this.state = WALKING;
+                        this.moveRight(elapsedTime * this.SPEED, tilemap);
                     }
-                    break;
-            }
+                    else {
+                        this.state = STANDING;
+                    }
+                }
+                break;
+            case JUMPING:
+                this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+                this.currentY += this.velocityY * elapsedTime;
+                if (this.velocityY > 0) {
+                    this.state = FALLING;
+                    resetJumpingAnimation(this);
+                } else if (this.isBlockAbove(tilemap)) {
+                    this.state = FALLING;
+                    this.velocityY = 0;
+                    resetJumpingAnimation(this);
+                }
 
-            // countdown to next bone projectile
-            if(this.lastAttack <= this.attackFrequency){
-                this.lastAttack += elapsedTime;
-            }
+                if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
+                    this.isLeft = true;
+                    this.moveLeft(elapsedTime * this.SPEED, tilemap);
+                }
+                if (this.inputManager.isKeyDown(this.inputManager.commands.RIGHT)) {
+                    this.isLeft = false;
+                    this.moveRight(elapsedTime * this.SPEED, tilemap);
+                }
+                break;
+            case FALLING:
+                if(this.velocityY < TERMINAL_VELOCITY) {
+                    this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+                }
+                this.currentY += this.velocityY * elapsedTime;
+                if (this.onGround(tilemap)) {
+                    this.state = STANDING;
+                    this.currentY = 64 * Math.floor(this.currentY / 64);
+                } else if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
+                    this.isLeft = true;
+                    this.moveLeft(elapsedTime * this.SPEED, tilemap);
+                }
+                else if(this.inputManager.isKeyDown(this.inputManager.commands.RIGHT)) {
+                    this.isLeft = false;
+                    this.moveRight(elapsedTime * this.SPEED, tilemap);
+                }
+                else if(this.inWater(tilemap)){
+                    this.state = SWIMMING;
+                    this.holdBreath = true;
+                }
+                break;
+            case SWIMMING:
+                //Player Sinks automatically, they have resistance i.e sink slower if fully immersed in water
+                if(this.inWater(tilemap)) {
+                    this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2) + (this.velocityY / GRAVITY_IN_WATER);
+                    console.log("in water");
+                    this.currentY += this.velocityY * elapsedTime;
+                    if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
+                        this.velocityY = 0;
+                        this.isLeft = true;
+                        this.moveLeft(elapsedTime * SPEED_IN_LIQUID, tilemap);
+                    }
+                    else if (this.inputManager.isKeyDown(this.inputManager.commands.RIGHT)) {
+                        this.velocityY = 0;
+                        this.isLeft = false;
+                        this.moveRight(elapsedTime * SPEED_IN_LIQUID, tilemap);
+                    }
+                    else if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
+                        this.velocityY = SWIM_UP;
+                        console.log("SWIMING UP");
+                    }
+                    else if (!this.inWater(tilemap) && !this.headOverWater(tilemap)) {
+                        this.state = FALLING;
+                        console.log("Player hit its head on something");
+                        this.holdBreath = false;
+                    }
+                    else if (this.onGround(tilemap) && !this.inWater(tilemap)) {
+                        this.velocityY = 0;
+                        this.currentY = 64 * Math.floor(this.currentY / 64);
+                        this.state = STANDING;
+                        console.log("standing");
+                    }
+                    else if (this.onGround(tilemap) && this.inWater(tilemap)) {
+                        this.velocityY = 0;
+                        this.currentY = 64 * Math.floor(this.currentY / 64);
+                        console.log("floating in water");
+                    }
+                    this.swimmingProperty.escapeSwimming = false;
+                }
+                else if (this.headOverWater(tilemap)) {
+                    this.state = STANDING;
+                    this.swimmingProperty.escapeSwimming = true;
+                    console.log("Can escape swimming");
+                    this.currentY += this.velocityY * elapsedTime;
+                }
+                else{
+                    this.state = FALLING;
+                    this.currentY += this.velocityY * elapsedTime;
+                }
+                // Exact copy of walking state code, might be a bit redudant, possibly make it a global function?
 
-            if (isKeyDown(commands.SHOOT)) {
-                this.shoot();
-            }
 
-            // Swap input buffers
-            swapBuffers();
+                // A counter for the health bar to check if player is drowning
+                if (this.swimmingProperty.breathCount > 20) {
+                    //Player is dead!
+                    //<progress id="health" value="100" max="100"></progress>
+                    // var health = document.getElementById("health")
+                    // health.value = health.value (add, subtract health, whatever.)
+                    this.swimmingProperty.breathCount = 0;
+                }
+                break;
         }
+
+        // countdown to next bone projectile
+        if(this.lastAttack <= this.attackFrequency){
+            this.lastAttack += elapsedTime;
+        }
+
+        if (this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
+            this.shoot();
+        }
+
+        // Swap input buffers
+        this.inputManager.swapBuffers();
+
             // Check oxygen level of player
-        if(sprite.holdBreath && sprite.inWater(tilemap)){
+        if(this.holdBreath && this.inWater(tilemap)){
             this.swimmingProperty.breathCount += elapsedTime;
         }
         else{
@@ -598,10 +425,14 @@ module.exports = (function() {
         }
 
         // Update animation
-        if (this.isLeft)
-            this.animations.left[this.state].update(elapsedTime);
-        else
-            this.animations.right[this.state].update(elapsedTime);
+        var animationSet = this.isLeft ? this.animations.left : this.animations.right;
+
+        if(this.digState == NOT_DIGGING) {
+            animationSet[this.state].update(elapsedTime);
+        } else {
+            //TODO create animations for each dig state
+            animationSet[DIGGING].update(elapsedTime);
+        }
 
     };
 
@@ -735,7 +566,82 @@ module.exports = (function() {
             this.animations.left[this.state].update(elapsedTime);
         else
             this.animations.right[this.state].update(elapsedTime);
-    }
+    };
+
+
+    Player.prototype.setupDig = function(pickaxe, entityManager, ParticleManager) {
+        dig_sound.play();
+        this.pick = pickaxe;
+        entityManager.add(this.pick);
+
+        var currentPlayer = this;
+        var digComplete = function() {
+            /* Add score */
+            //TODO different scores for different blocks?
+            entityManager.scoreEngine.addScore(1);
+
+            var box = currentPlayer.boundingBox(),
+                tileX,
+                tileY;
+
+            /* set the tile location that we are deleting */
+            switch(currentPlayer.digState) {
+                case DOWN_DIGGING:
+                    tileX = Math.floor((box.left + (SIZE / 2)) / 64);
+                    tileY = Math.floor(box.bottom / 64);
+                    break;
+                case LEFT_DIGGING:
+                    tileX = Math.floor((box.left - 5)/ 64);
+                    tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                    break;
+                case RIGHT_DIGGING:
+                    tileX = Math.floor((box.right + 5)/ 64);
+                    tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                    break;
+                case UP_DIGGING:
+                    tileX = Math.floor((box.left + (SIZE / 2)) / 64);
+                    tileY = Math.floor((box.top - 5) / 64);
+                    break;
+                default:
+                    return;
+            }
+
+
+
+            /* replace the set tile at this layer */
+            var layerType = tilemap.returnTileLayer(tileX, tileY, currentPlayer.layerIndex);
+            var tileNum = 0;
+            if (layerType === 0) {
+                tileNum = tilemap.tileAt(tileX, tileY, 0);
+                tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
+            } else if (layerType == 1) {
+                tileNum = tilemap.tileAt(tileX, tileY, 0);
+                tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
+            } else if (layerType == 2) {
+                tileNum = tilemap.tileAt(tileX, tileY, 0);
+                tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
+            }
+
+            if (tileNum.data.type === "Sky Earth" || tileNum.data.type === "DirtWithGrass" || tileNum.data.type === "Dirt"){
+              ParticleManager.addDirtParticles(tileX, tileY);
+            }
+            else if (tileNum.data.type === "GemsWithGrass" || tileNum.data.type === "StoneWithGrass" || tileNum.data.type === "Gems" || tileNum.data.type === "Stone"){
+              ParticleManager.addStoneParticles(tileX, tileY);
+            }
+
+            /* setup the callback for when the animation is complete */
+            currentPlayer.animations.left[DIGGING].donePlayingCallback = function() {};
+            currentPlayer.animations.right[DIGGING].donePlayingCallback = function() {};
+            entityManager.remove(currentPlayer.pick);
+            currentPlayer.pick = undefined;
+
+            /* reset the digging state */
+            currentPlayer.digState = NOT_DIGGING;
+        };
+        //TODO update animations for each direction
+        this.animations.left[DIGGING].donePlayingCallback = digComplete;
+        this.animations.right[DIGGING].donePlayingCallback = digComplete;
+    };
 
     /*
      This method gets called when a power up is picked up
@@ -749,9 +655,11 @@ module.exports = (function() {
             this.bones++;
         } else if (powerUp.type == 'coin') {
             // add points
+			scoreEngine.addScore(20);
 
         } else if (powerUp.type == 'crystal') {
             // add points
+			scoreEngine.addScore(50);
 
         } else if (powerUp.type == 'pick') {
 
@@ -760,14 +668,24 @@ module.exports = (function() {
 
         } else if (powerUp.type == 'stone-shield') {
             this.stoneShield = true;
-        }
+        } else if (powerUp.type == 'medicine') {
+			this.heal(30);
+		}
 
 
         if(powerUp.effectDuration < 0){//if power up lasts 4ever
             this.entityManager.remove(powerUp);
         }
 
-    }
+    };
+	
+	Player.prototype.heal = function(health) {
+		this.healthBar.heal(health);
+	}
+	
+	Player.prototype.hurt = function(health) {
+		this.healthBar.hurt(health);
+	}
 
     /*
      This method gets called when a power up effect vanishes
@@ -782,7 +700,7 @@ module.exports = (function() {
         } else if (powerUp.type == 'stone-shield') {
             this.stoneShield = false;
         }
-    }
+    };
 
     /*
      Bone projectile powerup
@@ -796,7 +714,7 @@ module.exports = (function() {
             this.bones--;
             this.lastAttack = 0;
         }
-    }
+    };
 
     /* Player Render Function
      * arguments:
@@ -806,10 +724,15 @@ module.exports = (function() {
      */
     Player.prototype.render = function(ctx, debug) {
         // Draw the player (and the correct animation)
-        if (this.isLeft)
-            this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
-        else
-            this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
+        var animationSet = this.isLeft ? this.animations.left : this.animations.right;
+
+        if(this.digState == NOT_DIGGING) {
+            animationSet[this.state].render(ctx, this.currentX, this.currentY);
+        } else {
+            //TODO create animations for each dig state
+            animationSet[DIGGING].render(ctx, this.currentX, this.currentY);
+        }
+
 
         if (this.holdBreath && this.state == SWIMMING) {
             var bb = this.boundingBox();
@@ -847,11 +770,8 @@ module.exports = (function() {
         ctx.font = "20pt Calibri";
         ctx.fillText("x"+this.bones, this.currentX + 445, this.currentY - 300);
 
-
-
-
         if (debug) renderDebug(this, ctx);
-    }
+    };
 
     // Draw debugging visual elements
     function renderDebug(player, ctx) {
