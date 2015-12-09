@@ -29,9 +29,9 @@ module.exports = (function(){
 		var outerObject = this;
 		this.img.onload = function () {
 			outerObject.animation = new Animation(outerObject.img, outerObject.width, outerObject.height, 0, 0, frameNum);
-		}
+		};
 		this.img.src = imgPath;
-		
+
 		this.pickedUp = false;
 		this.pickedUpSound = new Audio('./resources/sounds/powerUp.wav');
 		this.layerIndex = mapLayer;
@@ -40,51 +40,48 @@ module.exports = (function(){
 		this.velocityY = 0;
 		this.effectDuration = duration;
 	}
-	
-	
+
+
 	PowerUp.prototype.update = function(elapsedTime, tilemap, entityManager)
 	{
 		if(!this.flying){
 			if(this.falling){
-			this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-			this.y += this.velocityY * elapsedTime;
-			if(this.onGround(tilemap)) {
-				this.velocityY = 0;
-				this.y = ((this.boundingBox().bottom/64)-1)*64;
-				this.falling = false;
+				this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+				this.y += this.velocityY * elapsedTime;
+				if(this.onGround(tilemap)) {
+					this.velocityY = 0;
+					this.y = ((this.boundingBox().bottom/64)-1)*64;
+					this.falling = false;
+				}
 			}
 		}
-		}
-		
-		
-		  
-		
-		
-		this.animation.update(elapsedTime);
+		/* wait for image to load */
+		if(this.animation) this.animation.update(elapsedTime);
+
 		if(this.pickedUp){
 			this.effectDuration--;
 		}
-		
-		if(this.effectDuration == 0){
+
+		if(this.effectDuration === 0){
 			this.player.clearEffect(this);
 		}
-		
-		
-		if (this.img.complete == false || this.pickedUp == true) return;
-	}
-	
+
+
+		if (this.img.complete === false || this.pickedUp === true) return;
+	};
+
 	PowerUp.prototype.render = function(context, debug)
 	{
-		if (this.img.complete == false || this.pickedUp == true || this.animation == null) return;
+		if (this.img.complete === false || this.pickedUp === true || this.animation === null) return;
 		this.animation.render(context, this.x, this.y);
 		if(debug) renderDebug(this, context);
-	}
-	
+	};
+
 	function renderDebug(powerUp, ctx) {
 		var bounds = powerUp.boundingBox();
 		var circle = powerUp.boundingCircle();
 		ctx.save();
-		
+
 		// Draw player bounding box
 		ctx.strokeStyle = "red";
 		ctx.beginPath();
@@ -95,12 +92,12 @@ module.exports = (function(){
 		ctx.lineTo(bounds.left, bounds.bottom);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		ctx.strokeStyle = "blue";
 		ctx.beginPath();
 		ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
 		ctx.stroke();
-		
+
 		// Outline tile underfoot
 		var tileX = 64 * Math.floor((bounds.left + (this.width/2))/64),
 			tileY = 64 * (Math.floor(bounds.bottom / 64));
@@ -112,20 +109,20 @@ module.exports = (function(){
 		ctx.lineTo(tileX, tileY + 64);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		ctx.restore();
   }
-	
+
 	PowerUp.prototype.collide = function(otherEntity)
 	{
-		if (otherEntity.type == 'player' && this.pickedUp == false) {
+		if (otherEntity.type === 'player' && this.pickedUp === false) {
 			otherEntity.poweredUp(this);
 			this.pickedUpSound.play();
 			this.pickedUp = true;
 			this.player = otherEntity;
 		}
-	}
-	
+	};
+
 	PowerUp.prototype.boundingBox = function()
 	{
 		return {
@@ -133,8 +130,8 @@ module.exports = (function(){
 			top: this.y,
 			right: this.x + this.width,
 			bottom: this.y + this.height
-		}
-	}
+		};
+	};
 
 	PowerUp.prototype.boundingCircle = function()
 	{
@@ -142,19 +139,19 @@ module.exports = (function(){
 			cx: this.x + this.width / 2,
 			cy: this.y + this.height / 2,
 			radius: this.radius
-		}
-	}
-	
+		};
+	};
+
 	PowerUp.prototype.onGround = function(tilemap) {
     var box = this.boundingBox(),
         tileX = Math.floor((box.left + (this.width/2))/64),
         tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     // find the tile we are standing on.
     return (tile && tile.data.solid) ? true : false;
-  }
-	
-	
+};
+
+
 	return PowerUp;
 
-}())
+}());
