@@ -5,7 +5,7 @@ module.exports = (function() {
     var Miner = require('./goblin-miner.js');
     var Turret = require('./turret.js');
 
-    var updatePeriodSeconds = 5;
+    var updatePeriodSeconds = 50;
 
     function SpawningManager(entityManager, scoreEngine, player) {
         this.entityManager = entityManager;

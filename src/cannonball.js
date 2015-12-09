@@ -127,6 +127,11 @@ Cannonball.prototype = new Entity();
 			this.offsetExploding();
 			this.state = EXPLODING;
 			this.explosionSound.play();
+		} else if (otherEntity.type == 'player') {
+			this.offsetExploding();
+			this.state = EXPLODING;
+			this.explosionSound.play();
+			otherEntity.hurt(30);
 		}
 	}
 

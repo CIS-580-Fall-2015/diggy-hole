@@ -1,4 +1,5 @@
  module.exports = (function(){
+	 var HB;
 	 
 	 function HealthBar() {
 		 const 	hbYOffset = 50,
@@ -15,7 +16,17 @@
 		 
 		 this.x;
 		 this.y;
+		 this.health = 100;
+		 this.deficit = 0;
 		 
+		 
+		 this.heal = function(health) {
+			 this.health = Math.min(this.health + health, 100)
+		 }
+		 
+		 this.hurt = function(health) {
+			 this.health = Math.max(this.health - health, 0)
+		 }
 		 
 		 /**
 			screenCtx: 		canvas
@@ -28,6 +39,7 @@
 			 // console.log("x: " + x + " y: " + y);
 			 this.x = x;
 			 this.y = y;
+			 this.deficit = (1 - this.health / 100) * (hbWidth - 2 * hbXOffset);
 		 }
 		 
 		 
@@ -51,10 +63,11 @@
 					 screenCtx.strokeStyle = 'rgba(255,0,0,'+alpha+')';
 				 screenCtx.beginPath();
 				 screenCtx.moveTo(this.x + hbXOffset, this.y + hbYOffset);
-				 screenCtx.lineTo(this.x + hbWidth - hbXOffset, this.y + hbYOffset);
+				 screenCtx.lineTo(this.x + hbWidth - hbXOffset - this.deficit, this.y + hbYOffset);
 				 screenCtx.stroke();
 			 }
 		 }
+		 HB = this;
 	 }
 	 
 	 

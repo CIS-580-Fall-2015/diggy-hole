@@ -91,21 +91,21 @@ module.exports = (function (){
                 tilemap.render(screenCtx);
             }
         });
-
-        // Create the player and add them to
-        // the entity manager
-        player = new Player(400, 240, 0, inputManager);
-        entityManager.add(player);
 		
+		// Set up score engine
+        scoreEngine = new ScoreEngine();
+        scoreEngine.setPositionFunction(tilemap.getCameraPosition);
+        entityManager.setScoreEngine(scoreEngine);
+		
+		// Set up HUD
 		hud = new HUD(SCREEN_WIDTH, SCREEN_HEIGHT);
 		hb = new healthBar();
 		hud.addElement(hb);
 		
-
-        // Set up score engine
-        scoreEngine = new ScoreEngine();
-        scoreEngine.setPositionFunction(tilemap.getCameraPosition);
-        entityManager.setScoreEngine(scoreEngine);
+        // Create the player and add them to
+        // the entity manager
+        player = new Player(400, 240, 0, inputManager, hb, scoreEngine);
+        entityManager.add(player);
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player);
 
@@ -152,26 +152,26 @@ module.exports = (function (){
         // Spawn 10 barrels close to player
         // And some turrets
         // and some shamans
-        // for(i = 0; i < 10; i++) {
-        //     if (i < 3) {
-        //         turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
-        //         entityManager.add(turret);
-        //
-        //     }
-        //     dynamiteDwarf = new DynamiteDwarf(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
-        //     entityManager.add(dynamiteDwarf);
-        //     entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
-        //     entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
-        //     entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
-        //     entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
-        //     entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, -1));
-        //     barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
-        //     entityManager.add(barrel);
-        //     entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
-        //
-        //
-        // }
-        //powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
+        for(i = 0; i < 3; i++) {
+            // if (i < 3) {
+                // turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
+                // entityManager.add(turret);
+        
+            // }
+            // dynamiteDwarf = new DynamiteDwarf(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
+            // entityManager.add(dynamiteDwarf);
+            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
+            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
+            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
+            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
+            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, -1));
+            // barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
+            // entityManager.add(barrel);
+            // entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
+        
+        
+        }
+        // powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
 
 
         // Karenfang: Create a Kakao and add it to
