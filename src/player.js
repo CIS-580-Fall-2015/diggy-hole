@@ -682,11 +682,15 @@ module.exports = (function() {
 	
 	Player.prototype.heal = function(health) {
 		this.healthBar.heal(health);
-	}
+	};
 	
 	Player.prototype.hurt = function(health) {
 		this.healthBar.hurt(health);
-	}
+	};
+
+    Player.prototype.score = function(score) {
+        this.scoreEngine.addScore(score);
+    };
 
     /*
      This method gets called when a power up effect vanishes
