@@ -62,7 +62,8 @@ function remove(entity) {
     // Set the entry in the entities table to undefined,
     // indicating an open slot
     if (entity.score) {
-        this.scoreEngine.addScore(entity.score);
+        var player = getPlayer();
+        player.score(entity.score);
     }
     entities[entity._entity_id] = undefined;
 }
@@ -160,7 +161,7 @@ function update(elapsedTime, tilemap, ParticleManager) {
             entities[i].update(elapsedTime, tilemap, this, ParticleManager);
         }
     }
-    scoreEngine.update();
+    var playerBox = getPlayer().boundingBox();
     checkCollisions();
 }
 
@@ -181,7 +182,6 @@ function render(ctx, debug) {
             entitiesOnScreen[i].render(ctx, debug);
         }
     }
-    scoreEngine.render(ctx);
 }
 
 function getPlayer() {
@@ -218,9 +218,6 @@ function playerDirection(entity) {
     return false;
 }
 
-function setScoreEngine(score) {
-    this.scoreEngine = score;
-}
 
 return {
     add: add,
@@ -232,7 +229,6 @@ return {
     playerDirection: playerDirection,
     getPlayer: getPlayer,
     getEntity: getEntity,
-    setScoreEngine: setScoreEngine
 };
 
 }());

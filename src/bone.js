@@ -199,7 +199,7 @@ module.exports = (function(){
 		   this.enabled = false;
 		   if(DEBUG){
 		   console.log("Player hit by bone");
-		   entityManager.scoreEngine.scoreToZero();
+		   otherEntity.scoreEngine.scoreToZero();
 		   }
 	   } else if(otherEntity.lives){
 		   this.enabled = false;

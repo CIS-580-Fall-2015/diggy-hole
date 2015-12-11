@@ -578,7 +578,7 @@ module.exports = (function() {
         var digComplete = function() {
             /* Add score */
             //TODO different scores for different blocks?
-            entityManager.scoreEngine.addScore(1);
+            currentPlayer.score(1);
 
             var box = currentPlayer.boundingBox(),
                 tileX,
@@ -655,11 +655,11 @@ module.exports = (function() {
             this.bones++;
         } else if (powerUp.type == 'coin') {
             // add points
-			scoreEngine.addScore(20);
+			this.score(20);
 
         } else if (powerUp.type == 'crystal') {
             // add points
-			scoreEngine.addScore(50);
+			this.score(50);
 
         } else if (powerUp.type == 'pick') {
 

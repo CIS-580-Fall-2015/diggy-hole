@@ -200,7 +200,7 @@ module.exports = (function(){
 		   this.enabled = false;
 		   if(DEBUG){
 		   console.log("Player hit by bone");
-		   entityManager.scoreEngine.scoreToZero();
+		   otherEntity.scoreEngine.scoreToZero();
 		   }
 	   } else if(otherEntity.lives){
 		   this.enabled = false;
@@ -3509,7 +3509,8 @@ function remove(entity) {
     // Set the entry in the entities table to undefined,
     // indicating an open slot
     if (entity.score) {
-        this.scoreEngine.addScore(entity.score);
+        var player = getPlayer();
+        player.score(entity.score);
     }
     entities[entity._entity_id] = undefined;
 }
@@ -3607,7 +3608,7 @@ function update(elapsedTime, tilemap, ParticleManager) {
             entities[i].update(elapsedTime, tilemap, this, ParticleManager);
         }
     }
-    scoreEngine.update();
+    var playerBox = getPlayer().boundingBox();
     checkCollisions();
 }
 
@@ -3628,7 +3629,6 @@ function render(ctx, debug) {
             entitiesOnScreen[i].render(ctx, debug);
         }
     }
-    scoreEngine.render(ctx);
 }
 
 function getPlayer() {
@@ -3665,9 +3665,6 @@ function playerDirection(entity) {
     return false;
 }
 
-function setScoreEngine(score) {
-    this.scoreEngine = score;
-}
 
 return {
     add: add,
@@ -3679,7 +3676,6 @@ return {
     playerDirection: playerDirection,
     getPlayer: getPlayer,
     getEntity: getEntity,
-    setScoreEngine: setScoreEngine
 };
 
 }());
@@ -3857,15 +3853,14 @@ module.exports = (function (){
             }
         });
 		
-		// Set up score engine
-        scoreEngine = new ScoreEngine();
-        scoreEngine.setPositionFunction(tilemap.getCameraPosition);
-        entityManager.setScoreEngine(scoreEngine);
-		
 		// Set up HUD
 		hud = new HUD(SCREEN_WIDTH, SCREEN_HEIGHT);
 		hb = new healthBar();
 		hud.addElement(hb);
+
+        // Set up score engine
+        scoreEngine = new ScoreEngine();
+        hud.addElement(scoreEngine);
 		
         // Create the player and add them to
         // the entity manager
@@ -6359,7 +6354,7 @@ module.exports = (function() {
         var digComplete = function() {
             /* Add score */
             //TODO different scores for different blocks?
-            entityManager.scoreEngine.addScore(1);
+            currentPlayer.score(1);
 
             var box = currentPlayer.boundingBox(),
                 tileX,
@@ -6436,11 +6431,11 @@ module.exports = (function() {
             this.bones++;
         } else if (powerUp.type == 'coin') {
             // add points
-			scoreEngine.addScore(20);
+			this.score(20);
 
         } else if (powerUp.type == 'crystal') {
             // add points
-			scoreEngine.addScore(50);
+			this.score(50);
 
         } else if (powerUp.type == 'pick') {
 
@@ -7426,8 +7421,10 @@ module.exports = (function (){
     }
   };
 
-  ScoreEngine.prototype.update = function()
+  ScoreEngine.prototype.update = function(x, y)
   {
+    this.x = x;
+    this.y = y;
     this.updatePosition();
     this.updateAnimation();
   }
@@ -7449,8 +7446,8 @@ module.exports = (function (){
         sy,
         this.width,
         this.height,
-        this.xpos + (32 * i),
-        this.ypos,
+        this.x + (32 * i),
+        this.y,
         this.width,
         this.height
       );
