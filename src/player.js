@@ -668,6 +668,7 @@ module.exports = (function() {
 
         } else if (powerUp.type == 'stone-shield') {
             this.stoneShield = true;
+
         } else if (powerUp.type == 'medicine') {
 			this.heal(30);
 		}
