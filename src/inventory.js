@@ -6,6 +6,11 @@ module.exports = (function(){
 			lineWidth = 5;
 	
 	/**
+	This class manages player's inventory.
+	All actions from input manager are handled
+	from the player class - section commented as
+	Power Up Usage Management
+	
 	slotNum		- number of slots in the inventory
 	*/
 	function Inventory(slotNum) {
