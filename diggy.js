@@ -3857,8 +3857,6 @@ module.exports = (function (){
 		
 		// Set up HUD
 		hud = new HUD(SCREEN_WIDTH, SCREEN_HEIGHT);
-		hb = new healthBar();
-		hud.addElement(hb);
 
         // Set up score engine
         scoreEngine = new ScoreEngine();
@@ -3867,6 +3865,10 @@ module.exports = (function (){
 		// SEt up invenotory
 		inventory = new Inventory(5, inputManager);
 		hud.addElement(inventory);
+		
+		// Set up health bar
+		hb = new healthBar();
+		hud.addElement(hb);
 		
         // Create the player and add them to
         // the entity manager
@@ -4784,7 +4786,7 @@ module.exports = (function(){
 		 this.render = function(screenCtx) {
 			 
 			 screenCtx.strokeStyle = 'black';
-			 screenCtx.fillStyle = 'black';
+			 // screenCtx.fillStyle = 'black';
 			 screenCtx.lineWidth = 5;
 			 screenCtx.rect(this.x, this.y + hbFrameYOffset, hbWidth,
 							(lineCount+1)*4-lineOffset + hbFrameWidthOffset*2);
@@ -4793,12 +4795,13 @@ module.exports = (function(){
 			 for (var j = lineCount; j >= 0; j --) {
 				 screenCtx.lineWidth = (j+1)*4-lineOffset;
 				 if	(j == 0)
-					 screenCtx.strokeStyle = '#fff';
+					 screenCtx.strokeStyle = 'yellow';
 				 else
 					 screenCtx.strokeStyle = 'rgba(255,0,0,'+alpha+')';
 				 screenCtx.beginPath();
 				 screenCtx.moveTo(this.x + hbXOffset, this.y + hbYOffset);
 				 screenCtx.lineTo(this.x + hbWidth - hbXOffset - this.deficit, this.y + hbYOffset);
+				 screenCtx.closePath();
 				 screenCtx.stroke();
 			 }
 		 }
@@ -5025,13 +5028,12 @@ module.exports = (function(){
 		};
 	
 		this.render = function(screenCtx) {
-			
 			screenCtx.strokeStyle = 'black';
 			screenCtx.lineWidth = lineWidth;
 			for (var i = 0; i < this.slotNum; i ++) {
 				screenCtx.rect(this.x + i * slotSize, this.y, slotSize, slotSize);
-				screenCtx.stroke();
 			}
+			screenCtx.stroke();
 		};
 	};
 

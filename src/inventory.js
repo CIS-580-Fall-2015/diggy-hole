@@ -23,13 +23,12 @@ module.exports = (function(){
 		};
 	
 		this.render = function(screenCtx) {
-			
 			screenCtx.strokeStyle = 'black';
 			screenCtx.lineWidth = lineWidth;
 			for (var i = 0; i < this.slotNum; i ++) {
 				screenCtx.rect(this.x + i * slotSize, this.y, slotSize, slotSize);
-				screenCtx.stroke();
 			}
+			screenCtx.stroke();
 		};
 	};
 

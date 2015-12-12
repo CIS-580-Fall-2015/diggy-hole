@@ -95,8 +95,6 @@ module.exports = (function (){
 		
 		// Set up HUD
 		hud = new HUD(SCREEN_WIDTH, SCREEN_HEIGHT);
-		hb = new healthBar();
-		hud.addElement(hb);
 
         // Set up score engine
         scoreEngine = new ScoreEngine();
@@ -105,6 +103,10 @@ module.exports = (function (){
 		// SEt up invenotory
 		inventory = new Inventory(5, inputManager);
 		hud.addElement(inventory);
+		
+		// Set up health bar
+		hb = new healthBar();
+		hud.addElement(hb);
 		
         // Create the player and add them to
         // the entity manager

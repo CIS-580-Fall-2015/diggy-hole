@@ -48,7 +48,7 @@
 		 this.render = function(screenCtx) {
 			 
 			 screenCtx.strokeStyle = 'black';
-			 screenCtx.fillStyle = 'black';
+			 // screenCtx.fillStyle = 'black';
 			 screenCtx.lineWidth = 5;
 			 screenCtx.rect(this.x, this.y + hbFrameYOffset, hbWidth,
 							(lineCount+1)*4-lineOffset + hbFrameWidthOffset*2);
@@ -57,12 +57,13 @@
 			 for (var j = lineCount; j >= 0; j --) {
 				 screenCtx.lineWidth = (j+1)*4-lineOffset;
 				 if	(j == 0)
-					 screenCtx.strokeStyle = '#fff';
+					 screenCtx.strokeStyle = 'yellow';
 				 else
 					 screenCtx.strokeStyle = 'rgba(255,0,0,'+alpha+')';
 				 screenCtx.beginPath();
 				 screenCtx.moveTo(this.x + hbXOffset, this.y + hbYOffset);
 				 screenCtx.lineTo(this.x + hbWidth - hbXOffset - this.deficit, this.y + hbYOffset);
+				 screenCtx.closePath();
 				 screenCtx.stroke();
 			 }
 		 }
