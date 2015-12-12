@@ -1,5 +1,4 @@
  module.exports = (function(){
-	 var HB;
 	 
 	 function HealthBar() {
 		 const 	hbYOffset = 50,
@@ -67,10 +66,7 @@
 				 screenCtx.stroke();
 			 }
 		 }
-		 HB = this;
 	 }
 	 
-	 
-	 
-	 return HealthBar
+	 return HealthBar;
 }());

@@ -55,7 +55,8 @@ module.exports = (function (){
         ParticleManager = require('./particle-manager.js'),
 		HUD = require('./HUD.js'),
 		hud,
-		healthBar = require('./healthBar.js');
+		healthBar = require('./healthBar.js'),
+		Inventory = require('./inventory.js');
 
     /* Loads the GameState, triggered by the StateManager
      * This function sets up the screen canvas, the tilemap,
@@ -100,6 +101,10 @@ module.exports = (function (){
         // Set up score engine
         scoreEngine = new ScoreEngine();
         hud.addElement(scoreEngine);
+		
+		// SEt up invenotory
+		inventory = new Inventory(5, inputManager);
+		hud.addElement(inventory);
 		
         // Create the player and add them to
         // the entity manager

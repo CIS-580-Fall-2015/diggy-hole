@@ -237,7 +237,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity-manager.js":18,"./entity.js":19,"./player.js":32,"./powerUp.js":33}],2:[function(require,module,exports){
+},{"./animation.js":7,"./entity-manager.js":18,"./entity.js":19,"./player.js":33,"./powerUp.js":34}],2:[function(require,module,exports){
 /* DemonicGroundHog
  * Authors:
 	Nathan Bean
@@ -1864,7 +1864,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./bone.js":11,"./entity-manager.js":18,"./entity.js":19,"./player.js":32,"./powerUp.js":33}],9:[function(require,module,exports){
+},{"./animation.js":7,"./bone.js":11,"./entity-manager.js":18,"./entity.js":19,"./player.js":33,"./powerUp.js":34}],9:[function(require,module,exports){
 /* Bird Module
 	Authors: Josh Benard
 */
@@ -2012,7 +2012,7 @@ module.exports = (function(){
 	return Bird;
 
 }());
-},{"./animation.js":7,"./entity.js":19,"./player.js":32}],10:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19,"./player.js":33}],10:[function(require,module,exports){
 module.exports = (function(){
   var Entity = require('./entity.js');
   var PlayerClass = require('./player.js');
@@ -2273,9 +2273,9 @@ var everal = false;
 
 }());
 
-},{"./entity.js":19,"./player.js":32}],11:[function(require,module,exports){
+},{"./entity.js":19,"./player.js":33}],11:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"./animation.js":7,"./entity-manager.js":18,"./entity.js":19,"./player.js":32,"./powerUp.js":33,"dup":1}],12:[function(require,module,exports){
+},{"./animation.js":7,"./entity-manager.js":18,"./entity.js":19,"./player.js":33,"./powerUp.js":34,"dup":1}],12:[function(require,module,exports){
 module.exports = (function(){
 
 var Animation = require('./animation.js'),
@@ -2386,7 +2386,8 @@ Cannonball.prototype = new Entity();
 			if (this.projectileTimeExploding > 2) {
 				this.state = IDLE;
 				//Wyatt Watson - Now removes the explosion left overs
-				entityManager.remove(this);
+				// MZ - If you do that the turret has nothing to shoot with afterwards
+				// entityManager.remove(this);
 			}
 		}
 
@@ -2471,7 +2472,7 @@ return Cannonball;
 
 }())
 
-},{"./animation.js":7,"./entity.js":19,"./tilemap.js":43}],13:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19,"./tilemap.js":44}],13:[function(require,module,exports){
 /* The construct for a collectible. Inherits from entity.
  * Removed from entity manager upon being collected by player.
  * Certain strategies derived from the powerup class.
@@ -3816,7 +3817,8 @@ module.exports = (function (){
         ParticleManager = require('./particle-manager.js'),
 		HUD = require('./HUD.js'),
 		hud,
-		healthBar = require('./healthBar.js');
+		healthBar = require('./healthBar.js'),
+		Inventory = require('./inventory.js');
 
     /* Loads the GameState, triggered by the StateManager
      * This function sets up the screen canvas, the tilemap,
@@ -3861,6 +3863,10 @@ module.exports = (function (){
         // Set up score engine
         scoreEngine = new ScoreEngine();
         hud.addElement(scoreEngine);
+		
+		// SEt up invenotory
+		inventory = new Inventory(5, inputManager);
+		hud.addElement(inventory);
 		
         // Create the player and add them to
         // the entity manager
@@ -4032,7 +4038,7 @@ module.exports = (function (){
 
 })();
 
-},{"./DemonicGroundH.js":2,"./HUD.js":3,"./Kakao.js":4,"./barrel.js":8,"./bird.js":9,"./blobber.js":10,"./collectible.js":13,"./dynamiteDwarf.js":17,"./entity-manager.js":18,"./goblin-miner.js":21,"./goblin-shaman.js":22,"./healthBar.js":23,"./input-manager.js":25,"./main-menu.js":26,"./octopus.js":29,"./particle-manager.js":31,"./player.js":32,"./powerUp.js":33,"./rat.js":34,"./robo-killer.js":35,"./score.js":36,"./slime.js":37,"./spawning-manager.js":38,"./stone-monster.js":40,"./sudo_chan.js":42,"./tilemap.js":43,"./turret.js":44,"./wolf.js":45}],21:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./HUD.js":3,"./Kakao.js":4,"./barrel.js":8,"./bird.js":9,"./blobber.js":10,"./collectible.js":13,"./dynamiteDwarf.js":17,"./entity-manager.js":18,"./goblin-miner.js":21,"./goblin-shaman.js":22,"./healthBar.js":23,"./input-manager.js":25,"./inventory.js":26,"./main-menu.js":27,"./octopus.js":30,"./particle-manager.js":32,"./player.js":33,"./powerUp.js":34,"./rat.js":35,"./robo-killer.js":36,"./score.js":37,"./slime.js":38,"./spawning-manager.js":39,"./stone-monster.js":41,"./sudo_chan.js":43,"./tilemap.js":44,"./turret.js":45,"./wolf.js":46}],21:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -4729,7 +4735,6 @@ module.exports = (function(){
 
 },{"./animation.js":7,"./entity.js":19}],23:[function(require,module,exports){
  module.exports = (function(){
-	 var HB;
 	 
 	 function HealthBar() {
 		 const 	hbYOffset = 50,
@@ -4797,12 +4802,9 @@ module.exports = (function(){
 				 screenCtx.stroke();
 			 }
 		 }
-		 HB = this;
 	 }
 	 
-	 
-	 
-	 return HealthBar
+	 return HealthBar;
 }());
 },{}],24:[function(require,module,exports){
 /**
@@ -4927,7 +4929,7 @@ module.exports = (function (){
     }
 
 })();
-},{"./bone.js":11,"./input-manager.js":25,"./player.js":32}],25:[function(require,module,exports){
+},{"./bone.js":11,"./input-manager.js":25,"./player.js":33}],25:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -4941,7 +4943,12 @@ module.exports = (function() {
     DIGUP: 87,		// W
 	PAY: 80,		// P
 	ATTACK : 65,	// A
-	SHOOT : 66	 	// B
+	SHOOT : 66,	 	// B
+	ONE : 49,
+	TWO : 50,
+	THREE : 51,
+	FOUR : 52,
+	FIVE : 53
   }
   
   var oldKeys = [];
@@ -4993,6 +5000,44 @@ module.exports = (function() {
   
 })();
 },{}],26:[function(require,module,exports){
+module.exports = (function(){
+	
+	const	slotSize = 50,
+			lineWidth = 5;
+	
+	function Inventory(slotNum, inputManager) {
+		this.x;
+		this.y;
+		this.slotNum = slotNum;
+		this.inputManager = inputManager;
+		this.elements = new Array(slotNum);
+		this.inventoryLength = slotNum * slotSize;
+		
+		
+		this.update = function(x, y, screenWidth, screenHeight) {
+			this.x = x + screenWidth - this.inventoryLength - lineWidth;
+			this.y = y + screenHeight - slotSize;
+			
+			if (this.inputManager.wasKeyReleased(this.inputManager.commands.ONE)) {
+				console.log("One has been pressed");
+			}
+			
+		};
+	
+		this.render = function(screenCtx) {
+			
+			screenCtx.strokeStyle = 'black';
+			screenCtx.lineWidth = lineWidth;
+			for (var i = 0; i < this.slotNum; i ++) {
+				screenCtx.rect(this.x + i * slotSize, this.y, slotSize, slotSize);
+				screenCtx.stroke();
+			}
+		};
+	};
+
+return Inventory;
+}());
+},{}],27:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -5126,7 +5171,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./credits-screen":14,"./help-screen":24}],27:[function(require,module,exports){
+},{"./credits-screen":14,"./help-screen":24}],28:[function(require,module,exports){
 
 
 // Wait for the window to load completely
@@ -5171,7 +5216,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":20,"./splash-screen":39}],28:[function(require,module,exports){
+},{"./game":20,"./splash-screen":40}],29:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -5298,7 +5343,7 @@ module.exports = (function(){
 
 }());
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -5493,7 +5538,7 @@ module.exports = function () {
 }();
 
 
-},{"./entity.js":19,"./octopus_animation.js":30}],30:[function(require,module,exports){
+},{"./entity.js":19,"./octopus_animation.js":31}],31:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -5556,7 +5601,7 @@ module.exports = (function() {
     return OctopusAnimation;
 
 }());
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 /* The particle manager maintains the list of particles currently in the world,
 *  and handles the update and rendering functions for it
 *
@@ -5773,7 +5818,7 @@ return {
 
 }());
 
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -6609,7 +6654,7 @@ module.exports = (function() {
 
 }());
 
-},{"./Bone.js":1,"./Pickaxe.js":5,"./animation.js":7,"./entity.js":19}],33:[function(require,module,exports){
+},{"./Bone.js":1,"./Pickaxe.js":5,"./animation.js":7,"./entity.js":19}],34:[function(require,module,exports){
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Entity = require('./entity.js'),
@@ -6768,7 +6813,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity-manager.js":18,"./entity.js":19,"./player.js":32}],34:[function(require,module,exports){
+},{"./animation.js":7,"./entity-manager.js":18,"./entity.js":19,"./player.js":33}],35:[function(require,module,exports){
 /* Enemy module
  * Authors:
  * Kien Le
@@ -7038,7 +7083,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity.js":19}],35:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],36:[function(require,module,exports){
 /* Entity: Robo-Killer module
  * Implements the entity pattern, provides specific robo-killer constructs.
  *
@@ -7352,7 +7397,7 @@ module.exports = (function() {
 
 }());
 
-},{"./animation.js":7,"./entity.js":19}],36:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],37:[function(require,module,exports){
 /* Score engine */
 
 module.exports = (function (){
@@ -7509,7 +7554,7 @@ module.exports = (function (){
 
 })();
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -7761,7 +7806,7 @@ module.exports = (function(){
    return Slime;
   
 }());
-},{"./animation.js":7,"./entity.js":19}],38:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],39:[function(require,module,exports){
 module.exports = (function() {
     var Shaman = require('./goblin-shaman.js');
     var DemonGHog = require('./DemonicGroundH.js');
@@ -7806,7 +7851,7 @@ module.exports = (function() {
     return SpawningManager;
 })();
 
-},{"./DemonicGroundH.js":2,"./barrel.js":8,"./goblin-miner.js":21,"./goblin-shaman.js":22,"./stone-monster.js":40,"./turret.js":44}],39:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./barrel.js":8,"./goblin-miner.js":21,"./goblin-shaman.js":22,"./stone-monster.js":41,"./turret.js":45}],40:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -7873,7 +7918,7 @@ module.exports = (function (){
   }
   
 })();
-},{}],40:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -8165,7 +8210,7 @@ module.exports = (function(){
     return StoneMonster;
 }());
 
-},{"./Pickaxe.js":5,"./animation.js":7,"./entity.js":19,"./player.js":32}],41:[function(require,module,exports){
+},{"./Pickaxe.js":5,"./animation.js":7,"./entity.js":19,"./player.js":33}],42:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -8235,7 +8280,7 @@ module.exports = (function() {
     return Sudo_Animation;
 
 }());
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -8483,7 +8528,7 @@ module.exports = (function(){
     return Sudo_Chan;
 }());
 
-},{"./entity.js":19,"./sudo-chan-animation.js":41}],43:[function(require,module,exports){
+},{"./entity.js":19,"./sudo-chan-animation.js":42}],44:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -9273,7 +9318,7 @@ module.exports = (function (){
 
 })();
 
-},{"./noise.js":28}],44:[function(require,module,exports){
+},{"./noise.js":29}],45:[function(require,module,exports){
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Player = require('./player.js'),
@@ -9665,7 +9710,7 @@ module.exports = (function(){
 	return Turret;
 }())
 
-},{"./animation.js":7,"./cannonball.js":12,"./entity-manager.js":18,"./entity.js":19,"./player.js":32}],45:[function(require,module,exports){
+},{"./animation.js":7,"./cannonball.js":12,"./entity-manager.js":18,"./entity.js":19,"./player.js":33}],46:[function(require,module,exports){
 
 /* Wolf module
  * Implements the entity pattern and provides
@@ -9923,4 +9968,4 @@ module.exports = (function(){
 }());
 
 
-},{"./animation.js":7,"./entity.js":19}]},{},[27]);
+},{"./animation.js":7,"./entity.js":19}]},{},[28]);

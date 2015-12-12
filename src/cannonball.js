@@ -108,7 +108,8 @@ Cannonball.prototype = new Entity();
 			if (this.projectileTimeExploding > 2) {
 				this.state = IDLE;
 				//Wyatt Watson - Now removes the explosion left overs
-				entityManager.remove(this);
+				// MZ - If you do that the turret has nothing to shoot with afterwards
+				// entityManager.remove(this);
 			}
 		}
 
