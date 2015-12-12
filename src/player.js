@@ -47,6 +47,9 @@ module.exports = (function() {
     const GRAVITY_IN_WATER = -80;
     const SWIM_UP = -164;
     const SPEED_IN_LIQUID = 80;
+	
+	// Inventory constants
+	const POWER_UP_FREQUENCY = 0.5;
 
     //The Right facing dwarf spritesheet
     var dwarfRight = new Image();
@@ -63,7 +66,7 @@ module.exports = (function() {
     ratLeft.src = "img/ratLeft2.png";
 
     //The Player constructor
-    function Player(locationX, locationY, layerIndex, inputManager, healthBar, scoreEngine) {
+    function Player(locationX, locationY, layerIndex, inputManager, healthBar, scoreEngine, inventory) {
         this.inputManager = inputManager;
         this.state = WALKING;
         this.digState = NOT_DIGGING;
@@ -92,6 +95,8 @@ module.exports = (function() {
         this.stoneShield = false;
 		this.healthBar = healthBar;
 		this.scoreEngine = scoreEngine;
+		this.inventory = inventory;
+		this.lastPowerUpUsed = 0;
 
         // bone powerup
         this.attackFrequency = 1;
@@ -412,6 +417,40 @@ module.exports = (function() {
         if (this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
             this.shoot();
         }
+		
+		// Power Up Usage Management
+		this.lastPowerUpUsed += elapsedTime;
+		
+		if (this.lastPowerUpUsed >= POWER_UP_FREQUENCY) {
+			if (this.inputManager.isKeyDown(this.inputManager.commands.ONE)) {
+				console.log("One pressed");
+				if (inventory.slotUsed(0)) {
+					this.heal(30);
+				}
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.TWO)) {
+				console.log("TWO pressed");
+				if (inventory.slotUsed(1)) {
+					
+				}
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.THREE)) {
+				console.log("THREE pressed");
+				if (inventory.slotUsed(2)) {
+					
+				}
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FOUR)) {
+				console.log("FOUR pressed");
+				if (inventory.slotUsed(3)) {
+					
+				}
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
+				console.log("FIVE pressed");
+				if (inventory.slotUsed(4)) {
+					
+				}
+			}
+			this.lastPowerUpUsed = 0;
+		}
+		
 
         // Swap input buffers
         this.inputManager.swapBuffers();
@@ -670,7 +709,8 @@ module.exports = (function() {
             this.stoneShield = true;
 
         } else if (powerUp.type == 'medicine') {
-			this.heal(30);
+			inventory.powerUpPickedUp(0);
+			// this.heal(30); now used manually from the inventory
 		}
 
 

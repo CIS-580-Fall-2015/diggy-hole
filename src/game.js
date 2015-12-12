@@ -101,7 +101,7 @@ module.exports = (function (){
         hud.addElement(scoreEngine);
 		
 		// SEt up invenotory
-		inventory = new Inventory(5, inputManager);
+		inventory = new Inventory(3);
 		hud.addElement(inventory);
 		
 		// Set up health bar
@@ -110,7 +110,7 @@ module.exports = (function (){
 		
         // Create the player and add them to
         // the entity manager
-        player = new Player(400, 240, 0, inputManager, hb, scoreEngine);
+        player = new Player(400, 240, 0, inputManager, hb, scoreEngine, inventory);
         entityManager.add(player);
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player);
