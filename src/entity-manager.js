@@ -53,9 +53,19 @@ function add(entityToAdd) {
 /* Removes an entity from those managed
 * Arguments:
 * - entity, the entity to remove
+* returns true if the entity was removed, false if not
 */
 function remove(entity) {
-
+    var xPos = -1, yPos = -1;
+    for (var i = 0; i < entityCount; i++) {
+      if (entityXpos[i].entity === entity) xPos = i;
+      if (entityYpos[i].entity === entity) yPos = i;
+    }
+    if (xPos === -1 || yPos === -1) return false;
+    entityXpos.splice(xPos, 1);
+    entityYpos.splice(yPos, 1);
+    entityCount--;
+    return true;
 }
 
 
@@ -72,7 +82,7 @@ function updateEntityHitboxes() {
 }
 
 function sortEntities() {
-    
+
 }
 
 /* Checks for collisions between entities, and
