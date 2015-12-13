@@ -8,6 +8,7 @@
 module.exports = (function() {
     /* jshint esnext: true */
     const MAX_ENTITIES = 200;
+    const UPDATE_REGION =
 
     var entityXpos = [],
         entityYpos = [],
@@ -92,11 +93,39 @@ function checkCollisions() {
 *   An array of entity references
 */
 function queryRadius(x, y, r) {
+    var entitesInRadius = [];
+    for(var i = 0; i < entityXpos.length; i ++) {
+        if(entityXpos[i] !== null) {
+            var boundingCircle = entityXpos[i].boundingCircle();
+            if(isWithinCircle(x, y, r, boundingCircle))
+                entitesInRadius.push(entityXpos[i].entity);
+        }
+    }
 
+    return entitesInRadius;
 }
 
 function queryRectangle(rect) {
 
+}
+
+
+function isWithinCircle(x, y, r, circle) {
+    if(Math.pow(circle.radius + r, 2) >=
+        (Math.pow(x - circle.cx, 2) + Math.pow(y - circle.cy, 2)))
+        return true;
+
+    return false;
+}
+
+//Determines if 2 bounding boxes intersect in any way
+function isWithinBox(bb1, bb2) {
+    if((bb1.left >= bb2.left) && (bb1.left <= bb2.right)) return true;
+    if((bb1.right <= bb2.right) && (bb1.right >= bb2.left)) return true;
+    if((bb1.top >= bb2.top) && (bb1.top <= bb2.bottom)) return true;
+    if((bb1.bottom <= bb2.bottom) && (bb1.bottom >= bb2.top)) return true;
+
+    return false;
 }
 
 /* Updates all managed entities
@@ -106,7 +135,7 @@ function queryRectangle(rect) {
 * - tilemap, the current tilemap for the game.
 */
 function update(elapsedTime, tilemap, ParticleManager) {
-
+    for(var i = 0)
 }
 
 /* Renders the managed entities
