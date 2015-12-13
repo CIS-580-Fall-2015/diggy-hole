@@ -9,7 +9,6 @@ module.exports = (function (){
       MAX_ENTITIES : 200,
       UPDATE_REGION : 75,
       RENDER_REGION : 25,
-      TILE_SIZE : 64,
       UPDATE_TIME : 1/60,
     };
 })();

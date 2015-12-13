@@ -8,11 +8,6 @@
 module.exports = (function() {
     var EntityManager = function(player, settings) {
         /* jshint esnext: true */
-        const MAX_ENTITIES = settings.MAX_ENTITIES;
-        const UPDATE_REGION = settings.UPDATE_REGION;
-        const RENDER_REGION = settings.RENDER_REGION;
-        const TILE_SIZE = settings.TILE_SIZE;
-        const UPDATE_TIME = settings.UPDATE_TIME;
 
         var entityXpos = [],
             entityYpos = [],
@@ -24,7 +19,7 @@ module.exports = (function() {
          * - entity, the entity to add
          */
         function add(entityToAdd) {
-            if (entityCount + 1 < MAX_ENTITIES) {
+            if (entityCount + 1 < settings.MAX_ENTITIES) {
                 var boundingBox = entityToAdd.boundingBox();
                 var entityPos = {
                     entity: entityToAdd,
@@ -190,9 +185,9 @@ module.exports = (function() {
             timeSinceUpdateRegion += elapsedTime;
 
             //create bounding box and clean updatable objects, but only after some time interval
-            if(timeSinceUpdateRegion >= UPDATE_TIME) {
+            if(timeSinceUpdateRegion >= settings.UPDATE_TIME) {
                 var playerBB = player.boundingBox(),
-                    updateFactor = UPDATE_REGION * TILE_SIZE,
+                    updateFactor = settings.UPDATE_REGION * settings.TILESIZEX,
                     updateBox = {
                         top: playerBB.top - updateFactor,
                         bottom: playerBB.bottom + updateFactor,
@@ -228,7 +223,7 @@ module.exports = (function() {
         function render(ctx, debug) {
             //create the renderable region
             var playerBB = player.boundingBox(),
-                updateFactor = RENDER_REGION * TILE_SIZE,
+                updateFactor = settings.RENDER_REGION * settings.TILESIZEX,
                 updateBox = {
                     top: playerBB.top - updateFactor,
                     bottom: playerBB.bottom + updateFactor,
