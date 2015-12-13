@@ -161,7 +161,7 @@ module.exports = (function() {
 
             return entitesInRadius;
         }
-        
+
         function isWithinCircle(x, y, r, circle) {
             if (Math.pow(circle.radius + r, 2) >=
                 (Math.pow(x - circle.cx, 2) + Math.pow(y - circle.cy, 2)))
@@ -212,7 +212,7 @@ module.exports = (function() {
             //call everyone's update function
             for(var i = 0; i < entityXpos.length; i ++) {
                 if(entityXpos[i] !== null) {
-                    entityXpos[i].entity.update();
+                    entityXpos[i].entity.update(elapsedTime, tilemap, this);
                 }
             }
 
@@ -240,7 +240,7 @@ module.exports = (function() {
             for(var i = 0; i < entityXpos.length; i ++) {
                 if(entityXpos[i] !== null) {
                     if(isWithinBox(updateBox, entityXpos[i].hitbox))
-                        entityXpos[i].entity.render();
+                        entityXpos[i].entity.render(ctx, debug);
                 }
             }
         }
