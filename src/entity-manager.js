@@ -192,7 +192,23 @@ module.exports = (function() {
          * - debug, the flag to trigger visual debugging
          */
         function render(ctx, debug) {
+            //create the renderable region
+            var playerBB = player.boundingBox(),
+                updateFactor = RENDER_REGION * TILE_SIZE,
+                updateBox = {
+                    top: playerBB.top - updateFactor,
+                    bottom: playerBB.bottom + updateFactor,
+                    left: playerBB.left - updateFactor,
+                    right: playerBB.right + updateFactor
+                };
 
+            //call the real update method
+            for(var i = 0; i < entityXpos.length; i ++) {
+                if(entityXpos[i] !== null) {
+                    if(isWithinBox(updateBox, entityXpos[i].hitbox))
+                        entityXpos[i].entity.render();
+                }
+            }
         }
 
         function getPlayer() {
