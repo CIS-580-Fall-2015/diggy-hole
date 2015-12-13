@@ -18,7 +18,8 @@ module.exports = (function (){
         Octopus = require('./octopus.js'),
         inputManager = require('./input-manager.js'),
         tilemap = require('./tilemap.js'),
-        entityManager = require('./entity-manager.js'),
+        EntityManager = require('./entity-manager.js'),
+        entityManager,
         SpawningManager = require('./spawning-manager.js'),
         StoneMonster = require('./stone-monster.js'),
         DemonicGroundHog = require('./DemonicGroundH.js'),
@@ -111,6 +112,7 @@ module.exports = (function (){
         // Create the player and add them to
         // the entity manager
         player = new Player(400, 240, 0, inputManager, hb, scoreEngine, inventory);
+        entityManager = new EntityManager(player);
         entityManager.add(player);
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player);
