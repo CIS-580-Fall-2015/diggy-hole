@@ -6,13 +6,13 @@
 * - Nathan Bean
 */
 module.exports = (function() {
-    var EntityManager = function(player) {
+    var EntityManager = function(player, settings) {
         /* jshint esnext: true */
-        const MAX_ENTITIES = 200;
-        const UPDATE_REGION = 75;
-        const RENDER_REGION = 25;
-        const TILE_SIZE = 64;
-        const UPDATE_TIME = 1/60;
+        const MAX_ENTITIES = settings.MAX_ENTITIES;
+        const UPDATE_REGION = settings.UPDATE_REGION;
+        const RENDER_REGION = settings.RENDER_REGION;
+        const TILE_SIZE = settings.TILE_SIZE;
+        const UPDATE_TIME = settings.UPDATE_TIME;
 
         var entityXpos = [],
             entityYpos = [],
