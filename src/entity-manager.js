@@ -84,7 +84,7 @@ module.exports = (function() {
 
         function updateEntityHitboxes() {
             for (var i = 0; i < entityXpos.length; i++) {
-                entityXpos[i].hitbox = entityXpos[i].entity.getBoundingBox();
+                entityXpos[i].hitbox = entityXpos[i].entity.boundingBox();
             }
         }
 
