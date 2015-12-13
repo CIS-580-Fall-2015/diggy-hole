@@ -80,12 +80,25 @@ module.exports = (function() {
 
         function updateEntityHitboxes() {
             for (var i = 0; i < entityXpos.length; i++) {
-                entityXpos[i].hitbox = entityXpos[i].e.getBoundingBox();
+                entityXpos[i].hitbox = entityXpos[i].entity.getBoundingBox();
+            }
+        }
+
+        function insertionSort(items)
+        {
+            for (var i = 0; i < items.length; ++i) {
+                var tmp = items[i];
+                for (var j = i - 1; j >=0 && items[j].hitbox.left > tmp.hitbox.left; --j) {
+                    items[j + 1] = items[j];
+                }
+                items[j + 1] = tmp;
             }
         }
 
         function sortEntities() {
 
+            insertionSort(entityXpos);
+            insertionSort(entityYpos);
         }
 
         /* Checks for collisions between entities, and
