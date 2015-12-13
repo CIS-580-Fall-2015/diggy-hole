@@ -12,14 +12,42 @@ module.exports = (function() {
     var entityXpos = [],
         entityYpos = [],
         player,
-        entityCount;
+        entityCount = 0;
 
 /* Adds an entity to those managed.
 * Arguments:
 * - entity, the entity to add
 */
-function add(entity) {
-    
+function add(entityToAdd) {
+    if(entityCount + 1 < MAX_ENTITIES) {
+        var boundingBox = entityToAdd.boundingBox();
+        var entityPos = {
+            entity: entityToAdd,
+            hitbox: boundingBox
+        };
+
+        //Add the wrapper object to the X pos list
+        for (var i = 0; i < entityXpos.length; i++) {
+            if (entityXpos[i] !== null) {
+                if(entityPos.hitbox.left <= entityXpos[i]) {
+                    entityXpos.splice(i, 0, entityPos);
+                }
+            }
+            else { entityXpos.splice(i, 0, entityPos); }
+        }
+
+        //Add the wrapper object to the Y pos list
+        for (var i = 0; i < entityYpos.length; i++) {
+            if (entityYpos[i] !== null) {
+                if(entityPos.hitbox.left <= entityYpos[i]) {
+                    entityYpos.splice(i, 0, entityPos);
+                }
+            }
+            else { entityYpos.splice(i, 0, entityPos); }
+        }
+
+        entityCount++;
+    }
 }
 
 /* Removes an entity from those managed
