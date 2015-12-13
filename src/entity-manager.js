@@ -13,7 +13,6 @@ module.exports = (function() {
         entityYpos = [],
         player,
         entityCount;
-}
 
 /* Adds an entity to those managed.
 * Arguments:
@@ -90,7 +89,6 @@ function playerDistanceSquaredFrom(entity) {
 function playerDirection(entity) {
 
 }
-
 
 return {
     add: add,
