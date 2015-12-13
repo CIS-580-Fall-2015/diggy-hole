@@ -58,11 +58,29 @@ function remove(entity) {
 
 }
 
+
+function updateEntityHitboxes() {
+    var i;
+    for(i = 0; i < entityXpos.length; i++) {
+        entityXpos[i].hitbox = entityXpos[i].e.getBoundingBox();
+    }
+
+    for(i = 0; i < entityYpos.length; i++) {
+        entityYpos[i].hitbox = entityYpos[i].e.getBoundingBox();
+    }
+
+}
+
+function sortEntities() {
+    
+}
+
 /* Checks for collisions between entities, and
 * triggers the collide() event handler.
 */
 function checkCollisions() {
-
+    updateEntityHitboxes();
+    sortEntities();
 }
 
 /* Returns all entities within the given radius.
