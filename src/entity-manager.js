@@ -239,30 +239,13 @@ module.exports = (function() {
             return player;
         }
 
-        function getEntity(index) {
-
-        }
-
-        /* Gets distance between entity and player */
-        function playerDistanceSquaredFrom(entity) {
-
-        }
-
-        /* Gets direction relative to player */
-        function playerDirection(entity) {
-
-        }
-
         return {
             add: add,
             remove: remove,
             queryRadius: queryRadius,
             update: update,
             render: render,
-            playerDistanceSquaredFrom: playerDistanceSquaredFrom,
-            playerDirection: playerDirection,
             getPlayer: getPlayer,
-            getEntity: getEntity,
         };
     };
 }());

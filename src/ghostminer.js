@@ -149,7 +149,6 @@ var direction;//0 for left, 1 for right
           break;
         case AGGRESSIVE:
           if (this.health == 100) state = IDLE;
-          var Player = entityManager.getEntity(0);//Get the player entity so we know it's position
           var PlayerX = Player.currentX;
           var PlayerY = Player.currentY;
           var dist = (PlayerX - currentX) * (PlayerX - currentX) + (PlayerY - currentY) * (PlayerY - currentY);
@@ -166,7 +165,6 @@ var direction;//0 for left, 1 for right
         case ATTACKING:
           if (this.health == 100) state = IDLE;
           else {
-            var Player = entityManager.getEntity(0);//Get the player entity so we know it's position
             var PlayerX = Player.currentX;
             var PlayerY = Player.currentY;
             var dist = (PlayerX - currentX) * (PlayerX - currentX) + (PlayerY - currentY) * (PlayerY - currentY);
