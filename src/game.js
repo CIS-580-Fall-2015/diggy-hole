@@ -7,8 +7,6 @@ module.exports = (function (){
     /* jshint esnext: true */
 
     // The width & height of the screen
-    const SCREEN_WIDTH = 1280,
-        SCREEN_HEIGHT = 720;
 
     // Module variables
     var Player = require('./player.js'),
@@ -57,7 +55,8 @@ module.exports = (function (){
 		HUD = require('./HUD.js'),
 		hud,
 		healthBar = require('./healthBar.js'),
-		Inventory = require('./inventory.js');
+		Inventory = require('./inventory.js'),
+    Settings = require('./Settings.js');
 
     /* Loads the GameState, triggered by the StateManager
      * This function sets up the screen canvas, the tilemap,
@@ -71,44 +70,44 @@ module.exports = (function (){
 
         // Set up the screen canvas
         var screen = document.createElement("canvas");
-        screen.width = SCREEN_WIDTH;
-        screen.height = SCREEN_HEIGHT;
+        screen.width = Settings.SCREENSIZEX;
+        screen.height = Settings.SCREENSIZEY;
         screenCtx = screen.getContext("2d");
         document.getElementById("game-screen-container").appendChild(screen);
 
         // Set up the back buffer
         backBuffer = document.createElement("canvas");
-        backBuffer.width = SCREEN_WIDTH;
-        backBuffer.height = SCREEN_HEIGHT;
+        backBuffer.width = Settings.SCREENSIZEX;
+        backBuffer.height = Settings.SCREENSIZEY;
         backBufferCtx = backBuffer.getContext("2d");
 
         // Generate the tilemap
-        tilemap.generate(1000, 1000, {
+        tilemap.generate(Settings.MAPSIZEX, Settings.MAPSIZEY, {
             viewport: {
-                width: 1280,
-                height: 720
+                width: Settings.SCREENSIZEX,
+                height: Settings.SCREENSIZEY
             },
             onload: function() {
                 window.tilemap = tilemap;
                 tilemap.render(screenCtx);
             }
         });
-		
+
 		// Set up HUD
-		hud = new HUD(SCREEN_WIDTH, SCREEN_HEIGHT);
+		hud = new HUD(Settings.SCREENSIZEX, Settings.SCREENSIZEY);
 
         // Set up score engine
         scoreEngine = new ScoreEngine();
         hud.addElement(scoreEngine);
-		
+
 		// SEt up invenotory
 		inventory = new Inventory(3);
 		hud.addElement(inventory);
-		
+
 		// Set up health bar
 		hb = new healthBar();
 		hud.addElement(hb);
-		
+
         // Create the player and add them to
         // the entity manager
         player = new Player(400, 240, 0, inputManager, hb, scoreEngine, inventory);
@@ -164,7 +163,7 @@ module.exports = (function (){
             // if (i < 3) {
                 // turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
                 // entityManager.add(turret);
-        
+
             // }
             // dynamiteDwarf = new DynamiteDwarf(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
             // entityManager.add(dynamiteDwarf);
@@ -176,8 +175,8 @@ module.exports = (function (){
             // barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
             // entityManager.add(barrel);
             // entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
-        
-        
+
+
         }
         // powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
 
@@ -222,11 +221,11 @@ module.exports = (function (){
      */
     var render = function() {
         // Clear the back buffer
-        backBufferCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        backBufferCtx.fillRect(0, 0, Settings.SCREENSIZEX, Settings.SCREENSIZEY);
         // TODO: Calculate rubberbanding
         var bounds = player.boundingBox();
-        var offsetX = SCREEN_WIDTH / 2,
-            offsetY = SCREEN_HEIGHT / 2;
+        var offsetX = Settings.SCREENSIZEX / 2,
+            offsetY = Settings.SCREENSIZEY / 2;
 
         // Apply camera transforms
         backBufferCtx.save();backBufferCtx.translate(offsetX - bounds.left, offsetY - bounds.top);
@@ -241,9 +240,9 @@ module.exports = (function (){
 		hud.render(backBufferCtx);
 
         backBufferCtx.restore();
-		
+
         // Flip the back buffer
-        screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        screenCtx.drawImage(backBuffer, 0, 0, Settings.SCREENSIZEX, Settings.SCREENSIZEY);
     };
 
     /* Event handler for key down events
@@ -268,7 +267,7 @@ module.exports = (function (){
 
     /* Exits the game */
     var exit = function() {};
-    
+
     return {
         load: load,
         exit: exit,
