@@ -36,10 +36,12 @@ module.exports = (function() {
                     if (entityXpos[i] !== null) {
                         if (entityPos.hitbox.left <= entityXpos[i]) {
                             entityXpos.splice(i, 0, entityPos);
+                            break;
                         }
                     }
                     else {
                         entityXpos.splice(i, 0, entityPos);
+                        break;
                     }
                 }
 
@@ -48,10 +50,12 @@ module.exports = (function() {
                     if (entityYpos[i] !== null) {
                         if (entityPos.hitbox.left <= entityYpos[i]) {
                             entityYpos.splice(i, 0, entityPos);
+                            break;
                         }
                     }
                     else {
                         entityYpos.splice(i, 0, entityPos);
+                        break;
                     }
                 }
 
@@ -84,8 +88,7 @@ module.exports = (function() {
             }
         }
 
-        function insertionSort(items)
-        {
+        function insertionSort(items) {
             for (var i = 0; i < items.length; ++i) {
                 var tmp = items[i];
                 for (var j = i - 1; j >=0 && items[j].hitbox.left > tmp.hitbox.left; --j) {
@@ -96,7 +99,6 @@ module.exports = (function() {
         }
 
         function sortEntities() {
-
             insertionSort(entityXpos);
             insertionSort(entityYpos);
         }
@@ -159,12 +161,7 @@ module.exports = (function() {
 
             return entitesInRadius;
         }
-
-        function queryRectangle(rect) {
-
-        }
-
-
+        
         function isWithinCircle(x, y, r, circle) {
             if (Math.pow(circle.radius + r, 2) >=
                 (Math.pow(x - circle.cx, 2) + Math.pow(y - circle.cy, 2)))
@@ -261,4 +258,6 @@ module.exports = (function() {
             getPlayer: getPlayer,
         };
     };
+
+    return EntityManager;
 }());

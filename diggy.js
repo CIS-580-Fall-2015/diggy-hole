@@ -237,7 +237,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity-manager.js":18,"./entity.js":19,"./player.js":34,"./powerUp.js":35}],2:[function(require,module,exports){
+},{"./animation.js":6,"./entity-manager.js":17,"./entity.js":18,"./player.js":33,"./powerUp.js":34}],2:[function(require,module,exports){
 /* DemonicGroundHog
  * Authors:
 	Nathan Bean
@@ -392,10 +392,6 @@ module.exports = (function(){
 					sprite.state = MOVING;
 					idleTimer = 0;
 				}
-			else if (sprite.isPlayerColliding){
-				var player = entityManager.getEntity(0);
-				//inflict damage
-			}
 			else{
 				idleTimer++;
 			}
@@ -501,7 +497,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity.js":19}],3:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":18}],3:[function(require,module,exports){
 module.exports = (function(){
 	
 	var HUDelements = [];
@@ -799,7 +795,7 @@ module.exports = (function(){
   return Kakao;
 
 }());
-},{"./animation.js":7,"./diamond.js":15,"./entity.js":19}],5:[function(require,module,exports){
+},{"./animation.js":6,"./diamond.js":14,"./entity.js":18}],5:[function(require,module,exports){
 /* Pickaxe is an invisible entity created by player that represents the hitbox
  * of the Pickaxe.
  * In the future this would be interesting to have an attack animation effect
@@ -883,440 +879,7 @@ module.exports = (function() {
 
   })();
 
-},{"./entity.js":19}],6:[function(require,module,exports){
-/*
-	The MIT License
-
-	Copyright (c) 2011 Mike Chambers
-
-	Permission is hereby granted, free of charge, to any person obtaining a copy
-	of this software and associated documentation files (the "Software"), to deal
-	in the Software without restriction, including without limitation the rights
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the Software is
-	furnished to do so, subject to the following conditions:
-
-	The above copyright notice and this permission notice shall be included in
-	all copies or substantial portions of the Software.
-
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-	THE SOFTWARE.
-*/
-
-
-/**
-* A QuadTree implementation in JavaScript, a 2d spatial subdivision algorithm.
-* @module QuadTree
-**/
-
-module.exports = (function() {
-
-/****************** QuadTree ****************/
-
-/**
-* QuadTree data structure.
-* @class QuadTree
-* @constructor
-* @param {Object} An object representing the bounds of the top level of the QuadTree. The object
-* should contain the following properties : x, y, width, height
-* @param {Boolean} pointQuad Whether the QuadTree will contain points (true), or items with bounds
-* (width / height)(false). Default value is false.
-* @param {Number} maxDepth The maximum number of levels that the quadtree will create. Default is 4.
-* @param {Number} maxChildren The maximum number of children that a node can contain before it is split into sub-nodes.
-**/
-function QuadTree(bounds, pointQuad, maxDepth, maxChildren)
-{
-	var node;
-	if(pointQuad)
-	{
-
-		node = new Node(bounds, 0, maxDepth, maxChildren);
-	}
-	else
-	{
-		node = new BoundsNode(bounds, 0, maxDepth, maxChildren);
-	}
-
-	this.root = node;
-}
-
-/**
-* The root node of the QuadTree which covers the entire area being segmented.
-* @property root
-* @type Node
-**/
-QuadTree.prototype.root = null;
-
-
-/**
-* Inserts an item into the QuadTree.
-* @method insert
-* @param {Object|Array} item The item or Array of items to be inserted into the QuadTree. The item should expose x, y
-* properties that represents its position in 2D space.
-**/
-QuadTree.prototype.insert = function(item)
-{
-	if(item instanceof Array)
-	{
-		var len = item.length;
-
-		for(var i = 0; i < len; i++)
-		{
-			this.root.insert(item[i]);
-		}
-	}
-	else
-	{
-		this.root.insert(item);
-	}
-}
-
-/**
-* Clears all nodes and children from the QuadTree
-* @method clear
-**/
-QuadTree.prototype.clear = function()
-{
-	this.root.clear();
-}
-
-/**
-* Retrieves all items / points in the same node as the specified item / point. If the specified item
-* overlaps the bounds of a node, then all children in both nodes will be returned.
-* @method retrieve
-* @param {Object} item An object representing a 2D coordinate point (with x, y properties), or a shape
-* with dimensions (x, y, width, height) properties.
-**/
-QuadTree.prototype.retrieve = function(item)
-{
-	//get a copy of the array of items
-	var out = this.root.retrieve(item).slice(0);
-	return out;
-}
-
-/************** Node ********************/
-
-
-function Node(bounds, depth, maxDepth, maxChildren)
-{
-	this._bounds = bounds;
-	this.children = [];
-	this.nodes = [];
-
-	if(maxChildren)
-	{
-		this._maxChildren = maxChildren;
-
-	}
-
-	if(maxDepth)
-	{
-		this._maxDepth = maxDepth;
-	}
-
-	if(depth)
-	{
-		this._depth = depth;
-	}
-}
-
-//subnodes
-Node.prototype.nodes = null;
-Node.prototype._classConstructor = Node;
-
-//children contained directly in the node
-Node.prototype.children = null;
-Node.prototype._bounds = null;
-
-//read only
-Node.prototype._depth = 0;
-
-Node.prototype._maxChildren = 4;
-Node.prototype._maxDepth = 4;
-
-Node.TOP_LEFT = 0;
-Node.TOP_RIGHT = 1;
-Node.BOTTOM_LEFT = 2;
-Node.BOTTOM_RIGHT = 3;
-
-
-Node.prototype.insert = function(item)
-{
-	if(this.nodes.length)
-	{
-		var index = this._findIndex(item);
-
-		this.nodes[index].insert(item);
-
-		return;
-	}
-
-	this.children.push(item);
-
-	var len = this.children.length;
-	if(!(this._depth >= this._maxDepth) &&
-		len > this._maxChildren)
-	{
-		this.subdivide();
-
-		for(var i = 0; i < len; i++)
-		{
-			this.insert(this.children[i]);
-		}
-
-		this.children.length = 0;
-	}
-}
-
-Node.prototype.retrieve = function(item)
-{
-	if(this.nodes.length)
-	{
-		var index = this._findIndex(item);
-
-		return this.nodes[index].retrieve(item);
-	}
-
-	return this.children;
-}
-
-Node.prototype._findIndex = function(item)
-{
-	var b = this._bounds;
-	var left = (item.x > b.x + b.width / 2)? false : true;
-	var top = (item.y > b.y + b.height / 2)? false : true;
-
-	//top left
-	var index = Node.TOP_LEFT;
-	if(left)
-	{
-		//left side
-		if(!top)
-		{
-			//bottom left
-			index = Node.BOTTOM_LEFT;
-		}
-	}
-	else
-	{
-		//right side
-		if(top)
-		{
-			//top right
-			index = Node.TOP_RIGHT;
-		}
-		else
-		{
-			//bottom right
-			index = Node.BOTTOM_RIGHT;
-		}
-	}
-
-	return index;
-}
-
-
-Node.prototype.subdivide = function()
-{
-	var depth = this._depth + 1;
-
-	var bx = this._bounds.x;
-	var by = this._bounds.y;
-
-	//floor the values
-	var b_w_h = (this._bounds.width / 2)|0;
-	var b_h_h = (this._bounds.height / 2)|0;
-	var bx_b_w_h = bx + b_w_h;
-	var by_b_h_h = by + b_h_h;
-
-	//top left
-	this.nodes[Node.TOP_LEFT] = new this._classConstructor({
-		x:bx,
-		y:by,
-		width:b_w_h,
-		height:b_h_h
-	},
-	depth);
-
-	//top right
-	this.nodes[Node.TOP_RIGHT] = new this._classConstructor({
-		x:bx_b_w_h,
-		y:by,
-		width:b_w_h,
-		height:b_h_h
-	},
-	depth);
-
-	//bottom left
-	this.nodes[Node.BOTTOM_LEFT] = new this._classConstructor({
-		x:bx,
-		y:by_b_h_h,
-		width:b_w_h,
-		height:b_h_h
-	},
-	depth);
-
-
-	//bottom right
-	this.nodes[Node.BOTTOM_RIGHT] = new this._classConstructor({
-		x:bx_b_w_h,
-		y:by_b_h_h,
-		width:b_w_h,
-		height:b_h_h
-	},
-	depth);
-}
-
-Node.prototype.clear = function()
-{
-	this.children.length = 0;
-
-	var len = this.nodes.length;
-	for(var i = 0; i < len; i++)
-	{
-		this.nodes[i].clear();
-	}
-
-	this.nodes.length = 0;
-}
-
-
-/******************** BoundsQuadTree ****************/
-
-function BoundsNode(bounds, depth, maxChildren, maxDepth)
-{
-	Node.call(this, bounds, depth, maxChildren, maxDepth);
-	this._stuckChildren = [];
-}
-
-BoundsNode.prototype = new Node();
-BoundsNode.prototype._classConstructor = BoundsNode;
-BoundsNode.prototype._stuckChildren = null;
-
-//we use this to collect and conctenate items being retrieved. This way
-//we dont have to continuously create new Array instances.
-//Note, when returned from QuadTree.retrieve, we then copy the array
-BoundsNode.prototype._out = [];
-
-BoundsNode.prototype.insert = function(item)
-{
-	if(this.nodes.length)
-	{
-		var index = this._findIndex(item);
-		var node = this.nodes[index];
-
-		//todo: make _bounds bounds
-		if(item.x >= node._bounds.x &&
-			item.x + item.width <= node._bounds.x + node._bounds.width &&
-			item.y >= node._bounds.y &&
-			item.y + item.height <= node._bounds.y + node._bounds.height)
-		{
-			this.nodes[index].insert(item);
-		}
-		else
-		{
-			this._stuckChildren.push(item);
-		}
-
-		return;
-	}
-
-	this.children.push(item);
-
-	var len = this.children.length;
-
-	if(!(this._depth >= this._maxDepth) &&
-		len > this._maxChildren)
-	{
-		this.subdivide();
-
-		for(var i = 0; i < len; i++)
-		{
-			this.insert(this.children[i]);
-		}
-
-		this.children.length = 0;
-	}
-}
-
-BoundsNode.prototype.getChildren = function()
-{
-	return this.children.concat(this._stuckChildren);
-}
-
-BoundsNode.prototype.retrieve = function(item)
-{
-	var out = this._out;
-	out.length = 0;
-	if(this.nodes.length)
-	{
-		var index = this._findIndex(item);
-
-		out.push.apply(out, this.nodes[index].retrieve(item));
-	}
-
-	out.push.apply(out, this._stuckChildren);
-	out.push.apply(out, this.children);
-
-	return out;
-}
-
-BoundsNode.prototype.clear = function()
-{
-
-	this._stuckChildren.length = 0;
-
-	//array
-	this.children.length = 0;
-
-	var len = this.nodes.length;
-
-	if(!len)
-	{
-		return;
-	}
-
-	for(var i = 0; i < len; i++)
-	{
-		this.nodes[i].clear();
-	}
-
-	//array
-	this.nodes.length = 0;
-
-	//we could call the super clear function but for now, im just going to inline it
-	//call the hidden super.clear, and make sure its called with this = this instance
-	//Object.getPrototypeOf(BoundsNode.prototype).clear.call(this);
-}
-
-BoundsNode.prototype.getChildCount
-
-return QuadTree;
-
-/*
-//http://ejohn.org/blog/objectgetprototypeof/
-if ( typeof Object.getPrototypeOf !== "function" ) {
-  if ( typeof "test".__proto__ === "object" ) {
-    Object.getPrototypeOf = function(object){
-      return object.__proto__;
-    };
-  } else {
-    Object.getPrototypeOf = function(object){
-      // May break if the constructor has been tampered with
-      return object.constructor.prototype;
-    };
-  }
-}
-*/
-
-}());
-
-},{}],7:[function(require,module,exports){
+},{"./entity.js":18}],6:[function(require,module,exports){
 module.exports = function () {
 
 
@@ -1388,7 +951,7 @@ module.exports = function () {
 
 }();
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /* Class of the Barrel Skeleton entity
  *
  * Author:
@@ -1864,7 +1427,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./bone.js":11,"./entity-manager.js":18,"./entity.js":19,"./player.js":34,"./powerUp.js":35}],9:[function(require,module,exports){
+},{"./animation.js":6,"./bone.js":10,"./entity-manager.js":17,"./entity.js":18,"./player.js":33,"./powerUp.js":34}],8:[function(require,module,exports){
 /* Bird Module
 	Authors: Josh Benard
 */
@@ -2012,7 +1575,7 @@ module.exports = (function(){
 	return Bird;
 
 }());
-},{"./animation.js":7,"./entity.js":19,"./player.js":34}],10:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":18,"./player.js":33}],9:[function(require,module,exports){
 module.exports = (function(){
   var Entity = require('./entity.js');
   var PlayerClass = require('./player.js');
@@ -2273,9 +1836,9 @@ var everal = false;
 
 }());
 
-},{"./entity.js":19,"./player.js":34}],11:[function(require,module,exports){
+},{"./entity.js":18,"./player.js":33}],10:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"./animation.js":7,"./entity-manager.js":18,"./entity.js":19,"./player.js":34,"./powerUp.js":35,"dup":1}],12:[function(require,module,exports){
+},{"./animation.js":6,"./entity-manager.js":17,"./entity.js":18,"./player.js":33,"./powerUp.js":34,"dup":1}],11:[function(require,module,exports){
 module.exports = (function(){
 
 var Animation = require('./animation.js'),
@@ -2472,7 +2035,7 @@ return Cannonball;
 
 }())
 
-},{"./animation.js":7,"./entity.js":19,"./tilemap.js":45}],13:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":18,"./tilemap.js":44}],12:[function(require,module,exports){
 /* The construct for a collectible. Inherits from entity.
  * Removed from entity manager upon being collected by player.
  * Certain strategies derived from the powerup class.
@@ -2632,7 +2195,7 @@ module.exports = (function(){
 
 }())
 
-},{"./animation.js":7,"./entity.js":19}],14:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":18}],13:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -2704,7 +2267,7 @@ module.exports = (function (){
   }
   
 })();
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 /* Entity: Diamond(added by Diamond) module
  * Implements the entity pattern and provides
  * the entity Diamond info.
@@ -2836,7 +2399,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity.js":19}],16:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":18}],15:[function(require,module,exports){
 /* Dynamite Dynamite module
  * Authors:
  * Alexander Duben
@@ -3077,7 +2640,7 @@ module.exports = (function(){
   return Dynamite;
 
 }());
-},{"./animation.js":7,"./entity.js":19}],17:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":18}],16:[function(require,module,exports){
 /* Dynamite Dwarf module
  * Authors:
  * Alexander Duben
@@ -3445,7 +3008,7 @@ module.exports = (function(){
   return Dwarf;
 
 }());
-},{"./animation.js":7,"./dynamite.js":16,"./entity.js":19}],18:[function(require,module,exports){
+},{"./animation.js":6,"./dynamite.js":15,"./entity.js":18}],17:[function(require,module,exports){
 /* The entity manager for the DiggyHole game
 * Currently it uses brute-force approaches
 * to its role - this needs to be refactored
@@ -3454,234 +3017,266 @@ module.exports = (function(){
 * - Nathan Bean
 */
 module.exports = (function() {
-    /* jshint esnext: true */
-    const MAX_ENTITIES = 200;
+    var EntityManager = function(player) {
+        /* jshint esnext: true */
+        const MAX_ENTITIES = 200;
+        const UPDATE_REGION = 75;
+        const RENDER_REGION = 25;
+        const TILE_SIZE = 64;
+        const UPDATE_TIME = 1/60;
 
-    QuadTree = require('./QuadTree.js');
+        var entityXpos = [],
+            entityYpos = [],
+            entityCount = 0,
+            timeSinceUpdateRegion;
 
-    var collisionTree = new QuadTree({ x: 0, y: 0, width: 1000*64, height: 1000*64 }, false);
+        /* Adds an entity to those managed.
+         * Arguments:
+         * - entity, the entity to add
+         */
+        function add(entityToAdd) {
+            if (entityCount + 1 < MAX_ENTITIES) {
+                var boundingBox = entityToAdd.boundingBox();
+                var entityPos = {
+                    entity: entityToAdd,
+                    hitbox: boundingBox
+                };
 
-    var entities = [],
-    entityCount = 0;
+                //Add the wrapper object to the X pos list
+                for (var i = 0; i < entityXpos.length; i++) {
+                    if (entityXpos[i] !== null) {
+                        if (entityPos.hitbox.left <= entityXpos[i]) {
+                            entityXpos.splice(i, 0, entityPos);
+                        }
+                    }
+                    else {
+                        entityXpos.splice(i, 0, entityPos);
+                    }
+                }
 
-    /* Adds an entity to those managed.
-    * Arguments:
-    * - entity, the entity to add
-    */
-    function add(entity) { if (entityCount < MAX_ENTITIES) {
-        // Determine the entity's unique ID
-        // (we simply use an auto-increment count)
-        var id = entityCount;
-        entityCount++;
+                //Add the wrapper object to the Y pos list
+                for (var i = 0; i < entityYpos.length; i++) {
+                    if (entityYpos[i] !== null) {
+                        if (entityPos.hitbox.left <= entityYpos[i]) {
+                            entityYpos.splice(i, 0, entityPos);
+                        }
+                    }
+                    else {
+                        entityYpos.splice(i, 0, entityPos);
+                    }
+                }
 
-        // Set the entity's id on the entity itself
-        // as a property.  Due to the dynamic nature of
-        // JavaScript, this is easy
-        entity._entity_id = id;
-
-        // Store the entity in the entities array
-        entities[id] = entity;
-        return true;
-    } else {
-        // We've hit the max number of allowable entities,
-        // yet we may have freed up some space within our
-        // entity array when an entity was removed.
-        // If so, let's co-opt it.
-        for (var i = 0; i < MAX_ENTITIES; i++) {
-            if (entities[i] === undefined) {
-                entity._entity_id = i;
-                entities[i] = entity;
-                return i;
+                entityCount++;
             }
         }
-        // If we get to this point, there are simply no
-        // available spaces for a new entity.
-        // Log an error message, and return an error value.
-        console.error("Too many entities");
-        return undefined;
-    }
-}
 
-/* Removes an entity from those managed
-* Arguments:
-* - entity, the entity to remove
-*/
-function remove(entity) {
-    // Set the entry in the entities table to undefined,
-    // indicating an open slot
-    if (entity.score) {
-        var player = getPlayer();
-        player.score(entity.score);
-    }
-    entities[entity._entity_id] = undefined;
-}
-
-/* Checks for collisions between entities, and
-* triggers the collide() event handler.
-*/
-function checkCollisions() {
-    var colliders = [];
-    for(var i = 0; i < entityCount; i++) {
-        if(entities[i]) {
-            var hitbox = entities[i].boundingBox();
-            colliders.push({
-                x: hitbox.left,
-                y: hitbox.top,
-                width: hitbox.right - hitbox.left,
-                height: hitbox.bottom - hitbox.top,
-                entity: entities[i]
-            });
+        /* Removes an entity from those managed
+         * Arguments:
+         * - entity, the entity to remove
+         * returns true if the entity was removed, false if not
+         */
+        function remove(entity) {
+            var xPos = -1, yPos = -1;
+            for (var i = 0; i < entityCount; i++) {
+                if (entityXpos[i].entity === entity) xPos = i;
+                if (entityYpos[i].entity === entity) yPos = i;
+            }
+            if (xPos === -1 || yPos === -1) return false;
+            entityXpos.splice(xPos, 1);
+            entityYpos.splice(yPos, 1);
+            entityCount--;
+            return true;
         }
-    }
 
-    collisionTree.insert(colliders);
 
-    for (i = 0; i < colliders.length; i++) {
-        var possibleCollisions = collisionTree.retrieve(colliders[i]);
-        for (var j = 0; j < possibleCollisions.length; j++) {
-            var boundsA = colliders[i].entity.boundingBox();
-            var boundsB = possibleCollisions[j].entity.boundingBox();
-            if (boundsA.left < boundsB.right &&
-                boundsA.right > boundsB.left &&
-                boundsA.top < boundsB.bottom &&
-                boundsA.bottom > boundsB.top
-            ) {
-                colliders[i].entity.collide(possibleCollisions[j].entity);
+        function updateEntityHitboxes() {
+            for (var i = 0; i < entityXpos.length; i++) {
+                entityXpos[i].hitbox = entityXpos[i].entity.getBoundingBox();
+            }
+        }
 
-                //TODO bug if removed?
-                possibleCollisions[j].entity.collide(colliders[i].entity);
+        function insertionSort(items)
+        {
+            for (var i = 0; i < items.length; ++i) {
+                var tmp = items[i];
+                for (var j = i - 1; j >=0 && items[j].hitbox.left > tmp.hitbox.left; --j) {
+                    items[j + 1] = items[j];
+                }
+                items[j + 1] = tmp;
+            }
+        }
+
+        function sortEntities() {
+
+            insertionSort(entityXpos);
+            insertionSort(entityYpos);
+        }
+
+        /* Checks for collisions between entities, and
+         * triggers the collide() event handler.
+         */
+         function checkCollisions() {
+             updateEntityHitboxes();
+             sortEntities();
+
+             var xPotentialCollisions = [];
+             var yPotentialCollisions = [];
+             var i, j, current;
+
+             for(i = 0; i < entityXpos.length; i++) {
+                 current = entityXpos[i].hitbox;
+                 j = i;
+                 while(++j < entityXpos.length && current.right >= entityXpos[j].hitbox.left) {
+                     xPotentialCollisions.push({ a: current.entity, b: entityXpos[j].entity });
+                 }
+             }
+
+             for(i = 0; i < entityYpos.length; i++) {
+                 current = entityYpos[i].hitbox;
+                 j = i;
+                 while(++j < entityYpos.length && current.bottom >= entityYpos[j].hitbox.top) {
+                     yPotentialCollisions.push({ a: current.entity, b: entityYpos[j].entity });
+                 }
+             }
+
+             for(i = 0; i < xPotentialCollisions.length; i++) {
+                 for(j = 0; j < yPotentialCollisions.length; j++) {
+                     if( (xPotentialCollisions[i].a === yPotentialCollisions[j].a && xPotentialCollisions[i].b === yPotentialCollisions[j].b) ||
+                         (xPotentialCollisions[i].b === yPotentialCollisions[j].a && xPotentialCollisions[i].a === yPotentialCollisions[j].b)) {
+                         xPotentialCollisions[i].a.collide(xPotentialCollisions[i].b);
+                         break;
+                     }
+                 }
+             }
+         }
+
+        /* Returns all entities within the given radius.
+         * Arguments:
+         * - x, the x-coordinate of the center of the query circle
+         * - y, the y-coordinate of the center of the query circle
+         * - r, the radius of the center of the circle
+         * Returns:
+         *   An array of entity references
+         */
+        function queryRadius(x, y, r) {
+            var entitesInRadius = [];
+            for (var i = 0; i < entityXpos.length; i++) {
+                if (entityXpos[i] !== null) {
+                    var boundingCircle = entityXpos[i].boundingCircle();
+                    if (isWithinCircle(x, y, r, boundingCircle))
+                        entitesInRadius.push(entityXpos[i].entity);
+                }
             }
 
+            return entitesInRadius;
         }
 
-    }
-    collisionTree.clear(); /* do this now for garbage collector speed */
-}
+        function queryRectangle(rect) {
 
-/* Returns all entities within the given radius.
-* Arguments:
-* - x, the x-coordinate of the center of the query circle
-* - y, the y-coordinate of the center of the query circle
-* - r, the radius of the center of the circle
-* Returns:
-*   An array of entity references
-*/
-function queryRadius(x, y, r) {
-    var entitiesInRadius = [];
-    for (var i = 0; i < entityCount; i++) {
-        // Only check existing entities
-        if (entities[i]) {
-            var circ = entities[i].boundingCircle();
-            if (Math.pow(circ.radius + r, 2) >=
-            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.cy, 2)
-        ) {
-            entitiesInRadius.push(entities[i]);
         }
-    }
-}
-return entitiesInRadius;
-}
 
-function queryRectangle(rect) {
-    var entitiesInRect = [];
-    for (var i = 0; i < entityCount; i++) {
-        // Only check existing entities
-        if (entities[i]) {
-            entityHitbox = entities[i].boundingBox();
-            if( entityHitbox.left > rect.right || entityHitbox.right < rect.left ||
-                entityHitbox.top > rect.bottom || entityHitbox.bottom < rect.top) continue;
-            entitiesInRect.push(entities[i]);
+
+        function isWithinCircle(x, y, r, circle) {
+            if (Math.pow(circle.radius + r, 2) >=
+                (Math.pow(x - circle.cx, 2) + Math.pow(y - circle.cy, 2)))
+                return true;
+
+            return false;
         }
-    }
-    return entitiesInRect;
-}
 
-/* Updates all managed entities
-* Arguments:
-* - elapsedTime, how much time has passed between the prior frameElement
-*   and this one.
-* - tilemap, the current tilemap for the game.
-*/
-function update(elapsedTime, tilemap, ParticleManager) {
-    //loops through entities
-    for (var i = 0; i < entityCount; i++) {
-        if(entities[i]) {
-            entities[i].update(elapsedTime, tilemap, this, ParticleManager);
+        //Determines if 2 bounding boxes intersect in any way
+        function isWithinBox(bb1, bb2) {
+            if ((bb1.left >= bb2.left) && (bb1.left <= bb2.right)) return true;
+            if ((bb1.right <= bb2.right) && (bb1.right >= bb2.left)) return true;
+            if ((bb1.top >= bb2.top) && (bb1.top <= bb2.bottom)) return true;
+            if ((bb1.bottom <= bb2.bottom) && (bb1.bottom >= bb2.top)) return true;
+
+            return false;
         }
-    }
-    var playerBox = getPlayer().boundingBox();
-    checkCollisions();
-}
 
-/* Renders the managed entities
-* Arguments:
-* - ctx, the rendering contextual
-* - debug, the flag to trigger visual debugging
-*/
-function render(ctx, debug) {
-    //used for determining the area of the screen/what entities are on/near screen to be rendered
-    var play = getPlayer();
-    var viewPortArea = tilemap.getViewPort();
+        /* Updates all managed entities
+         * Arguments:
+         * - elapsedTime, how much time has passed between the prior frameElement
+         *   and this one.
+         * - tilemap, the current tilemap for the game.
+         */
+        function update(elapsedTime, tilemap, ParticleManager) {
+            timeSinceUpdateRegion += elapsedTime;
 
-    var entitiesOnScreen = queryRectangle(viewPortArea);
-    //loops through entities
-    for (var i = 0; i < entitiesOnScreen.length; i++) {
-        if(entitiesOnScreen[i]) {
-            entitiesOnScreen[i].render(ctx, debug);
+            //create bounding box and clean updatable objects, but only after some time interval
+            if(timeSinceUpdateRegion >= UPDATE_TIME) {
+                var playerBB = player.boundingBox(),
+                    updateFactor = UPDATE_REGION * TILE_SIZE,
+                    updateBox = {
+                        top: playerBB.top - updateFactor,
+                        bottom: playerBB.bottom + updateFactor,
+                        left: playerBB.left - updateFactor,
+                        right: playerBB.right + updateFactor
+                    };
+
+                timeSinceUpdateRegion = 0;
+                for(var i = 0; i < entityXpos.length; i ++) {
+                    if(entityXpos[i] !== null) {
+                        if(!isWithinBox(updateBox, entityXpos[i].hitbox))
+                            remove(entityXpos[i]);
+                    }
+                }
+            }
+
+            //call everyone's update function
+            for(var i = 0; i < entityXpos.length; i ++) {
+                if(entityXpos[i] !== null) {
+                    entityXpos[i].entity.update();
+                }
+            }
+
+            //check collisions
+            checkCollisions();
         }
-    }
-}
 
-function getPlayer() {
-    for (var i = 0; i < entityCount; i++) {
-        if (entities[i] && entities[i].type == "player") {
-            return entities[i];
+        /* Renders the managed entities
+         * Arguments:
+         * - ctx, the rendering contextual
+         * - debug, the flag to trigger visual debugging
+         */
+        function render(ctx, debug) {
+            //create the renderable region
+            var playerBB = player.boundingBox(),
+                updateFactor = RENDER_REGION * TILE_SIZE,
+                updateBox = {
+                    top: playerBB.top - updateFactor,
+                    bottom: playerBB.bottom + updateFactor,
+                    left: playerBB.left - updateFactor,
+                    right: playerBB.right + updateFactor
+                };
+
+            //call the real update method
+            for(var i = 0; i < entityXpos.length; i ++) {
+                if(entityXpos[i] !== null) {
+                    if(isWithinBox(updateBox, entityXpos[i].hitbox))
+                        entityXpos[i].entity.render();
+                }
+            }
         }
-    }
-}
 
-function getEntity(index) {
-    return entities[index];
-}
+        function getPlayer() {
+            return player;
+        }
 
-/* Gets distance between entity and player */
-function playerDistanceSquaredFrom(entity) {
-    if(typeof(entity) === "undefined" || entity === null) return Number.MAX_VALUE;
-    var playerHitbox = getPlayer().boundingBox();
-    var entityHitbox = entity.boundingBox();
+        return {
+            add: add,
+            remove: remove,
+            queryRadius: queryRadius,
+            update: update,
+            render: render,
+            getPlayer: getPlayer,
+        };
+    };
 
-    return (entityHitbox.left - playerHitbox.left) * (entityHitbox.left - playerHitbox.left) +
-            (entityHitbox.top - playerHitbox.top) * (entityHitbox.top - playerHitbox.top);
-}
-
-/* Gets direction relative to player */
-function playerDirection(entity) {
-    if(typeof(entity) === "undefined" || entity === null) return false; // TODO ?
-    var playerHitbox = getPlayer().boundingBox();
-    var entityHitbox = entity.boundingBox();
-
-    if (playerHitbox.right < entityHitbox.left) {
-        return true;
-    }
-    return false;
-}
-
-
-return {
-    add: add,
-    remove: remove,
-    queryRadius: queryRadius,
-    update: update,
-    render: render,
-    playerDistanceSquaredFrom: playerDistanceSquaredFrom,
-    playerDirection: playerDirection,
-    getPlayer: getPlayer,
-    getEntity: getEntity,
-};
-
+    return EntityManager;
 }());
 
-},{"./QuadTree.js":6}],19:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -3759,7 +3354,7 @@ module.exports = (function(){
    return Entity;
   
 }());
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 /* Game GameState module
  * Provides the main game logic for the Diggy Hole game.
  * Authors:
@@ -3780,7 +3375,8 @@ module.exports = (function (){
         Octopus = require('./octopus.js'),
         inputManager = require('./input-manager.js'),
         tilemap = require('./tilemap.js'),
-        entityManager = require('./entity-manager.js'),
+        EntityManager = require('./entity-manager.js'),
+        entityManager,
         SpawningManager = require('./spawning-manager.js'),
         StoneMonster = require('./stone-monster.js'),
         DemonicGroundHog = require('./DemonicGroundH.js'),
@@ -3873,6 +3469,7 @@ module.exports = (function (){
         // Create the player and add them to
         // the entity manager
         player = new Player(400, 240, 0, inputManager, hb, scoreEngine, inventory);
+        entityManager = new EntityManager(player);
         entityManager.add(player);
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player);
@@ -4040,7 +3637,7 @@ module.exports = (function (){
 
 })();
 
-},{"./DemonicGroundH.js":2,"./HUD.js":3,"./Kakao.js":4,"./barrel.js":8,"./bird.js":9,"./blobber.js":10,"./collectible.js":13,"./dynamiteDwarf.js":17,"./entity-manager.js":18,"./goblin-miner.js":21,"./goblin-shaman.js":22,"./healthBar.js":23,"./input-manager.js":25,"./inventory.js":26,"./main-menu.js":28,"./octopus.js":31,"./particle-manager.js":33,"./player.js":34,"./powerUp.js":35,"./rat.js":36,"./robo-killer.js":37,"./score.js":38,"./slime.js":39,"./spawning-manager.js":40,"./stone-monster.js":42,"./sudo_chan.js":44,"./tilemap.js":45,"./turret.js":46,"./wolf.js":47}],21:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./HUD.js":3,"./Kakao.js":4,"./barrel.js":7,"./bird.js":8,"./blobber.js":9,"./collectible.js":12,"./dynamiteDwarf.js":16,"./entity-manager.js":17,"./goblin-miner.js":20,"./goblin-shaman.js":21,"./healthBar.js":22,"./input-manager.js":24,"./inventory.js":25,"./main-menu.js":27,"./octopus.js":30,"./particle-manager.js":32,"./player.js":33,"./powerUp.js":34,"./rat.js":35,"./robo-killer.js":36,"./score.js":37,"./slime.js":38,"./spawning-manager.js":39,"./stone-monster.js":41,"./sudo_chan.js":43,"./tilemap.js":44,"./turret.js":45,"./wolf.js":46}],20:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -4547,7 +4144,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity.js":19}],22:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":18}],21:[function(require,module,exports){
 /* Richard Habeeb */
 
 module.exports = (function(){
@@ -4735,7 +4332,7 @@ module.exports = (function(){
     return shaman;
 })();
 
-},{"./animation.js":7,"./entity.js":19}],23:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":18}],22:[function(require,module,exports){
  module.exports = (function(){
 	 
 	 function HealthBar() {
@@ -4809,7 +4406,7 @@ module.exports = (function(){
 	 
 	 return HealthBar;
 }());
-},{}],24:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 /**
  * Help Menu: Manages the help menu screen
  * Created by Josh Benard on 11/19/15.
@@ -4932,7 +4529,7 @@ module.exports = (function (){
     }
 
 })();
-},{"./bone.js":11,"./input-manager.js":25,"./player.js":34}],25:[function(require,module,exports){
+},{"./bone.js":10,"./input-manager.js":24,"./player.js":33}],24:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -5002,7 +4599,7 @@ module.exports = (function() {
   }
   
 })();
-},{}],26:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports = (function(){
 	
 	var InventorySlot = require('./inventorySlot.js');
@@ -5069,7 +4666,7 @@ module.exports = (function(){
 
 return Inventory;
 }());
-},{"./inventorySlot.js":27}],27:[function(require,module,exports){
+},{"./inventorySlot.js":26}],26:[function(require,module,exports){
 module.exports = (function(){
 	
 	const IMG_SIZE = 64;
@@ -5111,7 +4708,7 @@ return InventorySlot;
 
 
 
-},{}],28:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -5245,7 +4842,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./credits-screen":14,"./help-screen":24}],29:[function(require,module,exports){
+},{"./credits-screen":13,"./help-screen":23}],28:[function(require,module,exports){
 
 
 // Wait for the window to load completely
@@ -5290,7 +4887,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":20,"./splash-screen":41}],30:[function(require,module,exports){
+},{"./game":19,"./splash-screen":40}],29:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -5417,7 +5014,7 @@ module.exports = (function(){
 
 }());
 
-},{}],31:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -5612,7 +5209,7 @@ module.exports = function () {
 }();
 
 
-},{"./entity.js":19,"./octopus_animation.js":32}],32:[function(require,module,exports){
+},{"./entity.js":18,"./octopus_animation.js":31}],31:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -5675,7 +5272,7 @@ module.exports = (function() {
     return OctopusAnimation;
 
 }());
-},{}],33:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 /* The particle manager maintains the list of particles currently in the world,
 *  and handles the update and rendering functions for it
 *
@@ -5892,7 +5489,7 @@ return {
 
 }());
 
-},{}],34:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -6768,7 +6365,7 @@ module.exports = (function() {
 
 }());
 
-},{"./Bone.js":1,"./Pickaxe.js":5,"./animation.js":7,"./entity.js":19}],35:[function(require,module,exports){
+},{"./Bone.js":1,"./Pickaxe.js":5,"./animation.js":6,"./entity.js":18}],34:[function(require,module,exports){
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Entity = require('./entity.js'),
@@ -6927,7 +6524,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity-manager.js":18,"./entity.js":19,"./player.js":34}],36:[function(require,module,exports){
+},{"./animation.js":6,"./entity-manager.js":17,"./entity.js":18,"./player.js":33}],35:[function(require,module,exports){
 /* Enemy module
  * Authors:
  * Kien Le
@@ -7197,7 +6794,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity.js":19}],37:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":18}],36:[function(require,module,exports){
 /* Entity: Robo-Killer module
  * Implements the entity pattern, provides specific robo-killer constructs.
  *
@@ -7511,7 +7108,7 @@ module.exports = (function() {
 
 }());
 
-},{"./animation.js":7,"./entity.js":19}],38:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":18}],37:[function(require,module,exports){
 /* Score engine */
 
 module.exports = (function (){
@@ -7668,7 +7265,7 @@ module.exports = (function (){
 
 })();
 
-},{}],39:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -7920,7 +7517,7 @@ module.exports = (function(){
    return Slime;
   
 }());
-},{"./animation.js":7,"./entity.js":19}],40:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":18}],39:[function(require,module,exports){
 module.exports = (function() {
     var Shaman = require('./goblin-shaman.js');
     var DemonGHog = require('./DemonicGroundH.js');
@@ -7965,7 +7562,7 @@ module.exports = (function() {
     return SpawningManager;
 })();
 
-},{"./DemonicGroundH.js":2,"./barrel.js":8,"./goblin-miner.js":21,"./goblin-shaman.js":22,"./stone-monster.js":42,"./turret.js":46}],41:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./barrel.js":7,"./goblin-miner.js":20,"./goblin-shaman.js":21,"./stone-monster.js":41,"./turret.js":45}],40:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -8032,7 +7629,7 @@ module.exports = (function (){
   }
   
 })();
-},{}],42:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -8324,7 +7921,7 @@ module.exports = (function(){
     return StoneMonster;
 }());
 
-},{"./Pickaxe.js":5,"./animation.js":7,"./entity.js":19,"./player.js":34}],43:[function(require,module,exports){
+},{"./Pickaxe.js":5,"./animation.js":6,"./entity.js":18,"./player.js":33}],42:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -8394,7 +7991,7 @@ module.exports = (function() {
     return Sudo_Animation;
 
 }());
-},{}],44:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -8642,7 +8239,7 @@ module.exports = (function(){
     return Sudo_Chan;
 }());
 
-},{"./entity.js":19,"./sudo-chan-animation.js":43}],45:[function(require,module,exports){
+},{"./entity.js":18,"./sudo-chan-animation.js":42}],44:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -9432,7 +9029,7 @@ module.exports = (function (){
 
 })();
 
-},{"./noise.js":30}],46:[function(require,module,exports){
+},{"./noise.js":29}],45:[function(require,module,exports){
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Player = require('./player.js'),
@@ -9824,7 +9421,7 @@ module.exports = (function(){
 	return Turret;
 }())
 
-},{"./animation.js":7,"./cannonball.js":12,"./entity-manager.js":18,"./entity.js":19,"./player.js":34}],47:[function(require,module,exports){
+},{"./animation.js":6,"./cannonball.js":11,"./entity-manager.js":17,"./entity.js":18,"./player.js":33}],46:[function(require,module,exports){
 
 /* Wolf module
  * Implements the entity pattern and provides
@@ -10082,4 +9679,4 @@ module.exports = (function(){
 }());
 
 
-},{"./animation.js":7,"./entity.js":19}]},{},[29]);
+},{"./animation.js":6,"./entity.js":18}]},{},[28]);
