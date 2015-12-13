@@ -9,10 +9,15 @@ module.exports = (function() {
     var EntityManager = function(player) {
         /* jshint esnext: true */
         const MAX_ENTITIES = 200;
+        const UPDATE_REGION = 75;
+        const RENDER_REGION = 25;
+        const TILE_SIZE = 64;
+        const UPDATE_TIME = 1/60;
 
         var entityXpos = [],
             entityYpos = [],
-            entityCount = 0;
+            entityCount = 0,
+            timeSinceUpdateRegion;
 
         /* Adds an entity to those managed.
          * Arguments:
@@ -148,7 +153,37 @@ module.exports = (function() {
          * - tilemap, the current tilemap for the game.
          */
         function update(elapsedTime, tilemap, ParticleManager) {
+            timeSinceUpdateRegion += elapsedTime;
 
+            //create bounding box and clean updatable objects, but only after some time interval
+            if(timeSinceUpdateRegion >= UPDATE_TIME) {
+                var playerBB = player.boundingBox(),
+                    updateFactor = UPDATE_REGION * TILE_SIZE,
+                    updateBox = {
+                        top: playerBB.top - updateFactor,
+                        bottom: playerBB.bottom + updateFactor,
+                        left: playerBB.left - updateFactor,
+                        right: playerBB.right + updateFactor
+                    };
+
+                timeSinceUpdateRegion = 0;
+                for(var i = 0; i < entityXpos.length; i ++) {
+                    if(entityXpos[i] !== null) {
+                        if(!isWithinBox(updateBox, entityXpos[i].hitbox))
+                            remove(entityXpos[i]);
+                    }
+                }
+            }
+
+            //call everyone's update function
+            for(var i = 0; i < entityXpos.length; i ++) {
+                if(entityXpos[i] !== null) {
+                    entityXpos[i].entity.update();
+                }
+            }
+
+            //check collisions
+            checkCollisions();
         }
 
         /* Renders the managed entities
@@ -161,7 +196,7 @@ module.exports = (function() {
         }
 
         function getPlayer() {
-
+            return player;
         }
 
         function getEntity(index) {
