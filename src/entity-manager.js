@@ -19,7 +19,7 @@ module.exports = (function() {
 * - entity, the entity to add
 */
 function add(entity) {
-    
+
 }
 
 /* Removes an entity from those managed
@@ -32,19 +32,13 @@ function remove(entity) {
 
 
 function updateEntityHitboxes() {
-    var i;
     for(i = 0; i < entityXpos.length; i++) {
         entityXpos[i].hitbox = entityXpos[i].e.getBoundingBox();
     }
-
-    for(i = 0; i < entityYpos.length; i++) {
-        entityYpos[i].hitbox = entityYpos[i].e.getBoundingBox();
-    }
-
 }
 
 function sortEntities() {
-    
+
 }
 
 /* Checks for collisions between entities, and
@@ -53,6 +47,36 @@ function sortEntities() {
 function checkCollisions() {
     updateEntityHitboxes();
     sortEntities();
+
+    var xPotentialCollisions = [];
+    var yPotentialCollisions = [];
+    var i, j, current;
+
+    for(i = 0; i < entityXpos.length; i++) {
+        current = entityXpos[i].hitbox;
+        j = i;
+        while(++j < entityXpos.length && current.right >= entityXpos[j].hitbox.left) {
+            xPotentialCollisions.push({ a: current.entity, b: entityXpos[j].entity });
+        }
+    }
+
+    for(i = 0; i < entityYpos.length; i++) {
+        current = entityYpos[i].hitbox;
+        j = i;
+        while(++j < entityYpos.length && current.bottom >= entityYpos[j].hitbox.top) {
+            yPotentialCollisions.push({ a: current.entity, b: entityYpos[j].entity });
+        }
+    }
+
+    for(i = 0; i < xPotentialCollisions.length; i++) {
+        for(j = 0; j < yPotentialCollisions.length; j++) {
+            if( (xPotentialCollisions[i].a === yPotentialCollisions[j].a && xPotentialCollisions[i].b === yPotentialCollisions[j].b) ||
+                (xPotentialCollisions[i].b === yPotentialCollisions[j].a && xPotentialCollisions[i].a === yPotentialCollisions[j].b)) {
+                xPotentialCollisions[i].a.collide(xPotentialCollisions[i].b);
+                break;
+            }
+        }
+    }
 }
 
 /* Returns all entities within the given radius.
