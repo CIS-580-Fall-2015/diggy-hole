@@ -3,7 +3,6 @@ module.exports = (function(){
 		Player = require('./player.js'),
 		Entity = require('./entity.js'),
 		Cannonball = require('./cannonball.js'),
-		entityManager = require('./entity-manager.js'),
 		turret = new Image();
 		turret.src = './img/turret/turretMany.png';
 		destroyedTurret = new Image();
@@ -66,8 +65,9 @@ module.exports = (function(){
 		this.cannonballs = [],
 		this.cnbsFired = 0;
 		this.shotSound = [];
+		this.firstUpdate = false;
 
-		this.spawnCannonballs = function() {
+		this.spawnCannonballs = function(entityManager) {
 			for (var i = 0; i < cannonballNum; i ++) {
 				this.cannonballs[i] = new Cannonball(this.posX, this.posY, 0, 0, 0, this.gravity, centerOffsetX, centerOffsetY);
 				entityManager.add(this.cannonballs[i]);
@@ -195,13 +195,18 @@ module.exports = (function(){
 		}
 
 		this.loadAnimations();
-		this.spawnCannonballs();
+
 	}
 
 	Turret.prototype = new Entity();
 
 	Turret.prototype.update = function(elapsedTime, tilemap, entityManager)
 	{
+		if(!this.firstUpdate) {
+			this.spawnCannonballs(entityManager);
+			this.firstUpdate = true;
+		}
+
 		this.optimizationTimer += elapsedTime;
 
 		if (this.onGround(tilemap) == false) {
