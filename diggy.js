@@ -3114,7 +3114,7 @@ module.exports = (function() {
                  current = entityXpos[i].hitbox;
                  j = i;
                  while(++j < entityXpos.length && current.right >= entityXpos[j].hitbox.left) {
-                     xPotentialCollisions.push({ a: current.entity, b: entityXpos[j].entity });
+                     xPotentialCollisions.push({ a: entityXpos[i].entity, b: entityXpos[j].entity });
                  }
              }
 
@@ -3122,7 +3122,7 @@ module.exports = (function() {
                  current = entityYpos[i].hitbox;
                  j = i;
                  while(++j < entityYpos.length && current.bottom >= entityYpos[j].hitbox.top) {
-                     yPotentialCollisions.push({ a: current.entity, b: entityYpos[j].entity });
+                     yPotentialCollisions.push({ a: entityYpos[i].entity, b: entityYpos[j].entity });
                  }
              }
 
@@ -3168,12 +3168,7 @@ module.exports = (function() {
 
         //Determines if 2 bounding boxes intersect in any way
         function isWithinBox(bb1, bb2) {
-            if ((bb1.left >= bb2.left) && (bb1.left <= bb2.right)) return true;
-            if ((bb1.right <= bb2.right) && (bb1.right >= bb2.left)) return true;
-            if ((bb1.top >= bb2.top) && (bb1.top <= bb2.bottom)) return true;
-            if ((bb1.bottom <= bb2.bottom) && (bb1.bottom >= bb2.top)) return true;
-
-            return false;
+            return(bb1.left < bb2.right && bb1.right > bb2.left && bb1.top < bb2.bottom && bb1.bottom > bb2.top);
         }
 
         /* Updates all managed entities
@@ -3244,6 +3239,8 @@ module.exports = (function() {
         function getPlayer() {
             return player;
         }
+
+        add(player);
 
         return {
             add: add,
@@ -3451,7 +3448,6 @@ module.exports = (function (){
         // the entity manager
         player = new Player(400, 240, 0, inputManager, hb, scoreEngine, inventory);
         entityManager = new EntityManager(player);
-        entityManager.add(player);
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player);
 
