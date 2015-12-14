@@ -47,6 +47,9 @@ module.exports = (function() {
     const GRAVITY_IN_WATER = -80;
     const SWIM_UP = -164;
     const SPEED_IN_LIQUID = 80;
+	
+	// Inventory constants
+	const POWER_UP_FREQUENCY = 0.5;
 
     //The Right facing dwarf spritesheet
     var dwarfRight = new Image();
@@ -63,7 +66,7 @@ module.exports = (function() {
     ratLeft.src = "img/ratLeft2.png";
 
     //The Player constructor
-    function Player(locationX, locationY, layerIndex, inputManager) {
+    function Player(locationX, locationY, layerIndex, inputManager, healthBar, scoreEngine, inventory) {
         this.inputManager = inputManager;
         this.state = WALKING;
         this.digState = NOT_DIGGING;
@@ -90,6 +93,10 @@ module.exports = (function() {
         this.boneImg = new Image();
         this.boneImg.src = "./img/BoneLeft.png";
         this.stoneShield = false;
+		this.healthBar = healthBar;
+		this.scoreEngine = scoreEngine;
+		this.inventory = inventory;
+		this.lastPowerUpUsed = 0;
 
         // bone powerup
         this.attackFrequency = 1;
@@ -163,6 +170,7 @@ module.exports = (function() {
 
     // Check that player's head is above water but not hitting a solid
     Player.prototype.headOverWater = function (tilemap){
+
         var box = this.boundingBox(),
             tileXL = Math.floor((box.left) / 64),
             tileXR = Math.floor((box.right) / 64),
@@ -396,6 +404,40 @@ module.exports = (function() {
         if (this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
             this.shoot();
         }
+		
+		// Power Up Usage Management
+		this.lastPowerUpUsed += elapsedTime;
+		
+		if (this.lastPowerUpUsed >= POWER_UP_FREQUENCY) {
+			if (this.inputManager.isKeyDown(this.inputManager.commands.ONE)) {
+				console.log("One pressed");
+				if (inventory.slotUsed(0)) {
+					this.heal(30);
+				}
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.TWO)) {
+				console.log("TWO pressed");
+				if (inventory.slotUsed(1)) {
+					
+				}
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.THREE)) {
+				console.log("THREE pressed");
+				if (inventory.slotUsed(2)) {
+					
+				}
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FOUR)) {
+				console.log("FOUR pressed");
+				if (inventory.slotUsed(3)) {
+					
+				}
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
+				console.log("FIVE pressed");
+				if (inventory.slotUsed(4)) {
+					
+				}
+			}
+			this.lastPowerUpUsed = 0;
+		}
+		
 
         // Swap input buffers
         this.inputManager.swapBuffers();
@@ -562,7 +604,7 @@ module.exports = (function() {
         var digComplete = function() {
             /* Add score */
             //TODO different scores for different blocks?
-            entityManager.scoreEngine.addScore(1);
+            currentPlayer.score(1);
 
             var box = currentPlayer.boundingBox(),
                 tileX,
@@ -639,9 +681,11 @@ module.exports = (function() {
             this.bones++;
         } else if (powerUp.type == 'coin') {
             // add points
+			this.score(20);
 
         } else if (powerUp.type == 'crystal') {
             // add points
+			this.score(50);
 
         } else if (powerUp.type == 'pick') {
 
@@ -650,13 +694,29 @@ module.exports = (function() {
 
         } else if (powerUp.type == 'stone-shield') {
             this.stoneShield = true;
-        }
+
+        } else if (powerUp.type == 'medicine') {
+			inventory.powerUpPickedUp(0);
+			// this.heal(30); now used manually from the inventory
+		}
 
 
         if(powerUp.effectDuration < 0){//if power up lasts 4ever
             this.entityManager.remove(powerUp);
         }
 
+    };
+	
+	Player.prototype.heal = function(health) {
+		this.healthBar.heal(health);
+	};
+	
+	Player.prototype.hurt = function(health) {
+		this.healthBar.hurt(health);
+	};
+
+    Player.prototype.score = function(score) {
+        this.scoreEngine.addScore(score);
     };
 
     /*

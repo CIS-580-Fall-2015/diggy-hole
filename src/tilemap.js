@@ -61,7 +61,18 @@ module.exports = (function (){
     viewportHalfHeight = height / 2;
     viewportTileWidth = Math.ceil(width / tileWidth) + 2;
     viewportTileHeight = Math.ceil(height / tileHeight) + 2;
-  }
+  };
+
+  var getViewPort = function() {
+      var pos = getCameraPosition();
+      return {
+          left: pos[0],
+          right: pos[0] + 2 * viewportHalfWidth,
+          top: pos[1],
+          bottom: pos[1] + 2 * viewportHalfHeight,
+      };
+  };
+
 
   /* Sets the camera position
    * Arguments:
@@ -71,7 +82,7 @@ module.exports = (function (){
   var setCameraPosition = function(x, y) {
     cameraX = x;
     cameraY = y;
-  }
+ };
 
   /**
    * Function: getCameraPosition
@@ -79,10 +90,9 @@ module.exports = (function (){
    * Returns:
    *     x-y postion
    */
-  var getCameraPosition = function()
-  {
-    return [cameraX - viewportHalfWidth - 32, cameraY - viewportHalfHeight + 32];
-  }
+  var getCameraPosition = function() {
+    return [cameraX - viewportHalfWidth, cameraY - viewportHalfHeight];
+  };
 
   /* Loads the tilemap
    * - mapData, the JavaScript object
@@ -717,7 +727,7 @@ module.exports = (function (){
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){
       return undefined;
     }else{
-      layers[layer].data[x + y * mapWidth] = 1;
+      layers[layer].data[x + y * mapWidth] = newType;
     }
   }
 
@@ -725,7 +735,7 @@ module.exports = (function (){
   var removeTileAt = function(x, y, layer) {
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
       return undefined;
-    layers[layer].data[x + y*mapWidth] =  16;
+    layers[layer].data[x + y*mapWidth] =  8;
   }
 
   //return current tile layer, 0: sky, 1: crust 2: magma
@@ -753,6 +763,13 @@ module.exports = (function (){
       layers[layer].data[x + y * mapWidth] = newType;
   };
 
+  var randomInSky = function() {
+    return {
+      x: Math.floor(Math.random() * mapWidth),
+      y: Math.floor(Math.random() * this.surface)
+    }
+  };
+
   // Expose the module's public API
   return {
     load: load,
@@ -764,13 +781,15 @@ module.exports = (function (){
     destroyTileAt: destroyTileAt,
     removeTileAt: removeTileAt,
     setViewportSize: setViewportSize,
+    getViewPort: getViewPort,
     setCameraPosition: setCameraPosition,
     returnTileLayer: returnTileLayer,
     getCameraPosition: getCameraPosition,
     mineAt: mineAt,
     consolidateLiquids: consolidateLiquids,
     update: update,
-    renderWater: renderWater
+    renderWater: renderWater,
+    randomInSky: randomInSky
   }
 
 

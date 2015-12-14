@@ -9,7 +9,6 @@ module.exports = (function(){
   var Entity = require('./entity.js'),
 		Player = require('./player.js'),
       Animation = require('./animation.js');
-	  entityManager = require('./entity-manager.js');
 	  PowerUp = require('./powerUp.js');
 
       var spritesheet = new Image();
@@ -189,7 +188,7 @@ module.exports = (function(){
     *   to determine what type it is to know what to
     *   do with it.
     */
-   Bone.prototype.collide = function(otherEntity) {	   
+   Bone.prototype.collide = function(otherEntity, entityManager) {
 	   if(!this.enabled || otherEntity.type == this.parent.type || otherEntity.type == "Bone" || otherEntity.type == "Pickaxe" || otherEntity instanceof PowerUp){
 		   return
 		   
@@ -199,7 +198,7 @@ module.exports = (function(){
 		   this.enabled = false;
 		   if(DEBUG){
 		   console.log("Player hit by bone");
-		   entityManager.scoreEngine.scoreToZero();
+		   otherEntity.scoreEngine.scoreToZero();
 		   }
 	   } else if(otherEntity.lives){
 		   this.enabled = false;

@@ -66,8 +66,10 @@ module.exports = (function (){
     }
   };
 
-  ScoreEngine.prototype.update = function()
+  ScoreEngine.prototype.update = function(x, y)
   {
+    this.x = x;
+    this.y = y;
     this.updatePosition();
     this.updateAnimation();
   }
@@ -89,8 +91,8 @@ module.exports = (function (){
         sy,
         this.width,
         this.height,
-        this.xpos + (32 * i),
-        this.ypos,
+        this.x + (32 * i),
+        this.y,
         this.width,
         this.height
       );

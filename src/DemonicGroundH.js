@@ -152,10 +152,6 @@ module.exports = (function(){
 					sprite.state = MOVING;
 					idleTimer = 0;
 				}
-			else if (sprite.isPlayerColliding){
-				var player = entityManager.getEntity(0);
-				//inflict damage
-			}
 			else{
 				idleTimer++;
 			}

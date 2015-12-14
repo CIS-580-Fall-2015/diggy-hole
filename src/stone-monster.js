@@ -6,7 +6,8 @@
 module.exports = (function(){
     var Entity = require('./entity.js'),
         Animation = require('./animation.js'),
-        Player = require('./player.js');
+        Player = require('./player.js'),
+        Pickaxe = require('./Pickaxe.js');
 
     const SIZE = 64;
     const GRAVITY = -250;
@@ -26,6 +27,7 @@ module.exports = (function(){
     const WAIT_TIME = 3;
 
     const TIME_TO_LIVE = 25;
+    const INITIAL_HEALTH = 60*13;
 
     function StoneMonster(locationX, locationY, layerIndex) {
         this.type = "StoneMonster";
@@ -40,11 +42,11 @@ module.exports = (function(){
         this.timeToLive = TIME_TO_LIVE;
         this.renderBoundingCircle = false;
 
-        this.score = 3;
+        this.score = 10;
+        this.health = INITIAL_HEALTH;
 
         this.idle_image = new Image();
         this.idle_image.src = 'img/stone-monster-img/stone_monster_idle.png';
-
 
         var moving_image_left = new Image();
         moving_image_left.src = 'img/stone-monster-img/stone-monster-moving-left.png';
@@ -180,6 +182,11 @@ module.exports = (function(){
                 this.animation_left.update(elapsedTime);
             }
         }
+        if(this.health <= 0){
+            var player = entityManager.getPlayer();
+            player.score(this.score);
+            entityManager.remove(this);
+        }
     };
 
     StoneMonster.prototype.render = function(ctx, debug) {
@@ -256,6 +263,9 @@ module.exports = (function(){
             && otherEntity.currentY + SIZE/2 <= this.currentY && !otherEntity.stoneShield){
             this.state = SMASHED;
         }
+        if(otherEntity instanceof Pickaxe){
+            this.health -= 1;
+        }
         var entityRect = otherEntity.boundingBox();
         var thisRect = this.boundingBox();
 
@@ -264,8 +274,7 @@ module.exports = (function(){
             if(otherEntity instanceof Player) {
                 otherEntity.currentY = thisRect.top - SIZE - 2;
                 if (this.state == SMASHED) {
-                    //otherEntity.health -= DAMAGE;
-                    console.log("damage");
+                    otherEntity.hurt(1);
                 }
             }
         }
@@ -273,7 +282,6 @@ module.exports = (function(){
             otherEntity.currentX -= (entityRect.right - thisRect.left);
         }
         else if(entityRect.left - SIZE/3 <= thisRect.right){
-            console.log(thisRect.right - entityRect.left);
             otherEntity.currentX = this.currentX + SIZE + 2;
         }
     };

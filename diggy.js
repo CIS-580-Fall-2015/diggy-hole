@@ -10,7 +10,6 @@ module.exports = (function(){
   var Entity = require('./entity.js'),
 		Player = require('./player.js'),
       Animation = require('./animation.js');
-	  entityManager = require('./entity-manager.js');
 	  PowerUp = require('./powerUp.js');
 
       var spritesheet = new Image();
@@ -190,7 +189,7 @@ module.exports = (function(){
     *   to determine what type it is to know what to
     *   do with it.
     */
-   Bone.prototype.collide = function(otherEntity) {	   
+   Bone.prototype.collide = function(otherEntity, entityManager) {
 	   if(!this.enabled || otherEntity.type == this.parent.type || otherEntity.type == "Bone" || otherEntity.type == "Pickaxe" || otherEntity instanceof PowerUp){
 		   return
 		   
@@ -200,7 +199,7 @@ module.exports = (function(){
 		   this.enabled = false;
 		   if(DEBUG){
 		   console.log("Player hit by bone");
-		   entityManager.scoreEngine.scoreToZero();
+		   otherEntity.scoreEngine.scoreToZero();
 		   }
 	   } else if(otherEntity.lives){
 		   this.enabled = false;
@@ -237,7 +236,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":5,"./entity-manager.js":16,"./entity.js":17,"./player.js":29,"./powerUp.js":30}],2:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19,"./player.js":34,"./powerUp.js":35}],2:[function(require,module,exports){
 /* DemonicGroundHog
  * Authors:
 	Nathan Bean
@@ -392,10 +391,6 @@ module.exports = (function(){
 					sprite.state = MOVING;
 					idleTimer = 0;
 				}
-			else if (sprite.isPlayerColliding){
-				var player = entityManager.getEntity(0);
-				//inflict damage
-			}
 			else{
 				idleTimer++;
 			}
@@ -501,7 +496,47 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":5,"./entity.js":17}],3:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],3:[function(require,module,exports){
+module.exports = (function(){
+	
+	var HUDelements = [];
+	
+	function HUD(screenWidth, screenHeight) {
+		// Are these necessary?
+		this.screenWidth = screenWidth;
+		this.screenHeight = screenHeight;
+		
+		
+		
+		
+		this.addElement = function(newElement) {
+			HUDelements.push(newElement);
+		}
+		
+		this.update = function(bounds) {
+			var topLeftY = bounds.top - this.screenHeight / 2;
+			var topLeftX = bounds.left - this.screenWidth / 2;
+			for (var i = 0; i < HUDelements.length; i ++) {
+				if (HUDelements[i])
+					HUDelements[i].update(topLeftX, topLeftY, this.screenWidth, this.screenHeight);
+			}
+		}
+		
+		this.render = function(screenCtx) {
+			
+			
+			for (var i = 0; i < HUDelements.length; i ++) {
+				if (HUDelements[i])
+					HUDelements[i].render(screenCtx);
+			}
+		}
+	}
+
+	return 	HUD
+
+}());
+
+},{}],4:[function(require,module,exports){
 /* Entity: Kakao(aka DiamondGroundhog) module
  * Implements the entity pattern and provides
  * the entity Kakao info.
@@ -759,7 +794,7 @@ module.exports = (function(){
   return Kakao;
 
 }());
-},{"./animation.js":5,"./diamond.js":13,"./entity.js":17}],4:[function(require,module,exports){
+},{"./animation.js":7,"./diamond.js":15,"./entity.js":19}],5:[function(require,module,exports){
 /* Pickaxe is an invisible entity created by player that represents the hitbox
  * of the Pickaxe.
  * In the future this would be interesting to have an attack animation effect
@@ -843,7 +878,23 @@ module.exports = (function() {
 
   })();
 
-},{"./entity.js":17}],5:[function(require,module,exports){
+},{"./entity.js":19}],6:[function(require,module,exports){
+module.exports = (function (){
+    return {
+      SCREENSIZEX : 1280,
+      SCREENSIZEY : 720,
+      TILESIZEX : 64,
+      TILESIZEY : 64,
+      MAPSIZEX : 1000,
+      MAPSIZEY : 1000,
+      MAX_ENTITIES : 200,
+      UPDATE_REGION : 75,
+      RENDER_REGION : 25,
+      UPDATE_TIME : 1/60,
+    };
+})();
+
+},{}],7:[function(require,module,exports){
 module.exports = function () {
 
 
@@ -915,7 +966,7 @@ module.exports = function () {
 
 }();
 
-},{}],6:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /* Class of the Barrel Skeleton entity
  *
  * Author:
@@ -928,8 +979,8 @@ module.exports = (function(){
 		Player = require('./player.js'),
 		Bone = require('./bone.js'),
       Animation = require('./animation.js'),
-	  PowerUp = require('./powerUp.js'),
-	  entityManager = require('./entity-manager.js');
+	  PowerUp = require('./powerUp.js');
+	//  entityManager = require('./entity-manager.js');
 
 
   const DEBUG = true;
@@ -1145,7 +1196,7 @@ module.exports = (function(){
 
 
 		case ATTACKING:
-			sprite.attack(elapsedTime, entities);
+			sprite.attack(elapsedTime, entities, entityManager);
 			if(!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
             sprite.velocityY = 0;
@@ -1330,13 +1381,13 @@ module.exports = (function(){
     *   to determine what type it is to know what to
     *   do with it.
     */
-   Barrel.prototype.collide = function(otherEntity) {
+   Barrel.prototype.collide = function(otherEntity, entityManager) {
 	   if((this.state == ATTACKING || this.state == IDLE) && this.recovered && otherEntity instanceof Player){
 		   if(DEBUG){
 		   console.log("Collision with player");
 	   }
 		   if(--this.lives<=0){
-			   this.die();
+			   this.die(entityManager);
 
 		   } else {
 			   if(DEBUG){
@@ -1355,7 +1406,7 @@ module.exports = (function(){
 	   }
    }
 
-   Barrel.prototype.die = function(){
+   Barrel.prototype.die = function(entityManager){
 	   this.state = DEAD;
 			   boneUp = new PowerUp(this.currentX, this.currentY, this.layerIndex, 'boneUp', 64, 64, 10, 'img/powerUps/boneUp.png');
 			   entityManager.add(boneUp);
@@ -1364,7 +1415,7 @@ module.exports = (function(){
 			}
    }
 
-   Barrel.prototype.attack = function(elapsedTime, entities){
+   Barrel.prototype.attack = function(elapsedTime, entities, entityManager){
 		this.lastAttack += elapsedTime;
 		if(this.lastAttack >= this.attackFrequency){
 
@@ -1391,7 +1442,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":5,"./bone.js":9,"./entity-manager.js":16,"./entity.js":17,"./player.js":29,"./powerUp.js":30}],7:[function(require,module,exports){
+},{"./animation.js":7,"./bone.js":11,"./entity.js":19,"./player.js":34,"./powerUp.js":35}],9:[function(require,module,exports){
 /* Bird Module
 	Authors: Josh Benard
 */
@@ -1539,7 +1590,7 @@ module.exports = (function(){
 	return Bird;
 
 }());
-},{"./animation.js":5,"./entity.js":17,"./player.js":29}],8:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19,"./player.js":34}],10:[function(require,module,exports){
 module.exports = (function(){
   var Entity = require('./entity.js');
   var PlayerClass = require('./player.js');
@@ -1800,9 +1851,9 @@ var everal = false;
 
 }());
 
-},{"./entity.js":17,"./player.js":29}],9:[function(require,module,exports){
+},{"./entity.js":19,"./player.js":34}],11:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"./animation.js":5,"./entity-manager.js":16,"./entity.js":17,"./player.js":29,"./powerUp.js":30,"dup":1}],10:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19,"./player.js":34,"./powerUp.js":35,"dup":1}],12:[function(require,module,exports){
 module.exports = (function(){
 
 var Animation = require('./animation.js'),
@@ -1812,15 +1863,15 @@ var Animation = require('./animation.js'),
 	cannonballImg.src = './img/turret/cannonball_small.png',
 	explosionImg = new Image(),
 	explosionImg.src = './img/turret/explosion_small.png';
-	
+
 	const IDLE = 0,
 		  ASCENDING = 1,
 		  DESCENDING = 2,
 		  EXPLODING = 3;
-		  
+
 	const BALL_SIZE = 20,
 	      EXPLOSION_SIZE = 64;
-		  
+
 	const TILE_WIDTH = 64,
 		  TILE_HEIGHT = 64,
 		  MAP_SIZE = 1000;
@@ -1838,27 +1889,27 @@ function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, grav
 	this.projectileTime = 0;
 	this.projectileTimeExploding = 0;
 	this.explosionSound = new Audio('./resources/sounds/explosion.wav');
-	
+
 	// constants
 	this.projectileTimeToReachTop = undefined;
-	
+
 	this.animations = [];
-	
+
 	this.animations[IDLE] = new Animation(explosionImg, BALL_SIZE, BALL_SIZE, 0, 0);
 	this.animations[ASCENDING] = new Animation(cannonballImg, BALL_SIZE, BALL_SIZE, 0, 0);
 	this.animations[DESCENDING] = new Animation(cannonballImg, BALL_SIZE, BALL_SIZE, 0, 0);
 	this.animations[EXPLODING] = new Animation(explosionImg, EXPLOSION_SIZE, EXPLOSION_SIZE, 0, 0, 10);
-	
+
 	// get position x of the projectile at a given time after it has been fired
 	this.getXAtTime = function() {
 		return this.initPosX + this.horizontalV * this.projectileTime;
 	}
-	
+
 	// get position y of the projectile at a given time after it has been fired
 	this.getYAtTime = function() {
 		return this.initPosY + this.verticalV * this.projectileTime + this.gravity * this.projectileTime * this.projectileTime / 2;
 	}
-	
+
 	this.reset = function(verticalV, horizontalV) {
 		this.posX = this.initPosX;
 		this.posY = this.initPosY;
@@ -1869,7 +1920,7 @@ function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, grav
 		this.projectileTimeToReachTop = -this.verticalV / gravity;
 		this.projectileTimeExploding = 0;
 	}
-	
+
 	this.checkCollisions = function(tile) {
 		if (tile && tile.data.solid) {
 			tilemap.destroyTileAt(1, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
@@ -1878,23 +1929,23 @@ function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, grav
 			this.explosionSound.play();
 		}
 	}
-	
+
 	this.offsetExploding = function() {
 		this.posX -= 20;
 		this.posY -= 20;
 	}
-	
+
 	this.getXFromCoords = function(x) {
 		return (x / TILE_WIDTH) | 0;
 	}
-	
+
 	this.getYFromCoords = function(y) {
 		return (y / TILE_HEIGHT) | 0;
 	}
 }
 
 Cannonball.prototype = new Entity();
-	
+
 	Cannonball.prototype.update = function(elapsedTime, tilemap, entityManager)
 	{
 		if (this.state == ASCENDING || this.state == DESCENDING) {
@@ -1906,15 +1957,18 @@ Cannonball.prototype = new Entity();
 			this.posY = this.getYAtTime();
 			this.projectileTime += 0.5;
 		}
-		
+
 		if (this.state == EXPLODING) {
 			this.animations[this.state].update(elapsedTime);
 			this.projectileTimeExploding += elapsedTime;
 			if (this.projectileTimeExploding > 2) {
 				this.state = IDLE;
+				//Wyatt Watson - Now removes the explosion left overs
+				// MZ - If you do that the turret has nothing to shoot with afterwards
+				// entityManager.remove(this);
 			}
 		}
-		
+
 		this.checkCollisions(Tilemap.tileAt(this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0));
 	}
 
@@ -1930,14 +1984,19 @@ Cannonball.prototype = new Entity();
 			this.offsetExploding();
 			this.state = EXPLODING;
 			this.explosionSound.play();
+		} else if (otherEntity.type == 'player') {
+			this.offsetExploding();
+			this.state = EXPLODING;
+			this.explosionSound.play();
+			otherEntity.hurt(30);
 		}
 	}
-	
+
 	function renderDebug(cannonball, ctx) {
 		var bounds = cannonball.boundingBox();
 		var circle = cannonball.boundingCircle();
 		ctx.save();
-		
+
 		// Draw player bounding box
 		ctx.strokeStyle = "red";
 		ctx.beginPath();
@@ -1947,12 +2006,12 @@ Cannonball.prototype = new Entity();
 		ctx.lineTo(bounds.left, bounds.bottom);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		ctx.strokeStyle = "blue";
 		ctx.beginPath();
 		ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
 		ctx.stroke();
-		
+
 		// Outline tile underfoot
 		var tileX = 64 * Math.floor((bounds.left + (BALL_SIZE/2))/64),
 			tileY = 64 * (Math.floor(bounds.bottom / 64));
@@ -1964,7 +2023,7 @@ Cannonball.prototype = new Entity();
 		ctx.lineTo(tileX, tileY + 64);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		ctx.restore();
   }
 
@@ -1988,9 +2047,10 @@ Cannonball.prototype = new Entity();
 	}
 
 return Cannonball;
-	
+
 }())
-},{"./animation.js":5,"./entity.js":17,"./tilemap.js":39}],11:[function(require,module,exports){
+
+},{"./animation.js":7,"./entity.js":19,"./tilemap.js":45}],13:[function(require,module,exports){
 /* The construct for a collectible. Inherits from entity.
  * Removed from entity manager upon being collected by player.
  * Certain strategies derived from the powerup class.
@@ -2150,7 +2210,7 @@ module.exports = (function(){
 
 }())
 
-},{"./animation.js":5,"./entity.js":17}],12:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],14:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -2222,7 +2282,7 @@ module.exports = (function (){
   }
   
 })();
-},{}],13:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 /* Entity: Diamond(added by Diamond) module
  * Implements the entity pattern and provides
  * the entity Diamond info.
@@ -2354,7 +2414,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":5,"./entity.js":17}],14:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],16:[function(require,module,exports){
 /* Dynamite Dynamite module
  * Authors:
  * Alexander Duben
@@ -2595,7 +2655,7 @@ module.exports = (function(){
   return Dynamite;
 
 }());
-},{"./animation.js":5,"./entity.js":17}],15:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],17:[function(require,module,exports){
 /* Dynamite Dwarf module
  * Authors:
  * Alexander Duben
@@ -2963,216 +3023,241 @@ module.exports = (function(){
   return Dwarf;
 
 }());
-},{"./animation.js":5,"./dynamite.js":14,"./entity.js":17}],16:[function(require,module,exports){
+},{"./animation.js":7,"./dynamite.js":16,"./entity.js":19}],18:[function(require,module,exports){
 /* The entity manager for the DiggyHole game
- * Currently it uses brute-force approaches
- * to its role - this needs to be refactored
- * into a spatial data structure approach.
- * Authors:
- * - Nathan Bean
- */
+* Currently it uses brute-force approaches
+* to its role - this needs to be refactored
+* into a spatial data structure approach.
+* Authors:
+* - Nathan Bean
+*/
 module.exports = (function() {
-  const MAX_ENTITIES = 200;
+    var settings = require('./Settings.js');
 
+    var entityXpos = [],
+        entityYpos = [],
+        player,
+        timeSinceUpdateRegion;
 
-  var entities = [],
+    function EntityManager(p) {
+        /* jshint esnext: true */
+        player = p;
+        this.add(player);
+    }
 
-  Player = require('./player.js');
-      entityCount = 0;
+        /* Adds an entity to those managed.
+         * Arguments:
+         * - entity, the entity to add
+         */
+    EntityManager.prototype.add = function(entityToAdd) {
+        if (entityXpos.length < settings.MAX_ENTITIES) {
+            var boundingBox = entityToAdd.boundingBox();
+            var entityPos = {
+                entity: entityToAdd,
+                hitbox: boundingBox
+            };
 
-  /* Adds an entity to those managed.
-   * Arguments:
-   * - entity, the entity to add
-   */
-  function add(entity) {
-    if (entityCount < MAX_ENTITIES) {
-      // Determine the entity's unique ID
-      // (we simply use an auto-increment count)
-      var id = entityCount;
-      entityCount++;
-
-      // Set the entity's id on the entity itself
-      // as a property.  Due to the dynamic nature of
-      // JavaScript, this is easy
-      entity._entity_id = id;
-
-      // Store the entity in the entities array
-      entities[id] = entity;
-      return true;
-    } else {
-      // We've hit the max number of allowable entities,
-      // yet we may have freed up some space within our
-      // entity array when an entity was removed.
-      // If so, let's co-opt it.
-      for (var i = 0; i < MAX_ENTITIES; i++) {
-        if (entities[i] === undefined) {
-          entity._entity_id = i;
-          entities[i] = entity;
-          return i;
+            entityXpos.push(entityPos);
+            entityYpos.push(entityPos);
         }
-      }
-      // If we get to this point, there are simply no
-      // available spaces for a new entity.
-      // Log an error message, and return an error value.
-      console.error("Too many entities");
-      return undefined;
-    }
-  }
+    };
 
-  /* Removes an entity from those managed
-   * Arguments:
-   * - entity, the entity to remove
-   */
-  function remove(entity) {
-    // Set the entry in the entities table to undefined,
-    // indicating an open slot
-    if (entity.score) {
-      this.scoreEngine.addScore(entity.score);
-    }
-    entities[entity._entity_id] = undefined;
-  }
-
-  /* Checks for collisions between entities, and
-   * triggers the collide() event handler.
-   */
-  function checkCollisions() {
-    for (var i = 0; i < entityCount; i++) {
-      // Don't check for nonexistant entities
-      if (entities[i]) {
-        for (var j = 0; j < entityCount; j++) {
-          // don't check for collisions with ourselves
-          // and don't bother checking non-existing entities
-          if (i != j && entities[j] && entities[i]) {
-            var boundsA = entities[i].boundingBox();
-            var boundsB = entities[j].boundingBox();
-            if (boundsA.left < boundsB.right &&
-              boundsA.right > boundsB.left &&
-              boundsA.top < boundsB.bottom &&
-              boundsA.bottom > boundsB.top
-            ) {
-				entities[i].collide(entities[j]);
-
-				// check again if entities[j] exists as it could
-				// have been killed by entities[i]
-				if(entities[j]){
-					entities[j].collide(entities[i]);
-				}
-			}
-          }
+        /* Removes an entity from those managed
+         * Arguments:
+         * - entity, the entity to remove
+         * returns true if the entity was removed, false if not
+         */
+    EntityManager.prototype.remove = function(entity) {
+        var xPos = -1, yPos = -1;
+        for (var i = 0; i < entityXpos.length; i++) {
+            if (entityXpos[i].entity === entity) xPos = i;
+            if (entityYpos[i].entity === entity) yPos = i;
         }
-      }
-    }
-  }
+        if (xPos === -1 || yPos === -1) return false;
+        entityXpos.splice(xPos, 1);
+        entityYpos.splice(yPos, 1);
+        return true;
+    };
 
-  /* Returns all entities within the given radius.
-   * Arguments:
-   * - x, the x-coordinate of the center of the query circle
-   * - y, the y-coordinate of the center of the query circle
-   * - r, the radius of the center of the circle
-   * Returns:
-   *   An array of entity references
-   */
-  function queryRadius(x, y, r) {
-    var entitiesInRadius = [];
-    for (var i = 0; i < entityCount; i++) {
-      // Only check existing entities
-      if (entities[i]) {
-        var circ = entities[i].boundingCircle();
-        if (Math.pow(circ.radius + r, 2) >=
-          Math.pow(x - circ.cx, 2) + Math.pow(y - circ.cy, 2)
-        ) {
-          entitiesInRadius.push(entities[i]);
+
+    EntityManager.prototype.updateEntityHitboxes = function() {
+        for (var i = 0; i < entityXpos.length; i++) {
+            entityXpos[i].hitbox = entityXpos[i].entity.boundingBox();
         }
-      }
-    }
-    return entitiesInRadius;
-  }
+    };
 
-  /* Updates all managed entities
-   * Arguments:
-   * - elapsedTime, how much time has passed between the prior frameElement
-   *   and this one.
-   * - tilemap, the current tilemap for the game.
-   */
-  function update(elapsedTime, tilemap, ParticleManager) {
-	//used for determining the area of the screen/what entities are on/near screen to be updated
-    var play = getPlayer();
-	var x = play.currentX;
-	var y = play.currentY;
-	var pow = Math.sqrt(1282*1282+722*722);
-	//loops through entities
-	for (i = 0; i < entityCount; i++) {
-      if (entities[i]&&playerDistance(entities[i])<pow+x+10&&playerDistance(entities[i])<pow+y) entities[i].update(elapsedTime, tilemap, this, ParticleManager);
-    }
-    scoreEngine.update();
-    checkCollisions();
-  }
+    EntityManager.prototype.insertionSortLeft = function(items) {
+        for (var i = 0; i < items.length; ++i) {
+            var tmp = items[i];
+            for (var j = i - 1; j >=0 && items[j].hitbox.left > tmp.hitbox.left; --j) {
+                items[j + 1] = items[j];
+            }
+            items[j + 1] = tmp;
+        }
+    };
 
-  /* Renders the managed entities
-   * Arguments:
-   * - ctx, the rendering contextual
-   * - debug, the flag to trigger visual debugging
-   */
-  function render(ctx, debug) {
-	//used for determining the area of the screen/what entities are on/near screen to be rendered
-    var play = getPlayer();
-	var x = play.currentX;
-	var y = play.currentY;
-	var pow = Math.sqrt(1282*1282+722*722);
-	//loops through entities
-    for (var i = 0; i < entityCount; i++) {
-      if (entities[i]&&playerDistance(entities[i])<pow+x+10&&playerDistance(entities[i])<pow+y) entities[i].render(ctx, debug);
-    }
-    scoreEngine.render(ctx);
-  }
+    EntityManager.prototype.insertionSortTop = function(items) {
+        for (var i = 0; i < items.length; ++i) {
+            var tmp = items[i];
+            for (var j = i - 1; j >=0 && items[j].hitbox.top > tmp.hitbox.top; --j) {
+                items[j + 1] = items[j];
+            }
+            items[j + 1] = tmp;
+        }
+    };
 
-  function getPlayer() {
-    for (var i = 0; i < entityCount; i++) {
-      if (entities[i] && entities[i].type == "player") {
-        return entities[i];
-      }
-    }
-  }
+    EntityManager.prototype.sortEntities = function() {
+        this.insertionSortLeft(entityXpos);
+        this.insertionSortTop(entityYpos);
+    };
 
-  function getEntity(index) {
-    return entities[index];
-  }
+    /* Checks for collisions between entities, and
+     * triggers the collide() event handler.
+     */
+    EntityManager.prototype.checkCollisions = function() {
+         this.updateEntityHitboxes();
+         this.sortEntities();
 
-  /* Gets distance between entity and player */
-  function playerDistance(entity) {
-    var d = Math.pow(entity.currentX - entities[0].currentX, 2) + Math.pow(entity.currentY - entities[0].currentY, 2);
-    d = Math.sqrt(d);
-    return d;
-  }
+         var xPotentialCollisions = [];
+         var yPotentialCollisions = [];
+         var i, j, current;
 
-  /* Gets direction relative to player */
-  function playerDirection(entity) {
-    if (entities[0].currentX < entity.currentX) {
-      return true;
-    }
-    return false;
-  }
+         for(i = 0; i < entityXpos.length; i++) {
+             current = entityXpos[i].hitbox;
+             j = i;
+             while(++j < entityXpos.length && current.right >= entityXpos[j].hitbox.left) {
+                 xPotentialCollisions.push({ a: entityXpos[i].entity, b: entityXpos[j].entity });
+             }
+         }
 
-  function setScoreEngine(score) {
-    this.scoreEngine = score;
-  }
+         for(i = 0; i < entityYpos.length; i++) {
+             current = entityYpos[i].hitbox;
+             j = i;
+             while(++j < entityYpos.length && current.bottom >= entityYpos[j].hitbox.top) {
+                 yPotentialCollisions.push({ a: entityYpos[i].entity, b: entityYpos[j].entity });
+             }
+         }
 
-  return {
-    add: add,
-    remove: remove,
-    queryRadius: queryRadius,
-    update: update,
-    render: render,
-    playerDistance: playerDistance,
-    playerDirection: playerDirection,
-    getPlayer: getPlayer,
-    getEntity: getEntity,
-    setScoreEngine: setScoreEngine
-  };
+         for(i = 0; i < xPotentialCollisions.length; i++) {
+             for(j = 0; j < yPotentialCollisions.length; j++) {
+                 if( (xPotentialCollisions[i].a === yPotentialCollisions[j].a && xPotentialCollisions[i].b === yPotentialCollisions[j].b) ||
+                     (xPotentialCollisions[i].b === yPotentialCollisions[j].a && xPotentialCollisions[i].a === yPotentialCollisions[j].b)) {
+                     xPotentialCollisions[i].a.collide(xPotentialCollisions[i].b, this);
+                     xPotentialCollisions[i].b.collide(xPotentialCollisions[i].a, this);
+                     break;
+                 }
+             }
+         }
+     };
+
+    /* Returns all entities within the given radius.
+     * Arguments:
+     * - x, the x-coordinate of the center of the query circle
+     * - y, the y-coordinate of the center of the query circle
+     * - r, the radius of the center of the circle
+     * Returns:
+     *   An array of entity references
+     */
+    EntityManager.prototype.queryRadius = function(x, y, r) {
+        var entitesInRadius = [];
+        for (var i = 0; i < entityXpos.length; i++) {
+            if (entityXpos[i] !== null) {
+                var boundingCircle = entityXpos[i].entity.boundingCircle();
+                if (this.isWithinCircle(x, y, r, boundingCircle))
+                    entitesInRadius.push(entityXpos[i].entity);
+            }
+        }
+
+        return entitesInRadius;
+    };
+
+    EntityManager.prototype.isWithinCircle = function(x, y, r, circle) {
+        if(Math.pow(circle.radius + r, 2) >=
+            (Math.pow(x - circle.cx, 2) + Math.pow(y - circle.cy, 2)))
+            return true;
+
+        return false;
+    };
+
+    //Determines if 2 bounding boxes intersect in any way
+    EntityManager.prototype.isWithinBox = function(bb1, bb2) {
+        return(bb1.left < bb2.right && bb1.right > bb2.left && bb1.top < bb2.bottom && bb1.bottom > bb2.top);
+    };
+
+    /* Updates all managed entities
+     * Arguments:
+     * - elapsedTime, how much time has passed between the prior frameElement
+     *   and this one.
+     * - tilemap, the current tilemap for the game.
+     */
+    EntityManager.prototype.update = function(elapsedTime, tilemap, ParticleManager) {
+        timeSinceUpdateRegion += elapsedTime;
+
+        //create bounding box and clean updatable objects, but only after some time interval
+        if(timeSinceUpdateRegion >= settings.UPDATE_TIME) {
+            var playerBB = player.boundingBox(),
+                updateFactor = settings.UPDATE_REGION * settings.TILESIZEX,
+                updateBox = {
+                    top: playerBB.top - updateFactor,
+                    bottom: playerBB.bottom + updateFactor,
+                    left: playerBB.left - updateFactor,
+                    right: playerBB.right + updateFactor
+                };
+
+            timeSinceUpdateRegion = 0;
+            for(var i = 0; i < entityXpos.length; i ++) {
+                if(entityXpos[i] !== null) {
+                    if(!this.isWithinBox(updateBox, entityXpos[i].hitbox))
+                        this.remove(entityXpos[i]);
+                }
+            }
+        }
+
+        //call everyone's update function
+        for(var i = 0; i < entityXpos.length; i ++) {
+            if(entityXpos[i] !== null) {
+                entityXpos[i].entity.update(elapsedTime, tilemap, this, ParticleManager);
+            }
+        }
+
+        //check collisions
+        this.checkCollisions();
+    };
+
+    /* Renders the managed entities
+     * Arguments:
+     * - ctx, the rendering contextual
+     * - debug, the flag to trigger visual debugging
+     */
+    EntityManager.prototype.render = function(ctx, debug) {
+        //create the renderable region
+        var playerBB = player.boundingBox(),
+            updateFactor = settings.RENDER_REGION * settings.TILESIZEX,
+            updateBox = {
+                top: playerBB.top - updateFactor,
+                bottom: playerBB.bottom + updateFactor,
+                left: playerBB.left - updateFactor,
+                right: playerBB.right + updateFactor
+            };
+
+        //call the real update method
+        for(var i = 0; i < entityXpos.length; i ++) {
+            if(entityXpos[i] !== null) {
+                if(this.isWithinBox(updateBox, entityXpos[i].hitbox))
+                    entityXpos[i].entity.render(ctx, debug);
+            }
+        }
+    };
+
+    EntityManager.prototype.getPlayer = function() {
+        return player;
+    };
+
+    return EntityManager;
 
 }());
 
-},{"./player.js":29}],17:[function(require,module,exports){
+},{"./Settings.js":6}],19:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -3250,17 +3335,16 @@ module.exports = (function(){
    return Entity;
   
 }());
-},{}],18:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 /* Game GameState module
  * Provides the main game logic for the Diggy Hole game.
  * Authors:
  * - Nathan Bean
  */
 module.exports = (function (){
+    /* jshint esnext: true */
 
     // The width & height of the screen
-    const SCREEN_WIDTH = 1280,
-        SCREEN_HEIGHT = 720;
 
     // Module variables
     var Player = require('./player.js'),
@@ -3270,7 +3354,9 @@ module.exports = (function (){
         Octopus = require('./octopus.js'),
         inputManager = require('./input-manager.js'),
         tilemap = require('./tilemap.js'),
-        entityManager = require('./entity-manager.js'),
+        EntityManager = require('./entity-manager.js'),
+        entityManager,
+        SpawningManager = require('./spawning-manager.js'),
         StoneMonster = require('./stone-monster.js'),
         DemonicGroundHog = require('./DemonicGroundH.js'),
         Barrel = require('./barrel.js'),
@@ -3303,7 +3389,12 @@ module.exports = (function (){
         ScoreEngine = require('./score.js'),
         PowerUp = require('./powerUp.js'),
         Collectible = require('./collectible.js'),
-        ParticleManager = require('./particle-manager.js');
+        ParticleManager = require('./particle-manager.js'),
+		HUD = require('./HUD.js'),
+		hud,
+		healthBar = require('./healthBar.js'),
+		Inventory = require('./inventory.js'),
+    Settings = require('./Settings.js');
 
     /* Loads the GameState, triggered by the StateManager
      * This function sets up the screen canvas, the tilemap,
@@ -3314,24 +3405,25 @@ module.exports = (function (){
     var load = function(sm) {
         stateManager = sm;
 
+
         // Set up the screen canvas
         var screen = document.createElement("canvas");
-        screen.width = SCREEN_WIDTH;
-        screen.height = SCREEN_HEIGHT;
+        screen.width = Settings.SCREENSIZEX;
+        screen.height = Settings.SCREENSIZEY;
         screenCtx = screen.getContext("2d");
         document.getElementById("game-screen-container").appendChild(screen);
 
         // Set up the back buffer
         backBuffer = document.createElement("canvas");
-        backBuffer.width = SCREEN_WIDTH;
-        backBuffer.height = SCREEN_HEIGHT;
+        backBuffer.width = Settings.SCREENSIZEX;
+        backBuffer.height = Settings.SCREENSIZEY;
         backBufferCtx = backBuffer.getContext("2d");
 
         // Generate the tilemap
-        tilemap.generate(1000, 1000, {
+        tilemap.generate(Settings.MAPSIZEX, Settings.MAPSIZEY, {
             viewport: {
-                width: 1028,
-                height: 720
+                width: Settings.SCREENSIZEX,
+                height: Settings.SCREENSIZEY
             },
             onload: function() {
                 window.tilemap = tilemap;
@@ -3340,93 +3432,103 @@ module.exports = (function (){
             }
         });
 
-        // Create the player and add them to
-        // the entity manager
-        player = new Player(400, 240, 0, inputManager);
-        entityManager.add(player);
+
+		// Set up HUD
+		hud = new HUD(Settings.SCREENSIZEX, Settings.SCREENSIZEY);
 
         // Set up score engine
         scoreEngine = new ScoreEngine();
-        scoreEngine.setPositionFunction(tilemap.getCameraPosition);
-        entityManager.setScoreEngine(scoreEngine);
+        hud.addElement(scoreEngine);
+
+		// SEt up invenotory
+		inventory = new Inventory(3);
+		hud.addElement(inventory);
+
+		// Set up health bar
+		hb = new healthBar();
+		hud.addElement(hb);
+
+        // Create the player and add them to
+        // the entity manager
+        var randomPos = tilemap.randomInSky();
+        player = new Player(randomPos.x * 64, randomPos.y * 64, 0, inputManager, hb, scoreEngine, inventory);
+        entityManager = new EntityManager(player);
+
+        this.spawningManager = new SpawningManager(entityManager, scoreEngine, player);
 
         //add wolf to
         // the entity manager
         //wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
         //entityManager.add(wolf);
 
-        for (var i = 0; i < 35; i += 7){
-            stoneMonster = new StoneMonster(64*i, 300, 0);
-            entityManager.add(stoneMonster);
-        }
+        // for (var i = 0; i < 35; i += 7){
+        //     stoneMonster = new StoneMonster(64*i, 300, 0);
+        //     entityManager.add(stoneMonster);
+        // }
 
-        bird = new Bird(600, 100);
-        entityManager.add(bird);
-
-        // Add a robo-killer to the entity manager.
-        robo_killer = new Robo_Killer(450, 1240, 0);
-        entityManager.add(robo_killer);
-
-        rat = new Rat(500, 1360, 0);
-        entityManager.add(rat);
-
-        slime = new Slime(400, 1120, 0);
-        entityManager.add(slime);
-
-        sudo_chan = new Sudo_Chan(490, 1240, 0);
-        entityManager.add(sudo_chan);
-
-        octopus = new Octopus(120, 2240, 0);
+        // bird = new Bird(600, 100);
+        // entityManager.add(bird);
+        //
+        // // Add a robo-killer to the entity manager.
+        // robo_killer = new Robo_Killer(450, 1240, 0);
+        // entityManager.add(robo_killer);
+        //
+        // rat = new Rat(500, 1360, 0);
+        // entityManager.add(rat);
+        //
+        // slime = new Slime(400, 1120, 0);
+        // entityManager.add(slime);
+        //
+        // sudo_chan = new Sudo_Chan(490, 1240, 0);
+        // entityManager.add(sudo_chan);
+        //
+        octopus = new Octopus(randomPos.x * 64, randomPos.y * 64, 0);
         entityManager.add(octopus);
-
-        DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
-        entityManager.add(DemonicGroundHog);
-
-        goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
-        entityManager.add(goblinMiner);
+        //
+        // DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
+        // entityManager.add(DemonicGroundHog);
+        //
+        // goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
+        // entityManager.add(goblinMiner);
 
         // Create collectibles.
         // WHOEVER IS IN CHARGE OF ENTITY PLACEMENT: Feel free to change the coordiates (first 2 parameters - x,y).
-        entityManager.add(new Collectible(500, 240, 0,'bit_coin', 64, 64, 8, './img/bit_coin.png', 10));
+        // entityManager.add(new Collectible(500, 240, 0,'bit_coin', 64, 64, 8, './img/bit_coin.png', 10));
         // entityManager.add(new Collectible(600, 240, 0,'lost_cat', 64, 64, 14, './img/lost_cat.png', 15));
 
         // Spawn 10 barrels close to player
         // And some turrets
         // and some shamans
-        for(var i = 0; i < 10; i++){
-            if (i < 3) {
-                turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
-                entityManager.add(turret);
+        for(i = 0; i < 3; i++) {
+            // if (i < 3) {
+                // turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
+                // entityManager.add(turret);
 
-            }
-            dynamiteDwarf = new DynamiteDwarf(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
-            entityManager.add(dynamiteDwarf);
+            // }
+            // dynamiteDwarf = new DynamiteDwarf(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
+            // entityManager.add(dynamiteDwarf);
             entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
             entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
             entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
             entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, -1));
-            barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
-            entityManager.add(barrel);
-            entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
+            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, 60*60));
+            // barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
+            // entityManager.add(barrel);
+            // entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
 
 
         }
-        //powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
-
-
-
-
+        // powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
 
 
         // Karenfang: Create a Kakao and add it to
         // the entity manager
-        kakao = new Kakao(310,1240,0);  //two tiles to the right of the player
-        entityManager.add(kakao);
-
-        extantBlobbers = 1;
-        blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
-        entityManager.add(blobber);
+        // kakao = new Kakao(310,1240,0);  //two tiles to the right of the player
+        // entityManager.add(kakao);
+        //
+        // extantBlobbers = 1;
+        // blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
+        // entityManager.add(blobber);
 
 
         // Kyle Brown: Background Music
@@ -3446,24 +3548,24 @@ module.exports = (function (){
      * this and the prior frame.
      */
     var update = function(elapsedTime) {
-        //player.update(elapsedTime, tilemap);
+        this.spawningManager.update(elapsedTime);
         entityManager.update(elapsedTime, tilemap, ParticleManager);
         tilemap.update();
         ParticleManager.update(elapsedTime);
         inputManager.swapBuffers();
         octopus.getPlayerPosition(player.boundingBox());
+		hud.update(player.boundingBox());
     };
 
     /* Renders the current state of the game world
      */
     var render = function() {
         // Clear the back buffer
-        backBufferCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-
+        backBufferCtx.fillRect(0, 0, Settings.SCREENSIZEX, Settings.SCREENSIZEY);
         // TODO: Calculate rubberbanding
         var bounds = player.boundingBox();
-        var offsetX = SCREEN_WIDTH / 2,
-            offsetY = SCREEN_HEIGHT / 2;
+        var offsetX = Settings.SCREENSIZEX / 2,
+            offsetY = Settings.SCREENSIZEY / 2;
 
         // Apply camera transforms
         backBufferCtx.save();backBufferCtx.translate(offsetX - bounds.left, offsetY - bounds.top);
@@ -3475,11 +3577,12 @@ module.exports = (function (){
         //player.render(backBufferCtx, true);
         ParticleManager.render(backBufferCtx);
         tilemap.renderWater(backBufferCtx);
+		hud.render(backBufferCtx);
 
         backBufferCtx.restore();
 
         // Flip the back buffer
-        screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        screenCtx.drawImage(backBuffer, 0, 0, Settings.SCREENSIZEX, Settings.SCREENSIZEY);
     };
 
     /* Event handler for key down events
@@ -3503,21 +3606,20 @@ module.exports = (function (){
     }
 
     /* Exits the game */
-    var exit = function() {}
-
+    var exit = function() {};
 
     return {
-      load: load,
-      exit: exit,
-      update: update,
-      render: render,
-      keyDown: keyDown,
-      keyUp: keyUp
-    }
+        load: load,
+        exit: exit,
+        update: update,
+        render: render,
+        keyDown: keyDown,
+        keyUp: keyUp
+    };
 
 })();
 
-},{"./DemonicGroundH.js":2,"./Kakao.js":3,"./barrel.js":6,"./bird.js":7,"./blobber.js":8,"./collectible.js":11,"./dynamiteDwarf.js":15,"./entity-manager.js":16,"./goblin-miner.js":19,"./goblin-shaman.js":20,"./input-manager.js":22,"./main-menu.js":23,"./octopus.js":26,"./particle-manager.js":28,"./player.js":29,"./powerUp.js":30,"./rat.js":31,"./robo-killer.js":32,"./score.js":33,"./slime.js":34,"./stone-monster.js":36,"./sudo_chan.js":38,"./tilemap.js":39,"./turret.js":40,"./wolf.js":41}],19:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./HUD.js":3,"./Kakao.js":4,"./Settings.js":6,"./barrel.js":8,"./bird.js":9,"./blobber.js":10,"./collectible.js":13,"./dynamiteDwarf.js":17,"./entity-manager.js":18,"./goblin-miner.js":21,"./goblin-shaman.js":22,"./healthBar.js":23,"./input-manager.js":25,"./inventory.js":26,"./main-menu.js":28,"./octopus.js":31,"./particle-manager.js":33,"./player.js":34,"./powerUp.js":35,"./rat.js":36,"./robo-killer.js":37,"./score.js":38,"./slime.js":39,"./spawning-manager.js":40,"./stone-monster.js":42,"./sudo_chan.js":44,"./tilemap.js":45,"./turret.js":46,"./wolf.js":47}],21:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -4024,7 +4126,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":5,"./entity.js":17}],20:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],22:[function(require,module,exports){
 /* Richard Habeeb */
 
 module.exports = (function(){
@@ -4212,7 +4314,81 @@ module.exports = (function(){
     return shaman;
 })();
 
-},{"./animation.js":5,"./entity.js":17}],21:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],23:[function(require,module,exports){
+ module.exports = (function(){
+	 
+	 function HealthBar() {
+		 const 	hbYOffset = 50,
+				hbWidth = 200,
+				hbHeight = 30,
+				lineCount = Math.round(hbWidth / 40),
+				lineOffset = Math.round(hbWidth / 100),
+				alpha = 1/lineCount,
+				hbXOffset = Math.round(hbWidth / 25),
+				hbFrameWidthOffset = 5,
+				hbFrameYOffset = hbYOffset - ((lineCount+1)*4-lineOffset)/2 - hbFrameWidthOffset;
+				
+				
+		 
+		 this.x;
+		 this.y;
+		 this.health = 100;
+		 this.deficit = 0;
+		 
+		 
+		 this.heal = function(health) {
+			 this.health = Math.min(this.health + health, 100)
+		 }
+		 
+		 this.hurt = function(health) {
+			 this.health = Math.max(this.health - health, 0)
+		 }
+		 
+		 /**
+			screenCtx: 		canvas
+			x:				top left corner x of the player
+			y:				top left corner y of the player
+			screenWidth:	screen width
+			screenHeight:	screen height
+		 */
+		 this.update = function(x, y, screenWidth, screenHeight) {
+			 // console.log("x: " + x + " y: " + y);
+			 this.x = x;
+			 this.y = y;
+			 this.deficit = (1 - this.health / 100) * (hbWidth - 2 * hbXOffset);
+		 }
+		 
+		 
+		 /**
+			screenCtx: 		canvas
+		 */
+		 this.render = function(screenCtx) {
+			 
+			 screenCtx.strokeStyle = 'black';
+			 // screenCtx.fillStyle = 'black';
+			 screenCtx.lineWidth = 5;
+			 screenCtx.rect(this.x, this.y + hbFrameYOffset, hbWidth,
+							(lineCount+1)*4-lineOffset + hbFrameWidthOffset*2);
+			 screenCtx.stroke();
+			 
+			 for (var j = lineCount; j >= 0; j --) {
+				 screenCtx.lineWidth = (j+1)*4-lineOffset;
+				 if	(j == 0)
+					 screenCtx.strokeStyle = 'yellow';
+				 else
+					 screenCtx.strokeStyle = 'rgba(255,0,0,'+alpha+')';
+				 screenCtx.beginPath();
+				 screenCtx.moveTo(this.x + hbXOffset, this.y + hbYOffset);
+				 screenCtx.lineTo(this.x + hbWidth - hbXOffset - this.deficit, this.y + hbYOffset);
+				 screenCtx.closePath();
+				 screenCtx.stroke();
+			 }
+		 }
+	 }
+	 
+	 return HealthBar;
+}());
+},{}],24:[function(require,module,exports){
 /**
  * Help Menu: Manages the help menu screen
  * Created by Josh Benard on 11/19/15.
@@ -4335,7 +4511,7 @@ module.exports = (function (){
     }
 
 })();
-},{"./bone.js":9,"./input-manager.js":22,"./player.js":29}],22:[function(require,module,exports){
+},{"./bone.js":11,"./input-manager.js":25,"./player.js":34}],25:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -4349,7 +4525,12 @@ module.exports = (function() {
     DIGUP: 87,		// W
 	PAY: 80,		// P
 	ATTACK : 65,	// A
-	SHOOT : 66	 	// B
+	SHOOT : 66,	 	// B
+	ONE : 49,
+	TWO : 50,
+	THREE : 51,
+	FOUR : 52,
+	FIVE : 53
   }
   
   var oldKeys = [];
@@ -4400,7 +4581,116 @@ module.exports = (function() {
   }
   
 })();
-},{}],23:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
+module.exports = (function(){
+	
+	var InventorySlot = require('./inventorySlot.js');
+	
+	const	slotSize = 64,
+			lineWidth = 5;
+	
+	/**
+	This class manages player's inventory.
+	All actions from input manager are handled
+	from the player class - section commented as
+	Power Up Usage Management
+	
+	slotNum		- number of slots in the inventory
+	*/
+	function Inventory(slotNum) {
+		this.x;
+		this.y;
+		this.slotNum = slotNum;
+		this.slots = new Array(slotNum);
+		this.inventoryLength = slotNum * slotSize;
+		
+		
+		//Init Power Ups
+			// Hardcoded to 3
+			// Change parameter in inventory constructor in game.js
+		for (var i = 0; i < slotNum; i ++) {
+			if (i == 0) {
+				this.slots[0] = new InventorySlot('./img/powerUps/medicine.png');
+			} else if (i == 1) {
+				this.slots[1] = new InventorySlot('./img/powerUps/pick.png');
+			} else if (i == 2) {
+				this.slots[2] = new InventorySlot('./img/powerUps/stone_shield.png');
+			} else if (i == 3) {
+				// this.slots[3] = new InventorySlot('');
+			} else if (i == 4) {
+				// this.slots[4] = new InventorySlot('');
+			}
+		};
+		
+		this.slotUsed = function(idx) {
+			return this.slots[idx].slotUsed();
+		};
+		
+		this.powerUpPickedUp = function(idx) {
+			this.slots[idx].pickedUp();
+		}
+		
+		this.update = function(x, y, screenWidth, screenHeight) {
+			this.x = x + screenWidth - this.inventoryLength - lineWidth;
+			this.y = y + screenHeight - slotSize;
+		};
+	
+		this.render = function(screenCtx) {
+			screenCtx.strokeStyle = 'black';
+			screenCtx.lineWidth = lineWidth;
+			for (var i = 0; i < this.slotNum; i ++) {
+				screenCtx.rect(this.x + i * slotSize, this.y, slotSize, slotSize);
+				this.slots[i].render(screenCtx, this.x + i * slotSize, this.y);
+			}
+			screenCtx.stroke();
+		};
+	};
+
+return Inventory;
+}());
+},{"./inventorySlot.js":27}],27:[function(require,module,exports){
+module.exports = (function(){
+	
+	const IMG_SIZE = 64;
+	
+	function InventorySlot(imgSrc) {
+		this.amount = 0;
+		this.img = new Image();
+		this.img.src = imgSrc;
+		
+		/**
+			Returns true if power up in the inventory otherwise false
+		*/
+		this.slotUsed = function() {
+			if (this.amount > 0) {
+				this.amount--;
+				console.log("Used slot");
+				return true;
+			}
+			console.log("Not enough in slot");
+			return false;
+		};
+		
+		this.pickedUp = function() {
+			this.amount ++;
+		};
+		
+		this.render = function(screenCtx, x, y) {
+			if (this.img.complete == false)
+				return;
+			if (this.amount > 0)
+				screenCtx.drawImage(this.img, 0, 0, IMG_SIZE, IMG_SIZE, x, y, IMG_SIZE, IMG_SIZE);
+		};
+	}
+
+
+return InventorySlot;
+}());
+
+
+
+
+},{}],28:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -4534,7 +4824,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./credits-screen":12,"./help-screen":21}],24:[function(require,module,exports){
+},{"./credits-screen":14,"./help-screen":24}],29:[function(require,module,exports){
 
 
 // Wait for the window to load completely
@@ -4579,7 +4869,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":18,"./splash-screen":35}],25:[function(require,module,exports){
+},{"./game":20,"./splash-screen":41}],30:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -4706,7 +4996,7 @@ module.exports = (function(){
 
 }());
 
-},{}],26:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -4901,7 +5191,7 @@ module.exports = function () {
 }();
 
 
-},{"./entity.js":17,"./octopus_animation.js":27}],27:[function(require,module,exports){
+},{"./entity.js":19,"./octopus_animation.js":32}],32:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -4964,7 +5254,7 @@ module.exports = (function() {
     return OctopusAnimation;
 
 }());
-},{}],28:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 /* The particle manager maintains the list of particles currently in the world,
 *  and handles the update and rendering functions for it
 *
@@ -5181,7 +5471,7 @@ return {
 
 }());
 
-},{}],29:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -5231,6 +5521,9 @@ module.exports = (function() {
     const GRAVITY_IN_WATER = -80;
     const SWIM_UP = -164;
     const SPEED_IN_LIQUID = 80;
+	
+	// Inventory constants
+	const POWER_UP_FREQUENCY = 0.5;
 
     //The Right facing dwarf spritesheet
     var dwarfRight = new Image();
@@ -5247,7 +5540,7 @@ module.exports = (function() {
     ratLeft.src = "img/ratLeft2.png";
 
     //The Player constructor
-    function Player(locationX, locationY, layerIndex, inputManager) {
+    function Player(locationX, locationY, layerIndex, inputManager, healthBar, scoreEngine, inventory) {
         this.inputManager = inputManager;
         this.state = WALKING;
         this.digState = NOT_DIGGING;
@@ -5274,6 +5567,10 @@ module.exports = (function() {
         this.boneImg = new Image();
         this.boneImg.src = "./img/BoneLeft.png";
         this.stoneShield = false;
+		this.healthBar = healthBar;
+		this.scoreEngine = scoreEngine;
+		this.inventory = inventory;
+		this.lastPowerUpUsed = 0;
 
         // bone powerup
         this.attackFrequency = 1;
@@ -5347,6 +5644,7 @@ module.exports = (function() {
 
     // Check that player's head is above water but not hitting a solid
     Player.prototype.headOverWater = function (tilemap){
+
         var box = this.boundingBox(),
             tileXL = Math.floor((box.left) / 64),
             tileXR = Math.floor((box.right) / 64),
@@ -5580,6 +5878,40 @@ module.exports = (function() {
         if (this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
             this.shoot();
         }
+		
+		// Power Up Usage Management
+		this.lastPowerUpUsed += elapsedTime;
+		
+		if (this.lastPowerUpUsed >= POWER_UP_FREQUENCY) {
+			if (this.inputManager.isKeyDown(this.inputManager.commands.ONE)) {
+				console.log("One pressed");
+				if (inventory.slotUsed(0)) {
+					this.heal(30);
+				}
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.TWO)) {
+				console.log("TWO pressed");
+				if (inventory.slotUsed(1)) {
+					
+				}
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.THREE)) {
+				console.log("THREE pressed");
+				if (inventory.slotUsed(2)) {
+					
+				}
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FOUR)) {
+				console.log("FOUR pressed");
+				if (inventory.slotUsed(3)) {
+					
+				}
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
+				console.log("FIVE pressed");
+				if (inventory.slotUsed(4)) {
+					
+				}
+			}
+			this.lastPowerUpUsed = 0;
+		}
+		
 
         // Swap input buffers
         this.inputManager.swapBuffers();
@@ -5746,7 +6078,7 @@ module.exports = (function() {
         var digComplete = function() {
             /* Add score */
             //TODO different scores for different blocks?
-            entityManager.scoreEngine.addScore(1);
+            currentPlayer.score(1);
 
             var box = currentPlayer.boundingBox(),
                 tileX,
@@ -5823,9 +6155,11 @@ module.exports = (function() {
             this.bones++;
         } else if (powerUp.type == 'coin') {
             // add points
+			this.score(20);
 
         } else if (powerUp.type == 'crystal') {
             // add points
+			this.score(50);
 
         } else if (powerUp.type == 'pick') {
 
@@ -5834,13 +6168,29 @@ module.exports = (function() {
 
         } else if (powerUp.type == 'stone-shield') {
             this.stoneShield = true;
-        }
+
+        } else if (powerUp.type == 'medicine') {
+			inventory.powerUpPickedUp(0);
+			// this.heal(30); now used manually from the inventory
+		}
 
 
         if(powerUp.effectDuration < 0){//if power up lasts 4ever
             this.entityManager.remove(powerUp);
         }
 
+    };
+	
+	Player.prototype.heal = function(health) {
+		this.healthBar.heal(health);
+	};
+	
+	Player.prototype.hurt = function(health) {
+		this.healthBar.hurt(health);
+	};
+
+    Player.prototype.score = function(score) {
+        this.scoreEngine.addScore(score);
     };
 
     /*
@@ -5987,7 +6337,7 @@ module.exports = (function() {
 
 }());
 
-},{"./Bone.js":1,"./Pickaxe.js":4,"./animation.js":5,"./entity.js":17}],30:[function(require,module,exports){
+},{"./Bone.js":1,"./Pickaxe.js":5,"./animation.js":7,"./entity.js":19}],35:[function(require,module,exports){
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Entity = require('./entity.js'),
@@ -6019,9 +6369,9 @@ module.exports = (function(){
 		var outerObject = this;
 		this.img.onload = function () {
 			outerObject.animation = new Animation(outerObject.img, outerObject.width, outerObject.height, 0, 0, frameNum);
-		}
+		};
 		this.img.src = imgPath;
-		
+
 		this.pickedUp = false;
 		this.pickedUpSound = new Audio('./resources/sounds/powerUp.wav');
 		this.layerIndex = mapLayer;
@@ -6030,51 +6380,48 @@ module.exports = (function(){
 		this.velocityY = 0;
 		this.effectDuration = duration;
 	}
-	
-	
+
+
 	PowerUp.prototype.update = function(elapsedTime, tilemap, entityManager)
 	{
 		if(!this.flying){
 			if(this.falling){
-			this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-			this.y += this.velocityY * elapsedTime;
-			if(this.onGround(tilemap)) {
-				this.velocityY = 0;
-				this.y = ((this.boundingBox().bottom/64)-1)*64;
-				this.falling = false;
+				this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+				this.y += this.velocityY * elapsedTime;
+				if(this.onGround(tilemap)) {
+					this.velocityY = 0;
+					this.y = ((this.boundingBox().bottom/64)-1)*64;
+					this.falling = false;
+				}
 			}
 		}
-		}
-		
-		
-		  
-		
-		
-		this.animation.update(elapsedTime);
+		/* wait for image to load */
+		if(this.animation) this.animation.update(elapsedTime);
+
 		if(this.pickedUp){
 			this.effectDuration--;
 		}
-		
-		if(this.effectDuration == 0){
+
+		if(this.effectDuration === 0){
 			this.player.clearEffect(this);
 		}
-		
-		
-		if (this.img.complete == false || this.pickedUp == true) return;
-	}
-	
+
+
+		if (this.img.complete === false || this.pickedUp === true) return;
+	};
+
 	PowerUp.prototype.render = function(context, debug)
 	{
-		if (this.img.complete == false || this.pickedUp == true || this.animation == null) return;
+		if (this.img.complete === false || this.pickedUp === true || this.animation === null) return;
 		this.animation.render(context, this.x, this.y);
 		if(debug) renderDebug(this, context);
-	}
-	
+	};
+
 	function renderDebug(powerUp, ctx) {
 		var bounds = powerUp.boundingBox();
 		var circle = powerUp.boundingCircle();
 		ctx.save();
-		
+
 		// Draw player bounding box
 		ctx.strokeStyle = "red";
 		ctx.beginPath();
@@ -6085,12 +6432,12 @@ module.exports = (function(){
 		ctx.lineTo(bounds.left, bounds.bottom);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		ctx.strokeStyle = "blue";
 		ctx.beginPath();
 		ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
 		ctx.stroke();
-		
+
 		// Outline tile underfoot
 		var tileX = 64 * Math.floor((bounds.left + (this.width/2))/64),
 			tileY = 64 * (Math.floor(bounds.bottom / 64));
@@ -6102,20 +6449,20 @@ module.exports = (function(){
 		ctx.lineTo(tileX, tileY + 64);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		ctx.restore();
   }
-	
+
 	PowerUp.prototype.collide = function(otherEntity)
 	{
-		if (otherEntity.type == 'player' && this.pickedUp == false) {
+		if (otherEntity.type === 'player' && this.pickedUp === false) {
 			otherEntity.poweredUp(this);
 			this.pickedUpSound.play();
 			this.pickedUp = true;
 			this.player = otherEntity;
 		}
-	}
-	
+	};
+
 	PowerUp.prototype.boundingBox = function()
 	{
 		return {
@@ -6123,8 +6470,8 @@ module.exports = (function(){
 			top: this.y,
 			right: this.x + this.width,
 			bottom: this.y + this.height
-		}
-	}
+		};
+	};
 
 	PowerUp.prototype.boundingCircle = function()
 	{
@@ -6132,23 +6479,24 @@ module.exports = (function(){
 			cx: this.x + this.width / 2,
 			cy: this.y + this.height / 2,
 			radius: this.radius
-		}
-	}
-	
+		};
+	};
+
 	PowerUp.prototype.onGround = function(tilemap) {
     var box = this.boundingBox(),
         tileX = Math.floor((box.left + (this.width/2))/64),
         tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     // find the tile we are standing on.
     return (tile && tile.data.solid) ? true : false;
-  }
-	
-	
+};
+
+
 	return PowerUp;
 
-}())
-},{"./animation.js":5,"./entity-manager.js":16,"./entity.js":17,"./player.js":29}],31:[function(require,module,exports){
+}());
+
+},{"./animation.js":7,"./entity-manager.js":18,"./entity.js":19,"./player.js":34}],36:[function(require,module,exports){
 /* Enemy module
  * Authors:
  * Kien Le
@@ -6418,7 +6766,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":5,"./entity.js":17}],32:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],37:[function(require,module,exports){
 /* Entity: Robo-Killer module
  * Implements the entity pattern, provides specific robo-killer constructs.
  *
@@ -6732,7 +7080,7 @@ module.exports = (function() {
 
 }());
 
-},{"./animation.js":5,"./entity.js":17}],33:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],38:[function(require,module,exports){
 /* Score engine */
 
 module.exports = (function (){
@@ -6801,8 +7149,10 @@ module.exports = (function (){
     }
   };
 
-  ScoreEngine.prototype.update = function()
+  ScoreEngine.prototype.update = function(x, y)
   {
+    this.x = x;
+    this.y = y;
     this.updatePosition();
     this.updateAnimation();
   }
@@ -6824,8 +7174,8 @@ module.exports = (function (){
         sy,
         this.width,
         this.height,
-        this.xpos + (32 * i),
-        this.ypos,
+        this.x + (32 * i),
+        this.y,
         this.width,
         this.height
       );
@@ -6887,7 +7237,7 @@ module.exports = (function (){
 
 })();
 
-},{}],34:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -7139,7 +7489,52 @@ module.exports = (function(){
    return Slime;
   
 }());
-},{"./animation.js":5,"./entity.js":17}],35:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],40:[function(require,module,exports){
+module.exports = (function() {
+    var Shaman = require('./goblin-shaman.js');
+    var DemonGHog = require('./DemonicGroundH.js');
+    var Barrel = require('./barrel.js');
+    var Miner = require('./goblin-miner.js');
+    var Turret = require('./turret.js');
+    var StoneMonster = require('./stone-monster.js');
+
+    var updatePeriodSeconds = 50;
+
+    function SpawningManager(entityManager, scoreEngine, player) {
+        this.entityManager = entityManager;
+        this.scoreEngine = scoreEngine;
+        this.player = player;
+        this.updateTimeLeft = 0;
+    }
+
+    SpawningManager.prototype.update = function (elapsedTime) {
+        this.updateTimeLeft -= elapsedTime;
+        if(this.updateTimeLeft < 0) {
+            this.updateTimeLeft = updatePeriodSeconds;
+
+            //TODO implement this, so that enemies spawn in waves, etc
+            this.entityManager.add(new Shaman(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+        
+            this.entityManager.add(new Turret(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.entityManager.add(new Miner(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.entityManager.add(new DemonGHog(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.entityManager.add(new Barrel(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+            this.addStoneMonster();
+        }
+    };
+
+    SpawningManager.prototype.addStoneMonster = function() {
+        var xPosition = Math.random()*15*64;
+        var yPosition = (Math.random()*10+5)*64;
+
+        this.entityManager.add(new StoneMonster(this.player.currentX + xPosition, this.player.currentY + yPosition, 0));
+        this.entityManager.add(new StoneMonster(this.player.currentX - xPosition, this.player.currentY + yPosition, 0));
+    };
+
+    return SpawningManager;
+})();
+
+},{"./DemonicGroundH.js":2,"./barrel.js":8,"./goblin-miner.js":21,"./goblin-shaman.js":22,"./stone-monster.js":42,"./turret.js":46}],41:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -7206,7 +7601,7 @@ module.exports = (function (){
   }
   
 })();
-},{}],36:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -7215,7 +7610,8 @@ module.exports = (function (){
 module.exports = (function(){
     var Entity = require('./entity.js'),
         Animation = require('./animation.js'),
-        Player = require('./player.js');
+        Player = require('./player.js'),
+        Pickaxe = require('./Pickaxe.js');
 
     const SIZE = 64;
     const GRAVITY = -250;
@@ -7235,6 +7631,7 @@ module.exports = (function(){
     const WAIT_TIME = 3;
 
     const TIME_TO_LIVE = 25;
+    const INITIAL_HEALTH = 60*13;
 
     function StoneMonster(locationX, locationY, layerIndex) {
         this.type = "StoneMonster";
@@ -7249,11 +7646,11 @@ module.exports = (function(){
         this.timeToLive = TIME_TO_LIVE;
         this.renderBoundingCircle = false;
 
-        this.score = 3;
+        this.score = 10;
+        this.health = INITIAL_HEALTH;
 
         this.idle_image = new Image();
         this.idle_image.src = 'img/stone-monster-img/stone_monster_idle.png';
-
 
         var moving_image_left = new Image();
         moving_image_left.src = 'img/stone-monster-img/stone-monster-moving-left.png';
@@ -7389,6 +7786,11 @@ module.exports = (function(){
                 this.animation_left.update(elapsedTime);
             }
         }
+        if(this.health <= 0){
+            var player = entityManager.getPlayer();
+            player.score(this.score);
+            entityManager.remove(this);
+        }
     };
 
     StoneMonster.prototype.render = function(ctx, debug) {
@@ -7465,6 +7867,9 @@ module.exports = (function(){
             && otherEntity.currentY + SIZE/2 <= this.currentY && !otherEntity.stoneShield){
             this.state = SMASHED;
         }
+        if(otherEntity instanceof Pickaxe){
+            this.health -= 1;
+        }
         var entityRect = otherEntity.boundingBox();
         var thisRect = this.boundingBox();
 
@@ -7473,8 +7878,7 @@ module.exports = (function(){
             if(otherEntity instanceof Player) {
                 otherEntity.currentY = thisRect.top - SIZE - 2;
                 if (this.state == SMASHED) {
-                    //otherEntity.health -= DAMAGE;
-                    console.log("damage");
+                    otherEntity.hurt(1);
                 }
             }
         }
@@ -7482,7 +7886,6 @@ module.exports = (function(){
             otherEntity.currentX -= (entityRect.right - thisRect.left);
         }
         else if(entityRect.left - SIZE/3 <= thisRect.right){
-            console.log(thisRect.right - entityRect.left);
             otherEntity.currentX = this.currentX + SIZE + 2;
         }
     };
@@ -7490,7 +7893,7 @@ module.exports = (function(){
     return StoneMonster;
 }());
 
-},{"./animation.js":5,"./entity.js":17,"./player.js":29}],37:[function(require,module,exports){
+},{"./Pickaxe.js":5,"./animation.js":7,"./entity.js":19,"./player.js":34}],43:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -7560,7 +7963,7 @@ module.exports = (function() {
     return Sudo_Animation;
 
 }());
-},{}],38:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -7808,7 +8211,7 @@ module.exports = (function(){
     return Sudo_Chan;
 }());
 
-},{"./entity.js":17,"./sudo-chan-animation.js":37}],39:[function(require,module,exports){
+},{"./entity.js":19,"./sudo-chan-animation.js":43}],45:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -7872,7 +8275,18 @@ module.exports = (function (){
     viewportHalfHeight = height / 2;
     viewportTileWidth = Math.ceil(width / tileWidth) + 2;
     viewportTileHeight = Math.ceil(height / tileHeight) + 2;
-  }
+  };
+
+  var getViewPort = function() {
+      var pos = getCameraPosition();
+      return {
+          left: pos[0],
+          right: pos[0] + 2 * viewportHalfWidth,
+          top: pos[1],
+          bottom: pos[1] + 2 * viewportHalfHeight,
+      };
+  };
+
 
   /* Sets the camera position
    * Arguments:
@@ -7882,7 +8296,7 @@ module.exports = (function (){
   var setCameraPosition = function(x, y) {
     cameraX = x;
     cameraY = y;
-  }
+ };
 
   /**
    * Function: getCameraPosition
@@ -7890,10 +8304,9 @@ module.exports = (function (){
    * Returns:
    *     x-y postion
    */
-  var getCameraPosition = function()
-  {
-    return [cameraX - viewportHalfWidth - 32, cameraY - viewportHalfHeight + 32];
-  }
+  var getCameraPosition = function() {
+    return [cameraX - viewportHalfWidth, cameraY - viewportHalfHeight];
+  };
 
   /* Loads the tilemap
    * - mapData, the JavaScript object
@@ -8528,7 +8941,7 @@ module.exports = (function (){
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight){
       return undefined;
     }else{
-      layers[layer].data[x + y * mapWidth] = 1;
+      layers[layer].data[x + y * mapWidth] = newType;
     }
   }
 
@@ -8536,7 +8949,7 @@ module.exports = (function (){
   var removeTileAt = function(x, y, layer) {
     if(layer < 0 || x < 0 || y < 0 || layer >= layers.length || x > mapWidth || y > mapHeight)
       return undefined;
-    layers[layer].data[x + y*mapWidth] =  16;
+    layers[layer].data[x + y*mapWidth] =  8;
   }
 
   //return current tile layer, 0: sky, 1: crust 2: magma
@@ -8564,6 +8977,13 @@ module.exports = (function (){
       layers[layer].data[x + y * mapWidth] = newType;
   };
 
+  var randomInSky = function() {
+    return {
+      x: Math.floor(Math.random() * mapWidth),
+      y: Math.floor(Math.random() * this.surface)
+    }
+  };
+
   // Expose the module's public API
   return {
     load: load,
@@ -8575,39 +8995,37 @@ module.exports = (function (){
     destroyTileAt: destroyTileAt,
     removeTileAt: removeTileAt,
     setViewportSize: setViewportSize,
+    getViewPort: getViewPort,
     setCameraPosition: setCameraPosition,
     returnTileLayer: returnTileLayer,
     getCameraPosition: getCameraPosition,
     mineAt: mineAt,
     consolidateLiquids: consolidateLiquids,
     update: update,
-    renderWater: renderWater
+    renderWater: renderWater,
+    randomInSky: randomInSky
   }
 
 
 })();
 
-},{"./noise.js":25}],40:[function(require,module,exports){
-
-
-
+},{"./noise.js":30}],46:[function(require,module,exports){
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Player = require('./player.js'),
 		Entity = require('./entity.js'),
 		Cannonball = require('./cannonball.js'),
-		entityManager = require('./entity-manager.js'),
 		turret = new Image();
 		turret.src = './img/turret/turretMany.png';
 		destroyedTurret = new Image();
 		destroyedTurret.src = './img/turret/turretDestroyed2.png';
-		
+
 	const IDLE = 0,
 		  FIRING = 1,
 		  WAITING = 2,
 		  RELOADING = 3,
 		  DESTROYED = 4;
-		
+
 	const 	turretWidth = 88,
 			turretHeight = 86;
 			turretImgCount = 48,
@@ -8620,12 +9038,12 @@ module.exports = (function(){
 			// where to aim
 			playerOffsetX = 64/2,
 			playerOffsetY = playerOffsetX;
-			
+
 	const   cannonballNum = 3,
 			reloadTime = 5,
 			shootingDelay = 0.5,
 			optimizationDelay = 0.00;
-	
+
 	function Turret(locationX, locationY, mapLayer){
 		// computational constants
 		this.posX = locationX,
@@ -8639,7 +9057,7 @@ module.exports = (function(){
 		this.gravityPow2 = this.gravity * this.gravity,
 		this.gravityTimesLSPow2 = this.gravity * this.launchSpeedPow2,
 		this.LSPow2TimesTwoTimesG = 2 * this.launchSpeedPow2 * this.gravity,
-		
+
 		this.player = null;
 		this.state = IDLE;
 		this.targeting = false;
@@ -8655,19 +9073,20 @@ module.exports = (function(){
 		this.parabolaSeries = [];
 		// highlight for laser
 		this.highlight = new Array(Math.round(Math.random()*255), Math.round(Math.random()*255), Math.round(Math.random()*255));
-		
+
 		this.cannonballs = [],
 		this.cnbsFired = 0;
 		this.shotSound = [];
-		
-		this.spawnCannonballs = function() {
+		this.firstUpdate = false;
+
+		this.spawnCannonballs = function(entityManager) {
 			for (var i = 0; i < cannonballNum; i ++) {
 				this.cannonballs[i] = new Cannonball(this.posX, this.posY, 0, 0, 0, this.gravity, centerOffsetX, centerOffsetY);
 				entityManager.add(this.cannonballs[i]);
 				this.shotSound[i] = new Audio('./resources/sounds/shot.wav');
 			}
 		}
-		
+
 		// Loads animations to animations array
 		this.loadAnimations = function () {
 			for (var i = 0; i < turretImgCount; i ++) {
@@ -8675,7 +9094,7 @@ module.exports = (function(){
 			}
 			this.destroyedAnimation = new Animation(destroyedTurret, turretWidth, turretHeight, 0, 0, 10);
 		}
-		
+
 		// is called to aim the turret in a right angle
 		this.setAngleOfAnimation = function(angle) {
 			if (angle < 0) {
@@ -8686,11 +9105,11 @@ module.exports = (function(){
 				this.renderIdx = turretVertical - angleToFrames;
 			}
 		}
-		
+
 		// compute angle that is necessary for the turret to hit our target
 		this.getAngle = function (targetX, targetY) {
 			var position = this.getDistance(targetX, targetY);
-			
+
 			var rightPart =  Math.sqrt(this.launchSpeedPow4 - (this.gravityPow2 * position[0] * position[0] + this.LSPow2TimesTwoTimesG * position[1]));
 			var res1 = Math.atan((this.launchSpeedPow2 + rightPart) / (this.gravity * position[0])) /** (180 / 3.14159265)*/;
 			var res2 = Math.atan((this.launchSpeedPow2 - rightPart) / (this.gravity * position[0])) /** (180 / 3.14159265)*/;
@@ -8698,19 +9117,19 @@ module.exports = (function(){
 			// console.log(this.getHorizontalVel());
 			return res1;
 		}
-		
+
 		// get distance of the target relative to the turret which is at (0, 0)
 		this.getDistance = function (targetX, targetY) {
 			x = (targetX + playerOffsetX) - (this.posX + centerOffsetX);
 			y = (this.posY + centerOffsetY) - (targetY + playerOffsetY);
 			return [x, y];
 		}
-		
-		// computes initial vertical velocity of the projectile 
+
+		// computes initial vertical velocity of the projectile
 		this.getVerticalVel = function () {
 			return -this.launchSpeed * Math.sin(Math.abs(this.angle) /** (3.14159265/180)*/);
 		}
-		
+
 		// computes horizontal velocity of the projectile
 		this.getHorizontalVel = function () {
 			if (this.angle > 0)
@@ -8718,7 +9137,7 @@ module.exports = (function(){
 			else
 				return -this.launchSpeed * Math.cos(this.angle/* * (3.14159265/180)*/);
 		}
-		
+
 		// computes the time necessary for the projectile to reach the target
 		this.getTimeToReach = function(elevationDifference) {
 			var verticalVel = Math.abs(this.getVerticalVel());
@@ -8728,7 +9147,7 @@ module.exports = (function(){
 			var x2 = left + right;
 			return [x1, x2];
 		}
-		
+
 		// is called when the target gets in the turret's query range
 		this.targetInRange = function(entitie) {
 			if (this.optimizationTimer < optimizationDelay) {
@@ -8740,17 +9159,17 @@ module.exports = (function(){
 			this.buildParabola(entitie);
 			this.setAngleOfAnimation(this.angle);
 		}
-		
+
 		// get position x of the projectile at a given time after it has been fired
 		this.getXAtTime = function(time) {
 			return this.getHorizontalVel() * time;
 		}
-		
+
 		// get position y of the projectile at a given time after it has been fired
 		this.getYAtTime = function(time) {
 			return this.getVerticalVel() * time + this.gravity * time * time / 2;
 		}
-		
+
 		// constructs the parabolaSeries array that is used to approximate a parabola by drawing lines
 		this.buildParabola = function(entitie) {
 			this.parabolaSeries = [];
@@ -8762,13 +9181,13 @@ module.exports = (function(){
 				this.parabolaSeries[i] = { x: this.getXAtTime(intervals * i) + (this.posX + centerOffsetX), y : this.getYAtTime(intervals * i) + (this.posY + centerOffsetY)};
 			}
 		}
-		
+
 		// draws parabola looking like a laser
 		this.drawParabolaSeries = function(context) {
 			context.fillStyle = 'red';
 			context.lineWidth = 5;
 			context.strokeStyle = 'red';
-			
+
 			for (var j = 5; j >= 0; j --) {
 				context.beginPath();
 				context.lineWidth = (j+1)*4-2;
@@ -8786,17 +9205,22 @@ module.exports = (function(){
 				context.stroke();
 				}
 		}
-		
+
 		this.loadAnimations();
-		this.spawnCannonballs();
+
 	}
-	
+
 	Turret.prototype = new Entity();
-	
+
 	Turret.prototype.update = function(elapsedTime, tilemap, entityManager)
 	{
+		if(!this.firstUpdate) {
+			this.spawnCannonballs(entityManager);
+			this.firstUpdate = true;
+		}
+
 		this.optimizationTimer += elapsedTime;
-		
+
 		if (this.onGround(tilemap) == false) {
 			this.falling = true;
 			this.fallingVelocity += elapsedTime * this.gravity * 12;
@@ -8808,7 +9232,7 @@ module.exports = (function(){
 			this.falling = false;
 			this.fallingVelocity = 0;
 		}
-		
+
 		if (this.state == IDLE) {
 			// console.log("IDLE");
 			this.playerInRange = false;
@@ -8832,7 +9256,7 @@ module.exports = (function(){
 				this.player = null;
 			}
 		}
-		
+
 		if (this.targeting == true) {
 			// entitiesInRange = entityManager.queryRadius(this.posX, this.posY, 1500);
 			var angle = this.getAngle(this.player.currentX, this.player.currentY);
@@ -8840,7 +9264,7 @@ module.exports = (function(){
 					this.angle = angle;
 					this.targetInRange(this.player);
 					if (this.state == IDLE) {
-						this.state = FIRING;						
+						this.state = FIRING;
 					}
 				} else {
 					this.parabolaSeries = [];
@@ -8848,7 +9272,7 @@ module.exports = (function(){
 		} else {
 			this.parabolaSeries = [];
 		}
-		
+
 		if (this.state == FIRING) {
 			this.time = 0;
 			// this.shoot(this.getVerticalVel(), this.getHorizontalVel());
@@ -8862,7 +9286,7 @@ module.exports = (function(){
 				this.state = WAITING;
 			}
 		}
-		
+
 		if (this.state == WAITING) {
 			this.time += elapsedTime;
 			if (this.time > shootingDelay) {
@@ -8870,7 +9294,7 @@ module.exports = (function(){
 				this.state = IDLE;
 			}
 		}
-		
+
 		if (this.state == RELOADING) {
 			this.time += elapsedTime;
 			if (this.time > reloadTime) {
@@ -8879,9 +9303,14 @@ module.exports = (function(){
 				this.cnbsFired = 0;
 			}
 		}
-		
+
 		if (this.state == DESTROYED) {
 			this.destroyedAnimation.update(elapsedTime);
+			// Wyatt Watson - Now remove entity after it's destroyed
+			this.time += elapsedTime;
+			if (this.time > reloadTime) {
+				entityManager.remove(this);
+			}
 		}
 	}
 
@@ -8895,25 +9324,25 @@ module.exports = (function(){
 		else {
 			this.destroyedAnimation.render(context, this.posX, this.posY);
 		}
-		
-		
+
+
 		if(debug) renderDebug(this, context);
 	}
-	
+
 	Turret.prototype.onGround = function(tilemap) {
 		var box = this.boundingBox(),
         tileX = Math.floor((box.left + (turretWidth/2))/64),
         tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     // find the tile we are standing on.
 		return (tile && tile.data.solid) ? true : false;
 	}
-	
+
 	function renderDebug(turret, ctx) {
 		var bounds = turret.boundingBox();
 		var circle = turret.boundingCircle();
 		ctx.save();
-		
+
 		// Draw player bounding box
 		ctx.strokeStyle = "red";
 		ctx.beginPath();
@@ -8923,12 +9352,12 @@ module.exports = (function(){
 		ctx.lineTo(bounds.left, bounds.bottom);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		ctx.strokeStyle = "blue";
 		ctx.beginPath();
 		ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
 		ctx.stroke();
-		
+
 		// Outline tile underfoot
 		var tileX = 64 * Math.floor((bounds.left + (turretWidth/2))/64),
 			tileY = 64 * (Math.floor(bounds.bottom / 64));
@@ -8940,19 +9369,17 @@ module.exports = (function(){
 		ctx.lineTo(tileX, tileY + 64);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		ctx.restore();
   }
 
-	Turret.prototype.collide = function(otherEntity)
+	Turret.prototype.collide = function(otherEntity, entityManager)
 	{
 		if (otherEntity.type == 'cannonball' && (otherEntity.state == 3 /*Cannonball.EXPLODING*/)) {
 			this.state = DESTROYED;
 			this.targeting = false;
 			for (var i = 0; i < this.cannonballs.length; i ++) {
-			// Entity manager doesn't work correctly when I remove an entity
-				// entityManager.remove(this.cannonballs[i]);
-				// this.cannonballs[i] = [];
+				entityManager.remove(this.cannonballs[i]);
 			}
 		}
 	}
@@ -8975,11 +9402,11 @@ module.exports = (function(){
 			radius: 45 - 15
 		}
 	}
-	
+
 	return Turret;
-	
 }())
-},{"./animation.js":5,"./cannonball.js":10,"./entity-manager.js":16,"./entity.js":17,"./player.js":29}],41:[function(require,module,exports){
+
+},{"./animation.js":7,"./cannonball.js":12,"./entity.js":19,"./player.js":34}],47:[function(require,module,exports){
 
 /* Wolf module
  * Implements the entity pattern and provides
@@ -9237,4 +9664,4 @@ module.exports = (function(){
 }());
 
 
-},{"./animation.js":5,"./entity.js":17}]},{},[24]);
+},{"./animation.js":7,"./entity.js":19}]},{},[29]);

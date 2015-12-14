@@ -7,15 +7,15 @@ var Animation = require('./animation.js'),
 	cannonballImg.src = './img/turret/cannonball_small.png',
 	explosionImg = new Image(),
 	explosionImg.src = './img/turret/explosion_small.png';
-	
+
 	const IDLE = 0,
 		  ASCENDING = 1,
 		  DESCENDING = 2,
 		  EXPLODING = 3;
-		  
+
 	const BALL_SIZE = 20,
 	      EXPLOSION_SIZE = 64;
-		  
+
 	const TILE_WIDTH = 64,
 		  TILE_HEIGHT = 64,
 		  MAP_SIZE = 1000;
@@ -33,27 +33,27 @@ function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, grav
 	this.projectileTime = 0;
 	this.projectileTimeExploding = 0;
 	this.explosionSound = new Audio('./resources/sounds/explosion.wav');
-	
+
 	// constants
 	this.projectileTimeToReachTop = undefined;
-	
+
 	this.animations = [];
-	
+
 	this.animations[IDLE] = new Animation(explosionImg, BALL_SIZE, BALL_SIZE, 0, 0);
 	this.animations[ASCENDING] = new Animation(cannonballImg, BALL_SIZE, BALL_SIZE, 0, 0);
 	this.animations[DESCENDING] = new Animation(cannonballImg, BALL_SIZE, BALL_SIZE, 0, 0);
 	this.animations[EXPLODING] = new Animation(explosionImg, EXPLOSION_SIZE, EXPLOSION_SIZE, 0, 0, 10);
-	
+
 	// get position x of the projectile at a given time after it has been fired
 	this.getXAtTime = function() {
 		return this.initPosX + this.horizontalV * this.projectileTime;
 	}
-	
+
 	// get position y of the projectile at a given time after it has been fired
 	this.getYAtTime = function() {
 		return this.initPosY + this.verticalV * this.projectileTime + this.gravity * this.projectileTime * this.projectileTime / 2;
 	}
-	
+
 	this.reset = function(verticalV, horizontalV) {
 		this.posX = this.initPosX;
 		this.posY = this.initPosY;
@@ -64,7 +64,7 @@ function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, grav
 		this.projectileTimeToReachTop = -this.verticalV / gravity;
 		this.projectileTimeExploding = 0;
 	}
-	
+
 	this.checkCollisions = function(tile) {
 		if (tile && tile.data.solid) {
 			tilemap.destroyTileAt(1, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
@@ -73,23 +73,23 @@ function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, grav
 			this.explosionSound.play();
 		}
 	}
-	
+
 	this.offsetExploding = function() {
 		this.posX -= 20;
 		this.posY -= 20;
 	}
-	
+
 	this.getXFromCoords = function(x) {
 		return (x / TILE_WIDTH) | 0;
 	}
-	
+
 	this.getYFromCoords = function(y) {
 		return (y / TILE_HEIGHT) | 0;
 	}
 }
 
 Cannonball.prototype = new Entity();
-	
+
 	Cannonball.prototype.update = function(elapsedTime, tilemap, entityManager)
 	{
 		if (this.state == ASCENDING || this.state == DESCENDING) {
@@ -101,15 +101,18 @@ Cannonball.prototype = new Entity();
 			this.posY = this.getYAtTime();
 			this.projectileTime += 0.5;
 		}
-		
+
 		if (this.state == EXPLODING) {
 			this.animations[this.state].update(elapsedTime);
 			this.projectileTimeExploding += elapsedTime;
 			if (this.projectileTimeExploding > 2) {
 				this.state = IDLE;
+				//Wyatt Watson - Now removes the explosion left overs
+				// MZ - If you do that the turret has nothing to shoot with afterwards
+				// entityManager.remove(this);
 			}
 		}
-		
+
 		this.checkCollisions(Tilemap.tileAt(this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0));
 	}
 
@@ -125,14 +128,19 @@ Cannonball.prototype = new Entity();
 			this.offsetExploding();
 			this.state = EXPLODING;
 			this.explosionSound.play();
+		} else if (otherEntity.type == 'player') {
+			this.offsetExploding();
+			this.state = EXPLODING;
+			this.explosionSound.play();
+			otherEntity.hurt(30);
 		}
 	}
-	
+
 	function renderDebug(cannonball, ctx) {
 		var bounds = cannonball.boundingBox();
 		var circle = cannonball.boundingCircle();
 		ctx.save();
-		
+
 		// Draw player bounding box
 		ctx.strokeStyle = "red";
 		ctx.beginPath();
@@ -142,12 +150,12 @@ Cannonball.prototype = new Entity();
 		ctx.lineTo(bounds.left, bounds.bottom);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		ctx.strokeStyle = "blue";
 		ctx.beginPath();
 		ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
 		ctx.stroke();
-		
+
 		// Outline tile underfoot
 		var tileX = 64 * Math.floor((bounds.left + (BALL_SIZE/2))/64),
 			tileY = 64 * (Math.floor(bounds.bottom / 64));
@@ -159,7 +167,7 @@ Cannonball.prototype = new Entity();
 		ctx.lineTo(tileX, tileY + 64);
 		ctx.closePath();
 		ctx.stroke();
-		
+
 		ctx.restore();
   }
 
@@ -183,5 +191,5 @@ Cannonball.prototype = new Entity();
 	}
 
 return Cannonball;
-	
+
 }())

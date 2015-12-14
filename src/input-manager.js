@@ -11,7 +11,12 @@ module.exports = (function() {
     DIGUP: 87,		// W
 	PAY: 80,		// P
 	ATTACK : 65,	// A
-	SHOOT : 66	 	// B
+	SHOOT : 66,	 	// B
+	ONE : 49,
+	TWO : 50,
+	THREE : 51,
+	FOUR : 52,
+	FIVE : 53
   }
   
   var oldKeys = [];

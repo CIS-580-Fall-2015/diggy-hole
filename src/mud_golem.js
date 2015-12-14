@@ -145,7 +145,15 @@ module.exports = (function() {
       entityManager.remove(this.arm);
       entityManager.remove(this);
     }
-    var pd = entityManager.playerDistance(this);
+    var squared = function() {
+      var playerHitbox = entityManager.getPlayer().boundingBox();
+      var entityHitbox = this.boundingBox();
+
+      return (entityHitbox.left - playerHitbox.left) * (entityHitbox.left - playerHitbox.left) +
+          (entityHitbox.top - playerHitbox.top) * (entityHitbox.top - playerHitbox.top);
+
+    }
+    var pd = Math.sqrt(squared());
     // Don't proccess the rest of the state if the player is too far away
     if (pd > 1280) {
       return;
@@ -153,7 +161,7 @@ module.exports = (function() {
     // Process player state
     switch (sprite.state) {
       case STANDING:
-        this.isLeft = entityManager.playerDirection(this);
+        this.isLeft = entityManager.getPlayer().boundingBox().left <= this.boundingBox().left;
         this.arm.isLeft = this.isLeft;
         if (pd < 320) {
           this.state = CHARGING;
