@@ -178,7 +178,7 @@ module.exports = (function() {
             //call everyone's update function
             for(var i = 0; i < entityXpos.length; i ++) {
                 if(entityXpos[i] !== null) {
-                    entityXpos[i].entity.update(elapsedTime, tilemap, this);
+                    entityXpos[i].entity.update(elapsedTime, tilemap, this, ParticleManager);
                 }
             }
 
