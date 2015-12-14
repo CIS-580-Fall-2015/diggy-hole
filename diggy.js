@@ -887,7 +887,11 @@ module.exports = (function (){
       TILESIZEX : 64,
       TILESIZEY : 64,
       MAPSIZEX : 1000,
-      MAPSIZEY : 1000
+      MAPSIZEY : 1000,
+      MAX_ENTITIES : 200,
+      UPDATE_REGION : 75,
+      RENDER_REGION : 25,
+      UPDATE_TIME : 1/60,
     };
 })();
 
@@ -3029,13 +3033,10 @@ module.exports = (function(){
 * - Nathan Bean
 */
 module.exports = (function() {
+    var settings = require('./Settings.js');
+
     var EntityManager = function(player) {
         /* jshint esnext: true */
-        const MAX_ENTITIES = 200;
-        const UPDATE_REGION = 75;
-        const RENDER_REGION = 25;
-        const TILE_SIZE = 64;
-        const UPDATE_TIME = 1/60;
 
         var entityXpos = [],
             entityYpos = [],
@@ -3047,7 +3048,7 @@ module.exports = (function() {
          * - entity, the entity to add
          */
         function add(entityToAdd) {
-            if (entityCount + 1 < MAX_ENTITIES) {
+            if (entityCount + 1 < settings.MAX_ENTITIES) {
                 var boundingBox = entityToAdd.boundingBox();
                 var entityPos = {
                     entity: entityToAdd,
@@ -3213,9 +3214,9 @@ module.exports = (function() {
             timeSinceUpdateRegion += elapsedTime;
 
             //create bounding box and clean updatable objects, but only after some time interval
-            if(timeSinceUpdateRegion >= UPDATE_TIME) {
+            if(timeSinceUpdateRegion >= settings.UPDATE_TIME) {
                 var playerBB = player.boundingBox(),
-                    updateFactor = UPDATE_REGION * TILE_SIZE,
+                    updateFactor = settings.UPDATE_REGION * settings.TILESIZEX,
                     updateBox = {
                         top: playerBB.top - updateFactor,
                         bottom: playerBB.bottom + updateFactor,
@@ -3251,7 +3252,7 @@ module.exports = (function() {
         function render(ctx, debug) {
             //create the renderable region
             var playerBB = player.boundingBox(),
-                updateFactor = RENDER_REGION * TILE_SIZE,
+                updateFactor = settings.RENDER_REGION * settings.TILESIZEX,
                 updateBox = {
                     top: playerBB.top - updateFactor,
                     bottom: playerBB.bottom + updateFactor,
@@ -3285,7 +3286,7 @@ module.exports = (function() {
     return EntityManager;
 }());
 
-},{}],19:[function(require,module,exports){
+},{"./Settings.js":6}],19:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -9043,7 +9044,6 @@ module.exports = (function(){
 		Player = require('./player.js'),
 		Entity = require('./entity.js'),
 		Cannonball = require('./cannonball.js'),
-		entityManager = require('./entity-manager.js'),
 		turret = new Image();
 		turret.src = './img/turret/turretMany.png';
 		destroyedTurret = new Image();
@@ -9106,8 +9106,9 @@ module.exports = (function(){
 		this.cannonballs = [],
 		this.cnbsFired = 0;
 		this.shotSound = [];
+		this.firstUpdate = false;
 
-		this.spawnCannonballs = function() {
+		this.spawnCannonballs = function(entityManager) {
 			for (var i = 0; i < cannonballNum; i ++) {
 				this.cannonballs[i] = new Cannonball(this.posX, this.posY, 0, 0, 0, this.gravity, centerOffsetX, centerOffsetY);
 				entityManager.add(this.cannonballs[i]);
@@ -9235,13 +9236,18 @@ module.exports = (function(){
 		}
 
 		this.loadAnimations();
-		this.spawnCannonballs();
+
 	}
 
 	Turret.prototype = new Entity();
 
 	Turret.prototype.update = function(elapsedTime, tilemap, entityManager)
 	{
+		if(!this.firstUpdate) {
+			this.spawnCannonballs(entityManager);
+			this.firstUpdate = true;
+		}
+
 		this.optimizationTimer += elapsedTime;
 
 		if (this.onGround(tilemap) == false) {
@@ -9429,7 +9435,7 @@ module.exports = (function(){
 	return Turret;
 }())
 
-},{"./animation.js":7,"./cannonball.js":12,"./entity-manager.js":18,"./entity.js":19,"./player.js":34}],47:[function(require,module,exports){
+},{"./animation.js":7,"./cannonball.js":12,"./entity.js":19,"./player.js":34}],47:[function(require,module,exports){
 
 /* Wolf module
  * Implements the entity pattern and provides

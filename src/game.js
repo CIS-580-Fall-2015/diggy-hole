@@ -111,7 +111,7 @@ module.exports = (function (){
         // Create the player and add them to
         // the entity manager
         player = new Player(400, 240, 0, inputManager, hb, scoreEngine, inventory);
-        entityManager = new EntityManager(player, Settings);
+        entityManager = new EntityManager(player);
         entityManager.add(player);
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player);

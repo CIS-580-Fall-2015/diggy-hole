@@ -6,7 +6,9 @@
 * - Nathan Bean
 */
 module.exports = (function() {
-    var EntityManager = function(player, settings) {
+    var settings = require('./Settings.js');
+
+    var EntityManager = function(player) {
         /* jshint esnext: true */
 
         var entityXpos = [],
