@@ -361,7 +361,7 @@ module.exports = (function(){
 		ctx.restore();
   }
 
-	Turret.prototype.collide = function(otherEntity)
+	Turret.prototype.collide = function(otherEntity, entityManager)
 	{
 		if (otherEntity.type == 'cannonball' && (otherEntity.state == 3 /*Cannonball.EXPLODING*/)) {
 			this.state = DESTROYED;
