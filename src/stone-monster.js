@@ -27,7 +27,7 @@ module.exports = (function(){
     const WAIT_TIME = 3;
 
     const TIME_TO_LIVE = 25;
-    const INITIAL_HEALTH = 60*13;
+    const INITIAL_HEALTH = 20;
 
     function StoneMonster(locationX, locationY, layerIndex) {
         this.type = "StoneMonster";
