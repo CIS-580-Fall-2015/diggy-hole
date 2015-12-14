@@ -3043,6 +3043,8 @@ module.exports = (function() {
             entityCount = 0,
             timeSinceUpdateRegion;
 
+        add(player);
+
         /* Adds an entity to those managed.
          * Arguments:
          * - entity, the entity to add
@@ -3203,7 +3205,7 @@ module.exports = (function() {
             //call everyone's update function
             for(var i = 0; i < entityXpos.length; i ++) {
                 if(entityXpos[i] !== null) {
-                    entityXpos[i].entity.update(elapsedTime, tilemap, this);
+                    entityXpos[i].entity.update(elapsedTime, tilemap, this, ParticleManager);
                 }
             }
 
