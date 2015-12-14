@@ -89,7 +89,7 @@ module.exports = (function() {
                  current = entityXpos[i].hitbox;
                  j = i;
                  while(++j < entityXpos.length && current.right >= entityXpos[j].hitbox.left) {
-                     xPotentialCollisions.push({ a: current.entity, b: entityXpos[j].entity });
+                     xPotentialCollisions.push({ a: entityXpos[i].entity, b: entityXpos[j].entity });
                  }
              }
 
@@ -97,7 +97,7 @@ module.exports = (function() {
                  current = entityYpos[i].hitbox;
                  j = i;
                  while(++j < entityYpos.length && current.bottom >= entityYpos[j].hitbox.top) {
-                     yPotentialCollisions.push({ a: current.entity, b: entityYpos[j].entity });
+                     yPotentialCollisions.push({ a: entityYpos[i].entity, b: entityYpos[j].entity });
                  }
              }
 
