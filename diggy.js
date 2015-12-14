@@ -980,8 +980,8 @@ module.exports = (function(){
 		Player = require('./player.js'),
 		Bone = require('./bone.js'),
       Animation = require('./animation.js'),
-	  PowerUp = require('./powerUp.js'),
-	  entityManager = require('./entity-manager.js');
+	  PowerUp = require('./powerUp.js');
+	//  entityManager = require('./entity-manager.js');
 
 
   const DEBUG = true;
@@ -1197,7 +1197,7 @@ module.exports = (function(){
 
 
 		case ATTACKING:
-			sprite.attack(elapsedTime, entities);
+			sprite.attack(elapsedTime, entities, entityManager);
 			if(!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
             sprite.velocityY = 0;
@@ -1382,13 +1382,13 @@ module.exports = (function(){
     *   to determine what type it is to know what to
     *   do with it.
     */
-   Barrel.prototype.collide = function(otherEntity) {
+   Barrel.prototype.collide = function(otherEntity, entityManager) {
 	   if((this.state == ATTACKING || this.state == IDLE) && this.recovered && otherEntity instanceof Player){
 		   if(DEBUG){
 		   console.log("Collision with player");
 	   }
 		   if(--this.lives<=0){
-			   this.die();
+			   this.die(entityManager);
 
 		   } else {
 			   if(DEBUG){
@@ -1407,7 +1407,7 @@ module.exports = (function(){
 	   }
    }
 
-   Barrel.prototype.die = function(){
+   Barrel.prototype.die = function(entityManager){
 	   this.state = DEAD;
 			   boneUp = new PowerUp(this.currentX, this.currentY, this.layerIndex, 'boneUp', 64, 64, 10, 'img/powerUps/boneUp.png');
 			   entityManager.add(boneUp);
@@ -1416,7 +1416,7 @@ module.exports = (function(){
 			}
    }
 
-   Barrel.prototype.attack = function(elapsedTime, entities){
+   Barrel.prototype.attack = function(elapsedTime, entities, entityManager){
 		this.lastAttack += elapsedTime;
 		if(this.lastAttack >= this.attackFrequency){
 
@@ -1443,7 +1443,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./bone.js":11,"./entity-manager.js":18,"./entity.js":19,"./player.js":34,"./powerUp.js":35}],9:[function(require,module,exports){
+},{"./animation.js":7,"./bone.js":11,"./entity.js":19,"./player.js":34,"./powerUp.js":35}],9:[function(require,module,exports){
 /* Bird Module
 	Authors: Josh Benard
 */
@@ -3132,7 +3132,7 @@ module.exports = (function() {
                  for(j = 0; j < yPotentialCollisions.length; j++) {
                      if( (xPotentialCollisions[i].a === yPotentialCollisions[j].a && xPotentialCollisions[i].b === yPotentialCollisions[j].b) ||
                          (xPotentialCollisions[i].b === yPotentialCollisions[j].a && xPotentialCollisions[i].a === yPotentialCollisions[j].b)) {
-                         xPotentialCollisions[i].a.collide(xPotentialCollisions[i].b);
+                         xPotentialCollisions[i].a.collide(xPotentialCollisions[i].b, this);
                          break;
                      }
                  }
