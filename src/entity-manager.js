@@ -117,6 +117,7 @@ module.exports = (function() {
                  if( (xPotentialCollisions[i].a === yPotentialCollisions[j].a && xPotentialCollisions[i].b === yPotentialCollisions[j].b) ||
                      (xPotentialCollisions[i].b === yPotentialCollisions[j].a && xPotentialCollisions[i].a === yPotentialCollisions[j].b)) {
                      xPotentialCollisions[i].a.collide(xPotentialCollisions[i].b, this);
+                     xPotentialCollisions[i].b.collide(xPotentialCollisions[i].a, this);
                      break;
                  }
              }
