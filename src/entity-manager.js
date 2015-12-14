@@ -60,7 +60,7 @@ module.exports = (function() {
         }
     };
 
-    EntityManager.prototype.insertionSort = function(items) {
+    EntityManager.prototype.insertionSortLeft = function(items) {
         for (var i = 0; i < items.length; ++i) {
             var tmp = items[i];
             for (var j = i - 1; j >=0 && items[j].hitbox.left > tmp.hitbox.left; --j) {
@@ -70,9 +70,19 @@ module.exports = (function() {
         }
     };
 
+    EntityManager.prototype.insertionSortTop = function(items) {
+        for (var i = 0; i < items.length; ++i) {
+            var tmp = items[i];
+            for (var j = i - 1; j >=0 && items[j].hitbox.top > tmp.hitbox.top; --j) {
+                items[j + 1] = items[j];
+            }
+            items[j + 1] = tmp;
+        }
+    };
+
     EntityManager.prototype.sortEntities = function() {
-        this.insertionSort(entityXpos);
-        this.insertionSort(entityYpos);
+        this.insertionSortLeft(entityXpos);
+        this.insertionSortTop(entityYpos);
     };
 
     /* Checks for collisions between entities, and

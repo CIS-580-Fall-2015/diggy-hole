@@ -3086,7 +3086,7 @@ module.exports = (function() {
         }
     };
 
-    EntityManager.prototype.insertionSort = function(items) {
+    EntityManager.prototype.insertionSortLeft = function(items) {
         for (var i = 0; i < items.length; ++i) {
             var tmp = items[i];
             for (var j = i - 1; j >=0 && items[j].hitbox.left > tmp.hitbox.left; --j) {
@@ -3096,9 +3096,19 @@ module.exports = (function() {
         }
     };
 
+    EntityManager.prototype.insertionSortTop = function(items) {
+        for (var i = 0; i < items.length; ++i) {
+            var tmp = items[i];
+            for (var j = i - 1; j >=0 && items[j].hitbox.top > tmp.hitbox.top; --j) {
+                items[j + 1] = items[j];
+            }
+            items[j + 1] = tmp;
+        }
+    };
+
     EntityManager.prototype.sortEntities = function() {
-        this.insertionSort(entityXpos);
-        this.insertionSort(entityYpos);
+        this.insertionSortLeft(entityXpos);
+        this.insertionSortTop(entityYpos);
     };
 
     /* Checks for collisions between entities, and
@@ -3437,7 +3447,8 @@ module.exports = (function (){
 
         // Create the player and add them to
         // the entity manager
-        player = new Player(400, 240, 0, inputManager, hb, scoreEngine, inventory);
+        var randomPos = tilemap.randomInSky();
+        player = new Player(randomPos.x * 64, randomPos.y * 64, 0, inputManager, hb, scoreEngine, inventory);
         entityManager = new EntityManager(player);
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player);
@@ -3468,7 +3479,7 @@ module.exports = (function (){
         // sudo_chan = new Sudo_Chan(490, 1240, 0);
         // entityManager.add(sudo_chan);
         //
-        octopus = new Octopus(120, 2240, 0);
+        octopus = new Octopus(randomPos.x * 64, randomPos.y * 64, 0);
         entityManager.add(octopus);
         //
         // DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
@@ -8973,6 +8984,13 @@ module.exports = (function (){
       layers[layer].data[x + y * mapWidth] = newType;
   };
 
+  var randomInSky = function() {
+    return {
+      x: Math.floor(Math.random() * mapWidth),
+      y: Math.floor(Math.random() * this.surface)
+    }
+  };
+
   // Expose the module's public API
   return {
     load: load,
@@ -8991,7 +9009,8 @@ module.exports = (function (){
     mineAt: mineAt,
     consolidateLiquids: consolidateLiquids,
     update: update,
-    renderWater: renderWater
+    renderWater: renderWater,
+    randomInSky: randomInSky
   }
 
 
@@ -9361,7 +9380,7 @@ module.exports = (function(){
 		ctx.restore();
   }
 
-	Turret.prototype.collide = function(otherEntity)
+	Turret.prototype.collide = function(otherEntity, entityManager)
 	{
 		if (otherEntity.type == 'cannonball' && (otherEntity.state == 3 /*Cannonball.EXPLODING*/)) {
 			this.state = DESTROYED;
