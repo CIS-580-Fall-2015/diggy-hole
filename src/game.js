@@ -110,7 +110,8 @@ module.exports = (function (){
 
         // Create the player and add them to
         // the entity manager
-        player = new Player(400, 240, 0, inputManager, hb, scoreEngine, inventory);
+        var randomPos = tilemap.randomInSky();
+        player = new Player(randomPos.x * 64, randomPos.y * 64, 0, inputManager, hb, scoreEngine, inventory);
         entityManager = new EntityManager(player);
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player);
@@ -141,7 +142,7 @@ module.exports = (function (){
         // sudo_chan = new Sudo_Chan(490, 1240, 0);
         // entityManager.add(sudo_chan);
         //
-        octopus = new Octopus(120, 2240, 0);
+        octopus = new Octopus(randomPos.x * 64, randomPos.y * 64, 0);
         entityManager.add(octopus);
         //
         // DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);

@@ -3036,7 +3036,6 @@ module.exports = (function() {
 
     var entityXpos = [],
         entityYpos = [],
-        entityCount = 0,
         player,
         timeSinceUpdateRegion;
 
@@ -3070,7 +3069,7 @@ module.exports = (function() {
          */
     EntityManager.prototype.remove = function(entity) {
         var xPos = -1, yPos = -1;
-        for (var i = 0; i < entityCount; i++) {
+        for (var i = 0; i < entityXpos.length; i++) {
             if (entityXpos[i].entity === entity) xPos = i;
             if (entityYpos[i].entity === entity) yPos = i;
         }
@@ -3085,7 +3084,7 @@ module.exports = (function() {
         for (var i = 0; i < entityXpos.length; i++) {
             entityXpos[i].hitbox = entityXpos[i].entity.boundingBox();
         }
-    }
+    };
 
     EntityManager.prototype.insertionSort = function(items) {
         for (var i = 0; i < items.length; ++i) {
@@ -3095,12 +3094,12 @@ module.exports = (function() {
             }
             items[j + 1] = tmp;
         }
-    }
+    };
 
     EntityManager.prototype.sortEntities = function() {
         this.insertionSort(entityXpos);
         this.insertionSort(entityYpos);
-    }
+    };
 
     /* Checks for collisions between entities, and
      * triggers the collide() event handler.
@@ -3138,7 +3137,7 @@ module.exports = (function() {
                  }
              }
          }
-     }
+     };
 
     /* Returns all entities within the given radius.
      * Arguments:
@@ -3159,7 +3158,7 @@ module.exports = (function() {
         }
 
         return entitesInRadius;
-    }
+    };
 
     EntityManager.prototype.isWithinCircle = function(x, y, r, circle) {
         if(Math.pow(circle.radius + r, 2) >=
@@ -3167,12 +3166,12 @@ module.exports = (function() {
             return true;
 
         return false;
-    }
+    };
 
     //Determines if 2 bounding boxes intersect in any way
     EntityManager.prototype.isWithinBox = function(bb1, bb2) {
         return(bb1.left < bb2.right && bb1.right > bb2.left && bb1.top < bb2.bottom && bb1.bottom > bb2.top);
-    }
+    };
 
     /* Updates all managed entities
      * Arguments:
@@ -3212,7 +3211,7 @@ module.exports = (function() {
 
         //check collisions
         this.checkCollisions();
-    }
+    };
 
     /* Renders the managed entities
      * Arguments:
@@ -3237,11 +3236,11 @@ module.exports = (function() {
                     entityXpos[i].entity.render(ctx, debug);
             }
         }
-    }
+    };
 
     EntityManager.prototype.getPlayer = function() {
         return player;
-    }
+    };
 
     return EntityManager;
 
