@@ -53,7 +53,7 @@ module.exports = (function() {
 
         function updateEntityHitboxes() {
             for (var i = 0; i < entityXpos.length; i++) {
-                entityXpos[i].hitbox = entityXpos[i].entity.getBoundingBox();
+                entityXpos[i].hitbox = entityXpos[i].entity.boundingBox();
             }
         }
 
@@ -122,7 +122,7 @@ module.exports = (function() {
             var entitesInRadius = [];
             for (var i = 0; i < entityXpos.length; i++) {
                 if (entityXpos[i] !== null) {
-                    var boundingCircle = entityXpos[i].boundingCircle();
+                    var boundingCircle = entityXpos[i].entity.boundingCircle();
                     if (isWithinCircle(x, y, r, boundingCircle))
                         entitesInRadius.push(entityXpos[i].entity);
                 }
