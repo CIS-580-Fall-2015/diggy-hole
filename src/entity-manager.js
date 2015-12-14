@@ -21,42 +21,15 @@ module.exports = (function() {
          * - entity, the entity to add
          */
         function add(entityToAdd) {
-            if (entityCount + 1 < settings.MAX_ENTITIES) {
+            if (entityXpos.length < settings.MAX_ENTITIES) {
                 var boundingBox = entityToAdd.boundingBox();
                 var entityPos = {
                     entity: entityToAdd,
                     hitbox: boundingBox
                 };
 
-                //Add the wrapper object to the X pos list
-                for (var i = 0; i < entityXpos.length; i++) {
-                    if (entityXpos[i] !== null) {
-                        if (entityPos.hitbox.left <= entityXpos[i]) {
-                            entityXpos.splice(i, 0, entityPos);
-                            break;
-                        }
-                    }
-                    else {
-                        entityXpos.splice(i, 0, entityPos);
-                        break;
-                    }
-                }
-
-                //Add the wrapper object to the Y pos list
-                for (var i = 0; i < entityYpos.length; i++) {
-                    if (entityYpos[i] !== null) {
-                        if (entityPos.hitbox.left <= entityYpos[i]) {
-                            entityYpos.splice(i, 0, entityPos);
-                            break;
-                        }
-                    }
-                    else {
-                        entityYpos.splice(i, 0, entityPos);
-                        break;
-                    }
-                }
-
-                entityCount++;
+                entityXpos.push(entityPos);
+                entityYpos.push(entityPos);
             }
         }
 
@@ -74,7 +47,6 @@ module.exports = (function() {
             if (xPos === -1 || yPos === -1) return false;
             entityXpos.splice(xPos, 1);
             entityYpos.splice(yPos, 1);
-            entityCount--;
             return true;
         }
 
