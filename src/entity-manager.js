@@ -16,6 +16,8 @@ module.exports = (function() {
             entityCount = 0,
             timeSinceUpdateRegion;
 
+        add(player);
+
         /* Adds an entity to those managed.
          * Arguments:
          * - entity, the entity to add
