@@ -90,11 +90,12 @@ module.exports = (function (){
             onload: function() {
                 window.tilemap = tilemap;
                 tilemap.render(screenCtx);
+                //tilemap.renderWater(screenCtx);
             }
         });
 
-        // Set up HUD
-        hud = new HUD(Settings.SCREENSIZEX, Settings.SCREENSIZEY);
+		// Set up HUD
+		hud = new HUD(Settings.SCREENSIZEX, Settings.SCREENSIZEY);
 
         // Set up score engine
         scoreEngine = new ScoreEngine();
