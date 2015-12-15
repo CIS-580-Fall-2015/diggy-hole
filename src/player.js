@@ -45,7 +45,7 @@ module.exports = (function() {
 
     // Swimming Moving Constant
     const GRAVITY_IN_WATER = -80;
-    const SWIM_UP = -164;
+    const SWIM_UP = -100;
     const SPEED_IN_LIQUID = 80;
 	
 	// Inventory constants
@@ -153,12 +153,30 @@ module.exports = (function() {
         }
         return false; //
     };
+    // Check to see if player is on top of water
+        Player.prototype.onWater = function(tilemap) {
+            var box = this.boundingBox();
+            var tileX = Math.floor((box.right)/64);
+            // Based on the position that player is facing changed the location of it's X coordinate
+            if(this.isLeft) {
+            tileX = Math.floor((box.left)/64);
+            }
+            var tileY = Math.floor(box.bottom / 64) - 1,// check if player is right above water.
+            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+            if(tile){
+                if (tile.data.type == "Water" && !this.inWater(tilemap)){
+                    return true;
+                }
+             }
+         return false; //
+        };
+
 
     // Determines if the player is on the ground
     Player.prototype.onGround = function(tilemap) {
         var box = this.boundingBox(),
-            tileXL = Math.floor((box.left + 32) / 64),
-            tileXR = Math.floor((box.right - 32) / 64),
+            tileXL = Math.floor((box.left + 50) / 64),
+            tileXR = Math.floor((box.right - 10) / 64),
             tileY = Math.floor((box.bottom) / 64),
             tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
             tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
@@ -167,6 +185,19 @@ module.exports = (function() {
         if(tileR && tileR.data.solid) return true;
         return false;
     };
+    Player.prototype.onGroundInWater = function(tilemap) {
+        var box = this.boundingBox(),
+            tileXL = Math.floor((box.left) / 64),
+            tileXR = Math.floor((box.right) / 64),
+            tileY = Math.floor((box.bottom) / 64),
+            tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
+            tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
+        // find the tile we are standing on.
+        if(tileL && tileL.data.solid) return true;
+        if(tileR && tileR.data.solid) return true;
+        return false;
+    };
+
 
     // Check that player's head is above water but not hitting a solid
     Player.prototype.headOverWater = function (tilemap){
@@ -178,7 +209,8 @@ module.exports = (function() {
             tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
             tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
             return (tileL.data.type == "CaveBackground" || tileR.data.type == "SkyBackground"
-            || tileL.data.type == "SkyBackground" || tileR.data.type == "CaveBackground");
+            || tileL.data.type == "SkyBackground" || tileR.data.type == "CaveBackground") &&
+                (tileL.data.type!== this.inWater(tilemap) && tileR.data.type !== this.inWater(tilemap));
     };
 
     // Determines if the player will ram his head into a block above
@@ -255,9 +287,9 @@ module.exports = (function() {
                 }
                 // If player is above water or inside water
                 else if(this.inWater(tilemap)){
-                        this.state = SWIMMING;
-                        this.holdBreath = true;
-                        
+                    this.state = SWIMMING;
+                    this.holdBreath = true;
+                    this.velocityY = 0;
                 }
                 else {
                     if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
@@ -314,7 +346,12 @@ module.exports = (function() {
                 if(this.velocityY < TERMINAL_VELOCITY) {
                     this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
                 }
-                this.currentY += this.velocityY * elapsedTime;
+                if(this.onWater(tilemap)){
+                    this.state = SWIMMING;
+                }
+                else{
+                    this.currentY += this.velocityY * elapsedTime;
+                }
                 if (this.onGround(tilemap)) {
                     this.state = STANDING;
                     this.currentY = 64 * Math.floor(this.currentY / 64);
@@ -326,11 +363,6 @@ module.exports = (function() {
                     this.isLeft = false;
                     this.moveRight(elapsedTime * this.SPEED, tilemap);
                 }
-                //else if(this.inWater(tilemap)){
-                    //this.velocityY = 0;
-                    //this.state = SWIMMING;
-                    //this.holdBreath = true;
-                //}
                 break;
             case SWIMMING:
               //if(this.inWater(tilemap)) {
@@ -357,13 +389,13 @@ module.exports = (function() {
                       this.state = STANDING;
                       console.log("standing");
                   }
-                  else if (this.onGround(tilemap) && this.inWater(tilemap)) {
+                  else if (this.onGroundInWater(tilemap) && this.inWater(tilemap)) {
                       this.velocityY = 0;
                       this.currentY = 64 * Math.floor(this.currentY / 64);
                       console.log("floating in water");
                   }
                   else if(this.headOverWater(tilemap)){
-                      this.velocityY = SWIM_UP;
+                      this.velocityY = -500;
                       //this.currentY += this.velocityY * elapsedTime;
                       console.log("I am not in water");
                       this.state = JUMPING;
@@ -374,15 +406,12 @@ module.exports = (function() {
                       this.velocityY = 0;
                   }
                   else{
-                      if(!this.onGround(tilemap)){
+                      if(!this.onGroundInWater(tilemap)){
                           //Player Sinks automatically, they have resistance i.e sink slower if fully immersed in water
                           this.currentY += this.velocityY * elapsedTime;
                       }
 
                   }
-                  //this.swimmingProperty.escapeSwimming = false;
-              //}
-                // Exact copy of walking state code, might be a bit redudant, possibly make it a global function?
 
 
                 // A counter for the health bar to check if player is drowning
@@ -843,9 +872,9 @@ module.exports = (function() {
      */
     Player.prototype.boundingBox = function() {
         return {
-            left: this.currentX,
-            top: this.currentY,
-            right: this.currentX + SIZE,
+            left: this.currentX + 10,
+            top: this.currentY + 15,
+            right: this.currentX + SIZE - 5,
             bottom: this.currentY + SIZE
         };
     };
