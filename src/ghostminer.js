@@ -277,6 +277,6 @@ var direction;//0 for left, 1 for right
      }
    }
 
-  return Player;
+  return Ghost;
 
 }());
