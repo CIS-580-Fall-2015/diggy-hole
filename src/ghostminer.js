@@ -90,9 +90,9 @@ var direction;//0 for left, 1 for right
   // Moves the player to the right, colliding with solid tiles
   Ghost.prototype.moveRight = function(distance, tilemap) {
     this.currentX += distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
+    var box = this.boundingBox();
+        tileX = Math.floor(box.right/64);
+        tileY = Math.floor(box.bottom / 64) - 1;
         tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     if (tile && tile.data.solid)
       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
@@ -133,17 +133,17 @@ var direction;//0 for left, 1 for right
               this.state = IDLE;
             }
             else if (chance > 92) { //Small chance to change direction
-              if (direction == 0) this.direction = 1;
+              if (direction == 0) direction = 1;
               else direction = 0;
             }
             else {
               if (!this.onGround(tilemap)){
                 this.velocityY = -1;
-                this.currentY = currentY + velocityY;
+                this.currentY = this.currentY + this.velocityY;
               }
               else this.velocityY = 0;
               if (direction == 0) this.moveLeft(elapsedTime * PAS_SPEED, tilemap);
-              else this.moveRight(elapsedTime * PAS_SPEED)
+              else this.moveRight(elapsedTime * PAS_SPEED, tilemap);
             }
           }
           break;
