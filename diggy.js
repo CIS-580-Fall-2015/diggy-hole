@@ -236,7 +236,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity.js":19,"./player.js":34,"./powerUp.js":35}],2:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19,"./player.js":35,"./powerUp.js":36}],2:[function(require,module,exports){
 /* DemonicGroundHog
  * Authors:
 	Nathan Bean
@@ -1442,7 +1442,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./bone.js":11,"./entity.js":19,"./player.js":34,"./powerUp.js":35}],9:[function(require,module,exports){
+},{"./animation.js":7,"./bone.js":11,"./entity.js":19,"./player.js":35,"./powerUp.js":36}],9:[function(require,module,exports){
 /* Bird Module
 	Authors: Josh Benard
 */
@@ -1590,7 +1590,7 @@ module.exports = (function(){
 	return Bird;
 
 }());
-},{"./animation.js":7,"./entity.js":19,"./player.js":34}],10:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19,"./player.js":35}],10:[function(require,module,exports){
 module.exports = (function(){
   var Entity = require('./entity.js');
   var PlayerClass = require('./player.js');
@@ -1851,9 +1851,9 @@ var everal = false;
 
 }());
 
-},{"./entity.js":19,"./player.js":34}],11:[function(require,module,exports){
+},{"./entity.js":19,"./player.js":35}],11:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"./animation.js":7,"./entity.js":19,"./player.js":34,"./powerUp.js":35,"dup":1}],12:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19,"./player.js":35,"./powerUp.js":36,"dup":1}],12:[function(require,module,exports){
 module.exports = (function(){
 
 var Animation = require('./animation.js'),
@@ -2050,7 +2050,7 @@ return Cannonball;
 
 }())
 
-},{"./animation.js":7,"./entity.js":19,"./tilemap.js":45}],13:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19,"./tilemap.js":46}],13:[function(require,module,exports){
 /* The construct for a collectible. Inherits from entity.
  * Removed from entity manager upon being collected by player.
  * Certain strategies derived from the powerup class.
@@ -3390,11 +3390,11 @@ module.exports = (function (){
         PowerUp = require('./powerUp.js'),
         Collectible = require('./collectible.js'),
         ParticleManager = require('./particle-manager.js'),
-		HUD = require('./HUD.js'),
-		hud,
-		healthBar = require('./healthBar.js'),
-		Inventory = require('./inventory.js'),
-    Settings = require('./Settings.js');
+        HUD = require('./HUD.js'),
+        hud,
+        healthBar = require('./healthBar.js'),
+        Inventory = require('./inventory.js'),
+        Settings = require('./Settings.js');
 
     /* Loads the GameState, triggered by the StateManager
      * This function sets up the screen canvas, the tilemap,
@@ -3431,20 +3431,20 @@ module.exports = (function (){
             }
         });
 
-		// Set up HUD
-		hud = new HUD(Settings.SCREENSIZEX, Settings.SCREENSIZEY);
+        // Set up HUD
+        hud = new HUD(Settings.SCREENSIZEX, Settings.SCREENSIZEY);
 
         // Set up score engine
         scoreEngine = new ScoreEngine();
         hud.addElement(scoreEngine);
 
-		// SEt up invenotory
-		inventory = new Inventory(3);
-		hud.addElement(inventory);
+        // SEt up invenotory
+        inventory = new Inventory(3);
+        hud.addElement(inventory);
 
-		// Set up health bar
-		hb = new healthBar();
-		hud.addElement(hb);
+        // Set up health bar
+        hb = new healthBar(stateManager);
+        hud.addElement(hb);
 
         // Create the player and add them to
         // the entity manager
@@ -3499,8 +3499,8 @@ module.exports = (function (){
         // and some shamans
         for(i = 0; i < 3; i++) {
             // if (i < 3) {
-                // turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
-                // entityManager.add(turret);
+            // turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
+            // entityManager.add(turret);
 
             // }
             // dynamiteDwarf = new DynamiteDwarf(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
@@ -3552,7 +3552,7 @@ module.exports = (function (){
         ParticleManager.update(elapsedTime);
         inputManager.swapBuffers();
         octopus.getPlayerPosition(player.boundingBox());
-		hud.update(player.boundingBox());
+        hud.update(player.boundingBox());
     };
 
     /* Renders the current state of the game world
@@ -3575,7 +3575,7 @@ module.exports = (function (){
         //player.render(backBufferCtx, true);
         ParticleManager.render(backBufferCtx);
         tilemap.renderWater(backBufferCtx);
-		hud.render(backBufferCtx);
+        hud.render(backBufferCtx);
 
         backBufferCtx.restore();
 
@@ -3617,7 +3617,42 @@ module.exports = (function (){
 
 })();
 
-},{"./DemonicGroundH.js":2,"./HUD.js":3,"./Kakao.js":4,"./Settings.js":6,"./barrel.js":8,"./bird.js":9,"./blobber.js":10,"./collectible.js":13,"./dynamiteDwarf.js":17,"./entity-manager.js":18,"./goblin-miner.js":21,"./goblin-shaman.js":22,"./healthBar.js":23,"./input-manager.js":25,"./inventory.js":26,"./main-menu.js":28,"./octopus.js":31,"./particle-manager.js":33,"./player.js":34,"./powerUp.js":35,"./rat.js":36,"./robo-killer.js":37,"./score.js":38,"./slime.js":39,"./spawning-manager.js":40,"./stone-monster.js":42,"./sudo_chan.js":44,"./tilemap.js":45,"./turret.js":46,"./wolf.js":47}],21:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./HUD.js":3,"./Kakao.js":4,"./Settings.js":6,"./barrel.js":8,"./bird.js":9,"./blobber.js":10,"./collectible.js":13,"./dynamiteDwarf.js":17,"./entity-manager.js":18,"./goblin-miner.js":22,"./goblin-shaman.js":23,"./healthBar.js":24,"./input-manager.js":26,"./inventory.js":27,"./main-menu.js":29,"./octopus.js":32,"./particle-manager.js":34,"./player.js":35,"./powerUp.js":36,"./rat.js":37,"./robo-killer.js":38,"./score.js":39,"./slime.js":40,"./spawning-manager.js":41,"./stone-monster.js":43,"./sudo_chan.js":45,"./tilemap.js":46,"./turret.js":47,"./wolf.js":48}],21:[function(require,module,exports){
+/* Game over module
+ * Authors:
+ * - Filip Stanek
+ */
+module.exports = (function (){
+
+    var gameOver = document.getElementById("game_over");
+
+    var load = function(sm) {
+        gameOver.style.display = "flex";
+    };
+
+    var exit = function() {
+        gameOver.style.display = "none";
+    };
+
+    var update = function() {}
+
+    var render = function() {}
+
+    var keyDown = function(event) {}
+
+    function keyUp(event) {}
+
+
+    return {
+        load: load,
+        exit: exit,
+        update: update,
+        render: render,
+        keyDown: keyDown,
+        keyUp: keyUp
+    }
+})();
+},{}],22:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -4124,7 +4159,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity.js":19}],22:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],23:[function(require,module,exports){
 /* Richard Habeeb */
 
 module.exports = (function(){
@@ -4312,81 +4347,181 @@ module.exports = (function(){
     return shaman;
 })();
 
-},{"./animation.js":7,"./entity.js":19}],23:[function(require,module,exports){
- module.exports = (function(){
-	 
-	 function HealthBar() {
-		 const 	hbYOffset = 50,
-				hbWidth = 200,
-				hbHeight = 30,
-				lineCount = Math.round(hbWidth / 40),
-				lineOffset = Math.round(hbWidth / 100),
-				alpha = 1/lineCount,
-				hbXOffset = Math.round(hbWidth / 25),
-				hbFrameWidthOffset = 5,
-				hbFrameYOffset = hbYOffset - ((lineCount+1)*4-lineOffset)/2 - hbFrameWidthOffset;
-				
-				
-		 
-		 this.x;
-		 this.y;
-		 this.health = 100;
-		 this.deficit = 0;
-		 
-		 
-		 this.heal = function(health) {
-			 this.health = Math.min(this.health + health, 100)
-		 }
-		 
-		 this.hurt = function(health) {
-			 this.health = Math.max(this.health - health, 0)
-		 }
-		 
-		 /**
-			screenCtx: 		canvas
-			x:				top left corner x of the player
-			y:				top left corner y of the player
-			screenWidth:	screen width
-			screenHeight:	screen height
+},{"./animation.js":7,"./entity.js":19}],24:[function(require,module,exports){
+module.exports = (function(){
+
+	function HealthBar(stateManager) {
+		const 	hbYOffset = 50,
+			hbWidth = 200,
+			hbHeight = 30,
+			lineCount = Math.round(hbWidth / 40),
+			lineOffset = Math.round(hbWidth / 100),
+			alpha = 1/lineCount,
+			hbXOffset = Math.round(hbWidth / 25),
+			hbFrameWidthOffset = 5,
+			hbFrameYOffset = hbYOffset - ((lineCount+1)*4-lineOffset)/2 - hbFrameWidthOffset;
+
+
+		this.x;
+		this.y;
+		this.health = 100;
+		this.deficit = 0;
+		this.gameOver = require('./gameOver.js');
+		this.stateManager = stateManager;
+
+
+		this.heal = function(health) {
+			this.health = Math.min(this.health + health, 100)
+		}
+
+		/**
+		 returns true if the player is alive
+		 returns false if the player is dead
 		 */
-		 this.update = function(x, y, screenWidth, screenHeight) {
-			 // console.log("x: " + x + " y: " + y);
-			 this.x = x;
-			 this.y = y;
-			 this.deficit = (1 - this.health / 100) * (hbWidth - 2 * hbXOffset);
-		 }
-		 
-		 
-		 /**
-			screenCtx: 		canvas
+		this.hurt = function(health) {
+			this.health = Math.max(this.health - health, 0)
+			var sm = this.stateManager;
+			var go = this.gameOver;
+			if (this.health == 0) {
+				setInterval(function(){
+					sm.pushState(go);
+				}, 3000)
+				return false;
+			}
+			return true;
+		}
+
+		/**
+		 screenCtx: 		canvas
+		 x:				top left corner x of the player
+		 y:				top left corner y of the player
+		 screenWidth:	screen width
+		 screenHeight:	screen height
 		 */
-		 this.render = function(screenCtx) {
-			 
-			 screenCtx.strokeStyle = 'black';
-			 // screenCtx.fillStyle = 'black';
-			 screenCtx.lineWidth = 5;
-			 screenCtx.rect(this.x, this.y + hbFrameYOffset, hbWidth,
-							(lineCount+1)*4-lineOffset + hbFrameWidthOffset*2);
-			 screenCtx.stroke();
-			 
-			 for (var j = lineCount; j >= 0; j --) {
-				 screenCtx.lineWidth = (j+1)*4-lineOffset;
-				 if	(j == 0)
-					 screenCtx.strokeStyle = 'yellow';
-				 else
-					 screenCtx.strokeStyle = 'rgba(255,0,0,'+alpha+')';
-				 screenCtx.beginPath();
-				 screenCtx.moveTo(this.x + hbXOffset, this.y + hbYOffset);
-				 screenCtx.lineTo(this.x + hbWidth - hbXOffset - this.deficit, this.y + hbYOffset);
-				 screenCtx.closePath();
-				 screenCtx.stroke();
-			 }
-		 }
-	 }
-	 
-	 return HealthBar;
+		this.update = function(x, y, screenWidth, screenHeight) {
+			// console.log("x: " + x + " y: " + y);
+			this.x = x;
+			this.y = y;
+			this.deficit = (1 - this.health / 100) * (hbWidth - 2 * hbXOffset);
+		}
+
+
+		/**
+		 screenCtx: 		canvas
+		 */
+		this.render = function(screenCtx) {
+
+			screenCtx.strokeStyle = 'black';
+			// screenCtx.fillStyle = 'black';
+			screenCtx.lineWidth = 5;
+			screenCtx.rect(this.x, this.y + hbFrameYOffset, hbWidth,
+				(lineCount+1)*4-lineOffset + hbFrameWidthOffset*2);
+			screenCtx.stroke();
+
+			for (var j = lineCount; j >= 0; j --) {
+				screenCtx.lineWidth = (j+1)*4-lineOffset;
+				if	(j == 0)
+					screenCtx.strokeStyle = 'yellow';
+				else
+					screenCtx.strokeStyle = 'rgba(255,0,0,'+alpha+')';
+				screenCtx.beginPath();
+				screenCtx.moveTo(this.x + hbXOffset, this.y + hbYOffset);
+				screenCtx.lineTo(this.x + hbWidth - hbXOffset - this.deficit, this.y + hbYOffset);
+				screenCtx.closePath();
+				screenCtx.stroke();
+			}
+		}
+	}
+
+	return HealthBar;
+}()); module.exports = (function(){
+
+	function HealthBar(stateManager) {
+		const 	hbYOffset = 50,
+			hbWidth = 200,
+			hbHeight = 30,
+			lineCount = Math.round(hbWidth / 40),
+			lineOffset = Math.round(hbWidth / 100),
+			alpha = 1/lineCount,
+			hbXOffset = Math.round(hbWidth / 25),
+			hbFrameWidthOffset = 5,
+			hbFrameYOffset = hbYOffset - ((lineCount+1)*4-lineOffset)/2 - hbFrameWidthOffset;
+
+
+		this.x;
+		this.y;
+		this.health = 100;
+		this.deficit = 0;
+		this.gameOver = require('./gameOver.js');
+		this.stateManager = stateManager;
+
+
+		this.heal = function(health) {
+			this.health = Math.min(this.health + health, 100)
+		}
+
+		/**
+		 returns true if the player is alive
+		 returns false if the player is dead
+		 */
+		this.hurt = function(health) {
+			this.health = Math.max(this.health - health, 0)
+			var sm = this.stateManager;
+			var go = this.gameOver;
+			if (this.health == 0) {
+				setInterval(function(){
+					sm.pushState(go);
+				}, 3000)
+				return false;
+			}
+			return true;
+		}
+
+		/**
+		 screenCtx: 		canvas
+		 x:				top left corner x of the player
+		 y:				top left corner y of the player
+		 screenWidth:	screen width
+		 screenHeight:	screen height
+		 */
+		this.update = function(x, y, screenWidth, screenHeight) {
+			// console.log("x: " + x + " y: " + y);
+			this.x = x;
+			this.y = y;
+			this.deficit = (1 - this.health / 100) * (hbWidth - 2 * hbXOffset);
+		}
+
+
+		/**
+		 screenCtx: 		canvas
+		 */
+		this.render = function(screenCtx) {
+
+			screenCtx.strokeStyle = 'black';
+			// screenCtx.fillStyle = 'black';
+			screenCtx.lineWidth = 5;
+			screenCtx.rect(this.x, this.y + hbFrameYOffset, hbWidth,
+				(lineCount+1)*4-lineOffset + hbFrameWidthOffset*2);
+			screenCtx.stroke();
+
+			for (var j = lineCount; j >= 0; j --) {
+				screenCtx.lineWidth = (j+1)*4-lineOffset;
+				if	(j == 0)
+					screenCtx.strokeStyle = 'yellow';
+				else
+					screenCtx.strokeStyle = 'rgba(255,0,0,'+alpha+')';
+				screenCtx.beginPath();
+				screenCtx.moveTo(this.x + hbXOffset, this.y + hbYOffset);
+				screenCtx.lineTo(this.x + hbWidth - hbXOffset - this.deficit, this.y + hbYOffset);
+				screenCtx.closePath();
+				screenCtx.stroke();
+			}
+		}
+	}
+
+	return HealthBar;
 }());
-},{}],24:[function(require,module,exports){
+},{"./gameOver.js":21}],25:[function(require,module,exports){
 /**
  * Help Menu: Manages the help menu screen
  * Created by Josh Benard on 11/19/15.
@@ -4509,7 +4644,7 @@ module.exports = (function (){
     }
 
 })();
-},{"./bone.js":11,"./input-manager.js":25,"./player.js":34}],25:[function(require,module,exports){
+},{"./bone.js":11,"./input-manager.js":26,"./player.js":35}],26:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -4579,7 +4714,7 @@ module.exports = (function() {
   }
   
 })();
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 module.exports = (function(){
 	
 	var InventorySlot = require('./inventorySlot.js');
@@ -4646,7 +4781,7 @@ module.exports = (function(){
 
 return Inventory;
 }());
-},{"./inventorySlot.js":27}],27:[function(require,module,exports){
+},{"./inventorySlot.js":28}],28:[function(require,module,exports){
 module.exports = (function(){
 	
 	const IMG_SIZE = 64;
@@ -4688,7 +4823,7 @@ return InventorySlot;
 
 
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -4822,7 +4957,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./credits-screen":14,"./help-screen":24}],29:[function(require,module,exports){
+},{"./credits-screen":14,"./help-screen":25}],30:[function(require,module,exports){
 
 
 // Wait for the window to load completely
@@ -4867,7 +5002,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":20,"./splash-screen":41}],30:[function(require,module,exports){
+},{"./game":20,"./splash-screen":42}],31:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -4994,7 +5129,7 @@ module.exports = (function(){
 
 }());
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -5189,7 +5324,7 @@ module.exports = function () {
 }();
 
 
-},{"./entity.js":19,"./octopus_animation.js":32}],32:[function(require,module,exports){
+},{"./entity.js":19,"./octopus_animation.js":33}],33:[function(require,module,exports){
 /**
  * Created by Jessica on 11/8/15.
  */
@@ -5252,7 +5387,7 @@ module.exports = (function() {
     return OctopusAnimation;
 
 }());
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 /* The particle manager maintains the list of particles currently in the world,
 *  and handles the update and rendering functions for it
 *
@@ -5469,7 +5604,7 @@ return {
 
 }());
 
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -5490,6 +5625,7 @@ module.exports = (function() {
     dig_sound = new Audio('resources/sounds/digging_sound.mp3');
     walk_sound = new Audio('resources/sounds/walking_sound.mp3');
     throw_sound = new Audio('resources/sounds/throwing_sound.mp3');
+    death_sound = new Audio('resources/sounds/death.wav');
 
 
     /* The following are player States (Swimming is not implemented) */
@@ -5499,6 +5635,7 @@ module.exports = (function() {
     const DIGGING = 3;
     const FALLING = 4;
     const SWIMMING = 5;
+    const DEAD = 6;
 
     /* The following are digging direction states */
     const NOT_DIGGING = 0;
@@ -5519,9 +5656,9 @@ module.exports = (function() {
     const GRAVITY_IN_WATER = -80;
     const SWIM_UP = -164;
     const SPEED_IN_LIQUID = 80;
-	
-	// Inventory constants
-	const POWER_UP_FREQUENCY = 0.5;
+
+    // Inventory constants
+    const POWER_UP_FREQUENCY = 0.5;
 
     //The Right facing dwarf spritesheet
     var dwarfRight = new Image();
@@ -5530,6 +5667,9 @@ module.exports = (function() {
     //The left facing dwarf spritesheet
     var dwarfLeft = new Image();
     dwarfLeft.src = "DwarfAnimatedLeft.png";
+
+    var dwarfDead = new Image();
+    dwarfDead.src = './img/dead_small.png';
 
     var ratRight = new Image();
     ratRight.src = 'img/ratRight2.png';
@@ -5565,10 +5705,10 @@ module.exports = (function() {
         this.boneImg = new Image();
         this.boneImg.src = "./img/BoneLeft.png";
         this.stoneShield = false;
-		this.healthBar = healthBar;
-		this.scoreEngine = scoreEngine;
-		this.inventory = inventory;
-		this.lastPowerUpUsed = 0;
+        this.healthBar = healthBar;
+        this.scoreEngine = scoreEngine;
+        this.inventory = inventory;
+        this.lastPowerUpUsed = 0;
 
         // bone powerup
         this.attackFrequency = 1;
@@ -5593,6 +5733,7 @@ module.exports = (function() {
         this.animations.right[DIGGING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE * 2, 4);
         this.animations.right[FALLING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE);
         this.animations.right[SWIMMING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
+        this.animations.right[DEAD] = new Animation(dwarfDead, SIZE, SIZE, 0, 0, 16, 1/8, 1 );
 
         //The left-facing animations
         this.animations.left[STANDING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0);
@@ -5600,6 +5741,7 @@ module.exports = (function() {
         this.animations.left[DIGGING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE * 2, 4);
         this.animations.left[FALLING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE * 3, SIZE);
         this.animations.left[SWIMMING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
+        this.animations.left[DEAD] = new Animation(dwarfDead, SIZE, SIZE, 0, 0, 16, 1/8, 1 );
 
         //Setup the jump animations
         resetJumpingAnimation(this);
@@ -5889,45 +6031,45 @@ module.exports = (function() {
         if (this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
             this.shoot();
         }
-		
-		// Power Up Usage Management
-		this.lastPowerUpUsed += elapsedTime;
-		
-		if (this.lastPowerUpUsed >= POWER_UP_FREQUENCY) {
-			if (this.inputManager.isKeyDown(this.inputManager.commands.ONE)) {
-				console.log("One pressed");
-				if (inventory.slotUsed(0)) {
-					this.heal(30);
-				}
-			} else if (this.inputManager.isKeyDown(this.inputManager.commands.TWO)) {
-				console.log("TWO pressed");
-				if (inventory.slotUsed(1)) {
-					
-				}
-			} else if (this.inputManager.isKeyDown(this.inputManager.commands.THREE)) {
-				console.log("THREE pressed");
-				if (inventory.slotUsed(2)) {
-					
-				}
-			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FOUR)) {
-				console.log("FOUR pressed");
-				if (inventory.slotUsed(3)) {
-					
-				}
-			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
-				console.log("FIVE pressed");
-				if (inventory.slotUsed(4)) {
-					
-				}
-			}
-			this.lastPowerUpUsed = 0;
-		}
-		
+
+        // Power Up Usage Management
+        this.lastPowerUpUsed += elapsedTime;
+
+        if (this.lastPowerUpUsed >= POWER_UP_FREQUENCY) {
+            if (this.inputManager.isKeyDown(this.inputManager.commands.ONE)) {
+                console.log("One pressed");
+                if (inventory.slotUsed(0)) {
+                    this.heal(30);
+                }
+            } else if (this.inputManager.isKeyDown(this.inputManager.commands.TWO)) {
+                console.log("TWO pressed");
+                if (inventory.slotUsed(1)) {
+
+                }
+            } else if (this.inputManager.isKeyDown(this.inputManager.commands.THREE)) {
+                console.log("THREE pressed");
+                if (inventory.slotUsed(2)) {
+
+                }
+            } else if (this.inputManager.isKeyDown(this.inputManager.commands.FOUR)) {
+                console.log("FOUR pressed");
+                if (inventory.slotUsed(3)) {
+
+                }
+            } else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
+                console.log("FIVE pressed");
+                if (inventory.slotUsed(4)) {
+
+                }
+            }
+            this.lastPowerUpUsed = 0;
+        }
+
 
         // Swap input buffers
         this.inputManager.swapBuffers();
 
-            // Check oxygen level of player
+        // Check oxygen level of player
         if(this.holdBreath && this.inWater(tilemap)){
             this.swimmingProperty.breathCount += elapsedTime;
         }
@@ -6134,10 +6276,10 @@ module.exports = (function() {
             }
 
             if (tileNum.data.type === "Sky Earth" || tileNum.data.type === "DirtWithGrass" || tileNum.data.type === "Dirt"){
-              ParticleManager.addDirtParticles(tileX, tileY);
+                ParticleManager.addDirtParticles(tileX, tileY);
             }
             else if (tileNum.data.type === "GemsWithGrass" || tileNum.data.type === "StoneWithGrass" || tileNum.data.type === "Gems" || tileNum.data.type === "Stone"){
-              ParticleManager.addStoneParticles(tileX, tileY);
+                ParticleManager.addStoneParticles(tileX, tileY);
             }
 
             /* setup the callback for when the animation is complete */
@@ -6166,11 +6308,11 @@ module.exports = (function() {
             this.bones++;
         } else if (powerUp.type == 'coin') {
             // add points
-			this.score(20);
+            this.score(20);
 
         } else if (powerUp.type == 'crystal') {
             // add points
-			this.score(50);
+            this.score(50);
 
         } else if (powerUp.type == 'pick') {
 
@@ -6181,9 +6323,9 @@ module.exports = (function() {
             this.stoneShield = true;
 
         } else if (powerUp.type == 'medicine') {
-			inventory.powerUpPickedUp(0);
-			// this.heal(30); now used manually from the inventory
-		}
+            inventory.powerUpPickedUp(0);
+            // this.heal(30); now used manually from the inventory
+        }
 
 
         if(powerUp.effectDuration < 0){//if power up lasts 4ever
@@ -6191,14 +6333,17 @@ module.exports = (function() {
         }
 
     };
-	
-	Player.prototype.heal = function(health) {
-		this.healthBar.heal(health);
-	};
-	
-	Player.prototype.hurt = function(health) {
-		this.healthBar.hurt(health);
-	};
+
+    Player.prototype.heal = function(health) {
+        this.healthBar.heal(health);
+    };
+
+    Player.prototype.hurt = function(health) {
+        if (this.healthBar.hurt(health) == false) {
+            this.state = DEAD;
+            death_sound.play();
+        }
+    };
 
     Player.prototype.score = function(score) {
         this.scoreEngine.addScore(score);
@@ -6345,7 +6490,7 @@ module.exports = (function() {
 
 }());
 
-},{"./Bone.js":1,"./Pickaxe.js":5,"./animation.js":7,"./entity.js":19}],35:[function(require,module,exports){
+},{"./Bone.js":1,"./Pickaxe.js":5,"./animation.js":7,"./entity.js":19}],36:[function(require,module,exports){
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Entity = require('./entity.js'),
@@ -6504,7 +6649,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity-manager.js":18,"./entity.js":19,"./player.js":34}],36:[function(require,module,exports){
+},{"./animation.js":7,"./entity-manager.js":18,"./entity.js":19,"./player.js":35}],37:[function(require,module,exports){
 /* Enemy module
  * Authors:
  * Kien Le
@@ -6774,7 +6919,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity.js":19}],37:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],38:[function(require,module,exports){
 /* Entity: Robo-Killer module
  * Implements the entity pattern, provides specific robo-killer constructs.
  *
@@ -7088,7 +7233,7 @@ module.exports = (function() {
 
 }());
 
-},{"./animation.js":7,"./entity.js":19}],38:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],39:[function(require,module,exports){
 /* Score engine */
 
 module.exports = (function (){
@@ -7245,7 +7390,7 @@ module.exports = (function (){
 
 })();
 
-},{}],39:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 /* Base class for all game entities,
  * implemented as a common JS module
  * Authors:
@@ -7497,7 +7642,7 @@ module.exports = (function(){
    return Slime;
   
 }());
-},{"./animation.js":7,"./entity.js":19}],40:[function(require,module,exports){
+},{"./animation.js":7,"./entity.js":19}],41:[function(require,module,exports){
 module.exports = (function() {
     var Shaman = require('./goblin-shaman.js');
     var DemonGHog = require('./DemonicGroundH.js');
@@ -7542,7 +7687,7 @@ module.exports = (function() {
     return SpawningManager;
 })();
 
-},{"./DemonicGroundH.js":2,"./barrel.js":8,"./goblin-miner.js":21,"./goblin-shaman.js":22,"./stone-monster.js":42,"./turret.js":46}],41:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./barrel.js":8,"./goblin-miner.js":22,"./goblin-shaman.js":23,"./stone-monster.js":43,"./turret.js":47}],42:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -7609,7 +7754,7 @@ module.exports = (function (){
   }
   
 })();
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 /* Stone monster module
  * Implements the entity pattern
  * Authors:
@@ -7901,7 +8046,7 @@ module.exports = (function(){
     return StoneMonster;
 }());
 
-},{"./Pickaxe.js":5,"./animation.js":7,"./entity.js":19,"./player.js":34}],43:[function(require,module,exports){
+},{"./Pickaxe.js":5,"./animation.js":7,"./entity.js":19,"./player.js":35}],44:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -7971,7 +8116,7 @@ module.exports = (function() {
     return Sudo_Animation;
 
 }());
-},{}],44:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 /**
  * Created by Administrator on 11/12/15.
  */
@@ -8219,7 +8364,7 @@ module.exports = (function(){
     return Sudo_Chan;
 }());
 
-},{"./entity.js":19,"./sudo-chan-animation.js":43}],45:[function(require,module,exports){
+},{"./entity.js":19,"./sudo-chan-animation.js":44}],46:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -9017,7 +9162,7 @@ module.exports = (function (){
 
 })();
 
-},{"./noise.js":30}],46:[function(require,module,exports){
+},{"./noise.js":31}],47:[function(require,module,exports){
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Player = require('./player.js'),
@@ -9414,7 +9559,7 @@ module.exports = (function(){
 	return Turret;
 }())
 
-},{"./animation.js":7,"./cannonball.js":12,"./entity.js":19,"./player.js":34}],47:[function(require,module,exports){
+},{"./animation.js":7,"./cannonball.js":12,"./entity.js":19,"./player.js":35}],48:[function(require,module,exports){
 
 /* Wolf module
  * Implements the entity pattern and provides
@@ -9672,4 +9817,4 @@ module.exports = (function(){
 }());
 
 
-},{"./animation.js":7,"./entity.js":19}]},{},[29]);
+},{"./animation.js":7,"./entity.js":19}]},{},[30]);

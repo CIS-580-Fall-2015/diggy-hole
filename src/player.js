@@ -18,6 +18,7 @@ module.exports = (function() {
     dig_sound = new Audio('resources/sounds/digging_sound.mp3');
     walk_sound = new Audio('resources/sounds/walking_sound.mp3');
     throw_sound = new Audio('resources/sounds/throwing_sound.mp3');
+    death_sound = new Audio('resources/sounds/death.wav');
 
 
     /* The following are player States (Swimming is not implemented) */
@@ -27,6 +28,7 @@ module.exports = (function() {
     const DIGGING = 3;
     const FALLING = 4;
     const SWIMMING = 5;
+    const DEAD = 6;
 
     /* The following are digging direction states */
     const NOT_DIGGING = 0;
@@ -47,9 +49,9 @@ module.exports = (function() {
     const GRAVITY_IN_WATER = -80;
     const SWIM_UP = -164;
     const SPEED_IN_LIQUID = 80;
-	
-	// Inventory constants
-	const POWER_UP_FREQUENCY = 0.5;
+
+    // Inventory constants
+    const POWER_UP_FREQUENCY = 0.5;
 
     //The Right facing dwarf spritesheet
     var dwarfRight = new Image();
@@ -58,6 +60,9 @@ module.exports = (function() {
     //The left facing dwarf spritesheet
     var dwarfLeft = new Image();
     dwarfLeft.src = "DwarfAnimatedLeft.png";
+
+    var dwarfDead = new Image();
+    dwarfDead.src = './img/dead_small.png';
 
     var ratRight = new Image();
     ratRight.src = 'img/ratRight2.png';
@@ -93,10 +98,10 @@ module.exports = (function() {
         this.boneImg = new Image();
         this.boneImg.src = "./img/BoneLeft.png";
         this.stoneShield = false;
-		this.healthBar = healthBar;
-		this.scoreEngine = scoreEngine;
-		this.inventory = inventory;
-		this.lastPowerUpUsed = 0;
+        this.healthBar = healthBar;
+        this.scoreEngine = scoreEngine;
+        this.inventory = inventory;
+        this.lastPowerUpUsed = 0;
 
         // bone powerup
         this.attackFrequency = 1;
@@ -121,6 +126,7 @@ module.exports = (function() {
         this.animations.right[DIGGING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE * 2, 4);
         this.animations.right[FALLING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE);
         this.animations.right[SWIMMING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
+        this.animations.right[DEAD] = new Animation(dwarfDead, SIZE, SIZE, 0, 0, 16, 1/8, 1 );
 
         //The left-facing animations
         this.animations.left[STANDING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0);
@@ -128,6 +134,7 @@ module.exports = (function() {
         this.animations.left[DIGGING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE * 2, 4);
         this.animations.left[FALLING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE * 3, SIZE);
         this.animations.left[SWIMMING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
+        this.animations.left[DEAD] = new Animation(dwarfDead, SIZE, SIZE, 0, 0, 16, 1/8, 1 );
 
         //Setup the jump animations
         resetJumpingAnimation(this);
@@ -417,45 +424,45 @@ module.exports = (function() {
         if (this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
             this.shoot();
         }
-		
-		// Power Up Usage Management
-		this.lastPowerUpUsed += elapsedTime;
-		
-		if (this.lastPowerUpUsed >= POWER_UP_FREQUENCY) {
-			if (this.inputManager.isKeyDown(this.inputManager.commands.ONE)) {
-				console.log("One pressed");
-				if (inventory.slotUsed(0)) {
-					this.heal(30);
-				}
-			} else if (this.inputManager.isKeyDown(this.inputManager.commands.TWO)) {
-				console.log("TWO pressed");
-				if (inventory.slotUsed(1)) {
-					
-				}
-			} else if (this.inputManager.isKeyDown(this.inputManager.commands.THREE)) {
-				console.log("THREE pressed");
-				if (inventory.slotUsed(2)) {
-					
-				}
-			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FOUR)) {
-				console.log("FOUR pressed");
-				if (inventory.slotUsed(3)) {
-					
-				}
-			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
-				console.log("FIVE pressed");
-				if (inventory.slotUsed(4)) {
-					
-				}
-			}
-			this.lastPowerUpUsed = 0;
-		}
-		
+
+        // Power Up Usage Management
+        this.lastPowerUpUsed += elapsedTime;
+
+        if (this.lastPowerUpUsed >= POWER_UP_FREQUENCY) {
+            if (this.inputManager.isKeyDown(this.inputManager.commands.ONE)) {
+                console.log("One pressed");
+                if (inventory.slotUsed(0)) {
+                    this.heal(30);
+                }
+            } else if (this.inputManager.isKeyDown(this.inputManager.commands.TWO)) {
+                console.log("TWO pressed");
+                if (inventory.slotUsed(1)) {
+
+                }
+            } else if (this.inputManager.isKeyDown(this.inputManager.commands.THREE)) {
+                console.log("THREE pressed");
+                if (inventory.slotUsed(2)) {
+
+                }
+            } else if (this.inputManager.isKeyDown(this.inputManager.commands.FOUR)) {
+                console.log("FOUR pressed");
+                if (inventory.slotUsed(3)) {
+
+                }
+            } else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
+                console.log("FIVE pressed");
+                if (inventory.slotUsed(4)) {
+
+                }
+            }
+            this.lastPowerUpUsed = 0;
+        }
+
 
         // Swap input buffers
         this.inputManager.swapBuffers();
 
-            // Check oxygen level of player
+        // Check oxygen level of player
         if(this.holdBreath && this.inWater(tilemap)){
             this.swimmingProperty.breathCount += elapsedTime;
         }
@@ -662,10 +669,10 @@ module.exports = (function() {
             }
 
             if (tileNum.data.type === "Sky Earth" || tileNum.data.type === "DirtWithGrass" || tileNum.data.type === "Dirt"){
-              ParticleManager.addDirtParticles(tileX, tileY);
+                ParticleManager.addDirtParticles(tileX, tileY);
             }
             else if (tileNum.data.type === "GemsWithGrass" || tileNum.data.type === "StoneWithGrass" || tileNum.data.type === "Gems" || tileNum.data.type === "Stone"){
-              ParticleManager.addStoneParticles(tileX, tileY);
+                ParticleManager.addStoneParticles(tileX, tileY);
             }
 
             /* setup the callback for when the animation is complete */
@@ -694,11 +701,11 @@ module.exports = (function() {
             this.bones++;
         } else if (powerUp.type == 'coin') {
             // add points
-			this.score(20);
+            this.score(20);
 
         } else if (powerUp.type == 'crystal') {
             // add points
-			this.score(50);
+            this.score(50);
 
         } else if (powerUp.type == 'pick') {
 
@@ -709,9 +716,9 @@ module.exports = (function() {
             this.stoneShield = true;
 
         } else if (powerUp.type == 'medicine') {
-			inventory.powerUpPickedUp(0);
-			// this.heal(30); now used manually from the inventory
-		}
+            inventory.powerUpPickedUp(0);
+            // this.heal(30); now used manually from the inventory
+        }
 
 
         if(powerUp.effectDuration < 0){//if power up lasts 4ever
@@ -719,14 +726,17 @@ module.exports = (function() {
         }
 
     };
-	
-	Player.prototype.heal = function(health) {
-		this.healthBar.heal(health);
-	};
-	
-	Player.prototype.hurt = function(health) {
-		this.healthBar.hurt(health);
-	};
+
+    Player.prototype.heal = function(health) {
+        this.healthBar.heal(health);
+    };
+
+    Player.prototype.hurt = function(health) {
+        if (this.healthBar.hurt(health) == false) {
+            this.state = DEAD;
+            death_sound.play();
+        }
+    };
 
     Player.prototype.score = function(score) {
         this.scoreEngine.addScore(score);

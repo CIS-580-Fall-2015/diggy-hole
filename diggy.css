@@ -39,6 +39,21 @@
   font-weight: bold;
 }
 
+.gameOver {
+  position: absolute;
+  width: 60%;
+  height: 60%;
+  left: 20%;
+  top: 20%;
+  background-color: #ffffff;
+  border: 30px double #000;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Cinzel', san-serif;
+}
+
 #help-wrapper {
   justify-content: flex-start;
   text-align: center;

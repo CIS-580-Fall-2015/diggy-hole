@@ -52,11 +52,11 @@ module.exports = (function (){
         PowerUp = require('./powerUp.js'),
         Collectible = require('./collectible.js'),
         ParticleManager = require('./particle-manager.js'),
-		HUD = require('./HUD.js'),
-		hud,
-		healthBar = require('./healthBar.js'),
-		Inventory = require('./inventory.js'),
-    Settings = require('./Settings.js');
+        HUD = require('./HUD.js'),
+        hud,
+        healthBar = require('./healthBar.js'),
+        Inventory = require('./inventory.js'),
+        Settings = require('./Settings.js');
 
     /* Loads the GameState, triggered by the StateManager
      * This function sets up the screen canvas, the tilemap,
@@ -93,20 +93,20 @@ module.exports = (function (){
             }
         });
 
-		// Set up HUD
-		hud = new HUD(Settings.SCREENSIZEX, Settings.SCREENSIZEY);
+        // Set up HUD
+        hud = new HUD(Settings.SCREENSIZEX, Settings.SCREENSIZEY);
 
         // Set up score engine
         scoreEngine = new ScoreEngine();
         hud.addElement(scoreEngine);
 
-		// SEt up invenotory
-		inventory = new Inventory(3);
-		hud.addElement(inventory);
+        // SEt up invenotory
+        inventory = new Inventory(3);
+        hud.addElement(inventory);
 
-		// Set up health bar
-		hb = new healthBar();
-		hud.addElement(hb);
+        // Set up health bar
+        hb = new healthBar(stateManager);
+        hud.addElement(hb);
 
         // Create the player and add them to
         // the entity manager
@@ -161,8 +161,8 @@ module.exports = (function (){
         // and some shamans
         for(i = 0; i < 3; i++) {
             // if (i < 3) {
-                // turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
-                // entityManager.add(turret);
+            // turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
+            // entityManager.add(turret);
 
             // }
             // dynamiteDwarf = new DynamiteDwarf(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
@@ -214,7 +214,7 @@ module.exports = (function (){
         ParticleManager.update(elapsedTime);
         inputManager.swapBuffers();
         octopus.getPlayerPosition(player.boundingBox());
-		hud.update(player.boundingBox());
+        hud.update(player.boundingBox());
     };
 
     /* Renders the current state of the game world
@@ -237,7 +237,7 @@ module.exports = (function (){
         //player.render(backBufferCtx, true);
         ParticleManager.render(backBufferCtx);
         tilemap.renderWater(backBufferCtx);
-		hud.render(backBufferCtx);
+        hud.render(backBufferCtx);
 
         backBufferCtx.restore();
 
