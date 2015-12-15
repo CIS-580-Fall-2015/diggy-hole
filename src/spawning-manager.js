@@ -12,7 +12,7 @@ module.exports = (function() {
 	var deepEntities = new Array();
 	
 	var birdData = {
-		//Bird: require('./birdsomething.js'),
+		Bird: require('./bird.js'),
 		limit: 8,
 		count: 0
 	};
@@ -56,13 +56,13 @@ module.exports = (function() {
 	middleEntities.push(goblinShamanData);
 	
 	var ghostMinerData = {
-		//Ghost: require('./ghostminersomething.js'),
+		Ghost: require('./ghostminer.js'),
 		limit: 4,
 		count: 0
 	};
 	
 	var dynamiteDwarfData = {
-		//Dwarf: require('./dynamitedwarfsomething.js'),
+		Dwarf: require('./dynamiteDwarf.js'),
 		limit: 2,
 		count: 0
 	}
