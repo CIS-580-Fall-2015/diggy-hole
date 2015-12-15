@@ -10,40 +10,40 @@ module.exports = (function (){
 
     // Module variables
     var Player = require('./player.js'),
-        Rat = require('./rat.js'),
-        Wolf = require('./wolf.js'),
-        Robo_Killer = require('./robo-killer.js'),
-        Octopus = require('./octopus.js'),
+        //Rat = require('./rat.js'),
+        //Wolf = require('./wolf.js'),
+        //Robo_Killer = require('./robo-killer.js'),
+        //Octopus = require('./octopus.js'),
         inputManager = require('./input-manager.js'),
         tilemap = require('./tilemap.js'),
         EntityManager = require('./entity-manager.js'),
         entityManager,
         SpawningManager = require('./spawning-manager.js'),
-        StoneMonster = require('./stone-monster.js'),
-        DemonicGroundHog = require('./DemonicGroundH.js'),
-        Barrel = require('./barrel.js'),
-        Turret = require('./turret.js'),
-        DynamiteDwarf = require('./dynamiteDwarf.js'),
-        Kakao = require('./Kakao.js'),
-        Bird = require('./bird.js'),
-        bird,
-        kakao,
-        wolf,
-        robo_killer,
-        GoblinMiner = require('./goblin-miner.js'),
-        Shaman = require('./goblin-shaman.js'),
-        Blobber = require('./blobber.js'),
-        blobber,
-        extantBlobbers,
+        //StoneMonster = require('./stone-monster.js'),
+        //DemonicGroundHog = require('./DemonicGroundH.js'),
+        //Barrel = require('./barrel.js'),
+        //Turret = require('./turret.js'),
+        //DynamiteDwarf = require('./dynamiteDwarf.js'),
+        //Kakao = require('./Kakao.js'),
+        //Bird = require('./bird.js'),
+        //bird,
+        //kakao,
+        //wolf,
+        //robo_killer,
+        //GoblinMiner = require('./goblin-miner.js'),
+        //Shaman = require('./goblin-shaman.js'),
+        //Blobber = require('./blobber.js'),
+        //blobber,
+        //extantBlobbers,
         player,
-        rat,
-        octopus,
-        stoneMonster,
-        Slime = require('./slime.js'),
-        Sudo_Chan = require('./sudo_chan.js'),
-        sudo_chan,
-        slime,
-        goblinMiner,
+        //rat,
+        //octopus,
+        //stoneMonster,
+        //Slime = require('./slime.js'),
+        //Sudo_Chan = require('./sudo_chan.js'),
+        //sudo_chan,
+        //slime,
+        //goblinMiner,
         screenCtx,
         backBuffer,
         backBufferCtx,
@@ -142,8 +142,8 @@ module.exports = (function (){
         // sudo_chan = new Sudo_Chan(490, 1240, 0);
         // entityManager.add(sudo_chan);
         //
-        octopus = new Octopus(randomPos.x * 64, randomPos.y * 64, 0);
-        entityManager.add(octopus);
+        //octopus = new Octopus(randomPos.x * 64, randomPos.y * 64, 0);
+        //entityManager.add(octopus);
         //
         // DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
         // entityManager.add(DemonicGroundHog);
@@ -208,12 +208,12 @@ module.exports = (function (){
      * this and the prior frame.
      */
     var update = function(elapsedTime) {
-        this.spawningManager.update(elapsedTime);
+        this.spawningManager.update(elapsedTime, tilemap);
         entityManager.update(elapsedTime, tilemap, ParticleManager);
         tilemap.update();
         ParticleManager.update(elapsedTime);
         inputManager.swapBuffers();
-        octopus.getPlayerPosition(player.boundingBox());
+        //octopus.getPlayerPosition(player.boundingBox());
         hud.update(player.boundingBox());
     };
 
