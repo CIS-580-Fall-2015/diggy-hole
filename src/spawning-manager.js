@@ -1,10 +1,4 @@
 module.exports = (function() {
-    var Shaman = require('./goblin-shaman.js');
-    var DemonGHog = require('./DemonicGroundH.js');
-    var Barrel = require('./barrel.js');
-    var Miner = require('./goblin-miner.js');
-    var Turret = require('./turret.js');
-
     /* Some hard coded data values for our 8 entities */
 	
 	var skyEntities = new Array();
@@ -77,19 +71,62 @@ module.exports = (function() {
         this.player = player;
         this.updateTimeLeft = 0;
     }
+	
+	var updatePeriodSeconds = 5;
 
     SpawningManager.prototype.update = function (elapsedTime) {
         this.updateTimeLeft -= elapsedTime;
         if(this.updateTimeLeft < 0) {
             this.updateTimeLeft = updatePeriodSeconds;
 
-            //TODO implement this, so that enemies spawn in waves, etc
-            this.entityManager.add(new Shaman(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-        
-            this.entityManager.add(new Turret(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-            this.entityManager.add(new Miner(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-            this.entityManager.add(new DemonGHog(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-            this.entityManager.add(new Barrel(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+			this.entityManager.add(
+				new birdData.Bird(
+					Math.random()*64*15 + this.player.currentX, 
+					Math.random()*64*15 + this.player.currentY, 
+					0)
+				);
+			this.entityManager.add(
+				new turretData.Turret(
+					Math.random()*64*15 + this.player.currentX, 
+					Math.random()*64*15 + this.player.currentY, 
+					0)
+			);
+			this.entityManager.add(
+				new barrelData.Barrel(
+					Math.random()*64*15 + this.player.currentX, 
+					Math.random()*64*15 + this.player.currentY, 
+					0)
+			);
+			this.entityManager.add(
+				new demonGHogData.DemonGHog(
+					Math.random()*64*15 + this.player.currentX, 
+					Math.random()*64*15 + this.player.currentY, 
+					0)
+			);
+			this.entityManager.add(
+				new goblinMinerData.Miner(
+					Math.random()*64*15 + this.player.currentX, 
+					Math.random()*64*15 + this.player.currentY, 
+					0)
+			);
+			this.entityManager.add(
+				new goblinShamanData.Shaman(
+					Math.random()*64*15 + this.player.currentX, 
+					Math.random()*64*15 + this.player.currentY, 
+					0)
+			);
+			this.entityManager.add(
+				new ghostMinerData.Ghost(
+					Math.random()*64*15 + this.player.currentX, 
+					Math.random()*64*15 + this.player.currentY, 
+					0)
+			);
+			this.entityManager.add(
+				new dynamiteDwarfData.Dwarf(
+					Math.random()*64*15 + this.player.currentX, 
+					Math.random()*64*15 + this.player.currentY, 
+					0)
+			);
         }
 		
 		/* Can change frequency of chance to spawn
