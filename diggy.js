@@ -6107,19 +6107,19 @@ module.exports = (function() {
 	var deepEntities = new Array();
 	
 	var birdData = {
-		Bird: require('./bird.js'),
+		Entity: require('./bird.js'),
 		limit: 8,
 		count: 0
 	};
 	
 	var turretData = {
-		Turret: require('./turret.js'),
+		Entity: require('./turret.js'),
 		limit: 3,
 		count: 0
 	};
 			
 	var barrelData = {
-		Barrel: require('./barrel.js'),
+		Entity: require('./barrel.js'),
 		limit: 15,
 		count: 0
 	};
@@ -6129,19 +6129,19 @@ module.exports = (function() {
 	skyEntities.push(barrelData);
 	
 	var demonGHogData = {
-		DemonGHog: require('./DemonicGroundH.js'),
+		Entity: require('./DemonicGroundH.js'),
 		limit: 10,
 		count: 0
 	};
 	
 	var goblinMinerData = {
-		Miner: require('./goblin-miner.js'),
+		Entity: require('./goblin-miner.js'),
 		limit: 8,
 		count: 0
 	};
 	
 	var goblinShamanData = {
-		Shaman: require('./goblin-shaman.js'),
+		Entity: require('./goblin-shaman.js'),
 		limit: 5,
 		count: 0
 	};
@@ -6151,13 +6151,13 @@ module.exports = (function() {
 	middleEntities.push(goblinShamanData);
 	
 	var ghostMinerData = {
-		Ghost: require('./ghostminer.js'),
+		Entity: require('./ghostminer.js'),
 		limit: 4,
 		count: 0
 	};
 	
 	var dynamiteDwarfData = {
-		Dwarf: require('./dynamiteDwarf.js'),
+		Entity: require('./dynamiteDwarf.js'),
 		limit: 2,
 		count: 0
 	}
@@ -6173,102 +6173,116 @@ module.exports = (function() {
         this.updateTimeLeft = 0;
     }
 	
-	var updatePeriodSeconds = 5;
+	var updatePeriodSeconds = 2;
 
     SpawningManager.prototype.update = function (elapsedTime, tilemap) {
         this.updateTimeLeft -= elapsedTime;
         if(this.updateTimeLeft < 0) {
             this.updateTimeLeft = updatePeriodSeconds;
 
-			this.entityManager.add(
-				new birdData.Bird(
+			/* this.entityManager.add(
+				new birdData.Entity(
 					Math.random()*64*15 + this.player.currentX, 
 					Math.random()*64*15 + this.player.currentY, 
 					0)
 				);
 			this.entityManager.add(
-				new turretData.Turret(
+				new turretData.Entity(
 					Math.random()*64*15 + this.player.currentX, 
 					Math.random()*64*15 + this.player.currentY, 
 					0)
 			);
 			this.entityManager.add(
-				new barrelData.Barrel(
+				new barrelData.Entity(
 					Math.random()*64*15 + this.player.currentX, 
 					Math.random()*64*15 + this.player.currentY, 
 					0)
 			);
 			this.entityManager.add(
-				new demonGHogData.DemonGHog(
+				new demonGHogData.Entity(
 					Math.random()*64*15 + this.player.currentX, 
 					Math.random()*64*15 + this.player.currentY, 
 					0)
 			);
 			this.entityManager.add(
-				new goblinMinerData.Miner(
+				new goblinMinerData.Entity(
 					Math.random()*64*15 + this.player.currentX, 
 					Math.random()*64*15 + this.player.currentY, 
 					0)
 			);
 			this.entityManager.add(
-				new goblinShamanData.Shaman(
+				new goblinShamanData.Entity(
 					Math.random()*64*15 + this.player.currentX, 
 					Math.random()*64*15 + this.player.currentY, 
 					0)
 			);
 			this.entityManager.add(
-				new ghostMinerData.Ghost(
+				new ghostMinerData.Entity(
 					Math.random()*64*15 + this.player.currentX, 
 					Math.random()*64*15 + this.player.currentY, 
 					0)
-			);
-			this.entityManager.add(
-				new dynamiteDwarfData.Dwarf(
+			);*/
+			/* this.entityManager.add(
+				new skyEntities[0].Entity(
 					Math.random()*64*15 + this.player.currentX, 
 					Math.random()*64*15 + this.player.currentY, 
 					0)
-			);
-        }
-		
-		/* Can change frequency of chance to spawn
+			);  */
+			
+			/* Can change frequency of chance to spawn
 			based on score values or something.
 			Higher score means shorter spawn time.
 			
 			Or change limits for spawns based on
 			score values. Higher score means
 			higher limits. */
-		
-		var count = 0;
-		var posFound = false;
-		var x = Math.floor((Math.random()*64*15 + this.player.currentX)/64);
-		var y = Math.floor((Math.random()*64*15 + this.player.currentY)/64);
-		do{
-			x = Math.floor((Math.random()*64*15 + this.player.currentX)/64);
-			y = Math.floor((Math.random()*64*15 + this.player.currentY)/64);
 			
-			count++;
-		}while(!posFound && count < 10)
+			var count = 0;
+			var posFound = false;
+			var x = 0, y = 0;
+			do{
+				x = Math.floor((Math.random()*64*15 + this.player.currentX)/64);
+				y = Math.floor((Math.random()*64*15 + this.player.currentY)/64);
+				
+				var tile = tilemap.tileAt(x, y, 0);
+				if(!(tile && tile.data.solid)){
+					posFound = true;
+				}
+					
+				count++;
+			}while(!posFound && count < 10)
 		
-		/* Some Sudo code of current spawn ideas
-		count;
-		rand x,y;
-		while(solid && count < 100){
-			rand x,y;
-			count++;
-		}
-		if(type is sky)
-			rand num;
-			if(skyStuff[num].limit < skyStuff[num].count)
-				spawn skyStuff[num];
-		else if(type is middle)
-			rand num;
-			if(middleStuff[num].limit < middleStuff[num].count)
-				spawn middleStuff[num];
-		else if(type is bottom)
-			rand num;
-			if(bottomStuff[num].limit < middleStuff[num].count)
-				spawn bottomStuff[num];
-		*/
+			if(posFound){
+				var tile = tilemap.tileAt(x, y, 0);
+				var num = Math.floor(Math.random()*3);
+				if(tile.data.type == "SkyBackground" || tile.data.type == "Clouds"){
+					if(skyEntities[num].limit > skyEntities[num].count){
+						this.entityManager.add(
+								new skyEntities[num].Entity(x*64, y*64, 0)
+						);
+						skyEntities[num].count++;
+					}
+				}
+				else if(tile.data.type == "CaveBackground" || tile.data.type == "Water"){
+					if(middleEntities[num].limit > middleEntities[num].count){
+						this.entityManager.add(
+								new middleEntities[num].Entity(x*64, y*64, 0)
+						);
+						middleEntities[num].count++;
+					}
+				}
+				else if(tile.data.type == "Lava" || tile.data.type == "DarkBackground" || tile.data.type == "DugBackground"){
+					if(deepEntities[num].limit > deepEntities[num].count){
+						this.entityManager.add(
+								new deepEntities[num].Entity(x*64, y*64, 0)
+						);
+						deepEntities[num].count++;
+					}
+				}
+			}
+        }
+		
+
     };
 
     return SpawningManager;
