@@ -76,9 +76,9 @@ module.exports = (function(){
 	dyingTimer = 0;
 
   //The Dwarf constructor
-  function Dwarf(locationX, locationY, layerIndex, inputManager) {
-    this.inputManager = inputManager
-    this.state = WALKING; 
+  function Dwarf(locationX, locationY, layerIndex) {
+    //this.inputManager = inputManager;
+	this.state = WALKING; 
     this.dug = false; 
     this.downPressed = false;
     this.layerIndex = layerIndex;
@@ -171,18 +171,16 @@ module.exports = (function(){
   Dwarf.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
     GROUNDLVL = tilemap.surface;
-    // The "with" keyword allows us to change the
-    // current scope, i.e. 'this' becomes our 
-    // inputManager
-    with (this.inputManager) {
 	
+	//with(sprite.inputManager)
       // Process Dwarf state
       switch(sprite.state) {
         case STANDING:
 			sprite.isPlayerColliding = false;
-			if(isKeyDown(commands.DIGDOWN)|isKeyDown(commands.DIGUP)|isKeyDown(commands.DIGLEFT)|isKeyDown(commands.DIGRIGHT)){
+			/*if(isKeyDown(commands.DIGDOWN)|isKeyDown(commands.DIGUP)|
+			isKeyDown(commands.DIGLEFT)|isKeyDown(commands.DIGRIGHT)){
 				sprite.state = DYING;
-			}
+			}*/
 			if(!sprite.onGround(tilemap)) {
 				sprite.state = FALLING;
 				sprite.velocityY = 0;
@@ -191,9 +189,9 @@ module.exports = (function(){
 			}
 			if(idleTimer < 120){
 				idleTimer++;
-				if(isKeyDown(commands.PAY)) {
+				/*if(isKeyDown(commands.PAY)) {
 					sprite.state = DETONATING;
-				}
+				}*/
 			}else{
 				idleTimer = 0;
 				sprite.state = WALKING;
@@ -275,10 +273,6 @@ module.exports = (function(){
 			//final state
 			break;
       }
-      
-      // Swap input buffers
-      swapBuffers();
-    }
        
     // Update animation
     if(this.isLeft)
