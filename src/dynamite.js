@@ -32,7 +32,7 @@ module.exports = (function(){
 
   //The Dynamite constructor
   function Dynamite(locationX, locationY, layerIndex, inputManager, sourceEntity) {
-    this.inputManager = inputManager
+    //this.inputManager = inputManager;
     this.state = FALLING; 
     this.dug = false; 
     this.downPressed = false;
@@ -93,7 +93,7 @@ module.exports = (function(){
     // The "with" keyword allows us to change the
     // current scope, i.e. 'this' becomes our 
     // inputManager
-    with (this.inputManager) {	
+    //with (this.inputManager) {	
 
 		switch(sprite.state) {
         case FALLING:
@@ -153,8 +153,8 @@ module.exports = (function(){
       
       
       // Swap input buffers
-      swapBuffers();
-    }
+      //swapBuffers();
+    //}
        
     // Update animation
     
