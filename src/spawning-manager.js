@@ -4,7 +4,6 @@ module.exports = (function() {
     var Barrel = require('./barrel.js');
     var Miner = require('./goblin-miner.js');
     var Turret = require('./turret.js');
-    var StoneMonster = require('./stone-monster.js');
 
     /* Some hard coded data values for our 8 entities */
 	
