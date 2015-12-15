@@ -74,7 +74,7 @@ module.exports = (function() {
 	
 	var updatePeriodSeconds = 5;
 
-    SpawningManager.prototype.update = function (elapsedTime) {
+    SpawningManager.prototype.update = function (elapsedTime, tilemap) {
         this.updateTimeLeft -= elapsedTime;
         if(this.updateTimeLeft < 0) {
             this.updateTimeLeft = updatePeriodSeconds;
@@ -136,6 +136,17 @@ module.exports = (function() {
 			Or change limits for spawns based on
 			score values. Higher score means
 			higher limits. */
+		
+		var count = 0;
+		var posFound = false;
+		var x = Math.floor((Math.random()*64*15 + this.player.currentX)/64);
+		var y = Math.floor((Math.random()*64*15 + this.player.currentY)/64);
+		do{
+			x = Math.floor((Math.random()*64*15 + this.player.currentX)/64);
+			y = Math.floor((Math.random()*64*15 + this.player.currentY)/64);
+			
+			count++;
+		}while(!posFound && count < 10)
 		
 		/* Some Sudo code of current spawn ideas
 		count;
