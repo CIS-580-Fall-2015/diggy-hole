@@ -14,14 +14,19 @@ module.exports = (function (){
         gameOver.style.display = "none";
     };
 
-    var update = function() {}
+    var update = function() {};
 
-    var render = function() {}
+    var render = function() {};
 
-    var keyDown = function(event) {}
+    var keyDown = function(event) {
+        switch(event.keyCode) {
+            case 13: // ENTER
+                location.reload();
+                break;
+        }
+    };
 
     function keyUp(event) {}
-
 
     return {
         load: load,
