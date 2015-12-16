@@ -5498,6 +5498,7 @@ module.exports = (function() {
     const UP_DIGGING = 4;
 
     // The Sprite Size
+    //depricated. this will soon be removed. TODO
     const SIZE = 64;
 
 
@@ -5541,12 +5542,9 @@ module.exports = (function() {
         this.layerIndex = layerIndex;
         this.x = locationX;
         this.y = locationY;
-        this.relativeHitBox = { top: 0, left: 8, bottom: 0, right: 8 };
-        this.nextX = 0;
-        this.nextY = 0;
-        this.currentTileIndex = 0;
-        this.nextTileIndex = 0;
-        this.constSpeed = 15;
+        this.spriteOffset = { x: -8, y: 0 };
+        this.spriteSize = { x: 64, y: 64 };
+        this.hitboxSize = { x: 48, y: 64 };
         this.gravity = 0.5;
         this.isLeft = false;
         this.SPEED = 300;
@@ -5580,20 +5578,20 @@ module.exports = (function() {
         };
 
         //The right-facing animations
-        this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 3, 0);
-        this.animations.right[WALKING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
-        this.animations.right[DIGGING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE * 2, 4);
-        this.animations.right[FALLING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE);
-        this.animations.right[SWIMMING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
-        this.animations.right[DEAD] = new Animation(dwarfDead, SIZE, SIZE, 0, 0, 16, 1/8, 1 );
+        this.animations.right[STANDING] = new Animation(dwarfRight, this.spriteSize.x, this.spriteSize.y, this.spriteSize.y * 3, 0);
+        this.animations.right[WALKING] = new Animation(dwarfRight, this.spriteSize.x, this.spriteSize.y, 0, 0, 4);
+        this.animations.right[DIGGING] = new Animation(dwarfRight, this.spriteSize.x, this.spriteSize.y, 0, this.spriteSize.x * 2, 4);
+        this.animations.right[FALLING] = new Animation(dwarfRight, this.spriteSize.x, this.spriteSize.y, 0, this.spriteSize.x);
+        this.animations.right[SWIMMING] = new Animation(dwarfRight, this.spriteSize.x, this.spriteSize.y, 0, 0, 4);
+        this.animations.right[DEAD] = new Animation(dwarfDead, this.spriteSize.x, this.spriteSize.y, 0, 0, 16, 1/8, 1 );
 
         //The left-facing animations
-        this.animations.left[STANDING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0);
-        this.animations.left[WALKING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
-        this.animations.left[DIGGING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE * 2, 4);
-        this.animations.left[FALLING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE * 3, SIZE);
-        this.animations.left[SWIMMING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
-        this.animations.left[DEAD] = new Animation(dwarfDead, SIZE, SIZE, 0, 0, 16, 1/8, 1 );
+        this.animations.left[STANDING] = new Animation(dwarfLeft, this.spriteSize.x, this.spriteSize.y, 0, 0);
+        this.animations.left[WALKING] = new Animation(dwarfLeft, this.spriteSize.x, this.spriteSize.y, 0, 0, 4);
+        this.animations.left[DIGGING] = new Animation(dwarfLeft, this.spriteSize.x, this.spriteSize.y, 0, this.spriteSize.x * 2, 4);
+        this.animations.left[FALLING] = new Animation(dwarfLeft, this.spriteSize.x, this.spriteSize.y, this.spriteSize.y * 3, this.spriteSize.x);
+        this.animations.left[SWIMMING] = new Animation(dwarfLeft, this.spriteSize.x, this.spriteSize.y, 0, 0, 4);
+        this.animations.left[DEAD] = new Animation(dwarfDead, this.spriteSize.x, this.spriteSize.y, 0, 0, 16, 1/8, 1 );
 
         //Setup the jump animations
         resetJumpingAnimation(this);
@@ -5707,18 +5705,18 @@ module.exports = (function() {
         if(this.digState == NOT_DIGGING) {
             if (this.inputManager.isKeyDown(this.inputManager.commands.DIGDOWN)) {
                 this.digState = DOWN_DIGGING;
-                this.setupDig(new Pickaxe({ x: this.x + SIZE / 2, y: this.y + SIZE}, true), entityManager, ParticleManager);
+                this.setupDig(new Pickaxe({ x: this.x + this.hitboxSize.x / 2, y: this.y + this.hitboxSize.y}, true), entityManager, ParticleManager);
             } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGLEFT)) {
                 this.digState = LEFT_DIGGING;
                 this.isLeft = true;
-                this.setupDig(new Pickaxe({ x: this.x, y: this.y + SIZE / 2 }), entityManager, ParticleManager);
+                this.setupDig(new Pickaxe({ x: this.x, y: this.y + this.hitboxSize.y / 2 }), entityManager, ParticleManager);
             } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGRIGHT)) {
                 this.digState = RIGHT_DIGGING;
                 this.isLeft = false;
-                this.setupDig(new Pickaxe({ x: this.x + SIZE, y: this.y + SIZE / 2 }), entityManager, ParticleManager);
+                this.setupDig(new Pickaxe({ x: this.x + this.hitboxSize.x, y: this.y + this.hitboxSize.y / 2 }), entityManager, ParticleManager);
             } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGUP)) {
                 this.digState = UP_DIGGING;
-                this.setupDig(new Pickaxe({ x: this.x + SIZE / 2, y: this.y }, true), entityManager, ParticleManager);
+                this.setupDig(new Pickaxe({ x: this.x + this.hitboxSize.x / 2, y: this.y }, true), entityManager, ParticleManager);
             }
         }
 
@@ -5938,13 +5936,15 @@ module.exports = (function() {
 
     };
 
+    //TODO this should be a prototype function like the rest
     /* This function resets (or initializes) the jumping animations */
     function resetJumpingAnimation(player) {
-        player.animations.right[JUMPING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 3, SIZE, 3, 0.1, true, null, true);
-        player.animations.left[JUMPING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE, 3, 0.1, true);
+        player.animations.right[JUMPING] = new Animation(dwarfRight, player.spriteSize.x, player.spriteSize.y, player.spriteSize.y * 3, player.spriteSize.x, 3, 0.1, true, null, true);
+        player.animations.left[JUMPING] = new Animation(dwarfLeft, player.spriteSize.x, player.spriteSize.y, 0, player.spriteSize.x, 3, 0.1, true);
     }
 
     // Update function for use with the help player
+    //this should be either its own entity or should just use the regular update.
     Player.prototype.demoUpdate = function(elapsedTime) {
         var sprite = this;
 
@@ -6089,19 +6089,19 @@ module.exports = (function() {
             /* set the tile location that we are deleting */
             switch(currentPlayer.digState) {
                 case DOWN_DIGGING:
-                    tileX = Math.floor((box.left + (SIZE / 2)) / Settings.TILESIZEX);
+                    tileX = Math.floor((box.left + box.right) / 2 / Settings.TILESIZEX);
                     tileY = Math.floor(box.bottom / Settings.TILESIZEY);
                     break;
                 case LEFT_DIGGING:
                     tileX = Math.floor((box.left - 5)/ Settings.TILESIZEX);
-                    tileY = Math.floor((box.bottom - (SIZE / 2)) / Settings.TILESIZEY);
+                    tileY = Math.floor((box.bottom + box.top) / 2 / Settings.TILESIZEY);
                     break;
                 case RIGHT_DIGGING:
                     tileX = Math.floor((box.right + 5)/ Settings.TILESIZEX);
-                    tileY = Math.floor((box.bottom - (SIZE / 2)) / Settings.TILESIZEY);
+                    tileY = Math.floor((box.bottom + box.top) / 2 / Settings.TILESIZEY);
                     break;
                 case UP_DIGGING:
-                    tileX = Math.floor((box.left + (SIZE / 2)) / Settings.TILESIZEX);
+                    tileX = Math.floor((box.left + box.right) / 2 / Settings.TILESIZEX);
                     tileY = Math.floor((box.top - 5) / Settings.TILESIZEY);
                     break;
                 default:
@@ -6238,10 +6238,10 @@ module.exports = (function() {
         var animationSet = this.isLeft ? this.animations.left : this.animations.right;
 
         if(this.digState == NOT_DIGGING) {
-            animationSet[this.state].render(ctx, this.x, this.y);
+            animationSet[this.state].render(ctx, this.x + this.spriteOffset.x, this.y + this.spriteOffset.y);
         } else {
             //TODO create animations for each dig state
-            animationSet[DIGGING].render(ctx, this.x, this.y);
+            animationSet[DIGGING].render(ctx, this.x + this.spriteOffset.x, this.y + this.spriteOffset.y);
         }
 
 
@@ -6300,7 +6300,7 @@ module.exports = (function() {
         ctx.stroke();
 
         // Outline tile underfoot
-        var tileX = Settings.TILESIZEX * Math.floor((bounds.left + (SIZE / 2)) / Settings.TILESIZEX),
+        var tileX = Settings.TILESIZEX * Math.floor((bounds.left + bounds.right) / 2 / Settings.TILESIZEX),
             tileY = Settings.TILESIZEY * (Math.floor(bounds.bottom / Settings.TILESIZEY));
         ctx.strokeStyle = "black";
         ctx.beginPath();
@@ -6319,19 +6319,19 @@ module.exports = (function() {
      */
     Player.prototype.boundingBox = function() {
         return {
-            left: this.x + this.relativeHitBox.left,
-            top: this.y + this.relativeHitBox.top,
-            right: this.x + SIZE - this.relativeHitBox.right,
-            bottom: this.y + SIZE - this.relativeHitBox.bottom
+            left: this.x,
+            top: this.y,
+            right: this.x + this.hitboxSize.x,
+            bottom: this.y + this.hitboxSize.y
         };
     };
 
 
     Player.prototype.boundingCircle = function() {
         return {
-            cx: this.x + SIZE / 2,
-            cy: this.y + SIZE / 2,
-            radius: SIZE / 2
+            cx: this.x + this.hitboxSize.x / 2,
+            cy: this.y + this.hitboxSize.y / 2,
+            radius: this.hitboxSize.x / 2
         };
     };
 
