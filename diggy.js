@@ -5798,6 +5798,7 @@ module.exports = (function() {
                 } else if (this.isBlockAbove(tilemap)) {
                     this.state = FALLING;
                     this.velocityY = 0;
+                    this.y = Settings.TILESIZEY * (Math.floor((this.y) / Settings.TILESIZEY)+1);
                     resetJumpingAnimation(this);
                 }
 
@@ -6143,11 +6144,13 @@ module.exports = (function() {
                 tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
             }
 
-            if (tileNum.data.type === "Sky Earth" || tileNum.data.type === "DirtWithGrass" || tileNum.data.type === "Dirt"){
-                ParticleManager.addDirtParticles(tileX, tileY);
-            }
-            else if (tileNum.data.type === "GemsWithGrass" || tileNum.data.type === "StoneWithGrass" || tileNum.data.type === "Gems" || tileNum.data.type === "Stone"){
-                ParticleManager.addStoneParticles(tileX, tileY);
+            if(tileNum.data) {
+                if (tileNum.data.type === "Sky Earth" || tileNum.data.type === "DirtWithGrass" || tileNum.data.type === "Dirt") {
+                    ParticleManager.addDirtParticles(tileX, tileY);
+                }
+                else if (tileNum.data.type === "GemsWithGrass" || tileNum.data.type === "StoneWithGrass" || tileNum.data.type === "Gems" || tileNum.data.type === "Stone") {
+                    ParticleManager.addStoneParticles(tileX, tileY);
+                }
             }
 
             /* setup the callback for when the animation is complete */
