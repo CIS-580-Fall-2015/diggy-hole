@@ -31,8 +31,7 @@ module.exports = (function(){
   var explosion = new Audio('resources/sounds/explosion.wav');
 
   //The Dynamite constructor
-  function Dynamite(locationX, locationY, layerIndex, inputManager, sourceEntity) {
-    this.inputManager = inputManager
+  function Dynamite(locationX, locationY, layerIndex, sourceEntity, surface) {
     this.state = FALLING; 
     this.dug = false; 
     this.downPressed = false;
@@ -53,6 +52,7 @@ module.exports = (function(){
 	this.type = 'dynamite';
 	this.velocityY = -800;
 	this.source = sourceEntity;
+	this.surface = surface;
 	
        //The animations
     this.animations = {
@@ -89,11 +89,6 @@ module.exports = (function(){
    */
   Dynamite.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
-    
-    // The "with" keyword allows us to change the
-    // current scope, i.e. 'this' becomes our 
-    // inputManager
-    with (this.inputManager) {	
 
 		switch(sprite.state) {
         case FALLING:
@@ -109,7 +104,7 @@ module.exports = (function(){
           break;
 		case COUNTDOWN:
 			detonationTimer++;
-			if(detonationTimer > 260){
+			if(detonationTimer > 150){
 				sprite.state = DETONATE;
 			}
 		break;
@@ -126,18 +121,38 @@ module.exports = (function(){
 				tileY = Math.floor(box.bottom / 64);
 				for(var i = tileX-3; i < tileX+3;i++){
 					for(var j = tileY -3; j < tileY+3;j++){
+						if(j < this.surface){
+							tilemap.destroyTileAt(1, i, j, 0);
+						}else{
+							tilemap.removeTileAt(i, j, 0);
+						}
 						
-						tilemap.setTileAt(7, i, j, 0);
 					}	  
 				}
 				for(var i = tileX-5; i < tileX+5;i++){
 					for(var j = tileY -5; j < tileY+5;j++){
 						if(Math.random() < 0.4){
-							tilemap.setTileAt(7, i, j, 0);
+							if(j < this.surface){
+								tilemap.destroyTileAt(1,i, j, 0);
+							}else{
+								tilemap.removeTileAt(i, j, 0);
+							}
 						}
 						
 					}	  
 				}
+				
+				killedEntities = entityManager.queryRadius(sprite.currentX, sprite.currentY, 10*64);
+				killedEntities.forEach(function(entity) {
+					if(entity.type == 'player'){
+						entity.hurt(80);
+					}else{
+						if((entity).type != 'dynamite')
+						entityManager.remove(entity);
+					}
+				});
+										
+				
 				sprite.state = DONE;
 				
 				
@@ -149,12 +164,6 @@ module.exports = (function(){
 		  //final state
 			break;
 		}
-		
-      
-      
-      // Swap input buffers
-      swapBuffers();
-    }
        
     // Update animation
     

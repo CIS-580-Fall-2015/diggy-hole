@@ -76,8 +76,8 @@ module.exports = (function(){
 	dyingTimer = 0;
 
   //The Dwarf constructor
-  function Dwarf(locationX, locationY, layerIndex, inputManager) {
-    this.inputManager = inputManager
+  function Dwarf(locationX, locationY, layerIndex, inputManager, scoreEngine) {
+	this.inputManager = inputManager;
     this.state = WALKING; 
     this.dug = false; 
     this.downPressed = false;
@@ -96,7 +96,8 @@ module.exports = (function(){
     this.isLeft = false;
 	this.isPlayerColliding = false;
 	this.type = 'dynamiteDwarf';
-	this.score = -500;
+	this.score = 10;//negative ten
+	this.scoreEngine = scoreEngine;
 	//this.player = playerEntity;
     
     //The animations
@@ -171,18 +172,12 @@ module.exports = (function(){
   Dwarf.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
     GROUNDLVL = tilemap.surface;
-    // The "with" keyword allows us to change the
-    // current scope, i.e. 'this' becomes our 
-    // inputManager
-    with (this.inputManager) {
+    
 	
       // Process Dwarf state
       switch(sprite.state) {
         case STANDING:
 			sprite.isPlayerColliding = false;
-			if(isKeyDown(commands.DIGDOWN)|isKeyDown(commands.DIGUP)|isKeyDown(commands.DIGLEFT)|isKeyDown(commands.DIGRIGHT)){
-				sprite.state = DYING;
-			}
 			if(!sprite.onGround(tilemap)) {
 				sprite.state = FALLING;
 				sprite.velocityY = 0;
@@ -191,7 +186,7 @@ module.exports = (function(){
 			}
 			if(idleTimer < 120){
 				idleTimer++;
-				if(isKeyDown(commands.PAY)) {
+				if(this.inputManager.isKeyDown(this.inputManager.commands.PAY)) {
 					sprite.state = DETONATING;
 				}
 			}else{
@@ -227,7 +222,7 @@ module.exports = (function(){
        
         case DETONATING:
 			var player = entityManager.getPlayer();//player entity
-			if(settingChargesTimer < 150){
+			if(settingChargesTimer < 67){
 				settingChargesTimer++;
 			}else{
 				settingChargesTimer = 0;
@@ -235,12 +230,12 @@ module.exports = (function(){
 				tileX = Math.floor((box.left + (SIZE/2))/64),
 				tileY = Math.floor(box.bottom / 64);								
 				for(var j = tileY; j > GROUNDLVL;j--){
-					tilemap.setTileAt(7, tileX, j-1, 0);
+					tilemap.removeTileAt( tileX, j-1, 0);
 				}
 				player.currentX = tileX*64;
 				player.currentY = tileY*64;
 				//player.velocityY = -1500;		
-				player.velocityY = -Math.sqrt((tileY-GROUNDLVL)*64*10*(-GRAVITY));//shoot player above surface level
+				player.velocityY = -Math.sqrt((tileY-GROUNDLVL)*64*30*(-GRAVITY));//shoot player above surface level
 				if((tileY-GROUNDLVL) <= 0){//if above surface just use just constant force
 					player.velocityY = -1500;
 				}
@@ -259,26 +254,26 @@ module.exports = (function(){
           
           break;
         case DYING:
-			if(dyingTimer < 25){
+			if(dyingTimer < 12){
 				dyingTimer++;
 			}else{
 				dyingTimer = 0;
-				var dynamite = new Dynamite(sprite.currentX,sprite.currentY,0, sprite.inputManager,sprite);
+				var dynamite = new Dynamite(sprite.currentX,sprite.currentY,0,sprite, GROUNDLVL);
 				entityManager.add(dynamite);
 				sprite.state = DEAD;
+				this.scoreEngine.subScore(this.score);
 			}
 			break;
 		case DEAD:
-			//stays dead until body destroyed
+			
 			break;
 		case DONE:
-			//final state
+			entityManager.remove(this);
 			break;
       }
       
-      // Swap input buffers
-      swapBuffers();
-    }
+  
+    
        
     // Update animation
     if(this.isLeft)
@@ -343,6 +338,9 @@ module.exports = (function(){
   Dwarf.prototype.collide = function(otherEntity){
 	  if(otherEntity.type == 'player'){
 		  this.isPlayerColliding = true;
+	  }
+	  else if(otherEntity.type == 'Pickaxe'){
+		 this.state = DYING;		 
 	  }
   }
   

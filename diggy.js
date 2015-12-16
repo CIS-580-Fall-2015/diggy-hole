@@ -197,6 +197,7 @@ module.exports = (function(){
 	   
 	   if( otherEntity.type == "player"){
 		   this.enabled = false;
+		   otherEntity.hurt(10);
 		   if(DEBUG){
 		   console.log("Player hit by bone");
 		   otherEntity.scoreEngine.scoreToZero();
@@ -307,6 +308,7 @@ module.exports = (function(){
     this.ySpeed = 15;
 	this.isPlayerColliding = false;
     this.isLeft = false;
+	this.dead = false;
 
     //The animations
     this.animations = {
@@ -373,7 +375,7 @@ module.exports = (function(){
     }
   DemonicGroundHog.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
-
+	if(this.dead) entityManager.remove(this);
       // Process the different states
       switch(sprite.state) {
         case IDLE:
@@ -474,6 +476,10 @@ module.exports = (function(){
   DemonicGroundHog.prototype.collide = function(otherEntity){
 	  if(otherEntity.type == 'player'){
 		  this.isPlayerColliding = true;
+		  otherEntity.hurt(1);
+	  }
+	  if(otherEntity.type == 'Pickaxe'){
+		  this.dead = true;
 	  }
   };
 
@@ -1961,11 +1967,13 @@ Cannonball.prototype = new Entity();
 		if (this.state == EXPLODING) {
 			this.animations[this.state].update(elapsedTime);
 			this.projectileTimeExploding += elapsedTime;
-			if (this.projectileTimeExploding > 2) {
+			if (this.projectileTimeExploding > 1) {
 				this.state = IDLE;
 				//Wyatt Watson - Now removes the explosion left overs
 				// MZ - If you do that the turret has nothing to shoot with afterwards
 				// entityManager.remove(this);
+				this.posX = 0;
+				this.posY = 0;
 			}
 		}
 
@@ -2448,8 +2456,7 @@ module.exports = (function(){
   var explosion = new Audio('resources/sounds/explosion.wav');
 
   //The Dynamite constructor
-  function Dynamite(locationX, locationY, layerIndex, inputManager, sourceEntity) {
-    this.inputManager = inputManager
+  function Dynamite(locationX, locationY, layerIndex, sourceEntity, surface) {
     this.state = FALLING; 
     this.dug = false; 
     this.downPressed = false;
@@ -2470,6 +2477,7 @@ module.exports = (function(){
 	this.type = 'dynamite';
 	this.velocityY = -800;
 	this.source = sourceEntity;
+	this.surface = surface;
 	
        //The animations
     this.animations = {
@@ -2506,11 +2514,6 @@ module.exports = (function(){
    */
   Dynamite.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
-    
-    // The "with" keyword allows us to change the
-    // current scope, i.e. 'this' becomes our 
-    // inputManager
-    with (this.inputManager) {	
 
 		switch(sprite.state) {
         case FALLING:
@@ -2526,7 +2529,7 @@ module.exports = (function(){
           break;
 		case COUNTDOWN:
 			detonationTimer++;
-			if(detonationTimer > 260){
+			if(detonationTimer > 150){
 				sprite.state = DETONATE;
 			}
 		break;
@@ -2543,18 +2546,38 @@ module.exports = (function(){
 				tileY = Math.floor(box.bottom / 64);
 				for(var i = tileX-3; i < tileX+3;i++){
 					for(var j = tileY -3; j < tileY+3;j++){
+						if(j < this.surface){
+							tilemap.destroyTileAt(1, i, j, 0);
+						}else{
+							tilemap.removeTileAt(i, j, 0);
+						}
 						
-						tilemap.setTileAt(7, i, j, 0);
 					}	  
 				}
 				for(var i = tileX-5; i < tileX+5;i++){
 					for(var j = tileY -5; j < tileY+5;j++){
 						if(Math.random() < 0.4){
-							tilemap.setTileAt(7, i, j, 0);
+							if(j < this.surface){
+								tilemap.destroyTileAt(1,i, j, 0);
+							}else{
+								tilemap.removeTileAt(i, j, 0);
+							}
 						}
 						
 					}	  
 				}
+				
+				killedEntities = entityManager.queryRadius(sprite.currentX, sprite.currentY, 10*64);
+				killedEntities.forEach(function(entity) {
+					if(entity.type == 'player'){
+						entity.hurt(80);
+					}else{
+						if((entity).type != 'dynamite')
+						entityManager.remove(entity);
+					}
+				});
+										
+				
 				sprite.state = DONE;
 				
 				
@@ -2566,12 +2589,6 @@ module.exports = (function(){
 		  //final state
 			break;
 		}
-		
-      
-      
-      // Swap input buffers
-      swapBuffers();
-    }
        
     // Update animation
     
@@ -2734,8 +2751,8 @@ module.exports = (function(){
 	dyingTimer = 0;
 
   //The Dwarf constructor
-  function Dwarf(locationX, locationY, layerIndex, inputManager) {
-    this.inputManager = inputManager
+  function Dwarf(locationX, locationY, layerIndex, inputManager, scoreEngine) {
+	this.inputManager = inputManager;
     this.state = WALKING; 
     this.dug = false; 
     this.downPressed = false;
@@ -2754,7 +2771,8 @@ module.exports = (function(){
     this.isLeft = false;
 	this.isPlayerColliding = false;
 	this.type = 'dynamiteDwarf';
-	this.score = -500;
+	this.score = 10;//negative ten
+	this.scoreEngine = scoreEngine;
 	//this.player = playerEntity;
     
     //The animations
@@ -2829,18 +2847,12 @@ module.exports = (function(){
   Dwarf.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
     GROUNDLVL = tilemap.surface;
-    // The "with" keyword allows us to change the
-    // current scope, i.e. 'this' becomes our 
-    // inputManager
-    with (this.inputManager) {
+    
 	
       // Process Dwarf state
       switch(sprite.state) {
         case STANDING:
 			sprite.isPlayerColliding = false;
-			if(isKeyDown(commands.DIGDOWN)|isKeyDown(commands.DIGUP)|isKeyDown(commands.DIGLEFT)|isKeyDown(commands.DIGRIGHT)){
-				sprite.state = DYING;
-			}
 			if(!sprite.onGround(tilemap)) {
 				sprite.state = FALLING;
 				sprite.velocityY = 0;
@@ -2849,7 +2861,7 @@ module.exports = (function(){
 			}
 			if(idleTimer < 120){
 				idleTimer++;
-				if(isKeyDown(commands.PAY)) {
+				if(this.inputManager.isKeyDown(this.inputManager.commands.PAY)) {
 					sprite.state = DETONATING;
 				}
 			}else{
@@ -2885,7 +2897,7 @@ module.exports = (function(){
        
         case DETONATING:
 			var player = entityManager.getPlayer();//player entity
-			if(settingChargesTimer < 150){
+			if(settingChargesTimer < 67){
 				settingChargesTimer++;
 			}else{
 				settingChargesTimer = 0;
@@ -2893,12 +2905,12 @@ module.exports = (function(){
 				tileX = Math.floor((box.left + (SIZE/2))/64),
 				tileY = Math.floor(box.bottom / 64);								
 				for(var j = tileY; j > GROUNDLVL;j--){
-					tilemap.setTileAt(7, tileX, j-1, 0);
+					tilemap.removeTileAt( tileX, j-1, 0);
 				}
 				player.currentX = tileX*64;
 				player.currentY = tileY*64;
 				//player.velocityY = -1500;		
-				player.velocityY = -Math.sqrt((tileY-GROUNDLVL)*64*10*(-GRAVITY));//shoot player above surface level
+				player.velocityY = -Math.sqrt((tileY-GROUNDLVL)*64*30*(-GRAVITY));//shoot player above surface level
 				if((tileY-GROUNDLVL) <= 0){//if above surface just use just constant force
 					player.velocityY = -1500;
 				}
@@ -2917,26 +2929,26 @@ module.exports = (function(){
           
           break;
         case DYING:
-			if(dyingTimer < 25){
+			if(dyingTimer < 12){
 				dyingTimer++;
 			}else{
 				dyingTimer = 0;
-				var dynamite = new Dynamite(sprite.currentX,sprite.currentY,0, sprite.inputManager,sprite);
+				var dynamite = new Dynamite(sprite.currentX,sprite.currentY,0,sprite, GROUNDLVL);
 				entityManager.add(dynamite);
 				sprite.state = DEAD;
+				this.scoreEngine.subScore(this.score);
 			}
 			break;
 		case DEAD:
-			//stays dead until body destroyed
+			
 			break;
 		case DONE:
-			//final state
+			entityManager.remove(this);
 			break;
       }
       
-      // Swap input buffers
-      swapBuffers();
-    }
+  
+    
        
     // Update animation
     if(this.isLeft)
@@ -3001,6 +3013,9 @@ module.exports = (function(){
   Dwarf.prototype.collide = function(otherEntity){
 	  if(otherEntity.type == 'player'){
 		  this.isPlayerColliding = true;
+	  }
+	  else if(otherEntity.type == 'Pickaxe'){
+		 this.state = DYING;		 
 	  }
   }
   
@@ -3337,6 +3352,7 @@ module.exports = (function(){
 }());
 },{}],20:[function(require,module,exports){
 /* Game GameState module
+/* Game GameState module
  * Provides the main game logic for the Diggy Hole game.
  * Authors:
  * - Nathan Bean
@@ -3453,7 +3469,7 @@ module.exports = (function (){
         player = new Player(randomPos.x * 64, randomPos.y * 64, 0, inputManager, hb, scoreEngine, inventory);
         entityManager = new EntityManager(player);
 
-        this.spawningManager = new SpawningManager(entityManager, scoreEngine, player);
+        this.spawningManager = new SpawningManager(entityManager, scoreEngine, player, inputManager);
 
         //add wolf to
         // the entity manager
@@ -3572,7 +3588,7 @@ module.exports = (function (){
 
         // Redraw the map & entities
         tilemap.render(backBufferCtx);
-        entityManager.render(backBufferCtx, true);
+        entityManager.render(backBufferCtx, false);
         //player.render(backBufferCtx, true);
         ParticleManager.render(backBufferCtx);
         tilemap.renderWater(backBufferCtx);
@@ -5685,7 +5701,7 @@ module.exports = (function() {
                 return true;
             }
         }
-        return false; //
+        return false;
     };
     // Check to see if player is on top of water
         Player.prototype.onWater = function(tilemap) {
@@ -5950,11 +5966,7 @@ module.exports = (function() {
 
                 // A counter for the health bar to check if player is drowning
                 if (this.swimmingProperty.breathCount > 20) {
-                    //Player is dead!
-                    //<progress id="health" value="100" max="100"></progress>
-                    // var health = document.getElementById("health")
-                    // health.value = health.value (add, subtract health, whatever.)
-                    this.swimmingProperty.breathCount = 0;
+                    this.hurt(1);
                 }
                 break;
         }
@@ -7231,6 +7243,27 @@ module.exports = (function (){
     {
       this.score = 0;
     }
+	if (this.score < 10)
+    {
+      scoreString = "000" + this.score.toString();
+    }
+    else if (this.score < 100)
+    {
+      scoreString = "00" + this.score.toString();
+    }
+    else if (this.score < 1000)
+    {
+      scoreString = "0" + this.score.toString();
+    }
+    else
+    {
+      scoreString = this.score.toString();
+    }
+    for (var i = 0; i < scoreString.length; i++)
+    {
+      var temp = parseInt(scoreString[i]);
+      this.frameGoal[i] = temp * 4;
+    }
   };
 
   ScoreEngine.prototype.scoreToZero = function() {
@@ -7589,14 +7622,16 @@ module.exports = (function() {
     var Miner = require('./goblin-miner.js');
     var Turret = require('./turret.js');
     var StoneMonster = require('./stone-monster.js');
+	var DynamiteDwarf = require('./dynamiteDwarf.js');
 
     var updatePeriodSeconds = 50;
 
-    function SpawningManager(entityManager, scoreEngine, player) {
+    function SpawningManager(entityManager, scoreEngine, player, inputManager) {
         this.entityManager = entityManager;
         this.scoreEngine = scoreEngine;
         this.player = player;
         this.updateTimeLeft = 0;
+		this.inputManager = inputManager;
     }
 
     SpawningManager.prototype.update = function (elapsedTime) {
@@ -7611,6 +7646,7 @@ module.exports = (function() {
             this.entityManager.add(new Miner(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
             this.entityManager.add(new DemonGHog(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
             this.entityManager.add(new Barrel(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+			 this.entityManager.add(new DynamiteDwarf(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0, this.inputManager, this.scoreEngine));
             this.addStoneMonster();
         }
     };
@@ -7626,7 +7662,7 @@ module.exports = (function() {
     return SpawningManager;
 })();
 
-},{"./DemonicGroundH.js":2,"./barrel.js":8,"./goblin-miner.js":22,"./goblin-shaman.js":23,"./stone-monster.js":43,"./turret.js":47}],42:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./barrel.js":8,"./dynamiteDwarf.js":17,"./goblin-miner.js":22,"./goblin-shaman.js":23,"./stone-monster.js":43,"./turret.js":47}],42:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:

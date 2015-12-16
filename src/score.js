@@ -56,6 +56,27 @@ module.exports = (function (){
     {
       this.score = 0;
     }
+	if (this.score < 10)
+    {
+      scoreString = "000" + this.score.toString();
+    }
+    else if (this.score < 100)
+    {
+      scoreString = "00" + this.score.toString();
+    }
+    else if (this.score < 1000)
+    {
+      scoreString = "0" + this.score.toString();
+    }
+    else
+    {
+      scoreString = this.score.toString();
+    }
+    for (var i = 0; i < scoreString.length; i++)
+    {
+      var temp = parseInt(scoreString[i]);
+      this.frameGoal[i] = temp * 4;
+    }
   };
 
   ScoreEngine.prototype.scoreToZero = function() {
