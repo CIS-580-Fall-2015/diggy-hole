@@ -5675,20 +5675,39 @@ module.exports = (function() {
     Player.prototype.moveLeft = function(distance, tilemap) {
         var box = this.boundingBox(),
             tileX = Math.floor(box.left / Settings.TILESIZEX),
-            tileY = Math.floor(box.bottom / Settings.TILESIZEY) - 1,
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && !tile.data.solid)
+            tileY = Math.floor(box.top / Settings.TILESIZEY),
+            tileUpper = tilemap.tileAt(tileX, tileY, this.layerIndex);
+            tileLower = tilemap.tileAt(tileX, tileY+1, this.layerIndex);
+        if (this.state === FALLING || this.state === JUMPING) {
+          if (tileUpper && !tileUpper.data.solid && tileLower && !tileLower.data.solid) {
             this.x -= distance;
+          }
+        }
+        else {
+          if (tileUpper && !tileUpper.data.solid) {
+            this.x -= distance;
+          }
+        }
     };
 
     // Moves the player to the right, colliding with solid tiles
     Player.prototype.moveRight = function(distance, tilemap) {
         var box = this.boundingBox(),
             tileX = Math.floor(box.right / Settings.TILESIZEX),
-            tileY = Math.floor(box.bottom / Settings.TILESIZEY) - 1,
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && !tile.data.solid)
+            tileY = Math.floor(box.top / Settings.TILESIZEY),
+            tileUpper = tilemap.tileAt(tileX, tileY, this.layerIndex);
+            tileLower = tilemap.tileAt(tileX, tileY+1, this.layerIndex);
+
+        if (this.state === FALLING || this.state === JUMPING) {
+          if (tileUpper && !tileUpper.data.solid && tileLower && !tileLower.data.solid) {
             this.x += distance;
+          }
+        }
+        else {
+          if (tileUpper && !tileUpper.data.solid) {
+            this.x += distance;
+          }
+        }
     };
 
     /* Player update function
