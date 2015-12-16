@@ -27,7 +27,7 @@ var direction;//0 for left, 1 for right
 
   //The left facing dwarf spritesheet
   var ghostLeft = new Image();
-  ghostLeft.src = "GhostAnimatedLeft.png";
+  ghostLeft.src = "img/GhostAnimatedLeft.png";
 
   //The Player constructor
   function Ghost(locationX, locationY, layerIndex, id) {
@@ -90,9 +90,9 @@ var direction;//0 for left, 1 for right
   // Moves the player to the right, colliding with solid tiles
   Ghost.prototype.moveRight = function(distance, tilemap) {
     this.currentX += distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
+    var box = this.boundingBox();
+        tileX = Math.floor(box.right/64);
+        tileY = Math.floor(box.bottom / 64) - 1;
         tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
     if (tile && tile.data.solid)
       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
@@ -106,31 +106,31 @@ var direction;//0 for left, 1 for right
    *   the current game world.
    */
   Ghost.prototype.update = function(elapsedTime, tilemap, entityManager) {
-    if (health == 0) {
-      entityManager.remove(id);
+    if (this.health == 0) {
+      entityManager.remove(this.id);
     }
     else {
-      switch(state){
+      switch(this.state){
         case IDLE:
-          if (health < 100) {
-            state = AGGRESSIVE;
+          if (this.health < 100) {
+            this.state = AGGRESSIVE;
           }
           else {
             var chance = Math.random();
             if (chance > .95) { //5% chance to change states
-              state = MOVING;
+              this.state = MOVING;
             }
           }
           break;
         case MOVING:
-          if (health < 100)
+          if (this.health < 100)
           {
-            state = AGGRESSIVE;
+            this.state = AGGRESSIVE;
           }
           else {
             var chance = Math.random();
             if (chance > 95) { //5% chance to change states
-              state = IDLE;
+              this.state = IDLE;
             }
             else if (chance > 92) { //Small chance to change direction
               if (direction == 0) direction = 1;
@@ -138,45 +138,47 @@ var direction;//0 for left, 1 for right
             }
             else {
               if (!this.onGround(tilemap)){
-                velocityY = -1;
-                currentY = currentY + velocityY;
+                this.velocityY = -1;
+                this.currentY = this.currentY + this.velocityY;
               }
-              else velocityY = 0;
+              else this.velocityY = 0;
               if (direction == 0) this.moveLeft(elapsedTime * PAS_SPEED, tilemap);
-              else this.moveRight(elapsedTime * PAS_SPEED)
+              else this.moveRight(elapsedTime * PAS_SPEED, tilemap);
             }
           }
           break;
         case AGGRESSIVE:
-          if (this.health == 100) state = IDLE;
+          if (this.health == 100) this.state = IDLE;
           var PlayerX = Player.currentX;
           var PlayerY = Player.currentY;
-          var dist = (PlayerX - currentX) * (PlayerX - currentX) + (PlayerY - currentY) * (PlayerY - currentY);
+          var dist = (PlayerX - this.currentX) * (PlayerX - this.currentX) + (PlayerY - 
+			this.currentY) * (PlayerY - this.currentY);
           if (dist <= 40*40){
-            state = ATTACKING;
+            this.state = ATTACKING;
             //We do not want to pause moving, so we always execute code below this
           }
-          if (currentX > PlayerX) this.moveLeft(elapsedTime * AGR_SPEED, tilemap);
+          if (this.currentX > PlayerX) this.moveLeft(elapsedTime * AGR_SPEED, tilemap);
           else this.moveRight(elapsedTime * AGR_SPEED, tilemap);
-          if (currentY > PlayerY) velocityY = -5;
-          else velocityY = 5;
-          currentY = currentY + velocityY;
+          if (this.currentY > PlayerY) this.velocityY = -5;
+          else this.velocityY = 5;
+          this.currentY = this.currentY + this.velocityY;
           break;
         case ATTACKING:
-          if (this.health == 100) state = IDLE;
+          if (this.health == 100) this.state = IDLE;
           else {
             var PlayerX = Player.currentX;
             var PlayerY = Player.currentY;
-            var dist = (PlayerX - currentX) * (PlayerX - currentX) + (PlayerY - currentY) * (PlayerY - currentY);
+            var dist = (PlayerX - this.currentX) * (PlayerX - this.currentX) + (PlayerY - 
+				this.currentY) * (PlayerY - this.currentY);
             if (dist > 40*40) {
-              state = AGGRESSIVE;
+              this.state = AGGRESSIVE;
             }
             else {
-              if (currentX > PlayerX) this.moveLeft(elapsedTime * AGR_SPEED, tilemap);
+              if (this.currentX > PlayerX) this.moveLeft(elapsedTime * AGR_SPEED, tilemap);
               else this.moveRight(elapsedTime * AGR_SPEED, tilemap);
-              if (currentY > PlayerY) velocityY = -5;
-              else velocityY = 5;
-              currentY = currentY + velocityY;
+              if (this.currentY > PlayerY) this.velocityY = -5;
+              else this.velocityY = 5;
+              this.currentY = this.currentY + this.velocityY;
               if (direction == 0) {
                 if (animations.left[ATTACKING].frameIndex == 3) {
                   Player.health -= 10;
@@ -192,9 +194,9 @@ var direction;//0 for left, 1 for right
 
           break;
         }
-        if (health < 100) {
-          health += Math.floor(elapsedTime / 100);
-          if (health > 100) health = 100;
+        if (this.health < 100) {
+          this.health += Math.floor(elapsedTime / 100);
+          if (this.health > 100) this.health = 100;
         }
 
         // Update animation
@@ -277,6 +279,6 @@ var direction;//0 for left, 1 for right
      }
    }
 
-  return Player;
+  return Ghost;
 
 }());
