@@ -6018,13 +6018,8 @@ module.exports = (function() {
         // Swap input buffers
         this.inputManager.swapBuffers();
 
-<<<<<<< HEAD
-        // Check oxygen level of player
-        if(this.holdBreath && this.inWater(tilemap)){
-=======
             // Check oxygen level of player
         if(this.holdBreath && this.inWaterorLava(tilemap)){
->>>>>>> Uzzi-and-chris-collision-branch
             this.swimmingProperty.breathCount += elapsedTime;
         }
         else{
