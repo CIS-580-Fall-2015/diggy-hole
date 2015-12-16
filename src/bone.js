@@ -196,6 +196,7 @@ module.exports = (function(){
 	   
 	   if( otherEntity.type == "player"){
 		   this.enabled = false;
+		   otherEntity.hurt(10);
 		   if(DEBUG){
 		   console.log("Player hit by bone");
 		   otherEntity.scoreEngine.scoreToZero();

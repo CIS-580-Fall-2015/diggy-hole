@@ -5,6 +5,7 @@ module.exports = (function() {
     var Miner = require('./goblin-miner.js');
     var Turret = require('./turret.js');
     var StoneMonster = require('./stone-monster.js');
+	var DynamiteDwarf = require('./dynamiteDwarf.js');
 
     var updatePeriodSeconds = 50;
 
@@ -27,6 +28,7 @@ module.exports = (function() {
             this.entityManager.add(new Miner(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
             this.entityManager.add(new DemonGHog(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
             this.entityManager.add(new Barrel(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+			 this.entityManager.add(new DynamiteDwarf(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
             this.addStoneMonster();
         }
     };

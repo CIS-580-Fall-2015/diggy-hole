@@ -31,8 +31,7 @@ module.exports = (function(){
   var explosion = new Audio('resources/sounds/explosion.wav');
 
   //The Dynamite constructor
-  function Dynamite(locationX, locationY, layerIndex, inputManager, sourceEntity) {
-    this.inputManager = inputManager
+  function Dynamite(locationX, locationY, layerIndex, sourceEntity) {
     this.state = FALLING; 
     this.dug = false; 
     this.downPressed = false;
@@ -89,11 +88,6 @@ module.exports = (function(){
    */
   Dynamite.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
-    
-    // The "with" keyword allows us to change the
-    // current scope, i.e. 'this' becomes our 
-    // inputManager
-    with (this.inputManager) {	
 
 		switch(sprite.state) {
         case FALLING:
@@ -127,13 +121,13 @@ module.exports = (function(){
 				for(var i = tileX-3; i < tileX+3;i++){
 					for(var j = tileY -3; j < tileY+3;j++){
 						
-						tilemap.setTileAt(7, i, j, 0);
+						tilemap.removeTileAt(i, j, 0);
 					}	  
 				}
 				for(var i = tileX-5; i < tileX+5;i++){
 					for(var j = tileY -5; j < tileY+5;j++){
 						if(Math.random() < 0.4){
-							tilemap.setTileAt(7, i, j, 0);
+							tilemap.removeTileAt( i, j, 0);
 						}
 						
 					}	  
@@ -149,12 +143,6 @@ module.exports = (function(){
 		  //final state
 			break;
 		}
-		
-      
-      
-      // Swap input buffers
-      swapBuffers();
-    }
        
     // Update animation
     
