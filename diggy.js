@@ -5589,7 +5589,7 @@ module.exports = (function() {
     const JUMP_VELOCITY = -900;
 
     // Swimming Moving Constant
-    const GRAVITY_IN_WATER = -80;
+    const GRAVITY_IN_WATER = -100;
     const SWIM_UP = -100;
     const SPEED_IN_LIQUID = 80;
 
@@ -5687,7 +5687,7 @@ module.exports = (function() {
     Player.prototype = new Entity();
 
     // Check to see if player is in water i.e full body immersion (head inside water)
-    Player.prototype.inWater = function(tilemap) {
+    Player.prototype.inWaterorLava = function(tilemap) {
         var box = this.boundingBox();
         var tileX = Math.floor((box.right - 10)/64);
         // Based on the position that player is facing changed the location of it's X coordinate
@@ -5697,7 +5697,7 @@ module.exports = (function() {
         var tileY = Math.floor(box.top / 64),
             tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
         if(tile){
-            if (tile.data.type == "Water"){
+            if (tile.data.type == "Water" || tile.data.type == "Lava"){
                 return true;
             }
         }
@@ -5714,7 +5714,7 @@ module.exports = (function() {
             var tileY = Math.floor(box.bottom / 64) - 1,// check if player is right above water.
             tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
             if(tile){
-                if (tile.data.type == "Water" && !this.inWater(tilemap)){
+                if (tile.data.type == "Water" && !this.inWaterorLava(tilemap)){
                     return true;
                 }
              }
@@ -5725,8 +5725,8 @@ module.exports = (function() {
     // Determines if the player is on the ground
     Player.prototype.onGround = function(tilemap) {
         var box = this.boundingBox(),
-            tileXL = Math.floor((box.left + 50) / 64),
-            tileXR = Math.floor((box.right - 10) / 64),
+            tileXL = Math.floor((box.left + 32) / 64),
+            tileXR = Math.floor((box.right - 32) / 64),
             tileY = Math.floor((box.bottom) / 64),
             tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
             tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
@@ -5755,12 +5755,12 @@ module.exports = (function() {
         var box = this.boundingBox(),
             tileXL = Math.floor((box.left) / 64),
             tileXR = Math.floor((box.right) / 64),
-            tileY = Math.floor((box.top - 10) / 64),
+            tileY = Math.floor((box.top) / 64),
             tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
             tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
-            return (tileL.data.type == "CaveBackground" || tileR.data.type == "SkyBackground"
-            || tileL.data.type == "SkyBackground" || tileR.data.type == "CaveBackground") &&
-                (tileL.data.type!== this.inWater(tilemap) && tileR.data.type !== this.inWater(tilemap));
+            return ((tileL && tileL.data.type == "CaveBackground") || (tileR && tileR.data.type == "SkyBackground")
+            || tileL && tileL.data.type == "SkyBackground" || tileR && tileR.data.type == "CaveBackground") &&
+                (tileL && tileL.data.type!== this.inWaterorLava(tilemap) && (tileR && tileR.data.type !== this.inWaterorLava(tilemap)));
     };
 
     // Determines if the player will ram his head into a block above
@@ -5836,7 +5836,7 @@ module.exports = (function() {
                     this.velocityY = 0;
                 }
                 // If player is above water or inside water
-                else if(this.inWater(tilemap)){
+                else if(this.inWaterorLava(tilemap)){
                     this.state = SWIMMING;
                     this.holdBreath = true;
                     this.velocityY = 0;
@@ -5896,8 +5896,9 @@ module.exports = (function() {
                 if(this.velocityY < TERMINAL_VELOCITY) {
                     this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
                 }
-                if(this.onWater(tilemap)){
+                if(this.onWater(tilemap) || this.inWaterorLava(tilemap)){
                     this.state = SWIMMING;
+                    this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
                 }
                 else{
                     this.currentY += this.velocityY * elapsedTime;
@@ -5933,13 +5934,13 @@ module.exports = (function() {
                           this.currentY += this.velocityY * elapsedTime;
                           console.log("SWIMING UP");
                   }
-                  if (this.onGround(tilemap) && !this.inWater(tilemap)) {
+                  if (this.onGround(tilemap) && !this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
                       this.currentY = 64 * Math.floor(this.currentY / 64);
                       this.state = STANDING;
                       console.log("standing");
                   }
-                  else if (this.onGroundInWater(tilemap) && this.inWater(tilemap)) {
+                  else if (this.onGroundInWater(tilemap) && this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
                       this.currentY = 64 * Math.floor(this.currentY / 64);
                       console.log("floating in water");
@@ -6017,8 +6018,13 @@ module.exports = (function() {
         // Swap input buffers
         this.inputManager.swapBuffers();
 
+<<<<<<< HEAD
         // Check oxygen level of player
         if(this.holdBreath && this.inWater(tilemap)){
+=======
+            // Check oxygen level of player
+        if(this.holdBreath && this.inWaterorLava(tilemap)){
+>>>>>>> Uzzi-and-chris-collision-branch
             this.swimmingProperty.breathCount += elapsedTime;
         }
         else{
@@ -6343,7 +6349,7 @@ module.exports = (function() {
             animationSet[DIGGING].render(ctx, this.currentX, this.currentY);
         }
 
-
+            /*
         if (this.holdBreath && this.state == SWIMMING) {
             var bb = this.boundingBox();
             var width = (bb.right - bb.left) - ((Math.floor(this.swimmingProperty.breathCount) / 20) * (bb.right - bb.left));
@@ -6355,6 +6361,7 @@ module.exports = (function() {
             ctx.fillStyle = "rgba(0,0,200,0)";
 
         }
+        */
 
         //draw powerups
         if(this.superPickaxe){
@@ -6422,7 +6429,7 @@ module.exports = (function() {
     Player.prototype.boundingBox = function() {
         return {
             left: this.currentX + 10,
-            top: this.currentY + 15,
+            top: this.currentY,
             right: this.currentX + SIZE - 5,
             bottom: this.currentY + SIZE
         };
