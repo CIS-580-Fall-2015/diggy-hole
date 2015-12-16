@@ -5542,9 +5542,9 @@ module.exports = (function() {
         this.layerIndex = layerIndex;
         this.x = locationX;
         this.y = locationY;
-        this.spriteOffset = { x: -8, y: 0 };
+        this.spriteOffset = { x: -8, y: -16 };
         this.spriteSize = { x: 64, y: 64 };
-        this.hitboxSize = { x: 48, y: 64 };
+        this.hitboxSize = { x: 48, y: 48 };
         this.gravity = 0.5;
         this.isLeft = false;
         this.SPEED = 300;
@@ -5798,7 +5798,7 @@ module.exports = (function() {
                 this.y += this.velocityY * elapsedTime;
                 if (this.onGround(tilemap)) {
                     this.state = STANDING;
-                    this.y = Settings.TILESIZEY * Math.floor(this.y / Settings.TILESIZEY);
+                    this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
                 } else if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
                     this.isLeft = true;
                     this.moveLeft(elapsedTime * this.SPEED, tilemap);
