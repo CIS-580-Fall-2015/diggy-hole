@@ -158,7 +158,7 @@ module.exports = (function() {
                 return true;
             }
         }
-        return false; //
+        return false;
     };
 
     // Check to see if player is on top of water
@@ -407,11 +407,7 @@ module.exports = (function() {
 
                 // A counter for the health bar to check if player is drowning
                 if (this.swimmingProperty.breathCount > 20) {
-                    //Player is dead!
-                    //<progress id="health" value="100" max="100"></progress>
-                    // var health = document.getElementById("health")
-                    // health.value = health.value (add, subtract health, whatever.)
-                    this.swimmingProperty.breathCount = 0;
+                    this.hurt(1);
                 }
                 break;
         }
