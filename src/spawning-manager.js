@@ -9,11 +9,12 @@ module.exports = (function() {
 
     var updatePeriodSeconds = 50;
 
-    function SpawningManager(entityManager, scoreEngine, player) {
+    function SpawningManager(entityManager, scoreEngine, player, inputManager) {
         this.entityManager = entityManager;
         this.scoreEngine = scoreEngine;
         this.player = player;
         this.updateTimeLeft = 0;
+		this.inputManager = inputManager;
     }
 
     SpawningManager.prototype.update = function (elapsedTime) {
@@ -28,7 +29,7 @@ module.exports = (function() {
             this.entityManager.add(new Miner(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
             this.entityManager.add(new DemonGHog(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
             this.entityManager.add(new Barrel(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-			 this.entityManager.add(new DynamiteDwarf(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+			 this.entityManager.add(new DynamiteDwarf(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0, this.inputManager, this.scoreEngine));
             this.addStoneMonster();
         }
     };

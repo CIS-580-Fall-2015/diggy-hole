@@ -1,4 +1,5 @@
 /* Game GameState module
+/* Game GameState module
  * Provides the main game logic for the Diggy Hole game.
  * Authors:
  * - Nathan Bean
@@ -114,7 +115,7 @@ module.exports = (function (){
         player = new Player(randomPos.x * 64, randomPos.y * 64, 0, inputManager, hb, scoreEngine, inventory);
         entityManager = new EntityManager(player);
 
-        this.spawningManager = new SpawningManager(entityManager, scoreEngine, player);
+        this.spawningManager = new SpawningManager(entityManager, scoreEngine, player, inputManager);
 
         //add wolf to
         // the entity manager
@@ -233,7 +234,7 @@ module.exports = (function (){
 
         // Redraw the map & entities
         tilemap.render(backBufferCtx);
-        entityManager.render(backBufferCtx, true);
+        entityManager.render(backBufferCtx, false);
         //player.render(backBufferCtx, true);
         ParticleManager.render(backBufferCtx);
         tilemap.renderWater(backBufferCtx);
