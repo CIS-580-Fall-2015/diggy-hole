@@ -1967,11 +1967,13 @@ Cannonball.prototype = new Entity();
 		if (this.state == EXPLODING) {
 			this.animations[this.state].update(elapsedTime);
 			this.projectileTimeExploding += elapsedTime;
-			if (this.projectileTimeExploding > 2) {
+			if (this.projectileTimeExploding > 1) {
 				this.state = IDLE;
 				//Wyatt Watson - Now removes the explosion left overs
 				// MZ - If you do that the turret has nothing to shoot with afterwards
 				// entityManager.remove(this);
+				this.posX = 0;
+				this.posY = 0;
 			}
 		}
 
