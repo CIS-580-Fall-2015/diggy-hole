@@ -790,11 +790,15 @@ module.exports = (function() {
             var bb = this.boundingBox();
             var width = (bb.right - bb.left) - ((Math.floor(this.swimmingProperty.breathCount) / 20) * (bb.right - bb.left));
 
+            //TODO create a hud element for this bar and wrap this code
+            ctx.save();
             ctx.fillStyle = "#21C8FF";
             ctx.fillRect(bb.left, bb.top - 15, width, 10);
             ctx.fill();
+            ctx.restore();
         }
 
+        //TODO draw this in a hud class?
         //draw powerups
         if(this.superPickaxe){
             ctx.drawImage(
