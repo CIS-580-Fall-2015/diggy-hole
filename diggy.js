@@ -2814,7 +2814,7 @@ module.exports = (function (){
     var update = function(elapsedTime) {
         this.spawningManager.update(elapsedTime, tilemap);
         entityManager.update(elapsedTime, tilemap, ParticleManager);
-        tilemap.update();
+        tilemap.update(elapsedTime);
         ParticleManager.update(elapsedTime);
         inputManager.swapBuffers();
         //octopus.getPlayerPosition(player.boundingBox());
