@@ -50,7 +50,7 @@ module.exports = (function() {
 
     // Swimming Moving Constant
     const GRAVITY_IN_WATER = -80;
-    const SWIM_UP = -164;
+    const SWIM_UP = -100;
     const SPEED_IN_LIQUID = 80;
 
     // Inventory constants
@@ -380,6 +380,7 @@ module.exports = (function() {
             case FALLING:
                 if(this.velocityY < TERMINAL_VELOCITY) {
                     this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+                    console.log("I am being called");
                 }
                 if(this.onWater(tilemap) || this.inWaterorLava(tilemap)){
                     this.state = SWIMMING;
@@ -415,9 +416,8 @@ module.exports = (function() {
                       this.moveRight(elapsedTime * SPEED_IN_LIQUID, tilemap);
                   }
                   else if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
-                          this.velocityY = SWIM_UP;
-                          this.y += this.velocityY * elapsedTime;
-                          console.log("SWIMING UP");
+                      this.velocityY = SWIM_UP;
+                      this.y += this.velocityY * elapsedTime;
                   }
                   if (this.onGround(tilemap) && !this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;

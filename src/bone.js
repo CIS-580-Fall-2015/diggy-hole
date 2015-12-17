@@ -199,7 +199,6 @@ module.exports = (function(){
 		   otherEntity.hurt(10);
 		   if(DEBUG){
 		   console.log("Player hit by bone");
-		   otherEntity.scoreEngine.scoreToZero();
 		   }
 	   } else if(otherEntity.lives){
 		   this.enabled = false;
