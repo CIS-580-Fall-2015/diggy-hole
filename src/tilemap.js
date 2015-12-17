@@ -365,6 +365,7 @@ module.exports = (function (){
      this.surface = surface;
      // Determines where the crust layer of the earth ends
      var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
+     this.midEarth = midEarth;
 
      // Used to help clump up the sky islands
      var skyEarthCount = 0;
