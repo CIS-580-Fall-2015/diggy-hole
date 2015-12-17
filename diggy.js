@@ -5957,7 +5957,7 @@ module.exports = (function (){
     this.frameGoal       = [0, 0, 0, 0];
     this.numFramesPerRow = 4;
     this.numRows         = 10;
-    this.ticksPerFrame   = 9;
+    this.ticksPerFrame   = 2;
 
     this.xpos            = 0;
     this.ypos            = 0;
