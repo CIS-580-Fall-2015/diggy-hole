@@ -735,15 +735,12 @@ module.exports = (function() {
             if (layerType === 0) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
-                currentPlayer.score(1);
             } else if (layerType == 1) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
-                currentPlayer.score(1);
             } else if (layerType == 2) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
-                currentPlayer.score(1);
             }
 
             if(tileNum.data) {
