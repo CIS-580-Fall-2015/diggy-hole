@@ -84,7 +84,7 @@ module.exports = (function (){
         // Create the player and add them to
         // the entity manager
         var randomPos = tilemap.randomOnSurface();
-        player = new Player(randomPos.x * 64, randomPos.y * 64, 0, inputManager, hb, scoreEngine, inventory);
+        player = new Player(0,0, 0, inputManager, hb, scoreEngine, inventory);
         entityManager = new EntityManager(player);
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player, inputManager);

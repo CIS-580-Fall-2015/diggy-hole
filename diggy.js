@@ -2790,7 +2790,7 @@ module.exports = (function (){
         // Create the player and add them to
         // the entity manager
         var randomPos = tilemap.randomOnSurface();
-        player = new Player(randomPos.x * 64, randomPos.y * 64, 0, inputManager, hb, scoreEngine, inventory);
+        player = new Player(0,0, 0, inputManager, hb, scoreEngine, inventory);
         entityManager = new EntityManager(player);
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player, inputManager);
@@ -4486,7 +4486,7 @@ window.onload = function() {
  */
 module.exports = (function(){
   // Initially, we start with a random seed
-  var seed = 0; //Math.random();
+  var seed = Math.random();
 
   /* Seeds the random number generator
    * params:
@@ -4512,88 +4512,68 @@ module.exports = (function(){
   Nathan Bean's Perlin Noise file*/
 
   function generateNoise(width, height){
-    var noise = new Array(width*height);
+      var map = new Array(width * height);
 
-    for (i = 0; i < width; i++){
-      for (j = 0; j < height; j++){
-        noise[j * width + i] = (randomNumber(0, 1269.5));
+      for (var a = 0; a < height; a++){
+          for (var b = 0; b < width; b++) {
+              map[a*height + b] = Math.random();
+          }
       }
-    }
 
-    return noise;
+      return map;
   }
 
-  function generateSmoothNoise(mapWidth, noise, octave){
-    var width = mapWidth;
-    var height = noise.length / width;
+  function generateSmoothNoise(x, y, width, height, noise) {
+      var fractX = x - Math.floor(x);
+      var fractY = y - Math.floor(y);
 
-    var smoothNoise = new Array(width*height);
+      var x1 = (Math.floor(x) + width) % width;
+      var y1 = (Math.floor(y) + height) % height;
 
-    var samplePeriod = Math.floor(Math.pow(2, octave));
-    var sampleFrequency = 1.0 / samplePeriod;
+      var x2 = (x1 + width - 1) % width;
+      var y2 = (y1 + height - 1) % height;
 
-    for (i = 0; i < width; i++){
-      var sample_i0 = Math.floor(Math.floor(i / samplePeriod) * samplePeriod);
-      var sample_i1 = Math.floor((sample_i0 + samplePeriod) % width);
-      var horizontal_blend = (i - sample_i0) * sampleFrequency;
+      var value = 0.0;
+      value += fractX * fractY * noise[y1 * width + x1];
+      value += fractX * (1 - fractY) * noise[y2 * width + x1];
+      value += (1 - fractX) * fractY * noise[y1 * width + x2];
+      value += (1 - fractX) * (1 - fractY) * noise[y2 * width + x2];
 
-      for (j = 0; j < height; j++){
-        var sample_j0 = Math.floor(Math.floor(j / samplePeriod) * samplePeriod);
-        var sample_j1 = Math.floor((sample_j0 + samplePeriod) % height);
-        var vertical_blend = (j - sample_j0) * sampleFrequency;
-
-        var top = Interpolate(noise[sample_j0 * width + sample_i0],
-          noise[sample_j0 * width + sample_i1], horizontal_blend);
-
-        var bottom = Interpolate(noise[sample_j1 * width + sample_i0],
-          noise[sample_j1 * width + sample_i1], horizontal_blend);
-
-        smoothNoise[j * width + i] = Interpolate(top, bottom, vertical_blend);
-      }
-    }
-
-    return smoothNoise;
+      return value;
   }
 
   function Interpolate(x0, x1, alpha){
     return x0 * (1-alpha) + alpha * x1;
   }
 
-  function generatePerlinNoise(mapWidth, noise, octave){
-    var width = mapWidth;
-    var height = noise.length / width;
+  function Turbulence(x, y, width, height, size, noise) {
+      var value = 0.0, initialSize = size;
 
-    var smoothNoise = new Array(octave);
-
-    var persistance = 0.5;
-
-    for (x = 0; x < octave; x++){
-      smoothNoise[x] = generateSmoothNoise(mapWidth, noise, x);}
-
-    var perlinNoise = new Array(width*height);
-    var amplitude = 1.0;
-    var totalAmplitude = 0.0;
-
-    for (o = octave - 1; o >= 0; o--){
-      amplitude *= persistance;
-      totalAmplitude += amplitude;
-
-      for (i = 0; i < width; i++){
-        for (j = 0; j < height; j++){
-          perlinNoise[j * width + i] = smoothNoise[o][j * width + i] * amplitude;
-        }
+      while (size >= 1) {
+          value += generateSmoothNoise(x / size, y / size, width, height, noise) * size;
+          size /= 2.0;
       }
-    }
 
-    for (i = 0; i < width; i++){
-      for (j = 0; j < height; j++){
-        perlinNoise[j * width + i] = perlinNoise[j * width + i] / totalAmplitude;
-      }
-    }
-
-    return perlinNoise;
+      return (128.0 * value / initialSize);
   }
-  /*END PERLIN NOISE TUTORIAL/CODE*/
+
+  function generatePerlinNoise(map, width, height, noise) {
+      var translate = [1,1,1,3,5,10,4,4,5,9,6,11,7,9,7];
+
+      for (var a = 0; a < height; a++) {
+          for (var b = 0; b < width; b++) {
+              map[a * width + b] = translate[Math.floor(Clamp(Turbulence(a, b, width, height, 64, noise) / 10 /*FREQUENCY*/,0,15))];
+          }
+      }
+
+      return map;
+  }
+
+  function Clamp(val, min, max) {
+      if (val > max) return max;
+      else if (val < min) return min;
+      else return val;
+  }
 
   return {
     setSeed: setSeed,
@@ -4601,8 +4581,9 @@ module.exports = (function(){
     generateNoise: generateNoise,
     generateSmoothNoise: generateSmoothNoise,
     generatePerlinNoise: generatePerlinNoise,
+    Turbulence: Turbulence,
+    Clamp: Clamp
   }
-
 }());
 
 },{}],30:[function(require,module,exports){
@@ -6629,251 +6610,294 @@ module.exports = (function (){
     });
   }
 
+  /*############################
+  * # BinaryTreeNode functions #
+  * ############################
+  *
+  * Function : BinaryTreeNode(key, value, left, right)
+  *  Description : Creates a new BinaryTreeNode object.
+  */
+  function BinaryTreeNode(key, value, left, right) {
+      this.key = key;
+      this.value = value;
+      this.LeftNode = left;
+      this.RightNode = right;
+  }
+
+  /* Function : AddNode(key, value, left, right, tree)
+  *  Description : Adds a node to the tree structure. If a node and new key are the same, then the value is replaced.
+  */
+  function AddNode(key, value, left, right, tree) {
+      if (key < tree.key) {
+          if (tree.LeftNode == null) {
+              tree.LeftNode = new BinaryTreeNode(key, value, left, right);
+          }
+          else {
+              AddNode(key, value, left, right, tree.LeftNode);
+          }
+      }
+      else if (key > tree.key) {
+          if (tree.RightNode == null) {
+              tree.RightNode = new BinaryTreeNode(key, value, left, right);
+          }
+          else {
+              AddNode(key, value, left, right, tree.RightNode);
+          }
+      }
+      else {
+          tree.value = value;
+      }
+  }
+
+  /* Function : Search(key, tree)
+  *  Description : Searches a given tree for a corresponding key. Returns a value, or null if no such key is found.
+  */
+  function Search(key, tree) {
+      if (key != tree.key) {
+          if (key < tree.key) {
+              if (tree.LeftNode != null) {
+                  tree = Search(key, tree.LeftNode);
+              }
+          }
+          else {
+              if (tree.RightNode != null) {
+                  tree = Search(key, tree.RightNode);
+              }
+          }
+      }
+      return tree;
+  }
+
   /* Generates a random tilemap
    * Arguments:
    * - width, the width of the tilemap
    * - height, the height of the tilemap
    * - options, options to trigger
    */
-  var generate = function(width, height, options) {
-    var map = new Array(width*height);
-    var noise = noisy.generateNoise(width, height);
-    noise = noisy.generatePerlinNoise(width, noise, 7);
+   var generate = function(width, height, options) {
+     var map = new Array(width*height);
+     var noise = noisy.generateNoise(width, height);
+     noise = noisy.generatePerlinNoise(map, width, height, noise);
 
-    var tileWidth = 64, tileHeight = 64;
-    var tilesets = [
-      {
-        firstgid: 0,
-        image: "Tileset.png",
-        imageheight: 256,
-        imagewidth: 256,
-        margin: 0,
-        name: "Tileset",
-        tileproperties: {
-          0: { // Sky background
-            type: "SkyBackground",
-            notDiggable: true
-          },
-          1: { // Clouds
-            type: "Clouds",
-            notDiggable: true
-          },
-          2: { // Sky Earth
-            type: "Sky Earth",
-            solid: true
-          },
-          3: { // Gems w grass
-            type: "GemsWithGrass",
-            solid: true,
-            gems: true
-          },
-          4: { // Dirt w grass
-            type: "DirtWithGrass",
-            solid: true
-          },
-          5: { // Stone w grass
-            type: "StoneWithGrass",
-            solid: true,
-            notDiggable: true
-          },
-          6: { // Water
-            type: "Water",
-            liquid: true,
-            notDiggable: true
-          },
-          7: { // Cave background
-            type: "CaveBackground",
-            notDiggable: true
-          },
-          8: { // Gems
-            type: "Gems",
-            solid: true,
-            gems: true
-          },
-          9: { // dirt
-            type: "Dirt",
-            solid: true,
-          },
-          10: { // stone
-            type: "Stone",
-            solid: true,
-            notDiggable: true
-          },
-          11: { // water
-            type: "Water",
-            liquid: true,
-            notDiggable: true
-          },
-          12: { // cave background
-            type: "CaveBackground",
-            notDiggable: true
-          },
-          13: { // lava
-            type: "Lava",
-            liquid: true,
-            damage: 10,
-            notDiggable: true
-          },
-          14: { // dark background
-            type: "DarkBackground",
-            notDiggable: true
-          },
-          15: { // dug background
-            type: "DugBackground",
-            notDiggable: true
-          }
-        },
-        spacing: 0,
-        tilewidth: 64,
-        tileheight: 64
-      }
-    ]
+     var tileWidth = 64, tileHeight = 64;
+     var tilesets = [
+       {
+         firstgid: 0,
+         image: "Tileset.png",
+         imageheight: 256,
+         imagewidth: 256,
+         margin: 0,
+         name: "Tileset",
+         tileproperties: {
+           0: { // Sky background
+             type: "SkyBackground",
+           },
+           1: { // Clouds
+              type: "Clouds",
+           },
+           2: { // Sky Earth
+             type: "Sky Earth",
+             solid: true
+           },
+           3: { // Gems w grass
+             type: "GemsWithGrass",
+             solid: true,
+             gems: true
+           },
+           4: { // Dirt w grass
+             type: "DirtWithGrass",
+             solid: true
+           },
+           5: { // Stone w grass
+             type: "StoneWithGrass",
+             solid: true
+           },
+           6: { // Water
+             type: "Water",
+             liquid: true
+           },
+           7: { // Cave background
+             type: "CaveBackground",
+           },
+           8: { // Gems
+             type: "Gems",
+             solid: true,
+             gems: true
+           },
+           9: { // dirt
+             type: "Dirt",
+             solid: true,
+           },
+           10: { // stone
+             type: "Stone",
+             solid: true,
+           },
+           11: { // water
+             type: "Water",
+             liquid: true
+           },
+           12: { // cave background
+             type: "CaveBackground",
+           },
+           13: { // lava
+             type: "Lava",
+             liquid: true,
+             damage: 10,
+           },
+           14: { // dark background
+             type: "DarkBackground",
+           },
+           15: { // dug background
+             type: "DugBackground",
+           }
+         },
+         spacing: 0,
+         tilewidth: 64,
+         tileheight: 64
+       }
+     ]
 
-    // Determines where the surface is (and end of the sky)
-    var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));
-    this.surface = surface;
-    // Determines where the crust layer of the earth ends
-    var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
-    this.midEarth = midEarth;
-    // Used to help clump up the sky islands
-    var skyEarthCount = 0;
-    var cloudCount = 0;
+     // Determines where the surface is (and end of the sky)
+     var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));
+     this.surface = surface;
+     // Determines where the crust layer of the earth ends
+     var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
 
-    /* As a key the tile numbers are as follows:
-     * SkyBackground: 0, Clouds: 1, SkyEarth: 2, GemsWithGrass: 3, DirtWithGrass: 4, StoneWithGrass: 5, Water: 6,
-     * CaveBackground: 7, Gems: 8, Dirt: 9, Stone: 10, Water(Again): 11, CaveBackground(Again): 12, Lava: 13, DarkBackground: 14, DugTile: 15
-     * you can replace any of the tiles that are unwanted (or wanted) at any point and it will preserve initial functionality*/
-    for(j = 0; j < height; j++){
-      var rand = noisy.randomNumber(0, 3);
-      var rand2 = noisy.randomNumber(0, 1);
-      for(i = 0; i < width; i++){
-        var index = j * width + i;
-        var temp = noise[index];
-        //Ensure first row is sky
-        if(j == 0){
-          map[index] = 1;
-        }
-        //Sky Area
-        else if(j < surface-2){
-          if(temp < 8 && skyEarthCount == 0 && cloudCount == 0){ //Sky Background
-            map[index] = 1;
-          }
-          else if(temp < 9.4 && skyEarthCount == 0){ //Clouds
-            map[index] = 2;
-            cloudCount++;
-            if(cloudCount > rand2){
-              rand2 = noisy.randomNumber(0, 3);
-              cloudCount = 0;
-            }
-          }
-          else{ //Sky Earth
-            map[index] = 3;
-            skyEarthCount++;
-            if(skyEarthCount > rand){
-              skyEarthCount = 0;
-              rand = noisy.randomNumber(0, 3);
-            }
-          }
-        }
-        //Ensure row before the surface is sky
-        else if(j < surface){
-          map[index] = 1;
-        }
-        //Surface blocks - Start of Crust Layer
-        else if(j == surface){
-          if(temp < .5){ //Gems w grass
-            map[index] = 4;
-          }
-          else if(temp < 5){ //Dirt w grass
-            map[index] = 5;
-          }
-          else if(temp < 6){ //Stone w grass
-            map[index] = 6;
-          }
-          else if(temp < 8){ //Water
-            map[index] = 7;
-          }
-          else{ //Cave Background
-            map[index] = 13;
-          }
-        }
-        //Crust Area
-        else if(j < midEarth-1){
-          if(temp < .5){ //Gems
-            map[index] = 9;
-          }
-          else if(temp < 4){ //Dirt
-            map[index] = 10;
-          }
-          else if(temp < 6){ //Stone
-            map[index] = 11;
-          }
-          else if(temp < 8){ //Water 11
-            map[index] = 12;
-          }
-          else{ //Cave Background
-            map[index] = 13;
-          }
-        }
-        //Solid layer between crust and deep earth
-        else if(j < midEarth){
-          if(temp < .5){ //Gems
-            map[index] = 9;
-          }
-          else if(temp < 4){ //Dirt
-            map[index] = 10;
-          }
-          else if(temp < 6){ //Stone
-            map[index] = 11;
-          }
-          else if(temp < 8){ //Water 11
-            map[index] = 10;
-          }
-          else{ //Cave Background
-            map[index] = 11;
-          }
-        }
-        //Deep Earth
-        else{
-          if(temp < 4){ // Lava
-            map[index] = 14;
-          }
-          else if(temp < 6){ // Stone
-            map[index] = 11;
-          }
-          else{ // Dark Background
-            map[index] = 15;
-          }
-        }
+     // Used to help clump up the sky islands
+     var skyEarthCount = 0;
+     var cloudCount = 0;
 
-      }
-    }
+     /* As a key the tile numbers are as follows:
+      * SkyBackground: 0, Clouds: 1, SkyEarth: 2, GemsWithGrass: 3, DirtWithGrass: 4, StoneWithGrass: 5, Water: 6,
+      * CaveBackground: 7, Gems: 8, Dirt: 9, Stone: 10, Water(Again): 11, CaveBackground(Again): 12, Lava: 13, DarkBackground: 14, DugTile: 15
+      * you can replace any of the tiles that are unwanted (or wanted) at any point and it will preserve initial functionality*/
 
-    for(var x = 0; x < height/20; x++){
-      map = consolidateLiquids(map, width, height, width-1, 0, 0, height-1, width, 2);
-    }
+     for(j = 0; j < height; j++){
+       var rand = noisy.randomNumber(0, 3);
+       var rand2 = noisy.randomNumber(0, 1);
+       for(i = 0; i < width; i++){
+         var index = j * width + i;
+         var temp = noise[index];
+         //Ensure first row is sky
+         if(j == 0){
+           map[index] = 1;
+         }
+         //Sky Area
+         else if(j < surface-2){
+           if(temp < 8 && skyEarthCount == 0 && cloudCount == 0){ //Sky Background
+             map[index] = 1;
+           }
+           else if(temp < 15 && skyEarthCount == 0){ //Clouds
+             map[index] = 2;
+             cloudCount++;
+             if(cloudCount > rand2){
+               rand2 = noisy.randomNumber(0, 3);
+               cloudCount = 0;
+             }
+           }
+           else{ //Sky Earth
+             map[index] = 0;
+             skyEarthCount++;
+             if(skyEarthCount > rand){
+               skyEarthCount = 0;
+               rand = noisy.randomNumber(0, 3);
+             }
+         }
+         }
+         //Ensure row before the surface is sky
+         else if(j < surface){
+           map[index] = 1;
+         }
+         //Surface blocks - Start of Crust Layer
+         else if(j == surface){
+           if(temp < 2){ //Gems w grass
+             map[index] = 4;
+           }
+           else if(temp < 7){ //Dirt w grass
+             map[index] = 5;
+           }
+           else if(temp < 11){ //Stone w grass
+             map[index] = 6;
+           }
+           else if(temp < 14.5){ //Water
+             map[index] = 7;
+           }
+           else{ //Cave Background
+             map[index] = 13;
+           }
+         }
+         //Crust Area
+         else if(j < midEarth-1){
+           if(temp < 2){ //Gems
+             map[index] = 9;
+           }
+           else if(temp < 7){ //Dirt
+             map[index] = 10;
+           }
+           else if(temp < 11){ //Stone
+             map[index] = 11;
+           }
+           else if(temp < 14.5){ //Water 11
+             map[index] = 12;
+           }
+           else{ //Cave Background
+             map[index] = 13;
+           }
+         }
+         //Solid layer between crust and deep earth
+         else if(j < midEarth){
+           if(temp < 2){ //Gems
+             map[index] = 9;
+           }
+           else if(temp < 7){ //Dirt
+             map[index] = 10;
+           }
+           else if(temp < 11){ //Stone
+             map[index] = 11;
+           }
+           else if(temp < 14.5){ //Water 11
+             map[index] = 10;
+           }
+           else{ //Cave Background
+             map[index] = 11;
+           }
+         }
+         //Deep Earth
+         else{
+           if(temp < 4){ // Lava
+             map[index] = 14;
+           }
+           else if(temp < 6){ // Stone
+             map[index] = 11;
+           }
+           else{ // Dark Background
+             map[index] = 15;
+           }
+         }
+       }
+   }
 
-    // Create mapData object
-    var mapData = {
-      height: height,
-      width: width,
-      tilewidth: tileWidth,
-      tileheight: tileHeight,
-      layers: [{
-        data: map,
-        name: "Interaction Layer",
-        type: "tilelayer",
-        height: height,
-        width: width,
-        visible: true,
-        x: 0,
-        y: 0
-      }],
-      tilesets: tilesets,
-      options: options
-    }
-    return load(mapData, options);
-  }
+     // Create mapData object
+     var mapData = {
+       height: height,
+       width: width,
+       tilewidth: tileWidth,
+       tileheight: tileHeight,
+       layers: [{
+           data: map,
+           name: "Interaction Layer",
+           type: "tilelayer",
+           height: height,
+           width: width,
+           visible: true,
+           x: 0,
+           y: 0
+       }],
+       tilesets: tilesets,
+       options: options
+     }
+     return load(mapData, options);
+   }
 
   function shiftWaterDown(map, width, height, rightStart, bottomStart, viewWidth, viewHeight){
     for(var j = bottomStart; j > bottomStart-viewHeight; j--){
