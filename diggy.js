@@ -1529,6 +1529,7 @@ module.exports = (function(){
 					this.state = EXPLODED;
 				break;
 			default:
+				entityManager.remove(this);
 				break;
 		}
 	}
@@ -3474,19 +3475,95 @@ module.exports = (function (){
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player, inputManager);
 
-        octopus = new Octopus(randomPos.x * 64, randomPos.y * 64, 0);
-        entityManager.add(octopus);
+
+        //add wolf to
+        // the entity manager
+        //wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
+        //entityManager.add(wolf);
+
+        // for (var i = 0; i < 35; i += 7){
+        //     stoneMonster = new StoneMonster(64*i, 300, 0);
+        //     entityManager.add(stoneMonster);
+        // }
+
+        // bird = new Bird(600, 100);
+        // entityManager.add(bird);
+        //
+        // // Add a robo-killer to the entity manager.
+        // robo_killer = new Robo_Killer(450, 1240, 0);
+        // entityManager.add(robo_killer);
+        //
+        // rat = new Rat(500, 1360, 0);
+        // entityManager.add(rat);
+        //
+        // slime = new Slime(400, 1120, 0);
+        // entityManager.add(slime);
+        //
+        // sudo_chan = new Sudo_Chan(490, 1240, 0);
+        // entityManager.add(sudo_chan);
+        //
+        //octopus = new Octopus(randomPos.x * 64, randomPos.y * 64, 0);
+        //entityManager.add(octopus);
+        //
+        // DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
+        // entityManager.add(DemonicGroundHog);
+        //
+        // goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
+        // entityManager.add(goblinMiner);
+
+        // Create collectibles.
+        // WHOEVER IS IN CHARGE OF ENTITY PLACEMENT: Feel free to change the coordiates (first 2 parameters - x,y).
+        // entityManager.add(new Collectible(500, 240, 0,'bit_coin', 64, 64, 8, './img/bit_coin.png', 10));
+        // entityManager.add(new Collectible(600, 240, 0,'lost_cat', 64, 64, 14, './img/lost_cat.png', 15));
+
+        // Spawn 10 barrels close to player
+        // And some turrets
+        // and some shamans
+        //for(i = 0; i < 3; i++) {
+            // if (i < 3) {
+            // turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
+            // entityManager.add(turret);
+
+            // }
+            // dynamiteDwarf = new DynamiteDwarf(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
+            // entityManager.add(dynamiteDwarf);
+           // entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
+           // entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
+           // entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
+           // entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
+           // entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, 60*60));
+            // barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
+            // entityManager.add(barrel);
+            // entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
+
+        //octopus = new Octopus(randomPos.x * 64, randomPos.y * 64, 0);
+        //entityManager.add(octopus);
 
         //TODO move this to spawning manager
-        for(i = 0; i < 3; i++) {
+       // for(i = 0; i < 3; i++) {
 
-            entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
-            entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, 60*60));
 
-        }
+            //entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
+           // entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
+           // entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
+            //entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
+           // entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, 60*60));
+
+        //}
+        // powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
+
+
+        // Karenfang: Create a Kakao and add it to
+        // the entity manager
+        // kakao = new Kakao(310,1240,0);  //two tiles to the right of the player
+        // entityManager.add(kakao);
+        //
+        // extantBlobbers = 1;
+        // blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
+        // entityManager.add(blobber);
+
+        //}
+
 
 
         // Kyle Brown: Background Music
@@ -3511,7 +3588,7 @@ module.exports = (function (){
         tilemap.update();
         ParticleManager.update(elapsedTime);
         inputManager.swapBuffers();
-        octopus.getPlayerPosition(player.boundingBox());
+        //octopus.getPlayerPosition(player.boundingBox());
         hud.update(player.boundingBox());
     };
 
@@ -5987,7 +6064,7 @@ module.exports = (function() {
             tileXR = Math.floor((box.right) / 64),
             tileY = Math.floor((box.top) / 64),
             tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
-        tile = tilemap.tileAt(Math.floor(box.right / Settings.TILESIZEX), Math.floor(box.top / Settings.TILESIZEY), this.layerIndex);
+            tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
             return ((tileL && tileL.data.notDiggable) || (tileR && tileR.data.notDiggable))&& !this.inWaterorLava(tilemap);
     };
 
@@ -7905,6 +7982,7 @@ module.exports = (function() {
 	var skyEntities = new Array();
 	var middleEntities = new Array();
 	var deepEntities = new Array();
+	var powerUps = new Array();
 	
 	var birdData = {
 		Entity: require('./bird.js'),
@@ -7966,6 +8044,77 @@ module.exports = (function() {
 	deepEntities.push(ghostMinerData);
 	deepEntities.push(dynamiteDwarfData);
 
+	var pick = { 
+	 Entity: require('./powerUp.js'),
+	 limit: 2,
+	 count: 0,
+	 name: 'pick',
+	 width: 64,
+	 height: 64,
+	 frameNum: 2,
+	 img: './img/powerUps/pick.png',
+	 flying: false,
+	 duration: 3600
+	}
+	
+	var medicine = { 
+	 Entity: require('./powerUp.js'),
+	 limit: 2,
+	 count: 0,
+	 name: 'medicine',
+	 width: 64,
+	 height: 64,
+	 frameNum: 1,
+	 img: './img/powerUps/medicine.png',
+	 flying: false,
+	 duration: -1
+	}
+	
+	var crystal = { 
+	 Entity: require('./powerUp.js'),
+	 limit: 2,
+	 count: 0,
+	 name: 'crystal',
+	 width: 32,
+	 height: 32,
+	 frameNum: 8,
+	 img: './img/powerUps/crystal.png',
+	 flying: true,
+	 duration: -1
+	}
+	
+	var coin = { 
+	 Entity: require('./powerUp.js'),
+	 limit: 2,
+	 count: 0,
+	 name: 'coin',
+	 width: 44,
+	 height: 40,
+	 frameNum: 10,
+	 img: './img/powerUps/coin.png',
+	 flying: true,
+	 duration: -1
+	}
+	
+	var stoneShield = { 
+	 Entity: require('./powerUp.js'),
+	 limit: 2,
+	 count: 0,
+	 name: 'coin',
+	 width: 64,
+	 height: 64,
+	 frameNum: 1,
+	 img: './img/powerUps/stone_shield.png',
+	 flying: false,
+	 duration: 3600
+	}
+	
+	powerUps.push(pick);
+	powerUps.push(medicine);
+	powerUps.push(crystal);
+	powerUps.push(coin);
+	powerUps.push(stoneShield);
+	
     function SpawningManager(entityManager, scoreEngine, player) {
         this.entityManager = entityManager;
         this.scoreEngine = scoreEngine;
@@ -7975,7 +8124,7 @@ module.exports = (function() {
 	
 	var updatePeriodSeconds = 2;
 
-    SpawningManager.prototype.update = function (elapsedTime, tilemap) {
+    SpawningManager.prototype.update = function (elapsedTime, tilemap, entityManager) {
         this.updateTimeLeft -= elapsedTime;
         if(this.updateTimeLeft < 0) {
             this.updateTimeLeft = updatePeriodSeconds;
@@ -7992,8 +8141,8 @@ module.exports = (function() {
 			var posFound = false;
 			var x = 0, y = 0;
 			do{
-				x = Math.floor((Math.random()*64*15 + this.player.currentX)/64);
-				y = Math.floor((Math.random()*64*15 + this.player.currentY)/64);
+				x = Math.floor((Math.random()*10 +64*15 + this.player.x)/64);
+				y = Math.floor((Math.random()*10 +64*15 + this.player.y)/64);
 				
 				var tile = tilemap.tileAt(x, y, 0);
 				if(!(tile && tile.data.solid)){
@@ -8006,7 +8155,7 @@ module.exports = (function() {
 			if(posFound){
 				var tile = tilemap.tileAt(x, y, 0);
 				var num = Math.floor(Math.random()*3);
-				if(tile && tile.data) {
+				if( tile && tile.data) {
 					if (tile.data.type == "SkyBackground" || tile.data.type == "Clouds") {
 						if (skyEntities[num].limit > skyEntities[num].count) {
 							this.entityManager.add(
@@ -8014,21 +8163,47 @@ module.exports = (function() {
 							);
 							skyEntities[num].count++;
 						}
-					}
-					else if (tile.data.type == "CaveBackground" || tile.data.type == "Water") {
-						if (middleEntities[num].limit > middleEntities[num].count) {
+						else
+						{
+							num = Math.floor(Math.random()*5);
+							if(powerUps[num].limit > powerUps[num].count){
+								this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
+								powerUps[num].count++;
+							}
+						}
+					} 
+					else if(tile.data.type == "CaveBackground" || tile.data.type == "Water"){
+						if(middleEntities[num].limit > middleEntities[num].count){
 							this.entityManager.add(
-								new middleEntities[num].Entity(x * 64, y * 64, 0)
+									new middleEntities[num].Entity(x*64, y*64, 0)
 							);
 							middleEntities[num].count++;
 						}
+						else
+						{
+							num = Math.floor(Math.random()*5);
+							if(powerUps[num].limit > powerUps[num].count){
+								this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
+								powerUps[num].count++;
+							}		
+						}
 					}
-					else if (tile.data.type == "Lava" || tile.data.type == "DarkBackground" || tile.data.type == "DugBackground") {
-						if (deepEntities[num].limit > deepEntities[num].count) {
+					else if(tile.data.type == "Lava" || tile.data.type == "DarkBackground" || tile.data.type == "DugBackground"){
+						if(deepEntities[num].limit > deepEntities[num].count){
 							this.entityManager.add(
-								new deepEntities[num].Entity(x * 64, y * 64, 0)
+									new deepEntities[num].Entity(x*64, y*64, 0)
 							);
 							deepEntities[num].count++;
+
+						}
+						else
+						{
+							num = Math.floor(Math.random()*5);
+							if(powerUps[num].limit > powerUps[num].count){
+								this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
+								powerUps[num].count++;
+							}
+							
 						}
 					}
 				}
@@ -8041,7 +8216,7 @@ module.exports = (function() {
     return SpawningManager;
 })();
 
-},{"./DemonicGroundH.js":2,"./barrel.js":8,"./bird.js":9,"./dynamiteDwarf.js":17,"./ghostminer.js":22,"./goblin-miner.js":23,"./goblin-shaman.js":24,"./turret.js":48}],43:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./barrel.js":8,"./bird.js":9,"./dynamiteDwarf.js":17,"./ghostminer.js":22,"./goblin-miner.js":23,"./goblin-shaman.js":24,"./powerUp.js":37,"./turret.js":48}],43:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -9775,7 +9950,7 @@ module.exports = (function(){
 
 		if (this.targeting == true) {
 			// entitiesInRange = entityManager.queryRadius(this.posX, this.posY, 1500);
-			var angle = this.getAngle(this.player.currentX, this.player.currentY);
+			var angle = this.getAngle(this.player.x, this.player.y);
 				if (isNaN(angle) == false) {
 					this.angle = angle;
 					this.targetInRange(this.player);

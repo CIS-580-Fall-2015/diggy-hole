@@ -76,6 +76,7 @@ module.exports = (function(){
 					this.state = EXPLODED;
 				break;
 			default:
+				entityManager.remove(this);
 				break;
 		}
 	}
