@@ -7,6 +7,7 @@
 
 module.exports = (function (){
   var noisy = require('./noise.js'),
+      settings = require('./Settings.js'),
       tiles = [],
       tilesets = [],
       layers = [],
@@ -38,6 +39,8 @@ module.exports = (function (){
     var smallcloudxs = {};
     var smallcloudys = {};
     var smallcloudsize = {};
+
+    var timeSinceLiquidMovement = 0;
 
   /* Clamps the provided value to the provided range
    * Arguments:
@@ -568,16 +571,22 @@ module.exports = (function (){
   }
 
 // Added by Wyatt Watson
-  var update = function(){
+  var update = function(elapsedTime){
     layers.forEach(function(layer){
       var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
       var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
       var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
       var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
 
-      consolidateLiquids(layer.data, layer.width, layer.height, endX, startX, startY, endY, endX-startX, endY-startY);
+      timeSinceLiquidMovement += elapsedTime;
+
+      //create bounding box and clean updatable objects, but only after some time interval
+      if(timeSinceLiquidMovement >= settings.LIQUID_UPDATE_TIME) {
+          consolidateLiquids(layer.data, layer.width, layer.height, endX, startX, startY, endY, endX-startX, endY-startY);
+          timeSinceLiquidMovement = 0;
+      }
     });
-  }
+  };
 
   /*Karenfang*/
   var renderWater = function(screenCtx){
