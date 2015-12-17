@@ -105,28 +105,30 @@ module.exports = (function() {
 			if(posFound){
 				var tile = tilemap.tileAt(x, y, 0);
 				var num = Math.floor(Math.random()*3);
-				if(tile.data.type == "SkyBackground" || tile.data.type == "Clouds"){
-					if(skyEntities[num].limit > skyEntities[num].count){
-						this.entityManager.add(
-								new skyEntities[num].Entity(x*64, y*64, 0)
-						);
-						skyEntities[num].count++;
+				if(tile && tile.data) {
+					if (tile.data.type == "SkyBackground" || tile.data.type == "Clouds") {
+						if (skyEntities[num].limit > skyEntities[num].count) {
+							this.entityManager.add(
+								new skyEntities[num].Entity(x * 64, y * 64, 0)
+							);
+							skyEntities[num].count++;
+						}
 					}
-				}
-				else if(tile.data.type == "CaveBackground" || tile.data.type == "Water"){
-					if(middleEntities[num].limit > middleEntities[num].count){
-						this.entityManager.add(
-								new middleEntities[num].Entity(x*64, y*64, 0)
-						);
-						middleEntities[num].count++;
+					else if (tile.data.type == "CaveBackground" || tile.data.type == "Water") {
+						if (middleEntities[num].limit > middleEntities[num].count) {
+							this.entityManager.add(
+								new middleEntities[num].Entity(x * 64, y * 64, 0)
+							);
+							middleEntities[num].count++;
+						}
 					}
-				}
-				else if(tile.data.type == "Lava" || tile.data.type == "DarkBackground" || tile.data.type == "DugBackground"){
-					if(deepEntities[num].limit > deepEntities[num].count){
-						this.entityManager.add(
-								new deepEntities[num].Entity(x*64, y*64, 0)
-						);
-						deepEntities[num].count++;
+					else if (tile.data.type == "Lava" || tile.data.type == "DarkBackground" || tile.data.type == "DugBackground") {
+						if (deepEntities[num].limit > deepEntities[num].count) {
+							this.entityManager.add(
+								new deepEntities[num].Entity(x * 64, y * 64, 0)
+							);
+							deepEntities[num].count++;
+						}
 					}
 				}
 			}
