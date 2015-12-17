@@ -29,7 +29,8 @@ module.exports = (function (){
         healthBar = require('./healthBar.js'),
         Inventory = require('./inventory.js'),
         Settings = require('./Settings.js'),
-        Minimap = require('./minimap.js');
+        Minimap = require('./minimap.js'),
+        minimap;
 
     /* Loads the GameState, triggered by the StateManager
      * This function sets up the screen canvas, the tilemap,
