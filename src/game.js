@@ -145,6 +145,7 @@ module.exports = (function (){
         ParticleManager.render(backBufferCtx);
         tilemap.renderWater(backBufferCtx);
         hud.render(backBufferCtx);
+	minimap.render(backBufferCtx);
 
         backBufferCtx.restore();
 
