@@ -20,6 +20,7 @@ module.exports = (function() {
     walk_sound = new Audio('resources/sounds/walking_sound.mp3');
     throw_sound = new Audio('resources/sounds/throwing_sound.mp3');
     death_sound = new Audio('resources/sounds/death.wav');
+	swimming_sound = new Audio('resources/sounds/swimming.mp3');
 
 
     /* The following are player States (Swimming is not implemented) */
@@ -410,11 +411,13 @@ module.exports = (function() {
                       this.velocityY = 0;
                       this.isLeft = true;
                       this.moveLeft(elapsedTime * SPEED_IN_LIQUID, tilemap);
+					  swimming_sound.play();
                   }
-                  else if (this.inputManager.isKeyDown(this.inputManager.commands.RIGHT)) {
+                  else if (this.inputManager.isKeyDown(this.inputManager.commands.RIGHT)) {					  
                       this.velocityY = 0;
                       this.isLeft = false;
                       this.moveRight(elapsedTime * SPEED_IN_LIQUID, tilemap);
+					  swimming_sound.play();
                   }
                   else if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
                       if(this.headOverWater(tilemap)){
@@ -423,10 +426,12 @@ module.exports = (function() {
                           console.log("I am not in water");
                           this.state = JUMPING;
                           this.holdBreath = false;
+						  jump_sound.play();
                       }
                       else{
                           this.velocityY = SWIM_UP;
                           this.y += this.velocityY * elapsedTime;
+						  swimming_sound.play();
                       }
                   }
                   if (this.onGround(tilemap) && !this.inWaterorLava(tilemap)) {
