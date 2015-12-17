@@ -107,7 +107,6 @@ module.exports = (function() {
         // bone powerup
         this.attackFrequency = 1;
         this.lastAttack = 0;
-        this.bones = 5;
 
         //The animations
         this.animations = {
@@ -458,12 +457,16 @@ module.exports = (function() {
             this.lastAttack += elapsedTime;
         }
 
-        if (this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
-            this.shoot();
-        }
-
+	
         // Power Up Usage Management
         this.lastPowerUpUsed += elapsedTime;
+		
+		if (this.inputManager.isKeyDown(this.inputManager.commands.SIX) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
+                console.log("SIX or B pressed");
+                if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(5)) {
+						this.shoot();
+                }
+            }
 
         if (this.lastPowerUpUsed >= POWER_UP_FREQUENCY) {
             if (this.inputManager.isKeyDown(this.inputManager.commands.ONE)) {
@@ -486,13 +489,13 @@ module.exports = (function() {
                 if (inventory.slotUsed(3)) {
 
                 }
-            } else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
                 console.log("FIVE pressed");
                 if (inventory.slotUsed(4)) {
 
                 }
-            }
-            this.lastPowerUpUsed = 0;
+			this.lastPowerUpUsed = 0;
+			}
         }
 
 
@@ -769,7 +772,7 @@ module.exports = (function() {
         console.log("Picked up power up: " + powerUp.type);
 
         if (powerUp.type == 'boneUp') {
-            this.bones++;
+            inventory.powerUpPickedUp(5);
         } else if (powerUp.type == 'coin') {
             // add points
             this.score(20);
@@ -832,14 +835,11 @@ module.exports = (function() {
      Bone projectile powerup
      */
     Player.prototype.shoot = function(){
-        if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
             //Added sound for throwing bone
             throw_sound.play();
             var bone = new Bone(this.x, this.y, 0, this.isLeft, this);
             this.entityManager.add(bone);
-            this.bones--;
             this.lastAttack = 0;
-        }
     };
 
     /* Player Render Function
@@ -894,19 +894,7 @@ module.exports = (function() {
                 64);
         }
 
-        ctx.drawImage(
-            this.boneImg,
-            0,
-            0,
-            64,
-            64,
-            this.x + 400,
-            this.y - 350,
-            64,
-            64);
-        ctx.font = "20pt Calibri";
-        ctx.fillText("x"+this.bones, this.x + 445, this.y - 300);
-
+       
         if (debug) renderDebug(this, ctx);
     };
 
