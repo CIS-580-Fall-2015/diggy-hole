@@ -251,6 +251,9 @@ module.exports = (function() {
           if (tileUpper && !tileUpper.data.solid) {
             this.x -= distance;
           }
+          else {
+              this.x = Settings.TILESIZEX * (tileXUpper + 1) - 5;
+          }
         }
     };
 
@@ -272,6 +275,9 @@ module.exports = (function() {
         else {
           if (tileUpper && !tileUpper.data.solid) {
             this.x += distance;
+          }
+          else {
+              this.x = Settings.TILESIZEX * (tileXUpper) - this.hitboxSize.x;
           }
         }
     };
