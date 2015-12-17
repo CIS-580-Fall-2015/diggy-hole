@@ -1,5 +1,4 @@
 /* Game GameState module
-/* Game GameState module
  * Provides the main game logic for the Diggy Hole game.
  * Authors:
  * - Nathan Bean
@@ -11,40 +10,12 @@ module.exports = (function (){
 
     // Module variables
     var Player = require('./player.js'),
-        Rat = require('./rat.js'),
-        Wolf = require('./wolf.js'),
-        Robo_Killer = require('./robo-killer.js'),
-        Octopus = require('./octopus.js'),
         inputManager = require('./input-manager.js'),
         tilemap = require('./tilemap.js'),
         EntityManager = require('./entity-manager.js'),
         entityManager,
         SpawningManager = require('./spawning-manager.js'),
-        StoneMonster = require('./stone-monster.js'),
-        DemonicGroundHog = require('./DemonicGroundH.js'),
-        Barrel = require('./barrel.js'),
-        Turret = require('./turret.js'),
-        DynamiteDwarf = require('./dynamiteDwarf.js'),
-        Kakao = require('./Kakao.js'),
-        Bird = require('./bird.js'),
-        bird,
-        kakao,
-        wolf,
-        robo_killer,
-        GoblinMiner = require('./goblin-miner.js'),
-        Shaman = require('./goblin-shaman.js'),
-        Blobber = require('./blobber.js'),
-        blobber,
-        extantBlobbers,
         player,
-        rat,
-        octopus,
-        stoneMonster,
-        Slime = require('./slime.js'),
-        Sudo_Chan = require('./sudo_chan.js'),
-        sudo_chan,
-        slime,
-        goblinMiner,
         screenCtx,
         backBuffer,
         backBufferCtx,
@@ -103,7 +74,7 @@ module.exports = (function (){
         hud.addElement(scoreEngine);
 
         // SEt up invenotory
-        inventory = new Inventory(3);
+        inventory = new Inventory(5);
         hud.addElement(inventory);
 
         // Set up health bar
@@ -112,102 +83,11 @@ module.exports = (function (){
 
         // Create the player and add them to
         // the entity manager
-        var randomPos = tilemap.randomInSky();
+        var randomPos = tilemap.randomOnSurface();
         player = new Player(randomPos.x * 64, randomPos.y * 64, 0, inputManager, hb, scoreEngine, inventory);
         entityManager = new EntityManager(player);
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player, inputManager);
-
-
-        //add wolf to
-        // the entity manager
-        //wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
-        //entityManager.add(wolf);
-
-        // for (var i = 0; i < 35; i += 7){
-        //     stoneMonster = new StoneMonster(64*i, 300, 0);
-        //     entityManager.add(stoneMonster);
-        // }
-
-        // bird = new Bird(600, 100);
-        // entityManager.add(bird);
-        //
-        // // Add a robo-killer to the entity manager.
-        // robo_killer = new Robo_Killer(450, 1240, 0);
-        // entityManager.add(robo_killer);
-        //
-        // rat = new Rat(500, 1360, 0);
-        // entityManager.add(rat);
-        //
-        // slime = new Slime(400, 1120, 0);
-        // entityManager.add(slime);
-        //
-        // sudo_chan = new Sudo_Chan(490, 1240, 0);
-        // entityManager.add(sudo_chan);
-        //
-        //octopus = new Octopus(randomPos.x * 64, randomPos.y * 64, 0);
-        //entityManager.add(octopus);
-        //
-        // DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
-        // entityManager.add(DemonicGroundHog);
-        //
-        // goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
-        // entityManager.add(goblinMiner);
-
-        // Create collectibles.
-        // WHOEVER IS IN CHARGE OF ENTITY PLACEMENT: Feel free to change the coordiates (first 2 parameters - x,y).
-        // entityManager.add(new Collectible(500, 240, 0,'bit_coin', 64, 64, 8, './img/bit_coin.png', 10));
-        // entityManager.add(new Collectible(600, 240, 0,'lost_cat', 64, 64, 14, './img/lost_cat.png', 15));
-
-        // Spawn 10 barrels close to player
-        // And some turrets
-        // and some shamans
-        //for(i = 0; i < 3; i++) {
-            // if (i < 3) {
-            // turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
-            // entityManager.add(turret);
-
-            // }
-            // dynamiteDwarf = new DynamiteDwarf(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
-            // entityManager.add(dynamiteDwarf);
-           // entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
-           // entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
-           // entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
-           // entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
-           // entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, 60*60));
-            // barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
-            // entityManager.add(barrel);
-            // entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
-
-        //octopus = new Octopus(randomPos.x * 64, randomPos.y * 64, 0);
-        //entityManager.add(octopus);
-
-        //TODO move this to spawning manager
-       // for(i = 0; i < 3; i++) {
-
-
-            //entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
-           // entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
-           // entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
-            //entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
-           // entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, 60*60));
-
-        //}
-        // powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
-
-
-        // Karenfang: Create a Kakao and add it to
-        // the entity manager
-        // kakao = new Kakao(310,1240,0);  //two tiles to the right of the player
-        // entityManager.add(kakao);
-        //
-        // extantBlobbers = 1;
-        // blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
-        // entityManager.add(blobber);
-
-        //}
-
-
 
         // Kyle Brown: Background Music
         var bgMusic = new Audio('./resources/sounds/DiggyHoleBGMusicAm.wav');
