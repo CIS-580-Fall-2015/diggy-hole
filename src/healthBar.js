@@ -1,6 +1,6 @@
 module.exports = (function(){
 
-	function HealthBar(stateManager) {
+	function HealthBar(stateManager, scoreEngine) {
 		const 	hbYOffset = 50,
 			hbWidth = 200,
 			hbHeight = 30,
@@ -16,9 +16,11 @@ module.exports = (function(){
 		this.y;
 		this.health = 100;
 		this.deficit = 0;
-		this.gameOver = require('./gameOver.js');
+		
 		this.stateManager = stateManager;
-
+		this.scoreEngine = scoreEngine;
+		this.gameOver = require('./gameOver.js');
+		
 
 		this.heal = function(health) {
 			this.health = Math.min(this.health + health, 100)
@@ -32,8 +34,11 @@ module.exports = (function(){
 			this.health = Math.max(this.health - health, 0);
 			var sm = this.stateManager;
 			var go = this.gameOver;
+			
 			if (this.health == 0) {
+				this.gameOver.engine(this.scoreEngine);
 				setInterval(function(){
+					
 					sm.pushState(go);
 				}, 3000);
 				return false;

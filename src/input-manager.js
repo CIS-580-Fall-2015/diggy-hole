@@ -9,14 +9,15 @@ module.exports = (function() {
     DIGLEFT: 65, 	// A
     DIGRIGHT: 68,	// D
     DIGUP: 87,		// W
-	PAY: 80,		// P
+	PAY: 50,		// P
 	ATTACK : 65,	// A
 	SHOOT : 66,	 	// B
 	ONE : 49,
 	TWO : 50,
 	THREE : 51,
 	FOUR : 52,
-	FIVE : 53
+	FIVE : 53,
+	SIX : 54
   }
   
   var oldKeys = [];

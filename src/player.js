@@ -49,8 +49,8 @@ module.exports = (function() {
     const JUMP_VELOCITY = -900;
 
     // Swimming Moving Constant
-    const GRAVITY_IN_WATER = -80;
-    const SWIM_UP = -164;
+    const GRAVITY_IN_WATER = -120;
+    const SWIM_UP = -100;
     const SPEED_IN_LIQUID = 80;
 
     // Inventory constants
@@ -107,7 +107,6 @@ module.exports = (function() {
         // bone powerup
         this.attackFrequency = 1;
         this.lastAttack = 0;
-        this.bones = 5;
 
         //The animations
         this.animations = {
@@ -162,7 +161,7 @@ module.exports = (function() {
         return false;
     };
     // Check to see if player is on top of water
-        Player.prototype.onWater = function(tilemap) {
+        Player.prototype.onWaterorLava = function(tilemap) {
             var box = this.boundingBox();
             var tileX = Math.floor((box.right)/Settings.TILESIZEX);
             // Based on the position that player is facing changed the location of it's X coordinate
@@ -172,7 +171,7 @@ module.exports = (function() {
             var tileY = Math.floor(box.bottom / Settings.TILESIZEX) - 1,// check if player is right above water.
             tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
             if(tile){
-                if (tile.data.type == "Water" && !this.inWaterorLava(tilemap)){
+                if((tile.data.type == "Water" || tile.data.type == "Lava") && !this.inWaterorLava(tilemap)){
                     return true;
                 }
              }
@@ -193,6 +192,7 @@ module.exports = (function() {
         if(tileR && tileR.data.solid) return true;
         return false;
     };
+    // Determine if the player is on the ground in water
     Player.prototype.onGroundInWater = function(tilemap) {
         var box = this.boundingBox(),
             tileXL = Math.floor((box.left + 5) / Settings.TILESIZEX),
@@ -251,6 +251,9 @@ module.exports = (function() {
           if (tileUpper && !tileUpper.data.solid) {
             this.x -= distance;
           }
+          else {
+              this.x = Settings.TILESIZEX * (tileXUpper + 1) - 5;
+          }
         }
     };
 
@@ -272,6 +275,9 @@ module.exports = (function() {
         else {
           if (tileUpper && !tileUpper.data.solid) {
             this.x += distance;
+          }
+          else {
+              this.x = Settings.TILESIZEX * (tileXUpper) - this.hitboxSize.x;
           }
         }
     };
@@ -375,10 +381,12 @@ module.exports = (function() {
             case FALLING:
                 if(this.velocityY < TERMINAL_VELOCITY) {
                     this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+                    console.log("I am being called");
                 }
-                if(this.onWater(tilemap) || this.inWaterorLava(tilemap)){
+                if(this.onWaterorLava(tilemap) || this.inWaterorLava(tilemap)){
                     this.state = SWIMMING;
-                    this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
+                    this.velocityY = Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
+                    this.holdBreath = true;
                 }
                 else{
                 	this.y += this.velocityY * elapsedTime;
@@ -396,10 +404,8 @@ module.exports = (function() {
                 }
                 break;
             case SWIMMING:
-              //if(this.inWater(tilemap)) {
+                //Player automatically sinks down when in water
                   this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2) + (this.velocityY / GRAVITY_IN_WATER);
-                  console.log("in water");
-                    this.y += this.velocityY * elapsedTime;
                   if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
                       this.velocityY = 0;
                       this.isLeft = true;
@@ -411,41 +417,42 @@ module.exports = (function() {
                       this.moveRight(elapsedTime * SPEED_IN_LIQUID, tilemap);
                   }
                   else if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
+                      if(this.headOverWater(tilemap)){
+                          this.velocityY = JUMP_VELOCITY;
+                          //this.y += this.velocityY * elapsedTime;
+                          console.log("I am not in water");
+                          this.state = JUMPING;
+                          this.holdBreath = false;
+                      }
+                      else{
                           this.velocityY = SWIM_UP;
                           this.y += this.velocityY * elapsedTime;
-                          console.log("SWIMING UP");
+                      }
                   }
                   if (this.onGround(tilemap) && !this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
-                        this.y = Settings.TILESIZEY * Math.floor(this.y / Settings.TILESIZEY);
+                      this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
                       this.state = STANDING;
                       console.log("standing");
+                      this.holdBreath = false;
                   }
                   else if (this.onGroundInWater(tilemap) && this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
-                        this.y = Settings.TILESIZEY * Math.floor(this.y / Settings.TILESIZEY);
+                      this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
                       console.log("floating in water");
-                  }
-                  else if(this.headOverWater(tilemap)){
-                      this.velocityY = -500;
-                      //this.y += this.velocityY * elapsedTime;
-                      console.log("I am not in water");
-                      this.state = JUMPING;
                   }
                   else if (this.isBlockAbove(tilemap)){
                       this.state = FALLING;
                       console.log("I hit my head");
-                    this.y += this.velocityY * elapsedTime;
+                      this.y = Settings.TILESIZEY * (Math.floor((this.y) / Settings.TILESIZEY)+1);
+                      this.velocityY = 0;
                   }
                   else{
                       if(!this.onGroundInWater(tilemap)){
-                          //Player Sinks automatically, they have resistance i.e sink slower if fully immersed in water
-                    this.y += this.velocityY * elapsedTime;
+                          // continously sets a new position of player when sinking down
+                      this.y += this.velocityY * elapsedTime;
                       }
-
                   }
-
-
                 // A counter for the health bar to check if player is drowning
                 if (this.swimmingProperty.breathCount > 20) {
                     this.hurt(1);
@@ -458,12 +465,16 @@ module.exports = (function() {
             this.lastAttack += elapsedTime;
         }
 
-        if (this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
-            this.shoot();
-        }
 
         // Power Up Usage Management
         this.lastPowerUpUsed += elapsedTime;
+
+		if (this.inputManager.isKeyDown(this.inputManager.commands.THREE) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
+                console.log("SIX or B pressed");
+                if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(2)) {
+						this.shoot();
+                }
+            }
 
         if (this.lastPowerUpUsed >= POWER_UP_FREQUENCY) {
             if (this.inputManager.isKeyDown(this.inputManager.commands.ONE)) {
@@ -474,7 +485,7 @@ module.exports = (function() {
             } else if (this.inputManager.isKeyDown(this.inputManager.commands.TWO)) {
                 console.log("TWO pressed");
                 if (inventory.slotUsed(1)) {
-
+						this.score(-20);
                 }
             } else if (this.inputManager.isKeyDown(this.inputManager.commands.THREE)) {
                 console.log("THREE pressed");
@@ -486,13 +497,13 @@ module.exports = (function() {
                 if (inventory.slotUsed(3)) {
 
                 }
-            } else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
                 console.log("FIVE pressed");
                 if (inventory.slotUsed(4)) {
 
                 }
-            }
-            this.lastPowerUpUsed = 0;
+			this.lastPowerUpUsed = 0;
+			}
         }
 
 
@@ -508,10 +519,11 @@ module.exports = (function() {
             this.swimmingProperty.breathCount = 0; // If player is not in water reset breath count to zero
         }
 
-        // Update animation
+
+        /* Update animations and pick */
         var animationSet = this.isLeft ? this.animations.left : this.animations.right;
 
-        if(this.digState == NOT_DIGGING) {
+        if(this.digState == NOT_DIGGING || this.state == DEAD) {
             animationSet[this.state].update(elapsedTime);
         } else {
 
@@ -534,6 +546,12 @@ module.exports = (function() {
             }
 
             //TODO create animations for each dig state
+            if(this.digState == LEFT_DIGGING) {
+                animationSet = this.animations.left;
+            }
+            else if(this.digState == RIGHT_DIGGING) {
+                animationSet = this.animations.right;
+            }
             animationSet[DIGGING].update(elapsedTime);
         }
 
@@ -719,15 +737,12 @@ module.exports = (function() {
             if (layerType === 0) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
-                currentPlayer.score(1);
             } else if (layerType == 1) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
-                currentPlayer.score(1);
             } else if (layerType == 2) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
-                currentPlayer.score(1);
             }
 
             if(tileNum.data) {
@@ -762,7 +777,7 @@ module.exports = (function() {
         console.log("Picked up power up: " + powerUp.type);
 
         if (powerUp.type == 'boneUp') {
-            this.bones++;
+            inventory.powerUpPickedUp(2);
         } else if (powerUp.type == 'coin') {
             // add points
             this.score(20);
@@ -825,14 +840,11 @@ module.exports = (function() {
      Bone projectile powerup
      */
     Player.prototype.shoot = function(){
-        if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
             //Added sound for throwing bone
             throw_sound.play();
             var bone = new Bone(this.x, this.y, 0, this.isLeft, this);
             this.entityManager.add(bone);
-            this.bones--;
             this.lastAttack = 0;
-        }
     };
 
     /* Player Render Function
@@ -842,17 +854,22 @@ module.exports = (function() {
      * visual debugging
      */
     Player.prototype.render = function(ctx, debug) {
-        // Draw the player (and the correct animation)
-        var animationSet = this.isLeft ? this.animations.left : this.animations.right;
 
-        if(this.digState == NOT_DIGGING) {
+        /* Draw the player */
+        var animationSet = this.isLeft ? this.animations.left : this.animations.right;
+        if(this.digState == NOT_DIGGING || this.state == DEAD) {
             animationSet[this.state].render(ctx, this.x + this.spriteOffset.x, this.y + this.spriteOffset.y);
         } else {
-            //TODO create animations for each dig state
+            if(this.digState == LEFT_DIGGING) {
+                animationSet = this.animations.left;
+            }
+            else if(this.digState == RIGHT_DIGGING) {
+                animationSet = this.animations.right;
+            }
             animationSet[DIGGING].render(ctx, this.x + this.spriteOffset.x, this.y + this.spriteOffset.y);
         }
 
-            /*
+
         if (this.holdBreath && this.state == SWIMMING) {
             var bb = this.boundingBox();
             var width = (bb.right - bb.left) - ((Math.floor(this.swimmingProperty.breathCount) / 20) * (bb.right - bb.left));
@@ -865,7 +882,7 @@ module.exports = (function() {
             ctx.fillStyle = "rgba(0,0,200,0)";
             ctx.restore();
         }
-        */
+
 
         //TODO draw this in a hud class?
         //draw powerups
@@ -882,18 +899,6 @@ module.exports = (function() {
                 64);
         }
 
-        ctx.drawImage(
-            this.boneImg,
-            0,
-            0,
-            64,
-            64,
-            this.x + 400,
-            this.y - 350,
-            64,
-            64);
-        ctx.font = "20pt Calibri";
-        ctx.fillText("x"+this.bones, this.x + 445, this.y - 300);
 
         if (debug) renderDebug(this, ctx);
     };

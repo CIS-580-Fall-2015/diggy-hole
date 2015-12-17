@@ -191,25 +191,24 @@ module.exports = (function(){
    Bone.prototype.collide = function(otherEntity, entityManager) {
 	   if(!this.enabled || otherEntity.type == this.parent.type || otherEntity.type == "Bone" || otherEntity.type == "Pickaxe" || otherEntity instanceof PowerUp){
 		   return
-		   
+
 	   }
-	   
+
 	   if( otherEntity.type == "player"){
 		   this.enabled = false;
 		   otherEntity.hurt(10);
 		   if(DEBUG){
 		   console.log("Player hit by bone");
-		   otherEntity.scoreEngine.scoreToZero();
 		   }
 	   } else if(otherEntity.lives){
 		   this.enabled = false;
 		   if(--otherEntity.lives < 1){
-			   
+
 				if(DEBUG){
 					console.log("Entity "+otherEntity.type+" killed by bone.");
 				}
 				if(otherEntity.die){
-					otherEntity.die();				
+					otherEntity.die(entityManager);
 				} else {
 					entityManager.remove(otherEntity);
 				}
@@ -223,7 +222,7 @@ module.exports = (function(){
 				console.log("Entity "+otherEntity.type+" killed by bone.");
 			}
 		   if(otherEntity.die){
-					otherEntity.die();				
+					otherEntity.die(entityManager);				
 				} else {
 					entityManager.remove(otherEntity);
 				}

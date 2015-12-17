@@ -73,12 +73,16 @@ module.exports = (function (){
         scoreEngine = new ScoreEngine();
         hud.addElement(scoreEngine);
 
-        // SEt up invenotory
-        inventory = new Inventory(5);
+        // Set up invenotory
+        inventory = new Inventory(4);
+		
         hud.addElement(inventory);
+		for(i=0;i<5;i++){
+			inventory.powerUpPickedUp(2);
+		}
 
         // Set up health bar
-        hb = new healthBar(stateManager);
+        hb = new healthBar(stateManager,scoreEngine);
         hud.addElement(hb);
 
         // Create the player and add them to
@@ -108,7 +112,7 @@ module.exports = (function (){
     var update = function(elapsedTime) {
         this.spawningManager.update(elapsedTime, tilemap);
         entityManager.update(elapsedTime, tilemap, ParticleManager);
-        tilemap.update();
+        tilemap.update(elapsedTime);
         ParticleManager.update(elapsedTime);
         inputManager.swapBuffers();
         //octopus.getPlayerPosition(player.boundingBox());
