@@ -1411,9 +1411,16 @@ function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, grav
 		this.projectileTimeExploding = 0;
 	}
 
-	this.checkCollisions = function(tile) {
+	this.checkCollisions = function(tile, tileX, tileY) {
 		if (tile && tile.data.solid) {
-			tilemap.destroyTileAt(1, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			var layerType = tilemap.returnTileLayer(tileX, tileY, 0);
+			if (layerType === 0) {
+					tilemap.destroyTileAt(1, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			} else if (layerType == 1) {
+					tilemap.destroyTileAt(13, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			} else if (layerType == 2) {
+					tilemap.destroyTileAt(15, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			}
 			this.state = EXPLODING;
 			this.offsetExploding();
 			this.explosionSound.play();
@@ -1460,8 +1467,8 @@ Cannonball.prototype = new Entity();
 				this.posY = 0;
 			}
 		}
-
-		this.checkCollisions(Tilemap.tileAt(this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0));
+		var tileX = this.getXFromCoords(this.posX), tileY = this.getYFromCoords(this.posY);
+		this.checkCollisions(Tilemap.tileAt(tileX, tileY, 0), tileX, tileY);
 	}
 
 	Cannonball.prototype.render = function(context, debug)
@@ -2779,9 +2786,13 @@ module.exports = (function (){
         scoreEngine = new ScoreEngine();
         hud.addElement(scoreEngine);
 
-        // SEt up invenotory
-        inventory = new Inventory(5);
+        // Set up invenotory
+        inventory = new Inventory(6);
+
         hud.addElement(inventory);
+		for(i=0;i<5;i++){
+			inventory.powerUpPickedUp(5);
+		}
 
         // Set up health bar
         hb = new healthBar(stateManager);
@@ -4134,7 +4145,8 @@ module.exports = (function() {
 	TWO : 50,
 	THREE : 51,
 	FOUR : 52,
-	FIVE : 53
+	FIVE : 53,
+	SIX : 54
   }
   
   var oldKeys = [];
@@ -4222,8 +4234,9 @@ module.exports = (function(){
 			} else if (i == 3) {
 				 this.slots[3] = new InventorySlot('./img/powerUps/coin.png');
 			} else if (i == 4) {
-				 this.slots[4] = new InventorySlot('./img/powerUps/crystal.png');
-				 
+				this.slots[4] = new InventorySlot('./img/powerUps/crystal.png');
+			} else if (i == 5){
+				this.slots[5] = new InventorySlot('./img/powerUps/bone.png');
 			}
 		};
 		
@@ -4932,7 +4945,6 @@ module.exports = (function() {
         // bone powerup
         this.attackFrequency = 1;
         this.lastAttack = 0;
-        this.bones = 5;
 
         //The animations
         this.animations = {
@@ -5289,12 +5301,16 @@ module.exports = (function() {
             this.lastAttack += elapsedTime;
         }
 
-        if (this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
-            this.shoot();
-        }
-
+	
         // Power Up Usage Management
         this.lastPowerUpUsed += elapsedTime;
+		
+		if (this.inputManager.isKeyDown(this.inputManager.commands.SIX) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
+                console.log("SIX or B pressed");
+                if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(5)) {
+						this.shoot();
+                }
+            }
 
         if (this.lastPowerUpUsed >= POWER_UP_FREQUENCY) {
             if (this.inputManager.isKeyDown(this.inputManager.commands.ONE)) {
@@ -5317,13 +5333,13 @@ module.exports = (function() {
                 if (inventory.slotUsed(3)) {
 
                 }
-            } else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
                 console.log("FIVE pressed");
                 if (inventory.slotUsed(4)) {
 
                 }
-            }
-            this.lastPowerUpUsed = 0;
+			this.lastPowerUpUsed = 0;
+			}
         }
 
 
@@ -5600,7 +5616,7 @@ module.exports = (function() {
         console.log("Picked up power up: " + powerUp.type);
 
         if (powerUp.type == 'boneUp') {
-            this.bones++;
+            inventory.powerUpPickedUp(5);
         } else if (powerUp.type == 'coin') {
             // add points
             this.score(20);
@@ -5663,14 +5679,11 @@ module.exports = (function() {
      Bone projectile powerup
      */
     Player.prototype.shoot = function(){
-        if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
             //Added sound for throwing bone
             throw_sound.play();
             var bone = new Bone(this.x, this.y, 0, this.isLeft, this);
             this.entityManager.add(bone);
-            this.bones--;
             this.lastAttack = 0;
-        }
     };
 
     /* Player Render Function
@@ -5725,19 +5738,7 @@ module.exports = (function() {
                 64);
         }
 
-        ctx.drawImage(
-            this.boneImg,
-            0,
-            0,
-            64,
-            64,
-            this.x + 400,
-            this.y - 350,
-            64,
-            64);
-        ctx.font = "20pt Calibri";
-        ctx.fillText("x"+this.bones, this.x + 445, this.y - 300);
-
+       
         if (debug) renderDebug(this, ctx);
     };
 
@@ -5969,7 +5970,7 @@ module.exports = (function (){
     this.frameGoal       = [0, 0, 0, 0];
     this.numFramesPerRow = 4;
     this.numRows         = 10;
-    this.ticksPerFrame   = 9;
+    this.ticksPerFrame   = 2;
 
     this.xpos            = 0;
     this.ypos            = 0;

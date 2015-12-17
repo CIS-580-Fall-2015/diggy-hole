@@ -34,8 +34,9 @@ module.exports = (function(){
 			} else if (i == 3) {
 				 this.slots[3] = new InventorySlot('./img/powerUps/coin.png');
 			} else if (i == 4) {
-				 this.slots[4] = new InventorySlot('./img/powerUps/crystal.png');
-				 
+				this.slots[4] = new InventorySlot('./img/powerUps/crystal.png');
+			} else if (i == 5){
+				this.slots[5] = new InventorySlot('./img/powerUps/bone.png');
 			}
 		};
 		
