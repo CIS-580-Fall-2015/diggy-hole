@@ -431,7 +431,7 @@ module.exports = (function() {
                       console.log("floating in water");
                   }
                   else if(this.headOverWater(tilemap)){
-                      this.velocityY = -500;
+                      this.velocityY = JUMP_VELOCITY;
                       //this.y += this.velocityY * elapsedTime;
                       console.log("I am not in water");
                       this.state = JUMPING;
