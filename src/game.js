@@ -73,12 +73,9 @@ module.exports = (function (){
         scoreEngine = new ScoreEngine();
         hud.addElement(scoreEngine);
 
-        // SEt up invenotory
-<<<<<<< HEAD
-        inventory = new Inventory(4);
-=======
-        inventory = new Inventory(5);
->>>>>>> c45f04fecb7ee81b49d963827321da10b3b44f9a
+        // Set up invenotory
+        inventory = new Inventory(6);
+
         hud.addElement(inventory);
 		for(i=0;i<5;i++){
 			inventory.powerUpPickedUp(5);

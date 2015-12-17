@@ -16,7 +16,8 @@ module.exports = (function() {
 	TWO : 50,
 	THREE : 51,
 	FOUR : 52,
-	FIVE : 53
+	FIVE : 53,
+	SIX : 54
   }
   
   var oldKeys = [];
