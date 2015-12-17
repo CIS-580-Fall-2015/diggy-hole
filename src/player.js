@@ -744,18 +744,20 @@ module.exports = (function() {
                 tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
             } else if (layerType == 1) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
-                tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
+                tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
             } else if (layerType == 2) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
-                tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
+                tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
             }
 
             if(tileNum.data) {
                 if (tileNum.data.type === "Sky Earth" || tileNum.data.type === "DirtWithGrass" || tileNum.data.type === "Dirt") {
                     ParticleManager.addDirtParticles(tileX, tileY);
+					currentPlayer.score(1);
                 }
                 else if (tileNum.data.type === "GemsWithGrass" || tileNum.data.type === "StoneWithGrass" || tileNum.data.type === "Gems" || tileNum.data.type === "Stone") {
                     ParticleManager.addStoneParticles(tileX, tileY);
+					currentPlayer.score(1);
                 }
             }
 

@@ -419,7 +419,7 @@ module.exports = (function(){
 	   }
 		   if(--this.lives<=0){
 			   this.die(entityManager);
-
+               otherEntity.scoreEngine.addScore(20);
 		   } else {
 			   if(DEBUG){
 		   console.log(this.lives+" lives left");
