@@ -35,6 +35,8 @@ module.exports = (function(){
 				// this.slots[3] = new InventorySlot('');
 			} else if (i == 4) {
 				// this.slots[4] = new InventorySlot('');
+			} else if (i == 5){
+				this.slots[5] = new InventorySlot('./img/powerUps/bone.png');
 			}
 		};
 		

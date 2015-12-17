@@ -107,7 +107,6 @@ module.exports = (function() {
         // bone powerup
         this.attackFrequency = 1;
         this.lastAttack = 0;
-        this.bones = 5;
 
         //The animations
         this.animations = {
@@ -458,9 +457,6 @@ module.exports = (function() {
             this.lastAttack += elapsedTime;
         }
 
-        if (this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
-            this.shoot();
-        }
 
         // Power Up Usage Management
         this.lastPowerUpUsed += elapsedTime;
@@ -486,10 +482,15 @@ module.exports = (function() {
                 if (inventory.slotUsed(3)) {
 
                 }
-            } else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
-                console.log("FIVE pressed");
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FOUR)) {
+                console.log("FOUR pressed");
                 if (inventory.slotUsed(4)) {
 
+                }
+            } else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
+                console.log("FIVE pressed");
+                if (inventory.slotUsed(5)) {
+						this.shoot();
                 }
             }
             this.lastPowerUpUsed = 0;
@@ -762,7 +763,7 @@ module.exports = (function() {
         console.log("Picked up power up: " + powerUp.type);
 
         if (powerUp.type == 'boneUp') {
-            this.bones++;
+            inventory.powerUpPickedUp(5);
         } else if (powerUp.type == 'coin') {
             // add points
             this.score(20);
@@ -825,12 +826,11 @@ module.exports = (function() {
      Bone projectile powerup
      */
     Player.prototype.shoot = function(){
-        if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
+        if(lastAttack >= this.attackFrequency){
             //Added sound for throwing bone
             throw_sound.play();
             var bone = new Bone(this.x, this.y, 0, this.isLeft, this);
             this.entityManager.add(bone);
-            this.bones--;
             this.lastAttack = 0;
         }
     };

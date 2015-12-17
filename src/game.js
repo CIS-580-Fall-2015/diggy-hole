@@ -103,8 +103,11 @@ module.exports = (function (){
         hud.addElement(scoreEngine);
 
         // SEt up invenotory
-        inventory = new Inventory(3);
+        inventory = new Inventory(4);
         hud.addElement(inventory);
+		for(i=0;i<5;i++){
+			inventory.powerUpPickedUp(5);
+		}
 
         // Set up health bar
         hb = new healthBar(stateManager);
