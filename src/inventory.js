@@ -33,8 +33,6 @@ module.exports = (function(){
 				this.slots[2] = new InventorySlot('./img/powerUps/bone.png');
 			} else if (i == 3) {
 				 this.slots[3] = new InventorySlot('./img/powerUps/crystal.png');
-			} else if (i == 4) {
-				this.slots[4] = new InventorySlot('./img/powerUps/crystal.png');
 			} 
 		};
 		

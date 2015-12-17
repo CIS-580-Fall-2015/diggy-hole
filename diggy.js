@@ -4156,7 +4156,7 @@ module.exports = (function() {
     DIGLEFT: 65, 	// A
     DIGRIGHT: 68,	// D
     DIGUP: 87,		// W
-	PAY: 80,		// P
+	PAY: 50,		// P
 	ATTACK : 65,	// A
 	SHOOT : 66,	 	// B
 	ONE : 49,
@@ -4251,8 +4251,6 @@ module.exports = (function(){
 				this.slots[2] = new InventorySlot('./img/powerUps/bone.png');
 			} else if (i == 3) {
 				 this.slots[3] = new InventorySlot('./img/powerUps/crystal.png');
-			} else if (i == 4) {
-				this.slots[4] = new InventorySlot('./img/powerUps/crystal.png');
 			} 
 		};
 		
