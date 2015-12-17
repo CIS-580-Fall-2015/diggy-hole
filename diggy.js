@@ -5089,6 +5089,9 @@ module.exports = (function() {
           if (tileUpper && !tileUpper.data.solid) {
             this.x -= distance;
           }
+          else {
+              this.x = Settings.TILESIZEX * (tileXUpper + 1) - 5;
+          }
         }
     };
 
@@ -5110,6 +5113,9 @@ module.exports = (function() {
         else {
           if (tileUpper && !tileUpper.data.solid) {
             this.x += distance;
+          }
+          else {
+              this.x = Settings.TILESIZEX * (tileXUpper) - this.hitboxSize.x;
           }
         }
     };
@@ -5296,10 +5302,10 @@ module.exports = (function() {
             this.lastAttack += elapsedTime;
         }
 
-	
+
         // Power Up Usage Management
         this.lastPowerUpUsed += elapsedTime;
-		
+
 		if (this.inputManager.isKeyDown(this.inputManager.commands.SIX) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
                 console.log("SIX or B pressed");
                 if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(5)) {
@@ -5733,7 +5739,7 @@ module.exports = (function() {
                 64);
         }
 
-       
+
         if (debug) renderDebug(this, ctx);
     };
 
