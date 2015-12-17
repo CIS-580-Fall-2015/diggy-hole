@@ -778,7 +778,7 @@ module.exports = (function() {
         console.log("Picked up power up: " + powerUp.type);
 
         if (powerUp.type == 'boneUp') {
-            inventory.powerUpPickedUp(5);
+            inventory.powerUpPickedUp(2);
         } else if (powerUp.type == 'coin') {
             // add points
             this.score(20);
