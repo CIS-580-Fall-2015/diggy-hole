@@ -800,7 +800,7 @@ module.exports = (function(){
 	this.range = 5*SIZE;
 	this.attackFrequency = 1.7;
 	this.lastAttack = 0;
-	this.lives = 5;
+	this.lives = 2;
 	this.timeDead = 0;
 	this.score = 10;
 
@@ -5301,10 +5301,10 @@ module.exports = (function() {
             this.lastAttack += elapsedTime;
         }
 
-	
+
         // Power Up Usage Management
         this.lastPowerUpUsed += elapsedTime;
-		
+
 		if (this.inputManager.isKeyDown(this.inputManager.commands.SIX) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
                 console.log("SIX or B pressed");
                 if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(5)) {
@@ -5738,7 +5738,7 @@ module.exports = (function() {
                 64);
         }
 
-       
+
         if (debug) renderDebug(this, ctx);
     };
 
