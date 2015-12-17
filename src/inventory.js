@@ -32,9 +32,10 @@ module.exports = (function(){
 			} else if (i == 2) {
 				this.slots[2] = new InventorySlot('./img/powerUps/stone_shield.png');
 			} else if (i == 3) {
-				// this.slots[3] = new InventorySlot('');
+				 this.slots[3] = new InventorySlot('./img/powerUps/coin.png');
 			} else if (i == 4) {
-				// this.slots[4] = new InventorySlot('');
+				 this.slots[4] = new InventorySlot('./img/powerUps/crystal.png');
+				 
 			}
 		};
 		

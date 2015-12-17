@@ -3460,7 +3460,7 @@ module.exports = (function (){
         hud.addElement(scoreEngine);
 
         // SEt up invenotory
-        inventory = new Inventory(3);
+        inventory = new Inventory(5);
         hud.addElement(inventory);
 
         // Set up health bar
@@ -4991,9 +4991,10 @@ module.exports = (function(){
 			} else if (i == 2) {
 				this.slots[2] = new InventorySlot('./img/powerUps/stone_shield.png');
 			} else if (i == 3) {
-				// this.slots[3] = new InventorySlot('');
+				 this.slots[3] = new InventorySlot('./img/powerUps/coin.png');
 			} else if (i == 4) {
-				// this.slots[4] = new InventorySlot('');
+				 this.slots[4] = new InventorySlot('./img/powerUps/crystal.png');
+				 
 			}
 		};
 		
@@ -5055,6 +5056,10 @@ module.exports = (function(){
 				return;
 			if (this.amount > 0)
 				screenCtx.drawImage(this.img, 0, 0, IMG_SIZE, IMG_SIZE, x, y, IMG_SIZE, IMG_SIZE);
+				screenCtx.font = "20pt Calibri";
+				screenCtx.fillStyle = "red";
+				screenCtx.fillText("x"+this.amount, x+5, y + IMG_SIZE - 10);
+				
 		};
 	}
 

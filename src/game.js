@@ -103,7 +103,7 @@ module.exports = (function (){
         hud.addElement(scoreEngine);
 
         // SEt up invenotory
-        inventory = new Inventory(3);
+        inventory = new Inventory(5);
         hud.addElement(inventory);
 
         // Set up health bar
