@@ -236,7 +236,6 @@ module.exports = (function(){
 
 }());
 
-<<<<<<< HEAD
 },{"./animation.js":6,"./entity.js":16,"./player.js":31,"./powerUp.js":32}],2:[function(require,module,exports){
 /* DemonicGroundHog
  * Authors:
@@ -501,7 +500,7 @@ module.exports = (function(){
   return DemonicGroundHog;
 
 }());
-=======
+
 },{"./animation.js":6,"./entity.js":16,"./player.js":32,"./powerUp.js":33}],2:[function(require,module,exports){
 /* DemonicGroundHog
  * Authors:
