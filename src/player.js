@@ -419,7 +419,7 @@ module.exports = (function() {
                   }
                   if (this.onGround(tilemap) && !this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
-                        this.y = Settings.TILESIZEY * Math.floor(this.y / Settings.TILESIZEY);
+                      this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
                       this.state = STANDING;
                       console.log("standing");
                   }
