@@ -5986,7 +5986,7 @@ module.exports = (function() {
             tileXR = Math.floor((box.right) / 64),
             tileY = Math.floor((box.top) / 64),
             tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
-        tile = tilemap.tileAt(Math.floor(box.right / Settings.TILESIZEX), Math.floor(box.top / Settings.TILESIZEY), this.layerIndex);
+            tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
             return ((tileL && tileL.data.notDiggable) || (tileR && tileR.data.notDiggable))&& !this.inWaterorLava(tilemap);
     };
 
