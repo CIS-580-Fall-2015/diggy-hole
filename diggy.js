@@ -2779,13 +2779,9 @@ module.exports = (function (){
         scoreEngine = new ScoreEngine();
         hud.addElement(scoreEngine);
 
-        // Set up invenotory
-        inventory = new Inventory(6);
-
+        // SEt up invenotory
+        inventory = new Inventory(5);
         hud.addElement(inventory);
-		for(i=0;i<5;i++){
-			inventory.powerUpPickedUp(5);
-		}
 
         // Set up health bar
         hb = new healthBar(stateManager);
@@ -2818,7 +2814,7 @@ module.exports = (function (){
     var update = function(elapsedTime) {
         this.spawningManager.update(elapsedTime, tilemap);
         entityManager.update(elapsedTime, tilemap, ParticleManager);
-        tilemap.update(elapsedTime);
+        tilemap.update();
         ParticleManager.update(elapsedTime);
         inputManager.swapBuffers();
         //octopus.getPlayerPosition(player.boundingBox());
@@ -3255,6 +3251,7 @@ module.exports = (function(){
 		this.velocityY = 0;
 	    this.isLeft = false;
 		this.direction = 0;
+		this.type = 'goblinMiner';
 
 	    // The animations
 	    this.animations = {
@@ -4138,8 +4135,7 @@ module.exports = (function() {
 	TWO : 50,
 	THREE : 51,
 	FOUR : 52,
-	FIVE : 53,
-	SIX : 54
+	FIVE : 53
   }
   
   var oldKeys = [];
@@ -4227,9 +4223,8 @@ module.exports = (function(){
 			} else if (i == 3) {
 				 this.slots[3] = new InventorySlot('./img/powerUps/coin.png');
 			} else if (i == 4) {
-				this.slots[4] = new InventorySlot('./img/powerUps/crystal.png');
-			} else if (i == 5){
-				this.slots[5] = new InventorySlot('./img/powerUps/bone.png');
+				 this.slots[4] = new InventorySlot('./img/powerUps/crystal.png');
+				 
 			}
 		};
 		
@@ -4938,6 +4933,7 @@ module.exports = (function() {
         // bone powerup
         this.attackFrequency = 1;
         this.lastAttack = 0;
+        this.bones = 5;
 
         //The animations
         this.animations = {
@@ -5208,7 +5204,7 @@ module.exports = (function() {
                 }
                 if(this.onWater(tilemap) || this.inWaterorLava(tilemap)){
                     this.state = SWIMMING;
-                    this.velocityY = Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
+                    this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
                 }
                 else{
                 	this.y += this.velocityY * elapsedTime;
@@ -5226,9 +5222,10 @@ module.exports = (function() {
                 }
                 break;
             case SWIMMING:
+              //if(this.inWater(tilemap)) {
                   this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2) + (this.velocityY / GRAVITY_IN_WATER);
                   console.log("in water");
-                    //this.y += this.velocityY * elapsedTime;
+                    this.y += this.velocityY * elapsedTime;
                   if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
                       this.velocityY = 0;
                       this.isLeft = true;
@@ -5246,13 +5243,13 @@ module.exports = (function() {
                   }
                   if (this.onGround(tilemap) && !this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
-                      this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
+                        this.y = Settings.TILESIZEY * Math.floor(this.y / Settings.TILESIZEY);
                       this.state = STANDING;
                       console.log("standing");
                   }
                   else if (this.onGroundInWater(tilemap) && this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
-                      this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
+                        this.y = Settings.TILESIZEY * Math.floor(this.y / Settings.TILESIZEY);
                       console.log("floating in water");
                   }
                   else if(this.headOverWater(tilemap)){
@@ -5264,13 +5261,12 @@ module.exports = (function() {
                   else if (this.isBlockAbove(tilemap)){
                       this.state = FALLING;
                       console.log("I hit my head");
-                      this.y = Settings.TILESIZEY * (Math.floor((this.y) / Settings.TILESIZEY)+1);
-                      this.velocityY = 0;
+                    this.y += this.velocityY * elapsedTime;
                   }
                   else{
                       if(!this.onGroundInWater(tilemap)){
                           //Player Sinks automatically, they have resistance i.e sink slower if fully immersed in water
-                      this.y += this.velocityY * elapsedTime;
+                    this.y += this.velocityY * elapsedTime;
                       }
 
                   }
@@ -5288,16 +5284,12 @@ module.exports = (function() {
             this.lastAttack += elapsedTime;
         }
 
-	
+        if (this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
+            this.shoot();
+        }
+
         // Power Up Usage Management
         this.lastPowerUpUsed += elapsedTime;
-		
-		if (this.inputManager.isKeyDown(this.inputManager.commands.SIX) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
-                console.log("SIX or B pressed");
-                if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(5)) {
-						this.shoot();
-                }
-            }
 
         if (this.lastPowerUpUsed >= POWER_UP_FREQUENCY) {
             if (this.inputManager.isKeyDown(this.inputManager.commands.ONE)) {
@@ -5320,13 +5312,13 @@ module.exports = (function() {
                 if (inventory.slotUsed(3)) {
 
                 }
-			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
+            } else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
                 console.log("FIVE pressed");
                 if (inventory.slotUsed(4)) {
 
                 }
-			this.lastPowerUpUsed = 0;
-			}
+            }
+            this.lastPowerUpUsed = 0;
         }
 
 
@@ -5342,11 +5334,10 @@ module.exports = (function() {
             this.swimmingProperty.breathCount = 0; // If player is not in water reset breath count to zero
         }
 
-
-        /* Update animations and pick */
+        // Update animation
         var animationSet = this.isLeft ? this.animations.left : this.animations.right;
 
-        if(this.digState == NOT_DIGGING || this.state == DEAD) {
+        if(this.digState == NOT_DIGGING) {
             animationSet[this.state].update(elapsedTime);
         } else {
 
@@ -5369,12 +5360,6 @@ module.exports = (function() {
             }
 
             //TODO create animations for each dig state
-            if(this.digState == LEFT_DIGGING) {
-                animationSet = this.animations.left;
-            }
-            else if(this.digState == RIGHT_DIGGING) {
-                animationSet = this.animations.right;
-            }
             animationSet[DIGGING].update(elapsedTime);
         }
 
@@ -5603,7 +5588,7 @@ module.exports = (function() {
         console.log("Picked up power up: " + powerUp.type);
 
         if (powerUp.type == 'boneUp') {
-            inventory.powerUpPickedUp(5);
+            this.bones++;
         } else if (powerUp.type == 'coin') {
             // add points
             this.score(20);
@@ -5666,11 +5651,14 @@ module.exports = (function() {
      Bone projectile powerup
      */
     Player.prototype.shoot = function(){
+        if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
             //Added sound for throwing bone
             throw_sound.play();
             var bone = new Bone(this.x, this.y, 0, this.isLeft, this);
             this.entityManager.add(bone);
+            this.bones--;
             this.lastAttack = 0;
+        }
     };
 
     /* Player Render Function
@@ -5680,22 +5668,17 @@ module.exports = (function() {
      * visual debugging
      */
     Player.prototype.render = function(ctx, debug) {
-
-        /* Draw the player */
+        // Draw the player (and the correct animation)
         var animationSet = this.isLeft ? this.animations.left : this.animations.right;
-        if(this.digState == NOT_DIGGING || this.state == DEAD) {
+
+        if(this.digState == NOT_DIGGING) {
             animationSet[this.state].render(ctx, this.x + this.spriteOffset.x, this.y + this.spriteOffset.y);
         } else {
-            if(this.digState == LEFT_DIGGING) {
-                animationSet = this.animations.left;
-            }
-            else if(this.digState == RIGHT_DIGGING) {
-                animationSet = this.animations.right;
-            }
+            //TODO create animations for each dig state
             animationSet[DIGGING].render(ctx, this.x + this.spriteOffset.x, this.y + this.spriteOffset.y);
         }
 
-
+            /*
         if (this.holdBreath && this.state == SWIMMING) {
             var bb = this.boundingBox();
             var width = (bb.right - bb.left) - ((Math.floor(this.swimmingProperty.breathCount) / 20) * (bb.right - bb.left));
@@ -5708,7 +5691,7 @@ module.exports = (function() {
             ctx.fillStyle = "rgba(0,0,200,0)";
             ctx.restore();
         }
-
+        */
 
         //TODO draw this in a hud class?
         //draw powerups
@@ -5725,7 +5708,19 @@ module.exports = (function() {
                 64);
         }
 
-       
+        ctx.drawImage(
+            this.boneImg,
+            0,
+            0,
+            64,
+            64,
+            this.x + 400,
+            this.y - 350,
+            64,
+            64);
+        ctx.font = "20pt Calibri";
+        ctx.fillText("x"+this.bones, this.x + 445, this.y - 300);
+
         if (debug) renderDebug(this, ctx);
     };
 
@@ -6132,18 +6127,21 @@ module.exports = (function() {
 	
 	var birdData = {
 		Entity: require('./bird.js'),
+		type: 'bird',
 		limit: 8,
 		count: 0
 	};
 	
 	var turretData = {
 		Entity: require('./turret.js'),
+		type: 'turret',
 		limit: 3,
 		count: 0
 	};
 			
 	var barrelData = {
 		Entity: require('./barrel.js'),
+		type: 'Barrel',
 		limit: 15,
 		count: 0
 	};
@@ -6154,18 +6152,21 @@ module.exports = (function() {
 	
 	var demonGHogData = {
 		Entity: require('./DemonicGroundH.js'),
+		type: 'DemonicGroundHog',
 		limit: 10,
 		count: 0
 	};
 	
 	var goblinMinerData = {
 		Entity: require('./goblin-miner.js'),
+		type: 'goblinMiner',
 		limit: 8,
 		count: 0
 	};
 	
 	var goblinShamanData = {
 		Entity: require('./goblin-shaman.js'),
+		type: 'shaman',
 		limit: 5,
 		count: 0
 	};
@@ -6176,12 +6177,14 @@ module.exports = (function() {
 	
 	var ghostMinerData = {
 		Entity: require('./ghostminer.js'),
+		type: 'ghost',
 		limit: 4,
 		count: 0
 	};
 	
 	var dynamiteDwarfData = {
 		Entity: require('./dynamiteDwarf.js'),
+		type: 'dynamiteDwarf',
 		limit: 2,
 		count: 0
 	}
@@ -6268,7 +6271,7 @@ module.exports = (function() {
         this.updateTimeLeft = 0;
     }
 	
-	var updatePeriodSeconds = 2;
+	var updatePeriodSeconds = .1;
 
     SpawningManager.prototype.update = function (elapsedTime, tilemap) {
         this.updateTimeLeft -= elapsedTime;
@@ -6306,6 +6309,14 @@ module.exports = (function() {
 				var num = Math.floor(Math.random()*3);
 				if( tile && tile.data) {
 					if (tile.data.type == "SkyBackground" || tile.data.type == "Clouds") {
+						//Update count of that one
+						skyEntities[num].count = 0;
+						var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+						for(var i = 0; i < ents.length; i++){
+							if(ents[i].type == skyEntities[num].type){
+								skyEntities[num].count++;
+							}
+						}
 						if (skyEntities[num].limit > skyEntities[num].count) {
 							this.entityManager.add(
 								new skyEntities[num].Entity(x * 64, y * 64, 0)
@@ -6315,6 +6326,13 @@ module.exports = (function() {
 						else
 						{
 							num = Math.floor(Math.random()*5);
+							powerUps[num].count = 0;
+							var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+							for(var i = 0; i < ents.length; i++){
+								if(ents[i].type == powerUps[num].name){
+									powerUps[num].count++;
+								}
+							}
 							if(powerUps[num].limit > powerUps[num].count){
 								this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
 								powerUps[num].count++;
@@ -6322,6 +6340,14 @@ module.exports = (function() {
 						}
 					} 
 					else if(tile.data.type == "CaveBackground" || tile.data.type == "Water"){
+						//Update count of that one
+						middleEntities[num].count = 0;
+						var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+						for(var i = 0; i < ents.length; i++){
+							if(ents[i].type == middleEntities[num].type){
+								middleEntities[num].count++;
+							}
+						}
 						if(middleEntities[num].limit > middleEntities[num].count){
 							this.entityManager.add(
 									new middleEntities[num].Entity(x*64, y*64, 0)
@@ -6331,6 +6357,13 @@ module.exports = (function() {
 						else
 						{
 							num = Math.floor(Math.random()*5);
+							powerUps[num].count = 0;
+							var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+							for(var i = 0; i < ents.length; i++){
+								if(ents[i].type == powerUps[num].name){
+									powerUps[num].count++;
+								}
+							}
 							if(powerUps[num].limit > powerUps[num].count){
 								this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
 								powerUps[num].count++;
@@ -6338,6 +6371,14 @@ module.exports = (function() {
 						}
 					}
 					else if(tile.data.type == "Lava" || tile.data.type == "DarkBackground" || tile.data.type == "DugBackground"){
+						//Update count of that one
+						deepEntities[num].count = 0;
+						var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+						for(var i = 0; i < ents.length; i++){
+							if(ents[i].type == deepEntities[num].type){
+								deepEntities[num].count++;
+							}
+						}
 						if(deepEntities[num].limit > deepEntities[num].count){
 							this.entityManager.add(
 									new deepEntities[num].Entity(x*64, y*64, 0)
@@ -6348,6 +6389,13 @@ module.exports = (function() {
 						else
 						{
 							num = Math.floor(Math.random()*5);
+							powerUps[num].count = 0;
+							var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+							for(var i = 0; i < ents.length; i++){
+								if(ents[i].type == powerUps[num].name){
+									powerUps[num].count++;
+								}
+							}
 							if(powerUps[num].limit > powerUps[num].count){
 								this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
 								powerUps[num].count++;
