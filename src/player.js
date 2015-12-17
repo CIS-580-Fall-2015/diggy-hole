@@ -467,9 +467,9 @@ module.exports = (function() {
         // Power Up Usage Management
         this.lastPowerUpUsed += elapsedTime;
 
-		if (this.inputManager.isKeyDown(this.inputManager.commands.SIX) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
+		if (this.inputManager.isKeyDown(this.inputManager.commands.THREE) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
                 console.log("SIX or B pressed");
-                if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(5)) {
+                if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(2)) {
 						this.shoot();
                 }
             }
@@ -483,7 +483,7 @@ module.exports = (function() {
             } else if (this.inputManager.isKeyDown(this.inputManager.commands.TWO)) {
                 console.log("TWO pressed");
                 if (inventory.slotUsed(1)) {
-
+						this.score(-20);
                 }
             } else if (this.inputManager.isKeyDown(this.inputManager.commands.THREE)) {
                 console.log("THREE pressed");

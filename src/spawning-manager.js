@@ -145,11 +145,12 @@ module.exports = (function() {
 	powerUps.push(coin);
 	powerUps.push(stoneShield);
 	
-    function SpawningManager(entityManager, scoreEngine, player) {
+    function SpawningManager(entityManager, scoreEngine, player,inputManager) {
         this.entityManager = entityManager;
         this.scoreEngine = scoreEngine;
         this.player = player;
         this.updateTimeLeft = 0;
+		this.inputManager = inputManager;
     }
 	
 	var updatePeriodSeconds = 2;
@@ -200,7 +201,7 @@ module.exports = (function() {
 						}
 						if (skyEntities[num].limit > skyEntities[num].count) {
 							this.entityManager.add(
-								new skyEntities[num].Entity(x * 64, y * 64, 0)
+								new skyEntities[num].Entity(x * 64, y * 64, 0, this.inputManager, this.scoreEngine)
 							);
 							skyEntities[num].count++;
 						}
@@ -231,7 +232,7 @@ module.exports = (function() {
 						}
 						if(middleEntities[num].limit > middleEntities[num].count){
 							this.entityManager.add(
-									new middleEntities[num].Entity(x*64, y*64, 0)
+									new middleEntities[num].Entity(x*64, y*64, 0, this.inputManager, this.scoreEngine)
 							);
 							middleEntities[num].count++;
 						}
@@ -262,7 +263,7 @@ module.exports = (function() {
 						}
 						if(deepEntities[num].limit > deepEntities[num].count){
 							this.entityManager.add(
-									new deepEntities[num].Entity(x*64, y*64, 0)
+									new deepEntities[num].Entity(x*64, y*64, 0, this.inputManager, this.scoreEngine)
 							);
 							deepEntities[num].count++;
 

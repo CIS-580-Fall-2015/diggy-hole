@@ -28,16 +28,14 @@ module.exports = (function(){
 			if (i == 0) {
 				this.slots[0] = new InventorySlot('./img/powerUps/medicine.png');
 			} else if (i == 1) {
-				this.slots[1] = new InventorySlot('./img/powerUps/pick.png');
+				this.slots[1] = new InventorySlot('./img/powerUps/coinsingle.png');
 			} else if (i == 2) {
-				this.slots[2] = new InventorySlot('./img/powerUps/stone_shield.png');
+				this.slots[2] = new InventorySlot('./img/powerUps/bone.png');
 			} else if (i == 3) {
-				 this.slots[3] = new InventorySlot('./img/powerUps/coin.png');
+				 this.slots[3] = new InventorySlot('./img/powerUps/crystal.png');
 			} else if (i == 4) {
 				this.slots[4] = new InventorySlot('./img/powerUps/crystal.png');
-			} else if (i == 5){
-				this.slots[5] = new InventorySlot('./img/powerUps/bone.png');
-			}
+			} 
 		};
 		
 		this.slotUsed = function(idx) {
