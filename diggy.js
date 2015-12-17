@@ -800,7 +800,7 @@ module.exports = (function(){
 	this.range = 5*SIZE;
 	this.attackFrequency = 1.7;
 	this.lastAttack = 0;
-	this.lives = 5;
+	this.lives = 2;
 	this.timeDead = 0;
 	this.score = 10;
 
@@ -1411,9 +1411,16 @@ function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, grav
 		this.projectileTimeExploding = 0;
 	}
 
-	this.checkCollisions = function(tile) {
+	this.checkCollisions = function(tile, tileX, tileY) {
 		if (tile && tile.data.solid) {
-			tilemap.destroyTileAt(1, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			var layerType = tilemap.returnTileLayer(tileX, tileY, 0);
+			if (layerType === 0) {
+					tilemap.destroyTileAt(1, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			} else if (layerType == 1) {
+					tilemap.destroyTileAt(13, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			} else if (layerType == 2) {
+					tilemap.destroyTileAt(15, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			}
 			this.state = EXPLODING;
 			this.offsetExploding();
 			this.explosionSound.play();
@@ -1460,8 +1467,8 @@ Cannonball.prototype = new Entity();
 				this.posY = 0;
 			}
 		}
-
-		this.checkCollisions(Tilemap.tileAt(this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0));
+		var tileX = this.getXFromCoords(this.posX), tileY = this.getYFromCoords(this.posY);
+		this.checkCollisions(Tilemap.tileAt(tileX, tileY, 0), tileX, tileY);
 	}
 
 	Cannonball.prototype.render = function(context, debug)
