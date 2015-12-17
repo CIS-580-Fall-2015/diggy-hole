@@ -428,7 +428,6 @@ module.exports = (function() {
                           this.velocityY = SWIM_UP;
                           this.y += this.velocityY * elapsedTime;
                       }
-
                   }
                   if (this.onGround(tilemap) && !this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
