@@ -816,7 +816,8 @@ module.exports = (function() {
 
 
   var Pickaxe = function(position, horizontal) {
-      this.position = { x: position.x, y: position.y };
+      this.x = position.x;
+      this.y = position.y;
       this.score = 0;
       this.type = "Pickaxe";
       if(horizontal) this.attackSize = {x: attackSize.y, y: attackSize.x };
@@ -833,25 +834,25 @@ module.exports = (function() {
 
   Pickaxe.prototype.boundingBox = function() {
     return {
-        left: this.position.x - this.attackSize.x / 2,
-        top: this.position.y - this.attackSize.y / 2,
-        right: this.position.x + this.attackSize.x / 2,
-        bottom: this.position.y + this.attackSize.y / 2
+        left: this.x - this.attackSize.x / 2,
+        top: this.y - this.attackSize.y / 2,
+        right: this.x + this.attackSize.x / 2,
+        bottom: this.y + this.attackSize.y / 2
     };
   };
 
 
   Pickaxe.prototype.boundingCircle = function() {
     return {
-        cx: this.position.x,
-        cy: this.position.y,
+        cx: this.x,
+        cy: this.y,
         radius: attackRadius
     };
   };
 
 
   Pickaxe.prototype.collide = function(ent) {
-  }
+  };
 
   function renderDebug(player, ctx) {
       var bounds = player.boundingBox();
@@ -5937,6 +5938,7 @@ module.exports = (function() {
         }
 
 
+
         // Swap input buffers
         this.inputManager.swapBuffers();
 
@@ -5954,6 +5956,25 @@ module.exports = (function() {
         if(this.digState == NOT_DIGGING) {
             animationSet[this.state].update(elapsedTime);
         } else {
+
+            /* update pick position every frame */
+            if(this.pick && this.digState == LEFT_DIGGING) {
+                this.pick.x = this.x;
+                this.pick.y = this.y + this.hitboxSize.y / 2;
+            }
+            if(this.pick && this.digState == RIGHT_DIGGING) {
+                this.pick.x = this.x + this.hitboxSize.x;
+                this.pick.y = this.y + this.hitboxSize.y / 2;
+            }
+            if(this.pick && this.digState == UP_DIGGING) {
+                this.pick.x = this.x + this.hitboxSize.x / 2;
+                this.pick.y = this.y;
+            }
+            if(this.pick && this.digState == DOWN_DIGGING) {
+                this.pick.x = this.x + this.hitboxSize.x / 2;
+                this.pick.y = this.y + this.hitboxSize.y;
+            }
+
             //TODO create animations for each dig state
             animationSet[DIGGING].update(elapsedTime);
         }
