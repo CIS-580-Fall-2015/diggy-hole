@@ -473,6 +473,7 @@ module.exports = (function() {
         }
 
 
+
         // Swap input buffers
         this.inputManager.swapBuffers();
 
@@ -490,6 +491,25 @@ module.exports = (function() {
         if(this.digState == NOT_DIGGING) {
             animationSet[this.state].update(elapsedTime);
         } else {
+
+            /* update pick position every frame */
+            if(this.pick && this.digState == LEFT_DIGGING) {
+                this.pick.x = this.x;
+                this.pick.y = this.y + this.hitboxSize.y / 2;
+            }
+            if(this.pick && this.digState == RIGHT_DIGGING) {
+                this.pick.x = this.x + this.hitboxSize.x;
+                this.pick.y = this.y + this.hitboxSize.y / 2;
+            }
+            if(this.pick && this.digState == UP_DIGGING) {
+                this.pick.x = this.x + this.hitboxSize.x / 2;
+                this.pick.y = this.y;
+            }
+            if(this.pick && this.digState == DOWN_DIGGING) {
+                this.pick.x = this.x + this.hitboxSize.x / 2;
+                this.pick.y = this.y + this.hitboxSize.y;
+            }
+
             //TODO create animations for each dig state
             animationSet[DIGGING].update(elapsedTime);
         }
