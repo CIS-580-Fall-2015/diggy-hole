@@ -29,6 +29,10 @@ module.exports = (function(){
 				return;
 			if (this.amount > 0)
 				screenCtx.drawImage(this.img, 0, 0, IMG_SIZE, IMG_SIZE, x, y, IMG_SIZE, IMG_SIZE);
+				screenCtx.font = "20pt Calibri";
+				screenCtx.fillStyle = "red";
+				screenCtx.fillText("x"+this.amount, x+5, y + IMG_SIZE - 10);
+				
 		};
 	}
 

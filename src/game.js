@@ -1,5 +1,4 @@
 /* Game GameState module
-/* Game GameState module
  * Provides the main game logic for the Diggy Hole game.
  * Authors:
  * - Nathan Bean
@@ -11,40 +10,12 @@ module.exports = (function (){
 
     // Module variables
     var Player = require('./player.js'),
-        Rat = require('./rat.js'),
-        Wolf = require('./wolf.js'),
-        Robo_Killer = require('./robo-killer.js'),
-        Octopus = require('./octopus.js'),
         inputManager = require('./input-manager.js'),
         tilemap = require('./tilemap.js'),
         EntityManager = require('./entity-manager.js'),
         entityManager,
         SpawningManager = require('./spawning-manager.js'),
-        StoneMonster = require('./stone-monster.js'),
-        DemonicGroundHog = require('./DemonicGroundH.js'),
-        Barrel = require('./barrel.js'),
-        Turret = require('./turret.js'),
-        DynamiteDwarf = require('./dynamiteDwarf.js'),
-        Kakao = require('./Kakao.js'),
-        Bird = require('./bird.js'),
-        bird,
-        kakao,
-        wolf,
-        robo_killer,
-        GoblinMiner = require('./goblin-miner.js'),
-        Shaman = require('./goblin-shaman.js'),
-        Blobber = require('./blobber.js'),
-        blobber,
-        extantBlobbers,
         player,
-        rat,
-        octopus,
-        stoneMonster,
-        Slime = require('./slime.js'),
-        Sudo_Chan = require('./sudo_chan.js'),
-        sudo_chan,
-        slime,
-        goblinMiner,
         screenCtx,
         backBuffer,
         backBufferCtx,
@@ -103,7 +74,7 @@ module.exports = (function (){
         hud.addElement(scoreEngine);
 
         // SEt up invenotory
-        inventory = new Inventory(3);
+        inventory = new Inventory(5);
         hud.addElement(inventory);
 
         // Set up health bar
@@ -112,26 +83,11 @@ module.exports = (function (){
 
         // Create the player and add them to
         // the entity manager
-        var randomPos = tilemap.randomInSky();
+        var randomPos = tilemap.randomOnSurface();
         player = new Player(randomPos.x * 64, randomPos.y * 64, 0, inputManager, hb, scoreEngine, inventory);
         entityManager = new EntityManager(player);
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player, inputManager);
-
-        octopus = new Octopus(randomPos.x * 64, randomPos.y * 64, 0);
-        entityManager.add(octopus);
-
-        //TODO move this to spawning manager
-        for(i = 0; i < 3; i++) {
-
-            entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
-            entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, 60*60));
-
-        }
-
 
         // Kyle Brown: Background Music
         var bgMusic = new Audio('./resources/sounds/DiggyHoleBGMusicAm.wav');
@@ -155,7 +111,7 @@ module.exports = (function (){
         tilemap.update();
         ParticleManager.update(elapsedTime);
         inputManager.swapBuffers();
-        octopus.getPlayerPosition(player.boundingBox());
+        //octopus.getPlayerPosition(player.boundingBox());
         hud.update(player.boundingBox());
     };
 

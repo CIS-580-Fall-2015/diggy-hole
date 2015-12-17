@@ -10,5 +10,6 @@ module.exports = (function (){
       UPDATE_REGION : 75,
       RENDER_REGION : 25,
       UPDATE_TIME : 1/60,
+      LIQUID_UPDATE_TIME: 1,
     };
 })();
