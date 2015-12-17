@@ -5821,7 +5821,7 @@ module.exports = (function() {
 
     // Swimming Moving Constant
     const GRAVITY_IN_WATER = -80;
-    const SWIM_UP = -164;
+    const SWIM_UP = -100;
     const SPEED_IN_LIQUID = 80;
 
     // Inventory constants
@@ -6146,10 +6146,13 @@ module.exports = (function() {
             case FALLING:
                 if(this.velocityY < TERMINAL_VELOCITY) {
                     this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+                    console.log("I am being called");
                 }
                 if(this.onWater(tilemap) || this.inWaterorLava(tilemap)){
                     this.state = SWIMMING;
-                    this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
+                    this.velocityY = GRAVITY_IN_WATER;
+                    //this.velocityY += Math.pow(-10 * elapsedTime, 2);
+                    console.log("In water jumping down");
                 }
                 else{
                 	this.y += this.velocityY * elapsedTime;
@@ -6182,9 +6185,8 @@ module.exports = (function() {
                       this.moveRight(elapsedTime * SPEED_IN_LIQUID, tilemap);
                   }
                   else if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
-                          this.velocityY = SWIM_UP;
+                      this.velocityY = SWIM_UP;
                           this.y += this.velocityY * elapsedTime;
-                          console.log("SWIMING UP");
                   }
                   if (this.onGround(tilemap) && !this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
@@ -6204,9 +6206,12 @@ module.exports = (function() {
                       this.state = JUMPING;
                   }
                   else if (this.isBlockAbove(tilemap)){
-                      this.state = FALLING;
+                      //this.state = FALLING;
                       console.log("I hit my head");
-                    this.y += this.velocityY * elapsedTime;
+                      this.y = Settings.TILESIZEY * (Math.floor((this.y) / Settings.TILESIZEY)+1);
+                      //this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
+                      //this.y += this.velocityY * elapsedTime;
+                      this.velocityY = 0;
                   }
                   else{
                       if(!this.onGroundInWater(tilemap)){
