@@ -451,8 +451,8 @@ module.exports = (function(){
 		if(this.lastAttack >= this.attackFrequency){
 
 			for(var i=0; i<entities.length;i++){
-				if(entities[i] instanceof Player){
-					var playerX = entities[i].currentX;
+				if(entities[i].type == 'player'){
+					var playerX = entities[i].x;
 					break;
 				}
 			}

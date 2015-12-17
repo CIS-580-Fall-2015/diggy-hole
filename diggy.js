@@ -1187,8 +1187,8 @@ module.exports = (function(){
 		if(this.lastAttack >= this.attackFrequency){
 
 			for(var i=0; i<entities.length;i++){
-				if(entities[i] instanceof Player){
-					var playerX = entities[i].currentX;
+				if(entities[i].type == 'player'){
+					var playerX = entities[i].x;
 					break;
 				}
 			}
@@ -2812,7 +2812,7 @@ module.exports = (function (){
 		}
 
         // Set up health bar
-        hb = new healthBar(stateManager);
+        hb = new healthBar(stateManager,scoreEngine);
         hud.addElement(hb);
 
         // Create the player and add them to
@@ -2918,8 +2918,14 @@ module.exports = (function (){
  */
 module.exports = (function (){
 
+	
     var gameOver = document.getElementById("game_over");
-
+	
+	
+	var engine = function(scoreEngine){
+		this.score = document.getElementById("score");
+		this.score.innerHTML = "Score: " + scoreEngine.getScore();
+	};
     var load = function(sm) {
         gameOver.style.display = "flex";
     };
@@ -2943,6 +2949,7 @@ module.exports = (function (){
     function keyUp(event) {}
 
     return {
+		engine: engine,
         load: load,
         exit: exit,
         update: update,
@@ -3936,7 +3943,7 @@ module.exports = (function(){
 },{"./animation.js":6,"./entity.js":16}],22:[function(require,module,exports){
 module.exports = (function(){
 
-	function HealthBar(stateManager) {
+	function HealthBar(stateManager, scoreEngine) {
 		const 	hbYOffset = 50,
 			hbWidth = 200,
 			hbHeight = 30,
@@ -3952,9 +3959,11 @@ module.exports = (function(){
 		this.y;
 		this.health = 100;
 		this.deficit = 0;
-		this.gameOver = require('./gameOver.js');
+		
 		this.stateManager = stateManager;
-
+		this.scoreEngine = scoreEngine;
+		this.gameOver = require('./gameOver.js');
+		
 
 		this.heal = function(health) {
 			this.health = Math.min(this.health + health, 100)
@@ -3968,8 +3977,11 @@ module.exports = (function(){
 			this.health = Math.max(this.health - health, 0);
 			var sm = this.stateManager;
 			var go = this.gameOver;
+			
 			if (this.health == 0) {
+				this.gameOver.engine(this.scoreEngine);
 				setInterval(function(){
+					
 					sm.pushState(go);
 				}, 3000);
 				return false;
@@ -5630,7 +5642,7 @@ module.exports = (function() {
         console.log("Picked up power up: " + powerUp.type);
 
         if (powerUp.type == 'boneUp') {
-            inventory.powerUpPickedUp(5);
+            inventory.powerUpPickedUp(2);
         } else if (powerUp.type == 'coin') {
             // add points
             this.score(20);
