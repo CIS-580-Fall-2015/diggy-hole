@@ -28,7 +28,9 @@ module.exports = (function (){
         hud,
         healthBar = require('./healthBar.js'),
         Inventory = require('./inventory.js'),
-        Settings = require('./Settings.js');
+        Settings = require('./Settings.js'),
+		Minimap = require('./minimap.js'),
+		minimap;
 
     /* Loads the GameState, triggered by the StateManager
      * This function sets up the screen canvas, the tilemap,
@@ -93,6 +95,9 @@ module.exports = (function (){
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player, inputManager);
 
+		//Set up Minimap
+		minimap = new Minimap(Settings.SCREENSIZEX, Settings.SCREENSIZEY, player);
+		
         // Kyle Brown: Background Music
         var bgMusic = new Audio('./resources/sounds/DiggyHoleBGMusicAm.wav');
         bgMusic.addEventListener('ended', function() {
@@ -117,6 +122,7 @@ module.exports = (function (){
         inputManager.swapBuffers();
         //octopus.getPlayerPosition(player.boundingBox());
         hud.update(player.boundingBox());
+		minimap.update(elapsedTime, tilemap, player.boundingBox());
     };
 
     /* Renders the current state of the game world
@@ -140,6 +146,7 @@ module.exports = (function (){
         ParticleManager.render(backBufferCtx);
         tilemap.renderWater(backBufferCtx);
         hud.render(backBufferCtx);
+		minimap.render(backBufferCtx);
 
         backBufferCtx.restore();
 
