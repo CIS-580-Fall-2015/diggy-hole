@@ -378,7 +378,7 @@ module.exports = (function() {
                 }
                 if(this.onWater(tilemap) || this.inWaterorLava(tilemap)){
                     this.state = SWIMMING;
-                    this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
+                    this.velocityY = Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
                 }
                 else{
                 	this.y += this.velocityY * elapsedTime;
@@ -432,7 +432,7 @@ module.exports = (function() {
                       this.state = JUMPING;
                   }
                   else if (this.isBlockAbove(tilemap)){
-                      //this.state = FALLING;
+                      this.state = FALLING;
                       console.log("I hit my head");
                       this.y = Settings.TILESIZEY * (Math.floor((this.y) / Settings.TILESIZEY)+1);
                       this.velocityY = 0;
