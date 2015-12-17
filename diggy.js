@@ -5987,9 +5987,7 @@ module.exports = (function() {
             tileY = Math.floor((box.top) / 64),
             tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
         tile = tilemap.tileAt(Math.floor(box.right / Settings.TILESIZEX), Math.floor(box.top / Settings.TILESIZEY), this.layerIndex);
-            return ((tileL && tileL.data.type == "CaveBackground") || (tileR && tileR.data.type == "SkyBackground")
-            || tileL && tileL.data.type == "SkyBackground" || tileR && tileR.data.type == "CaveBackground") &&
-                (tileL && tileL.data.type!== this.inWaterorLava(tilemap) && (tileR && tileR.data.type !== this.inWaterorLava(tilemap)));
+            return ((tileL && tileL.data.notDiggable) || (tileR && tileR.data.notDiggable))&& !this.inWaterorLava(tilemap);
     };
 
     // Determines if the player will ram his head into a block above
