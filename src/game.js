@@ -91,11 +91,12 @@ module.exports = (function (){
             onload: function() {
                 window.tilemap = tilemap;
                 tilemap.render(screenCtx);
+                //tilemap.renderWater(screenCtx);
             }
         });
 
-        // Set up HUD
-        hud = new HUD(Settings.SCREENSIZEX, Settings.SCREENSIZEY);
+		// Set up HUD
+		hud = new HUD(Settings.SCREENSIZEX, Settings.SCREENSIZEY);
 
         // Set up score engine
         scoreEngine = new ScoreEngine();
@@ -116,6 +117,7 @@ module.exports = (function (){
         entityManager = new EntityManager(player);
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player, inputManager);
+
 
         //add wolf to
         // the entity manager
@@ -177,6 +179,18 @@ module.exports = (function (){
             // entityManager.add(barrel);
             // entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
 
+        //octopus = new Octopus(randomPos.x * 64, randomPos.y * 64, 0);
+        //entityManager.add(octopus);
+
+        //TODO move this to spawning manager
+       // for(i = 0; i < 3; i++) {
+
+
+            //entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
+           // entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
+           // entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
+            //entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
+           // entityManager.add(new PowerUp(Math.random()*64*50 + player.x, Math.random()*64*20 + player.y, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, 60*60));
 
         //}
         // powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
@@ -190,6 +204,9 @@ module.exports = (function (){
         // extantBlobbers = 1;
         // blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
         // entityManager.add(blobber);
+
+        //}
+
 
 
         // Kyle Brown: Background Music

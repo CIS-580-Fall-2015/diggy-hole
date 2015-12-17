@@ -11,7 +11,8 @@ module.exports = (function() {
     var Entity = require('./entity.js'),
         Animation = require('./animation.js'),
         Pickaxe = require('./Pickaxe.js'),
-        Bone = require('./Bone.js');
+        Bone = require('./Bone.js'),
+        Settings = require('./Settings.js');
 
     /*Audio sources*/
     jump_sound = new Audio('resources/sounds/jumping_sound.wav');
@@ -38,7 +39,9 @@ module.exports = (function() {
     const UP_DIGGING = 4;
 
     // The Sprite Size
+    //depricated. this will soon be removed. TODO
     const SIZE = 64;
+
 
     // Movement constants
     const GRAVITY = -250;
@@ -78,19 +81,17 @@ module.exports = (function() {
         this.dug = false;
         this.downPressed = false;
         this.layerIndex = layerIndex;
-        this.currentX = locationX;
-        this.currentY = locationY;
-        this.nextX = 0;
-        this.nextY = 0;
-        this.currentTileIndex = 0;
-        this.nextTileIndex = 0;
-        this.constSpeed = 15;
+        this.x = locationX;
+        this.y = locationY;
+        this.spriteOffset = { x: -8, y: -16 };
+        this.spriteSize = { x: 64, y: 64 };
+        this.hitboxSize = { x: 48, y: 48 };
         this.gravity = 0.5;
         this.angle = 0;
         this.xSpeed = 10;
         this.ySpeed = 15;
         this.isLeft = false;
-        this.SPEED = 150;
+        this.SPEED = 300;
         this.type = "player";
         this.superPickaxe = false;
         this.superAxeImg = new Image();
@@ -121,20 +122,20 @@ module.exports = (function() {
         };
 
         //The right-facing animations
-        this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 3, 0);
-        this.animations.right[WALKING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
-        this.animations.right[DIGGING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE * 2, 4);
-        this.animations.right[FALLING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE);
-        this.animations.right[SWIMMING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
-        this.animations.right[DEAD] = new Animation(dwarfDead, SIZE, SIZE, 0, 0, 16, 1/8, 1 );
+        this.animations.right[STANDING] = new Animation(dwarfRight, this.spriteSize.x, this.spriteSize.y, this.spriteSize.y * 3, 0);
+        this.animations.right[WALKING] = new Animation(dwarfRight, this.spriteSize.x, this.spriteSize.y, 0, 0, 4);
+        this.animations.right[DIGGING] = new Animation(dwarfRight, this.spriteSize.x, this.spriteSize.y, 0, this.spriteSize.x * 2, 4);
+        this.animations.right[FALLING] = new Animation(dwarfRight, this.spriteSize.x, this.spriteSize.y, 0, this.spriteSize.x);
+        this.animations.right[SWIMMING] = new Animation(dwarfRight, this.spriteSize.x, this.spriteSize.y, 0, 0, 4);
+        this.animations.right[DEAD] = new Animation(dwarfDead, this.spriteSize.x, this.spriteSize.y, 0, 0, 16, 1/8, 1 );
 
         //The left-facing animations
-        this.animations.left[STANDING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0);
-        this.animations.left[WALKING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
-        this.animations.left[DIGGING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE * 2, 4);
-        this.animations.left[FALLING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE * 3, SIZE);
-        this.animations.left[SWIMMING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
-        this.animations.left[DEAD] = new Animation(dwarfDead, SIZE, SIZE, 0, 0, 16, 1/8, 1 );
+        this.animations.left[STANDING] = new Animation(dwarfLeft, this.spriteSize.x, this.spriteSize.y, 0, 0);
+        this.animations.left[WALKING] = new Animation(dwarfLeft, this.spriteSize.x, this.spriteSize.y, 0, 0, 4);
+        this.animations.left[DIGGING] = new Animation(dwarfLeft, this.spriteSize.x, this.spriteSize.y, 0, this.spriteSize.x * 2, 4);
+        this.animations.left[FALLING] = new Animation(dwarfLeft, this.spriteSize.x, this.spriteSize.y, this.spriteSize.y * 3, this.spriteSize.x);
+        this.animations.left[SWIMMING] = new Animation(dwarfLeft, this.spriteSize.x, this.spriteSize.y, 0, 0, 4);
+        this.animations.left[DEAD] = new Animation(dwarfDead, this.spriteSize.x, this.spriteSize.y, 0, 0, 16, 1/8, 1 );
 
         //Setup the jump animations
         resetJumpingAnimation(this);
@@ -144,46 +145,46 @@ module.exports = (function() {
     Player.prototype = new Entity();
 
     // Check to see if player is in water i.e full body immersion (head inside water)
-    Player.prototype.inWater = function(tilemap) {
+    Player.prototype.inWaterorLava = function(tilemap) {
         var box = this.boundingBox();
-        var tileX = Math.floor((box.right - (SIZE/24))/64);
+        var tileX = Math.floor((box.right - (SIZE/24))/Settings.TILESIZEX);
         // Based on the position that player is facing changed the location of it's X coordinate
         if(this.isLeft) {
-            tileX = Math.floor((box.left + (SIZE/(3/2)))/64);
+            tileX = Math.floor((box.left + (SIZE/(3/2)))/Settings.TILESIZEX);
         }
-        var tileY = Math.floor(box.top / 64),
+        var tileY = Math.floor(box.top / Settings.TILESIZEX),
             tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
         if(tile){
-            if (tile.data.type == "Water"){
+            if (tile.data.type == "Water" || tile.data.type == "Lava"){
                 return true;
             }
         }
         return false;
     };
-
     // Check to see if player is on top of water
-    Player.prototype.onWater = function(tilemap) {
-        var box = this.boundingBox();
-        var tileX = Math.floor((box.right)/64);
-        // Based on the position that player is facing changed the location of it's X coordinate
-        if(this.isLeft) {
-            tileX = Math.floor((box.left)/64);
-        }
-        var tileY = Math.floor(box.bottom / 64) - 1,// check if player is right above water.
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if(tile){
-            if (tile.data.type == "Water" && !this.inWater(tilemap)){
-                return true;
+        Player.prototype.onWater = function(tilemap) {
+            var box = this.boundingBox();
+            var tileX = Math.floor((box.right)/Settings.TILESIZEX);
+            // Based on the position that player is facing changed the location of it's X coordinate
+            if(this.isLeft) {
+            	tileX = Math.floor((box.left)/Settings.TILESIZEX);
             }
-        }
-        return false; //
-    };
+            var tileY = Math.floor(box.bottom / Settings.TILESIZEX) - 1,// check if player is right above water.
+            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+            if(tile){
+                if (tile.data.type == "Water" && !this.inWaterorLava(tilemap)){
+                    return true;
+                }
+             }
+         return false; //
+        };
+
 
     // Determines if the player is on the ground
     Player.prototype.onGround = function(tilemap) {
         var box = this.boundingBox(),
-            tileXL = Math.floor((box.left + 5) / 64),
-            tileXR = Math.floor((box.right - 5) / 64),
+            tileXL = Math.floor((box.left + 32) / 64),
+            tileXR = Math.floor((box.right - 32) / 64),
             tileY = Math.floor((box.bottom) / 64),
             tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
             tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
@@ -192,20 +193,38 @@ module.exports = (function() {
         if(tileR && tileR.data.solid) return true;
         return false;
     };
+    Player.prototype.onGroundInWater = function(tilemap) {
+        var box = this.boundingBox(),
+            tileXL = Math.floor((box.left + 5) / Settings.TILESIZEX),
+            tileXR = Math.floor((box.right - 5) / Settings.TILESIZEX),
+            tileY = Math.floor((box.bottom) / Settings.TILESIZEY),
+            tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
+            tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
+        // find the tile we are standing on.
+        if(tileL && tileL.data.solid) return true;
+        if(tileR && tileR.data.solid) return true;
+        return false;
+    };
 
-    // Check that player's head is above water
+
+    // Check that player's head is above water but not hitting a solid
     Player.prototype.headOverWater = function (tilemap){
-        var box = this.boundingBox();
-        tile = tilemap.tileAt(Math.floor(box.right / 64), Math.floor(box.top / 64), this.layerIndex);
-        return (tile && tile.data.type == "SkyBackground");
+
+        var box = this.boundingBox(),
+            tileXL = Math.floor((box.left) / 64),
+            tileXR = Math.floor((box.right) / 64),
+            tileY = Math.floor((box.top) / 64),
+            tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
+        tile = tilemap.tileAt(Math.floor(box.right / Settings.TILESIZEX), Math.floor(box.top / Settings.TILESIZEY), this.layerIndex);
+            return ((tileL && tileL.data.notDiggable) || (tileR && tileR.data.notDiggable))&& !this.inWaterorLava(tilemap);
     };
 
     // Determines if the player will ram his head into a block above
     Player.prototype.isBlockAbove = function(tilemap) {
         var box = this.boundingBox(),
-            tileXL = Math.floor((box.left + 5) / 64),
-            tileXR = Math.floor((box.right - 5) / 64),
-            tileY = Math.floor((box.top + 5) / 64),
+            tileXL = Math.floor((box.left + 5) / Settings.TILESIZEX),
+            tileXR = Math.floor((box.right - 5) / Settings.TILESIZEX),
+            tileY = Math.floor((box.top + 5) / Settings.TILESIZEY),
             tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
             tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
         // find the tile we are standing on.
@@ -217,21 +236,44 @@ module.exports = (function() {
     // Moves the player to the left, colliding with solid tiles
     Player.prototype.moveLeft = function(distance, tilemap) {
         var box = this.boundingBox(),
-            tileX = Math.floor(box.left / 64),
-            tileY = Math.floor(box.bottom / 64) - 1,
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && !tile.data.solid)
-            this.currentX -= distance;
+            tileXUpper = Math.floor(box.left / Settings.TILESIZEX),
+            tileYUpper = Math.floor(box.top / Settings.TILESIZEY),
+            tileXLower = Math.floor(box.left/ Settings.TILESIZEX),
+            tileYLower = Math.floor(box.bottom / Settings.TILESIZEY),
+            tileUpper = tilemap.tileAt(tileXUpper, tileYUpper, this.layerIndex),
+            tileLower = tilemap.tileAt(tileXLower, tileYLower, this.layerIndex);
+        if (this.state === FALLING || this.state === JUMPING) {
+          if (tileUpper && !tileUpper.data.solid && tileLower && !tileLower.data.solid) {
+            this.x -= distance;
+          }
+        }
+        else {
+          if (tileUpper && !tileUpper.data.solid) {
+            this.x -= distance;
+          }
+        }
     };
 
     // Moves the player to the right, colliding with solid tiles
     Player.prototype.moveRight = function(distance, tilemap) {
         var box = this.boundingBox(),
-            tileX = Math.floor(box.right / 64),
-            tileY = Math.floor(box.bottom / 64) - 1,
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && !tile.data.solid)
-            this.currentX += distance;
+            tileXUpper = Math.floor(box.right / Settings.TILESIZEX),
+            tileYUpper = Math.floor(box.top / Settings.TILESIZEY),
+            tileXLower = Math.floor(box.right / Settings.TILESIZEX),
+            tileYLower = Math.floor(box.bottom / Settings.TILESIZEY),
+            tileUpper = tilemap.tileAt(tileXUpper, tileYUpper, this.layerIndex),
+            tileLower = tilemap.tileAt(tileXLower, tileYLower, this.layerIndex);
+
+        if (this.state === FALLING || this.state === JUMPING) {
+          if (tileUpper && !tileUpper.data.solid && tileLower && !tileLower.data.solid) {
+            this.x += distance;
+          }
+        }
+        else {
+          if (tileUpper && !tileUpper.data.solid) {
+            this.x += distance;
+          }
+        }
     };
 
     /* Player update function
@@ -248,20 +290,21 @@ module.exports = (function() {
         if(this.digState == NOT_DIGGING) {
             if (this.inputManager.isKeyDown(this.inputManager.commands.DIGDOWN)) {
                 this.digState = DOWN_DIGGING;
-                this.setupDig(new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true), entityManager, ParticleManager);
+                this.setupDig(new Pickaxe({ x: this.x + this.hitboxSize.x / 2, y: this.y + this.hitboxSize.y}, true), entityManager, ParticleManager);
             } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGLEFT)) {
                 this.digState = LEFT_DIGGING;
                 this.isLeft = true;
-                this.setupDig(new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 }), entityManager, ParticleManager);
+                this.setupDig(new Pickaxe({ x: this.x, y: this.y + this.hitboxSize.y / 2 }), entityManager, ParticleManager);
             } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGRIGHT)) {
                 this.digState = RIGHT_DIGGING;
                 this.isLeft = false;
-                this.setupDig(new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 }), entityManager, ParticleManager);
+                this.setupDig(new Pickaxe({ x: this.x + this.hitboxSize.x, y: this.y + this.hitboxSize.y / 2 }), entityManager, ParticleManager);
             } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGUP)) {
                 this.digState = UP_DIGGING;
-                this.setupDig(new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY }, true), entityManager, ParticleManager);
+                this.setupDig(new Pickaxe({ x: this.x + this.hitboxSize.x / 2, y: this.y }, true), entityManager, ParticleManager);
             }
         }
+
 
         // Process player state
         switch (this.state) {
@@ -273,16 +316,10 @@ module.exports = (function() {
                     this.velocityY = 0;
                 }
                 // If player is above water or inside water
-                else if(this.inWater(tilemap)){
-                    if(this.swimmingProperty.escapeSwimming){
-                        this.state = JUMPING;
-                        this.velocityY = JUMP_VELOCITY;
-                        this.swimmingProperty.escapeSwimming = false;
-                    }
-                    else{
-                        this.state = SWIMMING;
-                        this.holdBreath = true;
-                    }
+                else if(this.inWaterorLava(tilemap)){
+                    this.state = SWIMMING;
+                    this.holdBreath = true;
+                    this.velocityY = 0;
                 }
                 else {
                     if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
@@ -314,13 +351,15 @@ module.exports = (function() {
                 break;
             case JUMPING:
                 this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-                this.currentY += this.velocityY * elapsedTime;
+                this.y += this.velocityY * elapsedTime;
                 if (this.velocityY > 0) {
                     this.state = FALLING;
+                    console.log("I falling from jump");
                     resetJumpingAnimation(this);
                 } else if (this.isBlockAbove(tilemap)) {
                     this.state = FALLING;
                     this.velocityY = 0;
+                    this.y = Settings.TILESIZEY * (Math.floor((this.y) / Settings.TILESIZEY)+1);
                     resetJumpingAnimation(this);
                 }
 
@@ -337,10 +376,16 @@ module.exports = (function() {
                 if(this.velocityY < TERMINAL_VELOCITY) {
                     this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
                 }
-                this.currentY += this.velocityY * elapsedTime;
+                if(this.onWater(tilemap) || this.inWaterorLava(tilemap)){
+                    this.state = SWIMMING;
+                    this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
+                }
+                else{
+                	this.y += this.velocityY * elapsedTime;
+                }
                 if (this.onGround(tilemap)) {
                     this.state = STANDING;
-                    this.currentY = 64 * Math.floor(this.currentY / 64);
+                    this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
                 } else if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
                     this.isLeft = true;
                     this.moveLeft(elapsedTime * this.SPEED, tilemap);
@@ -349,60 +394,56 @@ module.exports = (function() {
                     this.isLeft = false;
                     this.moveRight(elapsedTime * this.SPEED, tilemap);
                 }
-                else if(this.inWater(tilemap)){
-                    this.state = SWIMMING;
-                    this.holdBreath = true;
-                }
                 break;
             case SWIMMING:
-                //Player Sinks automatically, they have resistance i.e sink slower if fully immersed in water
-                if(this.inWater(tilemap)) {
-                    this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2) + (this.velocityY / GRAVITY_IN_WATER);
-                    console.log("in water");
-                    this.currentY += this.velocityY * elapsedTime;
-                    if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
-                        this.velocityY = 0;
-                        this.isLeft = true;
-                        this.moveLeft(elapsedTime * SPEED_IN_LIQUID, tilemap);
-                    }
-                    else if (this.inputManager.isKeyDown(this.inputManager.commands.RIGHT)) {
-                        this.velocityY = 0;
-                        this.isLeft = false;
-                        this.moveRight(elapsedTime * SPEED_IN_LIQUID, tilemap);
-                    }
-                    else if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
-                        this.velocityY = SWIM_UP;
-                        console.log("SWIMING UP");
-                    }
-                    else if (!this.inWater(tilemap) && !this.headOverWater(tilemap)) {
-                        this.state = FALLING;
-                        console.log("Player hit its head on something");
-                        this.holdBreath = false;
-                    }
-                    else if (this.onGround(tilemap) && !this.inWater(tilemap)) {
-                        this.velocityY = 0;
-                        this.currentY = 64 * Math.floor(this.currentY / 64);
-                        this.state = STANDING;
-                        console.log("standing");
-                    }
-                    else if (this.onGround(tilemap) && this.inWater(tilemap)) {
-                        this.velocityY = 0;
-                        this.currentY = 64 * Math.floor(this.currentY / 64);
-                        console.log("floating in water");
-                    }
-                    this.swimmingProperty.escapeSwimming = false;
-                }
-                else if (this.headOverWater(tilemap)) {
-                    this.state = STANDING;
-                    this.swimmingProperty.escapeSwimming = true;
-                    console.log("Can escape swimming");
-                    this.currentY += this.velocityY * elapsedTime;
-                }
-                else{
-                    this.state = FALLING;
-                    this.currentY += this.velocityY * elapsedTime;
-                }
-                // Exact copy of walking state code, might be a bit redudant, possibly make it a global function?
+              //if(this.inWater(tilemap)) {
+                  this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2) + (this.velocityY / GRAVITY_IN_WATER);
+                  console.log("in water");
+                    this.y += this.velocityY * elapsedTime;
+                  if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
+                      this.velocityY = 0;
+                      this.isLeft = true;
+                      this.moveLeft(elapsedTime * SPEED_IN_LIQUID, tilemap);
+                  }
+                  else if (this.inputManager.isKeyDown(this.inputManager.commands.RIGHT)) {
+                      this.velocityY = 0;
+                      this.isLeft = false;
+                      this.moveRight(elapsedTime * SPEED_IN_LIQUID, tilemap);
+                  }
+                  else if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
+                          this.velocityY = SWIM_UP;
+                          this.y += this.velocityY * elapsedTime;
+                          console.log("SWIMING UP");
+                  }
+                  if (this.onGround(tilemap) && !this.inWaterorLava(tilemap)) {
+                      this.velocityY = 0;
+                        this.y = Settings.TILESIZEY * Math.floor(this.y / Settings.TILESIZEY);
+                      this.state = STANDING;
+                      console.log("standing");
+                  }
+                  else if (this.onGroundInWater(tilemap) && this.inWaterorLava(tilemap)) {
+                      this.velocityY = 0;
+                        this.y = Settings.TILESIZEY * Math.floor(this.y / Settings.TILESIZEY);
+                      console.log("floating in water");
+                  }
+                  else if(this.headOverWater(tilemap)){
+                      this.velocityY = -500;
+                      //this.y += this.velocityY * elapsedTime;
+                      console.log("I am not in water");
+                      this.state = JUMPING;
+                  }
+                  else if (this.isBlockAbove(tilemap)){
+                      this.state = FALLING;
+                      console.log("I hit my head");
+                    this.y += this.velocityY * elapsedTime;
+                  }
+                  else{
+                      if(!this.onGroundInWater(tilemap)){
+                          //Player Sinks automatically, they have resistance i.e sink slower if fully immersed in water
+                    this.y += this.velocityY * elapsedTime;
+                      }
+
+                  }
 
 
                 // A counter for the health bar to check if player is drowning
@@ -455,11 +496,12 @@ module.exports = (function() {
         }
 
 
+
         // Swap input buffers
         this.inputManager.swapBuffers();
 
-        // Check oxygen level of player
-        if(this.holdBreath && this.inWater(tilemap)){
+            // Check oxygen level of player
+        if(this.holdBreath && this.inWaterorLava(tilemap)){
             this.swimmingProperty.breathCount += elapsedTime;
         }
         else{
@@ -472,19 +514,40 @@ module.exports = (function() {
         if(this.digState == NOT_DIGGING) {
             animationSet[this.state].update(elapsedTime);
         } else {
+
+            /* update pick position every frame */
+            if(this.pick && this.digState == LEFT_DIGGING) {
+                this.pick.x = this.x;
+                this.pick.y = this.y + this.hitboxSize.y / 2;
+            }
+            if(this.pick && this.digState == RIGHT_DIGGING) {
+                this.pick.x = this.x + this.hitboxSize.x;
+                this.pick.y = this.y + this.hitboxSize.y / 2;
+            }
+            if(this.pick && this.digState == UP_DIGGING) {
+                this.pick.x = this.x + this.hitboxSize.x / 2;
+                this.pick.y = this.y;
+            }
+            if(this.pick && this.digState == DOWN_DIGGING) {
+                this.pick.x = this.x + this.hitboxSize.x / 2;
+                this.pick.y = this.y + this.hitboxSize.y;
+            }
+
             //TODO create animations for each dig state
             animationSet[DIGGING].update(elapsedTime);
         }
 
     };
 
+    //TODO this should be a prototype function like the rest
     /* This function resets (or initializes) the jumping animations */
     function resetJumpingAnimation(player) {
-        player.animations.right[JUMPING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 3, SIZE, 3, 0.1, true, null, true);
-        player.animations.left[JUMPING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE, 3, 0.1, true);
+        player.animations.right[JUMPING] = new Animation(dwarfRight, player.spriteSize.x, player.spriteSize.y, player.spriteSize.y * 3, player.spriteSize.x, 3, 0.1, true, null, true);
+        player.animations.left[JUMPING] = new Animation(dwarfLeft, player.spriteSize.x, player.spriteSize.y, 0, player.spriteSize.x, 3, 0.1, true);
     }
 
     // Update function for use with the help player
+    //this should be either its own entity or should just use the regular update.
     Player.prototype.demoUpdate = function(elapsedTime) {
         var sprite = this;
 
@@ -498,7 +561,7 @@ module.exports = (function() {
                 case STANDING:
                 case WALKING:
                     // If there is no ground underneath, fall
-                    if (sprite.currentY < 64) {
+                    if (sprite.y < 64) {
                         sprite.state = FALLING;
                         sprite.velocityY = 0;
                     } else {
@@ -569,8 +632,8 @@ module.exports = (function() {
                     break;
                 case JUMPING:
                     sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-                    sprite.currentY += sprite.velocityY * elapsedTime;
-                    if (sprite.currentY <= -64) {
+                    sprite.y += sprite.velocityY * elapsedTime;
+                    if (sprite.y <= -64) {
                         sprite.state = FALLING;
                         sprite.velocityY = 0;
                     }
@@ -585,8 +648,8 @@ module.exports = (function() {
                     if(sprite.velocityY < TERMINAL_VELOCITY) {
                         sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
                     }
-                    sprite.currentY += sprite.velocityY * elapsedTime;
-                    if (sprite.currentY >= 64) {
+                    sprite.y += sprite.velocityY * elapsedTime;
+                    if (sprite.y >= 64) {
                         sprite.state = STANDING;
                     } else if (isKeyDown(commands.LEFT)) {
                         sprite.isLeft = true;
@@ -620,7 +683,7 @@ module.exports = (function() {
         var digComplete = function() {
             /* Add score */
             //TODO different scores for different blocks?
-            currentPlayer.score(1);
+            //currentPlayer.score(1);
 
             var box = currentPlayer.boundingBox(),
                 tileX,
@@ -629,20 +692,20 @@ module.exports = (function() {
             /* set the tile location that we are deleting */
             switch(currentPlayer.digState) {
                 case DOWN_DIGGING:
-                    tileX = Math.floor((box.left + (SIZE / 2)) / 64);
-                    tileY = Math.floor(box.bottom / 64);
+                    tileX = Math.floor((box.left + box.right) / 2 / Settings.TILESIZEX);
+                    tileY = Math.floor(box.bottom / Settings.TILESIZEY);
                     break;
                 case LEFT_DIGGING:
-                    tileX = Math.floor((box.left - 5)/ 64);
-                    tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                    tileX = Math.floor((box.left - 5)/ Settings.TILESIZEX);
+                    tileY = Math.floor((box.bottom + box.top) / 2 / Settings.TILESIZEY);
                     break;
                 case RIGHT_DIGGING:
-                    tileX = Math.floor((box.right + 5)/ 64);
-                    tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                    tileX = Math.floor((box.right + 5)/ Settings.TILESIZEX);
+                    tileY = Math.floor((box.bottom + box.top) / 2 / Settings.TILESIZEY);
                     break;
                 case UP_DIGGING:
-                    tileX = Math.floor((box.left + (SIZE / 2)) / 64);
-                    tileY = Math.floor((box.top - 5) / 64);
+                    tileX = Math.floor((box.left + box.right) / 2 / Settings.TILESIZEX);
+                    tileY = Math.floor((box.top - 5) / Settings.TILESIZEY);
                     break;
                 default:
                     return;
@@ -656,19 +719,24 @@ module.exports = (function() {
             if (layerType === 0) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
+                currentPlayer.score(1);
             } else if (layerType == 1) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
+                currentPlayer.score(1);
             } else if (layerType == 2) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
+                currentPlayer.score(1);
             }
 
-            if (tileNum.data.type === "Sky Earth" || tileNum.data.type === "DirtWithGrass" || tileNum.data.type === "Dirt"){
-                ParticleManager.addDirtParticles(tileX, tileY);
-            }
-            else if (tileNum.data.type === "GemsWithGrass" || tileNum.data.type === "StoneWithGrass" || tileNum.data.type === "Gems" || tileNum.data.type === "Stone"){
-                ParticleManager.addStoneParticles(tileX, tileY);
+            if(tileNum.data) {
+                if (tileNum.data.type === "Sky Earth" || tileNum.data.type === "DirtWithGrass" || tileNum.data.type === "Dirt") {
+                    ParticleManager.addDirtParticles(tileX, tileY);
+                }
+                else if (tileNum.data.type === "GemsWithGrass" || tileNum.data.type === "StoneWithGrass" || tileNum.data.type === "Gems" || tileNum.data.type === "Stone") {
+                    ParticleManager.addStoneParticles(tileX, tileY);
+                }
             }
 
             /* setup the callback for when the animation is complete */
@@ -728,7 +796,7 @@ module.exports = (function() {
     };
 
     Player.prototype.hurt = function(health) {
-        if (this.healthBar.hurt(health) == false) {
+        if (this.healthBar.hurt(health) === false) {
             this.state = DEAD;
             death_sound.play();
         }
@@ -760,7 +828,7 @@ module.exports = (function() {
         if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
             //Added sound for throwing bone
             throw_sound.play();
-            var bone = new Bone(this.currentX, this.currentY, 0, this.isLeft, this);
+            var bone = new Bone(this.x, this.y, 0, this.isLeft, this);
             this.entityManager.add(bone);
             this.bones--;
             this.lastAttack = 0;
@@ -778,22 +846,28 @@ module.exports = (function() {
         var animationSet = this.isLeft ? this.animations.left : this.animations.right;
 
         if(this.digState == NOT_DIGGING) {
-            animationSet[this.state].render(ctx, this.currentX, this.currentY);
+            animationSet[this.state].render(ctx, this.x + this.spriteOffset.x, this.y + this.spriteOffset.y);
         } else {
             //TODO create animations for each dig state
-            animationSet[DIGGING].render(ctx, this.currentX, this.currentY);
+            animationSet[DIGGING].render(ctx, this.x + this.spriteOffset.x, this.y + this.spriteOffset.y);
         }
 
-
+            /*
         if (this.holdBreath && this.state == SWIMMING) {
             var bb = this.boundingBox();
             var width = (bb.right - bb.left) - ((Math.floor(this.swimmingProperty.breathCount) / 20) * (bb.right - bb.left));
 
+            //TODO create a hud element for this bar and wrap this code
+            ctx.save();
             ctx.fillStyle = "#21C8FF";
             ctx.fillRect(bb.left, bb.top - 15, width, 10);
             ctx.fill();
+            ctx.fillStyle = "rgba(0,0,200,0)";
+            ctx.restore();
         }
+        */
 
+        //TODO draw this in a hud class?
         //draw powerups
         if(this.superPickaxe){
             ctx.drawImage(
@@ -802,8 +876,8 @@ module.exports = (function() {
                 0,
                 64,
                 64,
-                this.currentX + 500,
-                this.currentY - 350,
+                this.x + 500,
+                this.y - 350,
                 64,
                 64);
         }
@@ -814,12 +888,12 @@ module.exports = (function() {
             0,
             64,
             64,
-            this.currentX + 400,
-            this.currentY - 350,
+            this.x + 400,
+            this.y - 350,
             64,
             64);
         ctx.font = "20pt Calibri";
-        ctx.fillText("x"+this.bones, this.currentX + 445, this.currentY - 300);
+        ctx.fillText("x"+this.bones, this.x + 445, this.y - 300);
 
         if (debug) renderDebug(this, ctx);
     };
@@ -840,14 +914,14 @@ module.exports = (function() {
         ctx.stroke();
 
         // Outline tile underfoot
-        var tileX = 64 * Math.floor((bounds.left + (SIZE / 2)) / 64),
-            tileY = 64 * (Math.floor(bounds.bottom / 64));
+        var tileX = Settings.TILESIZEX * Math.floor((bounds.left + bounds.right) / 2 / Settings.TILESIZEX),
+            tileY = Settings.TILESIZEY * (Math.floor(bounds.bottom / Settings.TILESIZEY));
         ctx.strokeStyle = "black";
         ctx.beginPath();
         ctx.moveTo(tileX, tileY);
-        ctx.lineTo(tileX + 64, tileY);
-        ctx.lineTo(tileX + 64, tileY + 64);
-        ctx.lineTo(tileX, tileY + 64);
+        ctx.lineTo(tileX + Settings.TILESIZEX, tileY);
+        ctx.lineTo(tileX + Settings.TILESIZEX, tileY + Settings.TILESIZEY);
+        ctx.lineTo(tileX, tileY + Settings.TILESIZEY);
         ctx.closePath();
         ctx.stroke();
 
@@ -859,19 +933,19 @@ module.exports = (function() {
      */
     Player.prototype.boundingBox = function() {
         return {
-            left: this.currentX,
-            top: this.currentY,
-            right: this.currentX + SIZE,
-            bottom: this.currentY + SIZE
+            left: this.x,
+            top: this.y,
+            right: this.x + this.hitboxSize.x,
+            bottom: this.y + this.hitboxSize.y
         };
     };
 
 
     Player.prototype.boundingCircle = function() {
         return {
-            cx: this.currentX + SIZE / 2,
-            cy: this.currentY + SIZE / 2,
-            radius: SIZE / 2
+            cx: this.x + this.hitboxSize.x / 2,
+            cy: this.y + this.hitboxSize.y / 2,
+            radius: this.hitboxSize.x / 2
         };
     };
 

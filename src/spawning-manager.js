@@ -146,7 +146,7 @@ module.exports = (function() {
 	
 	var updatePeriodSeconds = 2;
 
-    SpawningManager.prototype.update = function (elapsedTime, tilemap) {
+    SpawningManager.prototype.update = function (elapsedTime, tilemap, entityManager) {
         this.updateTimeLeft -= elapsedTime;
         if(this.updateTimeLeft < 0) {
             this.updateTimeLeft = updatePeriodSeconds;
@@ -163,8 +163,8 @@ module.exports = (function() {
 			var posFound = false;
 			var x = 0, y = 0;
 			do{
-				x = Math.floor((Math.random()*10 +64*15 + this.player.currentX)/64);
-				y = Math.floor((Math.random()*10 +64*15 + this.player.currentY)/64);
+				x = Math.floor((Math.random()*10 +64*15 + this.player.x)/64);
+				y = Math.floor((Math.random()*10 +64*15 + this.player.y)/64);
 				
 				var tile = tilemap.tileAt(x, y, 0);
 				if(!(tile && tile.data.solid)){
@@ -177,53 +177,56 @@ module.exports = (function() {
 			if(posFound){
 				var tile = tilemap.tileAt(x, y, 0);
 				var num = Math.floor(Math.random()*3);
-				if(tile.data.type == "SkyBackground" || tile.data.type == "Clouds"){
-					if(skyEntities[num].limit > skyEntities[num].count){
-						this.entityManager.add(
-								new skyEntities[num].Entity(x*64, y*64, 0)
-						);
-						skyEntities[num].count++;
-					}
-					else
-					{
-						num = Math.floor(Math.random()*5);
-						if(powerUps[num].limit > powerUps[num].count){
-							this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
-							powerUps[num].count++;
+				if( tile && tile.data) {
+					if (tile.data.type == "SkyBackground" || tile.data.type == "Clouds") {
+						if (skyEntities[num].limit > skyEntities[num].count) {
+							this.entityManager.add(
+								new skyEntities[num].Entity(x * 64, y * 64, 0)
+							);
+							skyEntities[num].count++;
+						}
+						else
+						{
+							num = Math.floor(Math.random()*5);
+							if(powerUps[num].limit > powerUps[num].count){
+								this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
+								powerUps[num].count++;
+							}
+						}
+					} 
+					else if(tile.data.type == "CaveBackground" || tile.data.type == "Water"){
+						if(middleEntities[num].limit > middleEntities[num].count){
+							this.entityManager.add(
+									new middleEntities[num].Entity(x*64, y*64, 0)
+							);
+							middleEntities[num].count++;
+						}
+						else
+						{
+							num = Math.floor(Math.random()*5);
+							if(powerUps[num].limit > powerUps[num].count){
+								this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
+								powerUps[num].count++;
+							}		
 						}
 					}
-				}
-				else if(tile.data.type == "CaveBackground" || tile.data.type == "Water"){
-					if(middleEntities[num].limit > middleEntities[num].count){
-						this.entityManager.add(
-								new middleEntities[num].Entity(x*64, y*64, 0)
-						);
-						middleEntities[num].count++;
-					}
-					else
-					{
-						num = Math.floor(Math.random()*5);
-						if(powerUps[num].limit > powerUps[num].count){
-							this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
-							powerUps[num].count++;
-						}		
-					}
-				}
-				else if(tile.data.type == "Lava" || tile.data.type == "DarkBackground" || tile.data.type == "DugBackground"){
-					if(deepEntities[num].limit > deepEntities[num].count){
-						this.entityManager.add(
-								new deepEntities[num].Entity(x*64, y*64, 0)
-						);
-						deepEntities[num].count++;
-					}
-					else
-					{
-						num = Math.floor(Math.random()*5);
-						if(powerUps[num].limit > powerUps[num].count){
-							this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
-							powerUps[num].count++;
+					else if(tile.data.type == "Lava" || tile.data.type == "DarkBackground" || tile.data.type == "DugBackground"){
+						if(deepEntities[num].limit > deepEntities[num].count){
+							this.entityManager.add(
+									new deepEntities[num].Entity(x*64, y*64, 0)
+							);
+							deepEntities[num].count++;
+
 						}
-						
+						else
+						{
+							num = Math.floor(Math.random()*5);
+							if(powerUps[num].limit > powerUps[num].count){
+								this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
+								powerUps[num].count++;
+							}
+							
+						}
 					}
 				}
 			}
