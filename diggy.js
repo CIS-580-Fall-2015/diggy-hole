@@ -3261,6 +3261,7 @@ module.exports = (function(){
 		this.velocityY = 0;
 	    this.isLeft = false;
 		this.direction = 0;
+		this.type = 'goblinMiner';
 
 	    // The animations
 	    this.animations = {
@@ -4887,7 +4888,7 @@ module.exports = (function() {
 
     // Swimming Moving Constant
     const GRAVITY_IN_WATER = -80;
-    const SWIM_UP = -164;
+    const SWIM_UP = -100;
     const SPEED_IN_LIQUID = 80;
 
     // Inventory constants
@@ -5087,6 +5088,9 @@ module.exports = (function() {
           if (tileUpper && !tileUpper.data.solid) {
             this.x -= distance;
           }
+          else {
+              this.x = Settings.TILESIZEX * (tileXUpper + 1) - 5;
+          }
         }
     };
 
@@ -5108,6 +5112,9 @@ module.exports = (function() {
         else {
           if (tileUpper && !tileUpper.data.solid) {
             this.x += distance;
+          }
+          else {
+              this.x = Settings.TILESIZEX * (tileXUpper) - this.hitboxSize.x;
           }
         }
     };
@@ -5211,6 +5218,7 @@ module.exports = (function() {
             case FALLING:
                 if(this.velocityY < TERMINAL_VELOCITY) {
                     this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+                    console.log("I am being called");
                 }
                 if(this.onWater(tilemap) || this.inWaterorLava(tilemap)){
                     this.state = SWIMMING;
@@ -5246,9 +5254,8 @@ module.exports = (function() {
                       this.moveRight(elapsedTime * SPEED_IN_LIQUID, tilemap);
                   }
                   else if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
-                          this.velocityY = SWIM_UP;
-                          this.y += this.velocityY * elapsedTime;
-                          console.log("SWIMING UP");
+                      this.velocityY = SWIM_UP;
+                      this.y += this.velocityY * elapsedTime;
                   }
                   if (this.onGround(tilemap) && !this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
@@ -5294,10 +5301,10 @@ module.exports = (function() {
             this.lastAttack += elapsedTime;
         }
 
-	
+
         // Power Up Usage Management
         this.lastPowerUpUsed += elapsedTime;
-		
+
 		if (this.inputManager.isKeyDown(this.inputManager.commands.SIX) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
                 console.log("SIX or B pressed");
                 if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(5)) {
@@ -5731,7 +5738,7 @@ module.exports = (function() {
                 64);
         }
 
-       
+
         if (debug) renderDebug(this, ctx);
     };
 
@@ -6138,18 +6145,21 @@ module.exports = (function() {
 	
 	var birdData = {
 		Entity: require('./bird.js'),
+		type: 'bird',
 		limit: 8,
 		count: 0
 	};
 	
 	var turretData = {
 		Entity: require('./turret.js'),
+		type: 'turret',
 		limit: 3,
 		count: 0
 	};
 			
 	var barrelData = {
 		Entity: require('./barrel.js'),
+		type: 'Barrel',
 		limit: 15,
 		count: 0
 	};
@@ -6160,18 +6170,21 @@ module.exports = (function() {
 	
 	var demonGHogData = {
 		Entity: require('./DemonicGroundH.js'),
+		type: 'DemonicGroundHog',
 		limit: 10,
 		count: 0
 	};
 	
 	var goblinMinerData = {
 		Entity: require('./goblin-miner.js'),
+		type: 'goblinMiner',
 		limit: 8,
 		count: 0
 	};
 	
 	var goblinShamanData = {
 		Entity: require('./goblin-shaman.js'),
+		type: 'shaman',
 		limit: 5,
 		count: 0
 	};
@@ -6182,12 +6195,14 @@ module.exports = (function() {
 	
 	var ghostMinerData = {
 		Entity: require('./ghostminer.js'),
+		type: 'ghost',
 		limit: 4,
 		count: 0
 	};
 	
 	var dynamiteDwarfData = {
 		Entity: require('./dynamiteDwarf.js'),
+		type: 'dynamiteDwarf',
 		limit: 2,
 		count: 0
 	}
@@ -6312,6 +6327,14 @@ module.exports = (function() {
 				var num = Math.floor(Math.random()*3);
 				if( tile && tile.data) {
 					if (tile.data.type == "SkyBackground" || tile.data.type == "Clouds") {
+						//Update count of that one
+						skyEntities[num].count = 0;
+						var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+						for(var i = 0; i < ents.length; i++){
+							if(ents[i].type == skyEntities[num].type){
+								skyEntities[num].count++;
+							}
+						}
 						if (skyEntities[num].limit > skyEntities[num].count) {
 							this.entityManager.add(
 								new skyEntities[num].Entity(x * 64, y * 64, 0)
@@ -6321,6 +6344,13 @@ module.exports = (function() {
 						else
 						{
 							num = Math.floor(Math.random()*5);
+							powerUps[num].count = 0;
+							var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+							for(var i = 0; i < ents.length; i++){
+								if(ents[i].type == powerUps[num].name){
+									powerUps[num].count++;
+								}
+							}
 							if(powerUps[num].limit > powerUps[num].count){
 								this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
 								powerUps[num].count++;
@@ -6328,6 +6358,14 @@ module.exports = (function() {
 						}
 					} 
 					else if(tile.data.type == "CaveBackground" || tile.data.type == "Water"){
+						//Update count of that one
+						middleEntities[num].count = 0;
+						var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+						for(var i = 0; i < ents.length; i++){
+							if(ents[i].type == middleEntities[num].type){
+								middleEntities[num].count++;
+							}
+						}
 						if(middleEntities[num].limit > middleEntities[num].count){
 							this.entityManager.add(
 									new middleEntities[num].Entity(x*64, y*64, 0)
@@ -6337,6 +6375,13 @@ module.exports = (function() {
 						else
 						{
 							num = Math.floor(Math.random()*5);
+							powerUps[num].count = 0;
+							var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+							for(var i = 0; i < ents.length; i++){
+								if(ents[i].type == powerUps[num].name){
+									powerUps[num].count++;
+								}
+							}
 							if(powerUps[num].limit > powerUps[num].count){
 								this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
 								powerUps[num].count++;
@@ -6344,6 +6389,14 @@ module.exports = (function() {
 						}
 					}
 					else if(tile.data.type == "Lava" || tile.data.type == "DarkBackground" || tile.data.type == "DugBackground"){
+						//Update count of that one
+						deepEntities[num].count = 0;
+						var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+						for(var i = 0; i < ents.length; i++){
+							if(ents[i].type == deepEntities[num].type){
+								deepEntities[num].count++;
+							}
+						}
 						if(deepEntities[num].limit > deepEntities[num].count){
 							this.entityManager.add(
 									new deepEntities[num].Entity(x*64, y*64, 0)
@@ -6354,6 +6407,13 @@ module.exports = (function() {
 						else
 						{
 							num = Math.floor(Math.random()*5);
+							powerUps[num].count = 0;
+							var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+							for(var i = 0; i < ents.length; i++){
+								if(ents[i].type == powerUps[num].name){
+									powerUps[num].count++;
+								}
+							}
 							if(powerUps[num].limit > powerUps[num].count){
 								this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
 								powerUps[num].count++;

@@ -39,6 +39,7 @@ module.exports = (function(){
 		this.velocityY = 0;
 	    this.isLeft = false;
 		this.direction = 0;
+		this.type = 'goblinMiner';
 
 	    // The animations
 	    this.animations = {
