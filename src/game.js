@@ -82,7 +82,7 @@ module.exports = (function (){
 		}
 
         // Set up health bar
-        hb = new healthBar(stateManager);
+        hb = new healthBar(stateManager,scoreEngine);
         hud.addElement(hb);
 
         // Create the player and add them to

@@ -4,8 +4,14 @@
  */
 module.exports = (function (){
 
+	
     var gameOver = document.getElementById("game_over");
-
+	
+	
+	var engine = function(scoreEngine){
+		this.score = document.getElementById("score");
+		this.score.innerHTML = "Score: " + scoreEngine.getScore();
+	};
     var load = function(sm) {
         gameOver.style.display = "flex";
     };
@@ -29,6 +35,7 @@ module.exports = (function (){
     function keyUp(event) {}
 
     return {
+		engine: engine,
         load: load,
         exit: exit,
         update: update,
