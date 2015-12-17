@@ -143,8 +143,8 @@ module.exports = (function (){
         // sudo_chan = new Sudo_Chan(490, 1240, 0);
         // entityManager.add(sudo_chan);
         //
-        octopus = new Octopus(randomPos.x * 64, randomPos.y * 64, 0);
-        entityManager.add(octopus);
+        //octopus = new Octopus(randomPos.x * 64, randomPos.y * 64, 0);
+        //entityManager.add(octopus);
         //
         // DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
         // entityManager.add(DemonicGroundHog);
@@ -160,7 +160,7 @@ module.exports = (function (){
         // Spawn 10 barrels close to player
         // And some turrets
         // and some shamans
-        for(i = 0; i < 3; i++) {
+        //for(i = 0; i < 3; i++) {
             // if (i < 3) {
             // turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
             // entityManager.add(turret);
@@ -168,17 +168,17 @@ module.exports = (function (){
             // }
             // dynamiteDwarf = new DynamiteDwarf(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
             // entityManager.add(dynamiteDwarf);
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, 60*60));
+           // entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
+           // entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
+           // entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
+           // entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
+           // entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, 60*60));
             // barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
             // entityManager.add(barrel);
             // entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
 
 
-        }
+        //}
         // powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
 
 
@@ -214,7 +214,7 @@ module.exports = (function (){
         tilemap.update();
         ParticleManager.update(elapsedTime);
         inputManager.swapBuffers();
-        octopus.getPlayerPosition(player.boundingBox());
+        //octopus.getPlayerPosition(player.boundingBox());
         hud.update(player.boundingBox());
     };
 
