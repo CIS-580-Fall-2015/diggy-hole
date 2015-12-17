@@ -9940,7 +9940,7 @@ module.exports = (function(){
 
 		if (this.targeting == true) {
 			// entitiesInRange = entityManager.queryRadius(this.posX, this.posY, 1500);
-			var angle = this.getAngle(this.player.currentX, this.player.currentY);
+			var angle = this.getAngle(this.player.x, this.player.y);
 				if (isNaN(angle) == false) {
 					this.angle = angle;
 					this.targetInRange(this.player);
