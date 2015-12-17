@@ -2804,11 +2804,11 @@ module.exports = (function (){
         hud.addElement(scoreEngine);
 
         // Set up invenotory
-        inventory = new Inventory(6);
-
+        inventory = new Inventory(4);
+		
         hud.addElement(inventory);
 		for(i=0;i<5;i++){
-			inventory.powerUpPickedUp(5);
+			inventory.powerUpPickedUp(2);
 		}
 
         // Set up health bar
@@ -4246,16 +4246,14 @@ module.exports = (function(){
 			if (i == 0) {
 				this.slots[0] = new InventorySlot('./img/powerUps/medicine.png');
 			} else if (i == 1) {
-				this.slots[1] = new InventorySlot('./img/powerUps/pick.png');
+				this.slots[1] = new InventorySlot('./img/powerUps/coinsingle.png');
 			} else if (i == 2) {
-				this.slots[2] = new InventorySlot('./img/powerUps/stone_shield.png');
+				this.slots[2] = new InventorySlot('./img/powerUps/bone.png');
 			} else if (i == 3) {
-				 this.slots[3] = new InventorySlot('./img/powerUps/coin.png');
+				 this.slots[3] = new InventorySlot('./img/powerUps/crystal.png');
 			} else if (i == 4) {
 				this.slots[4] = new InventorySlot('./img/powerUps/crystal.png');
-			} else if (i == 5){
-				this.slots[5] = new InventorySlot('./img/powerUps/bone.png');
-			}
+			} 
 		};
 		
 		this.slotUsed = function(idx) {
@@ -5323,9 +5321,9 @@ module.exports = (function() {
         // Power Up Usage Management
         this.lastPowerUpUsed += elapsedTime;
 
-		if (this.inputManager.isKeyDown(this.inputManager.commands.SIX) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
+		if (this.inputManager.isKeyDown(this.inputManager.commands.THREE) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
                 console.log("SIX or B pressed");
-                if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(5)) {
+                if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(2)) {
 						this.shoot();
                 }
             }
@@ -5339,7 +5337,7 @@ module.exports = (function() {
             } else if (this.inputManager.isKeyDown(this.inputManager.commands.TWO)) {
                 console.log("TWO pressed");
                 if (inventory.slotUsed(1)) {
-
+						this.score(-20);
                 }
             } else if (this.inputManager.isKeyDown(this.inputManager.commands.THREE)) {
                 console.log("THREE pressed");
@@ -6297,11 +6295,12 @@ module.exports = (function() {
 	powerUps.push(coin);
 	powerUps.push(stoneShield);
 	
-    function SpawningManager(entityManager, scoreEngine, player) {
+    function SpawningManager(entityManager, scoreEngine, player,inputManager) {
         this.entityManager = entityManager;
         this.scoreEngine = scoreEngine;
         this.player = player;
         this.updateTimeLeft = 0;
+		this.inputManager = inputManager;
     }
 	
 	var updatePeriodSeconds = 2;
@@ -6352,7 +6351,7 @@ module.exports = (function() {
 						}
 						if (skyEntities[num].limit > skyEntities[num].count) {
 							this.entityManager.add(
-								new skyEntities[num].Entity(x * 64, y * 64, 0)
+								new skyEntities[num].Entity(x * 64, y * 64, 0, this.inputManager, this.scoreEngine)
 							);
 							skyEntities[num].count++;
 						}
@@ -6383,7 +6382,7 @@ module.exports = (function() {
 						}
 						if(middleEntities[num].limit > middleEntities[num].count){
 							this.entityManager.add(
-									new middleEntities[num].Entity(x*64, y*64, 0)
+									new middleEntities[num].Entity(x*64, y*64, 0, this.inputManager, this.scoreEngine)
 							);
 							middleEntities[num].count++;
 						}
@@ -6414,7 +6413,7 @@ module.exports = (function() {
 						}
 						if(deepEntities[num].limit > deepEntities[num].count){
 							this.entityManager.add(
-									new deepEntities[num].Entity(x*64, y*64, 0)
+									new deepEntities[num].Entity(x*64, y*64, 0, this.inputManager, this.scoreEngine)
 							);
 							deepEntities[num].count++;
 

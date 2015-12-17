@@ -75,7 +75,7 @@ module.exports = (function (){
 
         // Set up invenotory
         inventory = new Inventory(4);
-
+		
         hud.addElement(inventory);
 		for(i=0;i<5;i++){
 			inventory.powerUpPickedUp(2);
