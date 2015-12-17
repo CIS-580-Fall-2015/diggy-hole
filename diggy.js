@@ -6271,7 +6271,7 @@ module.exports = (function() {
         this.updateTimeLeft = 0;
     }
 	
-	var updatePeriodSeconds = .1;
+	var updatePeriodSeconds = 2;
 
     SpawningManager.prototype.update = function (elapsedTime, tilemap) {
         this.updateTimeLeft -= elapsedTime;
