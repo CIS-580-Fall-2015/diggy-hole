@@ -772,11 +772,11 @@ module.exports = (function (){
       layers[layer].data[x + y * mapWidth] = newType;
   };
 
-  var randomInSky = function() {
+  var randomOnSurface = function() {
     return {
-      x: Math.floor(Math.random() * mapWidth),
-      y: Math.floor(Math.random() * this.surface)
-    }
+      x: Math.floor(Math.random() * mapWidth / 2 + mapWidth / 4),
+      y: this.surface - 1
+    };
   };
 
   // Expose the module's public API
@@ -798,7 +798,7 @@ module.exports = (function (){
     consolidateLiquids: consolidateLiquids,
     update: update,
     renderWater: renderWater,
-    randomInSky: randomInSky
+    randomOnSurface: randomOnSurface
   }
 
 

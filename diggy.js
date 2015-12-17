@@ -2780,7 +2780,7 @@ module.exports = (function (){
         hud.addElement(scoreEngine);
 
         // SEt up invenotory
-        inventory = new Inventory(3);
+        inventory = new Inventory(5);
         hud.addElement(inventory);
 
         // Set up health bar
@@ -2789,7 +2789,7 @@ module.exports = (function (){
 
         // Create the player and add them to
         // the entity manager
-        var randomPos = tilemap.randomInSky();
+        var randomPos = tilemap.randomOnSurface();
         player = new Player(randomPos.x * 64, randomPos.y * 64, 0, inputManager, hb, scoreEngine, inventory);
         entityManager = new EntityManager(player);
 
@@ -4220,9 +4220,10 @@ module.exports = (function(){
 			} else if (i == 2) {
 				this.slots[2] = new InventorySlot('./img/powerUps/stone_shield.png');
 			} else if (i == 3) {
-				// this.slots[3] = new InventorySlot('');
+				 this.slots[3] = new InventorySlot('./img/powerUps/coin.png');
 			} else if (i == 4) {
-				// this.slots[4] = new InventorySlot('');
+				 this.slots[4] = new InventorySlot('./img/powerUps/crystal.png');
+				 
 			}
 		};
 		
@@ -4284,6 +4285,10 @@ module.exports = (function(){
 				return;
 			if (this.amount > 0)
 				screenCtx.drawImage(this.img, 0, 0, IMG_SIZE, IMG_SIZE, x, y, IMG_SIZE, IMG_SIZE);
+				screenCtx.font = "20pt Calibri";
+				screenCtx.fillStyle = "red";
+				screenCtx.fillText("x"+this.amount, x+5, y + IMG_SIZE - 10);
+				
 		};
 	}
 
@@ -7193,11 +7198,11 @@ module.exports = (function (){
       layers[layer].data[x + y * mapWidth] = newType;
   };
 
-  var randomInSky = function() {
+  var randomOnSurface = function() {
     return {
-      x: Math.floor(Math.random() * mapWidth),
-      y: Math.floor(Math.random() * this.surface)
-    }
+      x: Math.floor(Math.random() * mapWidth / 2 + mapWidth / 4),
+      y: this.surface - 1
+    };
   };
 
   // Expose the module's public API
@@ -7219,7 +7224,7 @@ module.exports = (function (){
     consolidateLiquids: consolidateLiquids,
     update: update,
     renderWater: renderWater,
-    randomInSky: randomInSky
+    randomOnSurface: randomOnSurface
   }
 
 

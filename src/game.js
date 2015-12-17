@@ -74,7 +74,7 @@ module.exports = (function (){
         hud.addElement(scoreEngine);
 
         // SEt up invenotory
-        inventory = new Inventory(3);
+        inventory = new Inventory(5);
         hud.addElement(inventory);
 
         // Set up health bar
@@ -83,7 +83,7 @@ module.exports = (function (){
 
         // Create the player and add them to
         // the entity manager
-        var randomPos = tilemap.randomInSky();
+        var randomPos = tilemap.randomOnSurface();
         player = new Player(randomPos.x * 64, randomPos.y * 64, 0, inputManager, hb, scoreEngine, inventory);
         entityManager = new EntityManager(player);
 
