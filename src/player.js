@@ -753,9 +753,11 @@ module.exports = (function() {
             if(tileNum.data) {
                 if (tileNum.data.type === "Sky Earth" || tileNum.data.type === "DirtWithGrass" || tileNum.data.type === "Dirt") {
                     ParticleManager.addDirtParticles(tileX, tileY);
+					currentPlayer.score(1);
                 }
                 else if (tileNum.data.type === "GemsWithGrass" || tileNum.data.type === "StoneWithGrass" || tileNum.data.type === "Gems" || tileNum.data.type === "Stone") {
                     ParticleManager.addStoneParticles(tileX, tileY);
+					currentPlayer.score(1);
                 }
             }
 

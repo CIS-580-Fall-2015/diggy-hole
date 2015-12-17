@@ -1155,7 +1155,7 @@ module.exports = (function(){
 	   }
 		   if(--this.lives<=0){
 			   this.die(entityManager);
-
+               otherEntity.scoreEngine.addScore(20);
 		   } else {
 			   if(DEBUG){
 		   console.log(this.lives+" lives left");
@@ -5681,9 +5681,11 @@ module.exports = (function() {
             if(tileNum.data) {
                 if (tileNum.data.type === "Sky Earth" || tileNum.data.type === "DirtWithGrass" || tileNum.data.type === "Dirt") {
                     ParticleManager.addDirtParticles(tileX, tileY);
+					currentPlayer.score(1);
                 }
                 else if (tileNum.data.type === "GemsWithGrass" || tileNum.data.type === "StoneWithGrass" || tileNum.data.type === "Gems" || tileNum.data.type === "Stone") {
                     ParticleManager.addStoneParticles(tileX, tileY);
+					currentPlayer.score(1);
                 }
             }
 
