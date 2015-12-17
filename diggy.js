@@ -5221,10 +5221,9 @@ module.exports = (function() {
                 }
                 break;
             case SWIMMING:
-              //if(this.inWater(tilemap)) {
                   this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2) + (this.velocityY / GRAVITY_IN_WATER);
                   console.log("in water");
-                    this.y += this.velocityY * elapsedTime;
+                    //this.y += this.velocityY * elapsedTime;
                   if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
                       this.velocityY = 0;
                       this.isLeft = true;
@@ -5242,13 +5241,13 @@ module.exports = (function() {
                   }
                   if (this.onGround(tilemap) && !this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
-                        this.y = Settings.TILESIZEY * Math.floor(this.y / Settings.TILESIZEY);
+                      this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
                       this.state = STANDING;
                       console.log("standing");
                   }
                   else if (this.onGroundInWater(tilemap) && this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
-                        this.y = Settings.TILESIZEY * Math.floor(this.y / Settings.TILESIZEY);
+                      this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
                       console.log("floating in water");
                   }
                   else if(this.headOverWater(tilemap)){
@@ -5258,14 +5257,15 @@ module.exports = (function() {
                       this.state = JUMPING;
                   }
                   else if (this.isBlockAbove(tilemap)){
-                      this.state = FALLING;
+                      //this.state = FALLING;
                       console.log("I hit my head");
-                    this.y += this.velocityY * elapsedTime;
+                      this.y = Settings.TILESIZEY * (Math.floor((this.y) / Settings.TILESIZEY)+1);
+                      this.velocityY = 0;
                   }
                   else{
                       if(!this.onGroundInWater(tilemap)){
                           //Player Sinks automatically, they have resistance i.e sink slower if fully immersed in water
-                    this.y += this.velocityY * elapsedTime;
+                      this.y += this.velocityY * elapsedTime;
                       }
 
                   }
