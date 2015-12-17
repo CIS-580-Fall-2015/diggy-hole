@@ -5799,6 +5799,7 @@ module.exports = (function() {
                 } else if (this.isBlockAbove(tilemap)) {
                     this.state = FALLING;
                     this.velocityY = 0;
+                    this.y = Settings.TILESIZEY * (Math.floor((this.y) / Settings.TILESIZEY)+1);
                     resetJumpingAnimation(this);
                 }
 
