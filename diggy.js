@@ -6264,7 +6264,7 @@ module.exports = (function() {
 	
 	var updatePeriodSeconds = 2;
 
-    SpawningManager.prototype.update = function (elapsedTime, tilemap, entityManager) {
+    SpawningManager.prototype.update = function (elapsedTime, tilemap) {
         this.updateTimeLeft -= elapsedTime;
         if(this.updateTimeLeft < 0) {
             this.updateTimeLeft = updatePeriodSeconds;
@@ -6281,8 +6281,11 @@ module.exports = (function() {
 			var posFound = false;
 			var x = 0, y = 0;
 			do{
-				x = Math.floor((Math.random()*10 +64*15 + this.player.x)/64);
-				y = Math.floor((Math.random()*10 +64*15 + this.player.y)/64);
+				var positive;
+				if(Math.random() > .5) positive = -1;
+				else positive = 1;
+				x = Math.floor((Math.random()*5*positive + (64*15)*positive + this.player.x)/64);
+				y = Math.floor((Math.random()*5*positive + (64*15)*positive + this.player.y)/64);
 				
 				var tile = tilemap.tileAt(x, y, 0);
 				if(!(tile && tile.data.solid)){
