@@ -215,10 +215,12 @@ module.exports = (function() {
     // Moves the player to the left, colliding with solid tiles
     Player.prototype.moveLeft = function(distance, tilemap) {
         var box = this.boundingBox(),
-            tileX = Math.floor(box.left / Settings.TILESIZEX),
-            tileY = Math.floor(box.top / Settings.TILESIZEY),
-            tileUpper = tilemap.tileAt(tileX, tileY, this.layerIndex);
-            tileLower = tilemap.tileAt(tileX, tileY+1, this.layerIndex);
+            tileXUpper = Math.floor(box.left / Settings.TILESIZEX),
+            tileYUpper = Math.floor(box.top / Settings.TILESIZEY),
+            tileXLower = Math.floor(box.left/ Settings.TILESIZEX),
+            tileYLower = Math.floor(box.bottom / Settings.TILESIZEY),
+            tileUpper = tilemap.tileAt(tileXUpper, tileYUpper, this.layerIndex),
+            tileLower = tilemap.tileAt(tileXLower, tileYLower, this.layerIndex);
         if (this.state === FALLING || this.state === JUMPING) {
           if (tileUpper && !tileUpper.data.solid && tileLower && !tileLower.data.solid) {
             this.x -= distance;
@@ -234,10 +236,12 @@ module.exports = (function() {
     // Moves the player to the right, colliding with solid tiles
     Player.prototype.moveRight = function(distance, tilemap) {
         var box = this.boundingBox(),
-            tileX = Math.floor(box.right / Settings.TILESIZEX),
-            tileY = Math.floor(box.top / Settings.TILESIZEY),
-            tileUpper = tilemap.tileAt(tileX, tileY, this.layerIndex);
-            tileLower = tilemap.tileAt(tileX, tileY+1, this.layerIndex);
+            tileXUpper = Math.floor(box.right / Settings.TILESIZEX),
+            tileYUpper = Math.floor(box.top / Settings.TILESIZEY),
+            tileXLower = Math.floor(box.right / Settings.TILESIZEX),
+            tileYLower = Math.floor(box.bottom / Settings.TILESIZEY),
+            tileUpper = tilemap.tileAt(tileXUpper, tileYUpper, this.layerIndex),
+            tileLower = tilemap.tileAt(tileXLower, tileYLower, this.layerIndex);
 
         if (this.state === FALLING || this.state === JUMPING) {
           if (tileUpper && !tileUpper.data.solid && tileLower && !tileLower.data.solid) {
@@ -641,7 +645,7 @@ module.exports = (function() {
         var digComplete = function() {
             /* Add score */
             //TODO different scores for different blocks?
-            currentPlayer.score(1);
+            //currentPlayer.score(1);
 
             var box = currentPlayer.boundingBox(),
                 tileX,
@@ -677,12 +681,15 @@ module.exports = (function() {
             if (layerType === 0) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
+                currentPlayer.score(1);
             } else if (layerType == 1) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
+                currentPlayer.score(1);
             } else if (layerType == 2) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
+                currentPlayer.score(1);
             }
 
             if(tileNum.data) {
