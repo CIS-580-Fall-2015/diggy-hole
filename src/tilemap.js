@@ -7,6 +7,7 @@
 
 module.exports = (function (){
   var noisy = require('./noise.js'),
+      settings = require('./Settings.js'),
       tiles = [],
       tilesets = [],
       layers = [],
@@ -38,6 +39,8 @@ module.exports = (function (){
     var smallcloudxs = {};
     var smallcloudys = {};
     var smallcloudsize = {};
+
+    var timeSinceLiquidMovement = 0;
 
   /* Clamps the provided value to the provided range
    * Arguments:
@@ -200,251 +203,304 @@ module.exports = (function (){
     });
   }
 
+  /*############################
+  * # BinaryTreeNode functions #
+  * ############################
+  *
+  * Function : BinaryTreeNode(key, value, left, right)
+  *  Description : Creates a new BinaryTreeNode object.
+  */
+  function BinaryTreeNode(key, value, left, right) {
+      this.key = key;
+      this.value = value;
+      this.LeftNode = left;
+      this.RightNode = right;
+  }
+
+  /* Function : AddNode(key, value, left, right, tree)
+  *  Description : Adds a node to the tree structure. If a node and new key are the same, then the value is replaced.
+  */
+  function AddNode(key, value, left, right, tree) {
+      if (key < tree.key) {
+          if (tree.LeftNode == null) {
+              tree.LeftNode = new BinaryTreeNode(key, value, left, right);
+          }
+          else {
+              AddNode(key, value, left, right, tree.LeftNode);
+          }
+      }
+      else if (key > tree.key) {
+          if (tree.RightNode == null) {
+              tree.RightNode = new BinaryTreeNode(key, value, left, right);
+          }
+          else {
+              AddNode(key, value, left, right, tree.RightNode);
+          }
+      }
+      else {
+          tree.value = value;
+      }
+  }
+
+  /* Function : Search(key, tree)
+  *  Description : Searches a given tree for a corresponding key. Returns a value, or null if no such key is found.
+  */
+  function Search(key, tree) {
+      if (key != tree.key) {
+          if (key < tree.key) {
+              if (tree.LeftNode != null) {
+                  tree = Search(key, tree.LeftNode);
+              }
+          }
+          else {
+              if (tree.RightNode != null) {
+                  tree = Search(key, tree.RightNode);
+              }
+          }
+      }
+      return tree;
+  }
+
   /* Generates a random tilemap
    * Arguments:
    * - width, the width of the tilemap
    * - height, the height of the tilemap
    * - options, options to trigger
    */
-  var generate = function(width, height, options) {
-    var map = new Array(width*height);
-    var noise = noisy.generateNoise(width, height);
-    noise = noisy.generatePerlinNoise(width, noise, 7);
+   var generate = function(width, height, options) {
+     var map = new Array(width*height);
+     var noise = noisy.generateNoise(width, height);
+     noise = noisy.generatePerlinNoise(map, width, height, noise);
 
-    var tileWidth = 64, tileHeight = 64;
-    var tilesets = [
-      {
-        firstgid: 0,
-        image: "Tileset.png",
-        imageheight: 256,
-        imagewidth: 256,
-        margin: 0,
-        name: "Tileset",
-        tileproperties: {
-          0: { // Sky background
-            type: "SkyBackground",
-            notDiggable: true
-          },
-          1: { // Clouds
-            type: "Clouds",
-            notDiggable: true
-          },
-          2: { // Sky Earth
-            type: "Sky Earth",
-            solid: true
-          },
-          3: { // Gems w grass
-            type: "GemsWithGrass",
-            solid: true,
-            gems: true
-          },
-          4: { // Dirt w grass
-            type: "DirtWithGrass",
-            solid: true
-          },
-          5: { // Stone w grass
-            type: "StoneWithGrass",
-            solid: true,
-            notDiggable: true
-          },
-          6: { // Water
-            type: "Water",
-            liquid: true,
-            notDiggable: true
-          },
-          7: { // Cave background
-            type: "CaveBackground",
-            notDiggable: true
-          },
-          8: { // Gems
-            type: "Gems",
-            solid: true,
-            gems: true
-          },
-          9: { // dirt
-            type: "Dirt",
-            solid: true,
-          },
-          10: { // stone
-            type: "Stone",
-            solid: true,
-            notDiggable: true
-          },
-          11: { // water
-            type: "Water",
-            liquid: true,
-            notDiggable: true
-          },
-          12: { // cave background
-            type: "CaveBackground",
-            notDiggable: true
-          },
-          13: { // lava
-            type: "Lava",
-            liquid: true,
-            damage: 10,
-            notDiggable: true
-          },
-          14: { // dark background
-            type: "DarkBackground",
-            notDiggable: true
-          },
-          15: { // dug background
-            type: "DugBackground",
-            notDiggable: true
-          }
-        },
-        spacing: 0,
-        tilewidth: 64,
-        tileheight: 64
-      }
-    ]
+     var tileWidth = 64, tileHeight = 64;
+     var tilesets = [
+       {
+         firstgid: 0,
+         image: "Tileset.png",
+         imageheight: 256,
+         imagewidth: 256,
+         margin: 0,
+         name: "Tileset",
+         tileproperties: {
+           0: { // Sky background
+             type: "SkyBackground",
+               notDiggable: true
+           },
+           1: { // Clouds
+              type: "Clouds",
+               nodDiggable: true
+           },
+           2: { // Sky Earth
+             type: "Sky Earth",
+             solid: true
+           },
+           3: { // Gems w grass
+             type: "GemsWithGrass",
+             solid: true,
+             gems: true
+           },
+           4: { // Dirt w grass
+             type: "DirtWithGrass",
+             solid: true
+           },
+           5: { // Stone w grass
+             type: "StoneWithGrass",
+             solid: true,
+               notDiggable: true
+           },
+           6: { // Water
+             type: "Water",
+             liquid: true,
+               notDiggable: true
+           },
+           7: { // Cave background
+             type: "CaveBackground",
+               notDiggable: true
+           },
+           8: { // Gems
+             type: "Gems",
+             solid: true,
+             gems: true
+           },
+           9: { // dirt
+             type: "Dirt",
+             solid: true,
+           },
+           10: { // stone
+             type: "Stone",
+             solid: true,
+              
+           },
+           11: { // water
+             type: "Water",
+             liquid: true,
+               notDiggable: true
+           },
+           12: { // cave background
+             type: "CaveBackground",
+               notDiggable: true
+           },
+           13: { // lava
+             type: "Lava",
+             liquid: true,
+             damage: 10,
+               notDiggable: true
+           },
+           14: { // dark background
+             type: "DarkBackground",
+           },
+           15: { // dug background
+             type: "DugBackground",
+               notDiggable: true
+           }
+         },
+         spacing: 0,
+         tilewidth: 64,
+         tileheight: 64
+       }
+     ]
 
-    // Determines where the surface is (and end of the sky)
-    var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));
-    this.surface = surface;
-    // Determines where the crust layer of the earth ends
-    var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
-    this.midEarth = midEarth;
-    // Used to help clump up the sky islands
-    var skyEarthCount = 0;
-    var cloudCount = 0;
+     // Determines where the surface is (and end of the sky)
+     var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));
+     this.surface = surface;
+     // Determines where the crust layer of the earth ends
+     var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
 
-    /* As a key the tile numbers are as follows:
-     * SkyBackground: 0, Clouds: 1, SkyEarth: 2, GemsWithGrass: 3, DirtWithGrass: 4, StoneWithGrass: 5, Water: 6,
-     * CaveBackground: 7, Gems: 8, Dirt: 9, Stone: 10, Water(Again): 11, CaveBackground(Again): 12, Lava: 13, DarkBackground: 14, DugTile: 15
-     * you can replace any of the tiles that are unwanted (or wanted) at any point and it will preserve initial functionality*/
-    for(j = 0; j < height; j++){
-      var rand = noisy.randomNumber(0, 3);
-      var rand2 = noisy.randomNumber(0, 1);
-      for(i = 0; i < width; i++){
-        var index = j * width + i;
-        var temp = noise[index];
-        //Ensure first row is sky
-        if(j == 0){
-          map[index] = 1;
-        }
-        //Sky Area
-        else if(j < surface-2){
-          if(temp < 8 && skyEarthCount == 0 && cloudCount == 0){ //Sky Background
-            map[index] = 1;
-          }
-          else if(temp < 9.4 && skyEarthCount == 0){ //Clouds
-            map[index] = 2;
-            cloudCount++;
-            if(cloudCount > rand2){
-              rand2 = noisy.randomNumber(0, 3);
-              cloudCount = 0;
-            }
-          }
-          else{ //Sky Earth
-            map[index] = 3;
-            skyEarthCount++;
-            if(skyEarthCount > rand){
-              skyEarthCount = 0;
-              rand = noisy.randomNumber(0, 3);
-            }
-          }
-        }
-        //Ensure row before the surface is sky
-        else if(j < surface){
-          map[index] = 1;
-        }
-        //Surface blocks - Start of Crust Layer
-        else if(j == surface){
-          if(temp < .5){ //Gems w grass
-            map[index] = 4;
-          }
-          else if(temp < 5){ //Dirt w grass
-            map[index] = 5;
-          }
-          else if(temp < 6){ //Stone w grass
-            map[index] = 6;
-          }
-          else if(temp < 8){ //Water
-            map[index] = 7;
-          }
-          else{ //Cave Background
-            map[index] = 13;
-          }
-        }
-        //Crust Area
-        else if(j < midEarth-1){
-          if(temp < .5){ //Gems
-            map[index] = 9;
-          }
-          else if(temp < 4){ //Dirt
-            map[index] = 10;
-          }
-          else if(temp < 6){ //Stone
-            map[index] = 11;
-          }
-          else if(temp < 8){ //Water 11
-            map[index] = 12;
-          }
-          else{ //Cave Background
-            map[index] = 13;
-          }
-        }
-        //Solid layer between crust and deep earth
-        else if(j < midEarth){
-          if(temp < .5){ //Gems
-            map[index] = 9;
-          }
-          else if(temp < 4){ //Dirt
-            map[index] = 10;
-          }
-          else if(temp < 6){ //Stone
-            map[index] = 11;
-          }
-          else if(temp < 8){ //Water 11
-            map[index] = 10;
-          }
-          else{ //Cave Background
-            map[index] = 11;
-          }
-        }
-        //Deep Earth
-        else{
-          if(temp < 4){ // Lava
-            map[index] = 14;
-          }
-          else if(temp < 6){ // Stone
-            map[index] = 11;
-          }
-          else{ // Dark Background
-            map[index] = 15;
-          }
-        }
+     // Used to help clump up the sky islands
+     var skyEarthCount = 0;
+     var cloudCount = 0;
 
-      }
-    }
+     /* As a key the tile numbers are as follows:
+      * SkyBackground: 0, Clouds: 1, SkyEarth: 2, GemsWithGrass: 3, DirtWithGrass: 4, StoneWithGrass: 5, Water: 6,
+      * CaveBackground: 7, Gems: 8, Dirt: 9, Stone: 10, Water(Again): 11, CaveBackground(Again): 12, Lava: 13, DarkBackground: 14, DugTile: 15
+      * you can replace any of the tiles that are unwanted (or wanted) at any point and it will preserve initial functionality*/
 
-    for(var x = 0; x < height/20; x++){
-      map = consolidateLiquids(map, width, height, width-1, 0, 0, height-1, width, 2);
-    }
+     for(j = 0; j < height; j++){
+       var rand = noisy.randomNumber(0, 3);
+       var rand2 = noisy.randomNumber(0, 1);
+       for(i = 0; i < width; i++){
+         var index = j * width + i;
+         var temp = noise[index];
+         //Ensure first row is sky
+         if(j == 0){
+           map[index] = 1;
+         }
+         //Sky Area
+         else if(j < surface-2){
+           if(temp < 8 && skyEarthCount == 0 && cloudCount == 0){ //Sky Background
+             map[index] = 1;
+           }
+           else if(temp < 15 && skyEarthCount == 0){ //Clouds
+             map[index] = 2;
+             cloudCount++;
+             if(cloudCount > rand2){
+               rand2 = noisy.randomNumber(0, 3);
+               cloudCount = 0;
+             }
+           }
+           else{ //Sky Earth
+             map[index] = 0;
+             skyEarthCount++;
+             if(skyEarthCount > rand){
+               skyEarthCount = 0;
+               rand = noisy.randomNumber(0, 3);
+             }
+         }
+         }
+         //Ensure row before the surface is sky
+         else if(j < surface){
+           map[index] = 1;
+         }
+         //Surface blocks - Start of Crust Layer
+         else if(j == surface){
+           if(temp < 2){ //Gems w grass
+             map[index] = 4;
+           }
+           else if(temp < 7){ //Dirt w grass
+             map[index] = 5;
+           }
+           else if(temp < 11){ //Stone w grass
+             map[index] = 6;
+           }
+           else if(temp < 14.5){ //Water
+             map[index] = 7;
+           }
+           else{ //Cave Background
+             map[index] = 13;
+           }
+         }
+         //Crust Area
+         else if(j < midEarth-1){
+           if(temp < 2){ //Gems
+             map[index] = 9;
+           }
+           else if(temp < 7){ //Dirt
+             map[index] = 10;
+           }
+           else if(temp < 11){ //Stone
+             map[index] = 11;
+           }
+           else if(temp < 14.5){ //Water 11
+             map[index] = 12;
+           }
+           else{ //Cave Background
+             map[index] = 13;
+           }
+         }
+         //Solid layer between crust and deep earth
+         else if(j < midEarth){
+           if(temp < 2){ //Gems
+             map[index] = 9;
+           }
+           else if(temp < 7){ //Dirt
+             map[index] = 10;
+           }
+           else if(temp < 11){ //Stone
+             map[index] = 11;
+           }
+           else if(temp < 14.5){ //Water 11
+             map[index] = 10;
+           }
+           else{ //Cave Background
+             map[index] = 11;
+           }
+         }
+         //Deep Earth
+         else{
+           if(temp < 4){ // Lava
+             map[index] = 14;
+           }
+           else if(temp < 6){ // Stone
+             map[index] = 11;
+           }
+           else{ // Dark Background
+             map[index] = 15;
+           }
+         }
+       }
+   }
 
-    // Create mapData object
-    var mapData = {
-      height: height,
-      width: width,
-      tilewidth: tileWidth,
-      tileheight: tileHeight,
-      layers: [{
-        data: map,
-        name: "Interaction Layer",
-        type: "tilelayer",
-        height: height,
-        width: width,
-        visible: true,
-        x: 0,
-        y: 0
-      }],
-      tilesets: tilesets,
-      options: options
-    }
-    return load(mapData, options);
-  }
+     // Create mapData object
+     var mapData = {
+       height: height,
+       width: width,
+       tilewidth: tileWidth,
+       tileheight: tileHeight,
+       layers: [{
+           data: map,
+           name: "Interaction Layer",
+           type: "tilelayer",
+           height: height,
+           width: width,
+           visible: true,
+           x: 0,
+           y: 0
+       }],
+       tilesets: tilesets,
+       options: options
+     }
+     return load(mapData, options);
+   }
 
   function shiftWaterDown(map, width, height, rightStart, bottomStart, viewWidth, viewHeight){
     for(var j = bottomStart; j > bottomStart-viewHeight; j--){
@@ -568,16 +624,22 @@ module.exports = (function (){
   }
 
 // Added by Wyatt Watson
-  var update = function(){
+  var update = function(elapsedTime){
     layers.forEach(function(layer){
       var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
       var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
       var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
       var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
 
-      consolidateLiquids(layer.data, layer.width, layer.height, endX, startX, startY, endY, endX-startX, endY-startY);
+      timeSinceLiquidMovement += elapsedTime;
+
+      //create bounding box and clean updatable objects, but only after some time interval
+      if(timeSinceLiquidMovement >= settings.LIQUID_UPDATE_TIME) {
+          consolidateLiquids(layer.data, layer.width, layer.height, endX, startX, startY, endY, endX-startX, endY-startY);
+          timeSinceLiquidMovement = 0;
+      }
     });
-  }
+  };
 
   /*Karenfang*/
   var renderWater = function(screenCtx){
@@ -763,6 +825,13 @@ module.exports = (function (){
       layers[layer].data[x + y * mapWidth] = newType;
   };
 
+  var randomOnSurface = function() {
+    return {
+      x: Math.floor(Math.random() * mapWidth / 2 + mapWidth / 4),
+      y: this.surface - 1
+    };
+  };
+
   // Expose the module's public API
   return {
     load: load,
@@ -781,7 +850,8 @@ module.exports = (function (){
     mineAt: mineAt,
     consolidateLiquids: consolidateLiquids,
     update: update,
-    renderWater: renderWater
+    renderWater: renderWater,
+    randomOnSurface: randomOnSurface
   }
 
 

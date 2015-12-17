@@ -32,12 +32,12 @@ module.exports = (function()
 
 	var States =
 	{
-		WALKING_RIGHT = 0,
-		WALKING_LEFT = 1,
-		RUNNING_RIGHT = 2,
-		RUNNING_LEFT = 3,
-		STOPPED = 4
-	}
+		WALKING_RIGHT: 0,
+		WALKING_LEFT: 1,
+		RUNNING_RIGHT:2,
+		RUNNING_LEFT: 3,
+		STOPPED: 4
+	};
 	Object.freeze(States);
 	// Prevents any changes to States object
 	// essentially creating an enum or constant
@@ -48,7 +48,7 @@ module.exports = (function()
 		DOWN: 2,
 		LEFT: 3,
 		RIGHT: 4
-	}
+	};
 	Object.freeze(Directions);
 
 	var IMG_WIDTH = 320;
@@ -128,7 +128,7 @@ module.exports = (function()
 			//this.useSensors(entityManager, elapsedTime);
 			this.updateMovement(elapsedTime);
 			var state = this.resolveTilemapCollisions(tilemap);
-			if (state != null)
+			if (state !== null)
 			{
 				this.state = state;
 			}
@@ -138,7 +138,7 @@ module.exports = (function()
 		{
 			entityManager.remove(this);
 		}
-	}
+	};
 
 	/**
 	 * Function: render
@@ -577,21 +577,3 @@ module.exports = (function()
 	return Knight;
 
 })();
-<<<<<<< HEAD
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-=======
->>>>>>> a54c9118fbac8ba169dfbd0556cfb0e8113d7142

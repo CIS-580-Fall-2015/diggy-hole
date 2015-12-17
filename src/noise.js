@@ -5,7 +5,7 @@
  */
 module.exports = (function(){
   // Initially, we start with a random seed
-  var seed = 0; //Math.random();
+  var seed = Math.random();
 
   /* Seeds the random number generator
    * params:
@@ -31,88 +31,68 @@ module.exports = (function(){
   Nathan Bean's Perlin Noise file*/
 
   function generateNoise(width, height){
-    var noise = new Array(width*height);
+      var map = new Array(width * height);
 
-    for (i = 0; i < width; i++){
-      for (j = 0; j < height; j++){
-        noise[j * width + i] = (randomNumber(0, 1269.5));
+      for (var a = 0; a < height; a++){
+          for (var b = 0; b < width; b++) {
+              map[a*height + b] = Math.random();
+          }
       }
-    }
 
-    return noise;
+      return map;
   }
 
-  function generateSmoothNoise(mapWidth, noise, octave){
-    var width = mapWidth;
-    var height = noise.length / width;
+  function generateSmoothNoise(x, y, width, height, noise) {
+      var fractX = x - Math.floor(x);
+      var fractY = y - Math.floor(y);
 
-    var smoothNoise = new Array(width*height);
+      var x1 = (Math.floor(x) + width) % width;
+      var y1 = (Math.floor(y) + height) % height;
 
-    var samplePeriod = Math.floor(Math.pow(2, octave));
-    var sampleFrequency = 1.0 / samplePeriod;
+      var x2 = (x1 + width - 1) % width;
+      var y2 = (y1 + height - 1) % height;
 
-    for (i = 0; i < width; i++){
-      var sample_i0 = Math.floor(Math.floor(i / samplePeriod) * samplePeriod);
-      var sample_i1 = Math.floor((sample_i0 + samplePeriod) % width);
-      var horizontal_blend = (i - sample_i0) * sampleFrequency;
+      var value = 0.0;
+      value += fractX * fractY * noise[y1 * width + x1];
+      value += fractX * (1 - fractY) * noise[y2 * width + x1];
+      value += (1 - fractX) * fractY * noise[y1 * width + x2];
+      value += (1 - fractX) * (1 - fractY) * noise[y2 * width + x2];
 
-      for (j = 0; j < height; j++){
-        var sample_j0 = Math.floor(Math.floor(j / samplePeriod) * samplePeriod);
-        var sample_j1 = Math.floor((sample_j0 + samplePeriod) % height);
-        var vertical_blend = (j - sample_j0) * sampleFrequency;
-
-        var top = Interpolate(noise[sample_j0 * width + sample_i0],
-          noise[sample_j0 * width + sample_i1], horizontal_blend);
-
-        var bottom = Interpolate(noise[sample_j1 * width + sample_i0],
-          noise[sample_j1 * width + sample_i1], horizontal_blend);
-
-        smoothNoise[j * width + i] = Interpolate(top, bottom, vertical_blend);
-      }
-    }
-
-    return smoothNoise;
+      return value;
   }
 
   function Interpolate(x0, x1, alpha){
     return x0 * (1-alpha) + alpha * x1;
   }
 
-  function generatePerlinNoise(mapWidth, noise, octave){
-    var width = mapWidth;
-    var height = noise.length / width;
+  function Turbulence(x, y, width, height, size, noise) {
+      var value = 0.0, initialSize = size;
 
-    var smoothNoise = new Array(octave);
-
-    var persistance = 0.5;
-
-    for (x = 0; x < octave; x++){
-      smoothNoise[x] = generateSmoothNoise(mapWidth, noise, x);}
-
-    var perlinNoise = new Array(width*height);
-    var amplitude = 1.0;
-    var totalAmplitude = 0.0;
-
-    for (o = octave - 1; o >= 0; o--){
-      amplitude *= persistance;
-      totalAmplitude += amplitude;
-
-      for (i = 0; i < width; i++){
-        for (j = 0; j < height; j++){
-          perlinNoise[j * width + i] = smoothNoise[o][j * width + i] * amplitude;
-        }
+      while (size >= 1) {
+          value += generateSmoothNoise(x / size, y / size, width, height, noise) * size;
+          size /= 2.0;
       }
-    }
 
-    for (i = 0; i < width; i++){
-      for (j = 0; j < height; j++){
-        perlinNoise[j * width + i] = perlinNoise[j * width + i] / totalAmplitude;
-      }
-    }
-
-    return perlinNoise;
+      return (128.0 * value / initialSize);
   }
-  /*END PERLIN NOISE TUTORIAL/CODE*/
+
+  function generatePerlinNoise(map, width, height, noise) {
+      var translate = [1,1,1,3,5,10,4,4,5,9,6,11,7,9,7];
+
+      for (var a = 0; a < height; a++) {
+          for (var b = 0; b < width; b++) {
+              map[a * width + b] = translate[Math.floor(Clamp(Turbulence(a, b, width, height, 64, noise) / 10 /*FREQUENCY*/,0,15))];
+          }
+      }
+
+      return map;
+  }
+
+  function Clamp(val, min, max) {
+      if (val > max) return max;
+      else if (val < min) return min;
+      else return val;
+  }
 
   return {
     setSeed: setSeed,
@@ -120,6 +100,7 @@ module.exports = (function(){
     generateNoise: generateNoise,
     generateSmoothNoise: generateSmoothNoise,
     generatePerlinNoise: generatePerlinNoise,
+    Turbulence: Turbulence,
+    Clamp: Clamp
   }
-
 }());

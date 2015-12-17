@@ -68,6 +68,7 @@ module.exports = (function(){
     this.ySpeed = 15;
 	this.isPlayerColliding = false;
     this.isLeft = false;
+	this.dead = false;
 
     //The animations
     this.animations = {
@@ -134,7 +135,7 @@ module.exports = (function(){
     }
   DemonicGroundHog.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
-
+	if(this.dead) entityManager.remove(this);
       // Process the different states
       switch(sprite.state) {
         case IDLE:
@@ -152,10 +153,6 @@ module.exports = (function(){
 					sprite.state = MOVING;
 					idleTimer = 0;
 				}
-			else if (sprite.isPlayerColliding){
-				var player = entityManager.getEntity(0);
-				//inflict damage
-			}
 			else{
 				idleTimer++;
 			}
@@ -239,6 +236,10 @@ module.exports = (function(){
   DemonicGroundHog.prototype.collide = function(otherEntity){
 	  if(otherEntity.type == 'player'){
 		  this.isPlayerColliding = true;
+		  otherEntity.hurt(1);
+	  }
+	  if(otherEntity.type == 'Pickaxe'){
+		  this.dead = true;
 	  }
   };
 

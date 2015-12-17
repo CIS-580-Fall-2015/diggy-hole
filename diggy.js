@@ -10,7 +10,6 @@ module.exports = (function(){
   var Entity = require('./entity.js'),
 		Player = require('./player.js'),
       Animation = require('./animation.js');
-	  entityManager = require('./entity-manager.js');
 	  PowerUp = require('./powerUp.js');
 
       var spritesheet = new Image();
@@ -190,27 +189,27 @@ module.exports = (function(){
     *   to determine what type it is to know what to
     *   do with it.
     */
-   Bone.prototype.collide = function(otherEntity) {	   
+   Bone.prototype.collide = function(otherEntity, entityManager) {
 	   if(!this.enabled || otherEntity.type == this.parent.type || otherEntity.type == "Bone" || otherEntity.type == "Pickaxe" || otherEntity instanceof PowerUp){
 		   return
-		   
+
 	   }
-	   
+
 	   if( otherEntity.type == "player"){
 		   this.enabled = false;
+		   otherEntity.hurt(10);
 		   if(DEBUG){
 		   console.log("Player hit by bone");
-		   entityManager.scoreEngine.scoreToZero();
 		   }
 	   } else if(otherEntity.lives){
 		   this.enabled = false;
 		   if(--otherEntity.lives < 1){
-			   
+
 				if(DEBUG){
 					console.log("Entity "+otherEntity.type+" killed by bone.");
 				}
 				if(otherEntity.die){
-					otherEntity.die();				
+					otherEntity.die(entityManager);
 				} else {
 					entityManager.remove(otherEntity);
 				}
@@ -224,7 +223,7 @@ module.exports = (function(){
 				console.log("Entity "+otherEntity.type+" killed by bone.");
 			}
 		   if(otherEntity.die){
-					otherEntity.die();				
+					otherEntity.die(entityManager);				
 				} else {
 					entityManager.remove(otherEntity);
 				}
@@ -237,7 +236,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity-manager.js":18,"./entity.js":19,"./player.js":32,"./powerUp.js":33}],2:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":16,"./player.js":31,"./powerUp.js":32}],2:[function(require,module,exports){
 /* DemonicGroundHog
  * Authors:
 	Nathan Bean
@@ -308,6 +307,7 @@ module.exports = (function(){
     this.ySpeed = 15;
 	this.isPlayerColliding = false;
     this.isLeft = false;
+	this.dead = false;
 
     //The animations
     this.animations = {
@@ -374,7 +374,7 @@ module.exports = (function(){
     }
   DemonicGroundHog.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
-
+	if(this.dead) entityManager.remove(this);
       // Process the different states
       switch(sprite.state) {
         case IDLE:
@@ -392,10 +392,6 @@ module.exports = (function(){
 					sprite.state = MOVING;
 					idleTimer = 0;
 				}
-			else if (sprite.isPlayerColliding){
-				var player = entityManager.getEntity(0);
-				//inflict damage
-			}
 			else{
 				idleTimer++;
 			}
@@ -479,6 +475,10 @@ module.exports = (function(){
   DemonicGroundHog.prototype.collide = function(otherEntity){
 	  if(otherEntity.type == 'player'){
 		  this.isPlayerColliding = true;
+		  otherEntity.hurt(1);
+	  }
+	  if(otherEntity.type == 'Pickaxe'){
+		  this.dead = true;
 	  }
   };
 
@@ -501,7 +501,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity.js":19}],3:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":16}],3:[function(require,module,exports){
 module.exports = (function(){
 	
 	var HUDelements = [];
@@ -542,781 +542,126 @@ module.exports = (function(){
 }());
 
 },{}],4:[function(require,module,exports){
-/* Entity: Kakao(aka DiamondGroundhog) module
- * Implements the entity pattern and provides
- * the entity Kakao info.
- * Author:
- * - Karen(Fei) Fang
- * Image source: http://www.archjrc.com/clipart
- */
-module.exports = (function(){
-  var Entity = require('./entity.js'),
-      Diamond = require('./diamond.js'),
-      Animation = require('./animation.js');
-
-  /* The following are Kakao States */
-  const WALKING = 0;
-  const FALLING  = 1;
-  const HURT = 2;
-
-  // The Sprite Size
-  const SIZE = 64;
-
-  // Movement constants
-  const SPEED = 150/7;   //SLOWER THAN PLAYER
-  const GRAVITY = -250;
-
-  //The Kakao spritesheet
-  var kakaoImage = new Image();
-  kakaoImage.src = 'img/Kakao-animation.png';
-
-
-  //The Kakao constructor
-  function Kakao(locationX, locationY, layerIndex) {
-    this.type = "Kakao";
-    //default state
-    this.state = WALKING;
-    this.layerIndex = layerIndex;
-    this.currentX = locationX;
-    this.currentY = locationY;
-
-    this.currentTileIndex = 0;
-    this.constSpeed = 15;
-    this.gravity = 0.5;
-    this.angle = 0;
-    this.xSpeed = 10;
-    this.ySpeed = 15;
-    this.isLeft = false;
-    this.hurtFrame =0;
-    this.hasDiamond = false;
-    this.moveDiamond = false;
-
-    this.score = 3;
-
-    //The animations
-    this.animations = {
-      left: [],
-      right: [],
-    }
-
-    //The right-facing animations
-    this.animations.right[WALKING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0, 4);
-    this.animations.right[FALLING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0);
-    this.animations.right[HURT] = new Animation(kakaoImage, SIZE, SIZE, 0, SIZE*2, 4, 1/4);
-
-    //The left-facing animations
-    this.animations.left[WALKING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0, 4);
-    this.animations.left[FALLING] = new Animation(kakaoImage, SIZE, SIZE, 0, 0);
-    this.animations.left[HURT] = new Animation(kakaoImage, SIZE, SIZE, 0, SIZE*2, 4, 1/4);
-
-    console.log("Kakao: create diamond entity");
-    this.diamond = new Diamond(this.currentX, this.currentY, 0);
-  }
-
-  // Kakao inherits from Entity
-  Kakao.prototype = new Entity();
-
-  // Determines if the Kakao is on the ground
-  Kakao.prototype.onGround = function(tilemap) {
-    var box = this.boundingBox(),
-        tileX = Math.floor((box.left + (SIZE/2))/64),
-        tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    // find the tile we are standing on.
-    return (tile && tile.data.solid) ? true : false;
-  }
-
-  // Moves the Kakao to the left, colliding with solid tiles
-  Kakao.prototype.moveLeft = function(distance, tilemap) {
-    this.currentX -= distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.isLeft = false;  // turn when collide
-  }
-
-  // Moves the Kakao to the right, colliding with solid tiles
-  Kakao.prototype.moveRight = function(distance, tilemap) {
-    this.currentX += distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.isLeft = true;  // turn when collide
-  }
-
-  /* Kakao update function
-   * arguments:
-   * - elapsedTime, the time that has passed
-   *   between this and the last frame.
-   * - tilemap, the tilemap that corresponds to
-   *   the current game world.
-   */
-  Kakao.prototype.update = function(elapsedTime, tilemap, entityManager) {
-    if(!this.hasDiamond){
-      console.log("Kakao: add diamond to entityManager");
-      entityManager.add(this.diamond);
-      this.hasDiamond = true;
-    }
-    var sprite = this;
-    // Process Kakao state
-    switch(sprite.state) {
-      case WALKING:
-        // If there is no ground underneath, fall
-        if(!sprite.onGround(tilemap)) {
-          sprite.state = FALLING;
-          sprite.velocityY = 0;
-        } else {
-          if(sprite.isLeft){  //is not passable, turn
-            sprite.moveLeft(elapsedTime * SPEED, tilemap);
-          }else{
-            sprite.moveRight(elapsedTime * SPEED, tilemap);
-          }
-        }
-        break;
-      case FALLING:
-        sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-        sprite.currentY += sprite.velocityY * elapsedTime;
-        if(sprite.onGround(tilemap)) {
-          sprite.state = WALKING;
-          sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-        }
-        break;
-      case HURT:
-        //1/elapsedTime is the number of frames per min
-        //Each frame of HURT state is 1/4 min, thus the total HURT animation takes 1 min
-        //Therefore, hurtFrame is 1/(1/elapsedTime) = (1/elapsedTime)
-        if(sprite.hurtFrame <= (1/elapsedTime)){
-          sprite.hurtFrame++;
-        }else {
-          /*
-           *PLAN A: Relocate after HURT
-           */
-          //sprite.hurtFrame = 0;  //for relocation
-          //sprite.currentX += 3*SIZE;  //for relocation
-          //console.log("Kakao: Relocating to "+"( "+sprite.currentX+" , "+sprite.currentY+" )...");
-          /*
-           *PLAN B: Remove after HURT
-           */
-          entityManager.remove(this);
-          console.log("Kakao: Entity Kakao removed.");
-        }
-        break;
-    }
-    //console.log("Kakao: State: "+this.state+" Direction: "+this.isLeft);
-
-    // Update animation
-    if(this.isLeft)
-      this.animations.left[this.state].update(elapsedTime);
-    else
-      this.animations.right[this.state].update(elapsedTime);
-
-  }
-
-  /* Kakao Render Function
-   * arguments:
-   * - ctx, the rendering context
-   * - debug, a flag that indicates turning on
-   * visual debugging
-   */
-  Kakao.prototype.render = function(ctx, debug) {
-    // Draw the Kakao (and the correct animation)
-    if(this.isLeft)
-      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
-    else
-      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
-
-    if(debug) renderDebug(this, ctx);
-  }
-
-  // Draw debugging visual elements
-  function renderDebug(Kakao, ctx) {
-    var bounds = Kakao.boundingBox();
-    ctx.save();
-
-    // Draw Kakao bounding box
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-    ctx.moveTo(bounds.left, bounds.top);
-    ctx.lineTo(bounds.right, bounds.top);
-    ctx.lineTo(bounds.right, bounds.bottom);
-    ctx.lineTo(bounds.left, bounds.bottom);
-    ctx.closePath();
-    ctx.stroke();
-
-    // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
-        tileY = 64 * (Math.floor(bounds.bottom / 64));
-    ctx.strokeStyle = "black";
-    ctx.beginPath();
-    ctx.moveTo(tileX, tileY);
-    ctx.lineTo(tileX + 64, tileY);
-    ctx.lineTo(tileX + 64, tileY + 64);
-    ctx.lineTo(tileX, tileY + 64);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.restore();
-  }
-
-  /* Kakao BoundingBox Function
-   * returns: A bounding box representing the Kakao
-   */
-  Kakao.prototype.boundingBox = function() {
-    return {
-      left: this.currentX,
-      top: this.currentY,
-      right: this.currentX + SIZE,
-      bottom: this.currentY + SIZE
-    }
-  }
-
-  Kakao.prototype.boundingCircle =function(){
-    return{
-      cx: this.currentX + SIZE/2,
-      cy: this.currentY + SIZE/2,
-      radius: SIZE/2
-    }
-  }
-
-  Kakao.prototype.collide = function(otherEntity){
-    //console.log("Kakao: otherEntity.type: " + otherEntity.type);
-    if(otherEntity.type!="Diamond"){
-      this.state = HURT;
-      this.diamond.state = 1; //DROPPED
-      if(!this.moveDiamond){
-        //console.log("Diamond: collide: "+this.currentX+" , "+this.currentY);
-        this.diamond.currentX += SIZE;
-        this.diamond.currentY -= SIZE;
-        this.moveDiamond = true;
-      }
-    }
-  }
-
-  return Kakao;
-
-}());
-},{"./animation.js":7,"./diamond.js":15,"./entity.js":19}],5:[function(require,module,exports){
 /* Pickaxe is an invisible entity created by player that represents the hitbox
- * of the Pickaxe.
- * In the future this would be interesting to have an attack animation effect
- * like a slash or something.
- */
-module.exports = (function() {
-  var Entity = require('./entity.js');
-
-  /* moveing these values to a pickaxe factory class would be cool.
-  Then powerups could change the attack size. */
-  var attackSize = { x: 20, y: 40 };
-  var attackRadius = 15;
-
-
-  var Pickaxe = function(position, horizontal) {
-      this.position = { x: position.x, y: position.y };
-      this.score = 0;
-      this.type = "Pickaxe";
-      if(horizontal) this.attackSize = {x: attackSize.y, y: attackSize.x };
-      else this.attackSize = {x: attackSize.x, y: attackSize.y };
-  };
-
-  Pickaxe.prototype.update = function() {
-
-  };
-
-  Pickaxe.prototype.render = function(ctx, debug) {
-      if (debug) renderDebug(this, ctx);
-  };
-
-  Pickaxe.prototype.boundingBox = function() {
-    return {
-        left: this.position.x - this.attackSize.x / 2,
-        top: this.position.y - this.attackSize.y / 2,
-        right: this.position.x + this.attackSize.x / 2,
-        bottom: this.position.y + this.attackSize.y / 2
-    };
-  };
-
-
-  Pickaxe.prototype.boundingCircle = function() {
-    return {
-        cx: this.position.x,
-        cy: this.position.y,
-        radius: attackRadius
-    };
-  };
-
-
-  Pickaxe.prototype.collide = function(ent) {
-  }
-
-  function renderDebug(player, ctx) {
-      var bounds = player.boundingBox();
-      var circle = player.boundingCircle();
-      ctx.save();
-
-      // Draw player bounding box
-      ctx.strokeStyle = "red";
-      ctx.beginPath();
-      ctx.moveTo(bounds.left, bounds.top);
-      ctx.lineTo(bounds.right, bounds.top);
-      ctx.lineTo(bounds.right, bounds.bottom);
-      ctx.lineTo(bounds.left, bounds.bottom);
-      ctx.closePath();
-      ctx.stroke(); // Outline tile underfoot
-
-      ctx.strokeStyle = "blue";
-      ctx.beginPath();
-      ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
-      ctx.stroke();
-
-      ctx.restore();
-  }
-
-
-
-
-  return Pickaxe;
-
-
-  })();
-
-},{"./entity.js":19}],6:[function(require,module,exports){
-/*
-	The MIT License
-
-	Copyright (c) 2011 Mike Chambers
-
-	Permission is hereby granted, free of charge, to any person obtaining a copy
-	of this software and associated documentation files (the "Software"), to deal
-	in the Software without restriction, including without limitation the rights
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the Software is
-	furnished to do so, subject to the following conditions:
-
-	The above copyright notice and this permission notice shall be included in
-	all copies or substantial portions of the Software.
-
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-	THE SOFTWARE.
+* of the Pickaxe.
+* In the future this would be interesting to have an attack animation effect
+* like a slash or something.
 */
-
-
-/**
-* A QuadTree implementation in JavaScript, a 2d spatial subdivision algorithm.
-* @module QuadTree
-**/
-
 module.exports = (function() {
-
-/****************** QuadTree ****************/
-
-/**
-* QuadTree data structure.
-* @class QuadTree
-* @constructor
-* @param {Object} An object representing the bounds of the top level of the QuadTree. The object
-* should contain the following properties : x, y, width, height
-* @param {Boolean} pointQuad Whether the QuadTree will contain points (true), or items with bounds
-* (width / height)(false). Default value is false.
-* @param {Number} maxDepth The maximum number of levels that the quadtree will create. Default is 4.
-* @param {Number} maxChildren The maximum number of children that a node can contain before it is split into sub-nodes.
-**/
-function QuadTree(bounds, pointQuad, maxDepth, maxChildren)
-{
-	var node;
-	if(pointQuad)
-	{
-
-		node = new Node(bounds, 0, maxDepth, maxChildren);
-	}
-	else
-	{
-		node = new BoundsNode(bounds, 0, maxDepth, maxChildren);
-	}
-
-	this.root = node;
-}
-
-/**
-* The root node of the QuadTree which covers the entire area being segmented.
-* @property root
-* @type Node
-**/
-QuadTree.prototype.root = null;
-
-
-/**
-* Inserts an item into the QuadTree.
-* @method insert
-* @param {Object|Array} item The item or Array of items to be inserted into the QuadTree. The item should expose x, y
-* properties that represents its position in 2D space.
-**/
-QuadTree.prototype.insert = function(item)
-{
-	if(item instanceof Array)
-	{
-		var len = item.length;
-
-		for(var i = 0; i < len; i++)
-		{
-			this.root.insert(item[i]);
-		}
-	}
-	else
-	{
-		this.root.insert(item);
-	}
-}
-
-/**
-* Clears all nodes and children from the QuadTree
-* @method clear
-**/
-QuadTree.prototype.clear = function()
-{
-	this.root.clear();
-}
-
-/**
-* Retrieves all items / points in the same node as the specified item / point. If the specified item
-* overlaps the bounds of a node, then all children in both nodes will be returned.
-* @method retrieve
-* @param {Object} item An object representing a 2D coordinate point (with x, y properties), or a shape
-* with dimensions (x, y, width, height) properties.
-**/
-QuadTree.prototype.retrieve = function(item)
-{
-	//get a copy of the array of items
-	var out = this.root.retrieve(item).slice(0);
-	return out;
-}
-
-/************** Node ********************/
-
-
-function Node(bounds, depth, maxDepth, maxChildren)
-{
-	this._bounds = bounds;
-	this.children = [];
-	this.nodes = [];
-
-	if(maxChildren)
-	{
-		this._maxChildren = maxChildren;
-
-	}
-
-	if(maxDepth)
-	{
-		this._maxDepth = maxDepth;
-	}
-
-	if(depth)
-	{
-		this._depth = depth;
-	}
-}
-
-//subnodes
-Node.prototype.nodes = null;
-Node.prototype._classConstructor = Node;
-
-//children contained directly in the node
-Node.prototype.children = null;
-Node.prototype._bounds = null;
-
-//read only
-Node.prototype._depth = 0;
-
-Node.prototype._maxChildren = 4;
-Node.prototype._maxDepth = 4;
-
-Node.TOP_LEFT = 0;
-Node.TOP_RIGHT = 1;
-Node.BOTTOM_LEFT = 2;
-Node.BOTTOM_RIGHT = 3;
-
-
-Node.prototype.insert = function(item)
-{
-	if(this.nodes.length)
-	{
-		var index = this._findIndex(item);
-
-		this.nodes[index].insert(item);
-
-		return;
-	}
-
-	this.children.push(item);
-
-	var len = this.children.length;
-	if(!(this._depth >= this._maxDepth) &&
-		len > this._maxChildren)
-	{
-		this.subdivide();
-
-		for(var i = 0; i < len; i++)
-		{
-			this.insert(this.children[i]);
-		}
-
-		this.children.length = 0;
-	}
-}
-
-Node.prototype.retrieve = function(item)
-{
-	if(this.nodes.length)
-	{
-		var index = this._findIndex(item);
-
-		return this.nodes[index].retrieve(item);
-	}
-
-	return this.children;
-}
-
-Node.prototype._findIndex = function(item)
-{
-	var b = this._bounds;
-	var left = (item.x > b.x + b.width / 2)? false : true;
-	var top = (item.y > b.y + b.height / 2)? false : true;
-
-	//top left
-	var index = Node.TOP_LEFT;
-	if(left)
-	{
-		//left side
-		if(!top)
-		{
-			//bottom left
-			index = Node.BOTTOM_LEFT;
-		}
-	}
-	else
-	{
-		//right side
-		if(top)
-		{
-			//top right
-			index = Node.TOP_RIGHT;
-		}
-		else
-		{
-			//bottom right
-			index = Node.BOTTOM_RIGHT;
-		}
-	}
-
-	return index;
-}
-
-
-Node.prototype.subdivide = function()
-{
-	var depth = this._depth + 1;
-
-	var bx = this._bounds.x;
-	var by = this._bounds.y;
-
-	//floor the values
-	var b_w_h = (this._bounds.width / 2)|0;
-	var b_h_h = (this._bounds.height / 2)|0;
-	var bx_b_w_h = bx + b_w_h;
-	var by_b_h_h = by + b_h_h;
-
-	//top left
-	this.nodes[Node.TOP_LEFT] = new this._classConstructor({
-		x:bx,
-		y:by,
-		width:b_w_h,
-		height:b_h_h
-	},
-	depth);
-
-	//top right
-	this.nodes[Node.TOP_RIGHT] = new this._classConstructor({
-		x:bx_b_w_h,
-		y:by,
-		width:b_w_h,
-		height:b_h_h
-	},
-	depth);
-
-	//bottom left
-	this.nodes[Node.BOTTOM_LEFT] = new this._classConstructor({
-		x:bx,
-		y:by_b_h_h,
-		width:b_w_h,
-		height:b_h_h
-	},
-	depth);
-
-
-	//bottom right
-	this.nodes[Node.BOTTOM_RIGHT] = new this._classConstructor({
-		x:bx_b_w_h,
-		y:by_b_h_h,
-		width:b_w_h,
-		height:b_h_h
-	},
-	depth);
-}
-
-Node.prototype.clear = function()
-{
-	this.children.length = 0;
-
-	var len = this.nodes.length;
-	for(var i = 0; i < len; i++)
-	{
-		this.nodes[i].clear();
-	}
-
-	this.nodes.length = 0;
-}
-
-
-/******************** BoundsQuadTree ****************/
-
-function BoundsNode(bounds, depth, maxChildren, maxDepth)
-{
-	Node.call(this, bounds, depth, maxChildren, maxDepth);
-	this._stuckChildren = [];
-}
-
-BoundsNode.prototype = new Node();
-BoundsNode.prototype._classConstructor = BoundsNode;
-BoundsNode.prototype._stuckChildren = null;
-
-//we use this to collect and conctenate items being retrieved. This way
-//we dont have to continuously create new Array instances.
-//Note, when returned from QuadTree.retrieve, we then copy the array
-BoundsNode.prototype._out = [];
-
-BoundsNode.prototype.insert = function(item)
-{
-	if(this.nodes.length)
-	{
-		var index = this._findIndex(item);
-		var node = this.nodes[index];
-
-		//todo: make _bounds bounds
-		if(item.x >= node._bounds.x &&
-			item.x + item.width <= node._bounds.x + node._bounds.width &&
-			item.y >= node._bounds.y &&
-			item.y + item.height <= node._bounds.y + node._bounds.height)
-		{
-			this.nodes[index].insert(item);
-		}
-		else
-		{
-			this._stuckChildren.push(item);
-		}
-
-		return;
-	}
-
-	this.children.push(item);
-
-	var len = this.children.length;
-
-	if(!(this._depth >= this._maxDepth) &&
-		len > this._maxChildren)
-	{
-		this.subdivide();
-
-		for(var i = 0; i < len; i++)
-		{
-			this.insert(this.children[i]);
-		}
-
-		this.children.length = 0;
-	}
-}
-
-BoundsNode.prototype.getChildren = function()
-{
-	return this.children.concat(this._stuckChildren);
-}
-
-BoundsNode.prototype.retrieve = function(item)
-{
-	var out = this._out;
-	out.length = 0;
-	if(this.nodes.length)
-	{
-		var index = this._findIndex(item);
-
-		out.push.apply(out, this.nodes[index].retrieve(item));
-	}
-
-	out.push.apply(out, this._stuckChildren);
-	out.push.apply(out, this.children);
-
-	return out;
-}
-
-BoundsNode.prototype.clear = function()
-{
-
-	this._stuckChildren.length = 0;
-
-	//array
-	this.children.length = 0;
-
-	var len = this.nodes.length;
-
-	if(!len)
-	{
-		return;
-	}
-
-	for(var i = 0; i < len; i++)
-	{
-		this.nodes[i].clear();
-	}
-
-	//array
-	this.nodes.length = 0;
-
-	//we could call the super clear function but for now, im just going to inline it
-	//call the hidden super.clear, and make sure its called with this = this instance
-	//Object.getPrototypeOf(BoundsNode.prototype).clear.call(this);
-}
-
-BoundsNode.prototype.getChildCount
-
-return QuadTree;
-
-/*
-//http://ejohn.org/blog/objectgetprototypeof/
-if ( typeof Object.getPrototypeOf !== "function" ) {
-  if ( typeof "test".__proto__ === "object" ) {
-    Object.getPrototypeOf = function(object){
-      return object.__proto__;
+    var Entity = require('./entity.js');
+
+    /* moveing these values to a pickaxe factory class would be cool.
+    Then powerups could change the attack size. */
+    var attackSize = { x: 20, y: 40 };
+    var attackRadius = 15;
+
+
+    var Pickaxe = function(position, horizontal) {
+        this.x = position.x;
+        this.y = position.y;
+        this.score = 0;
+        this.type = "Pickaxe";
+        if(horizontal) this.attackSize = {x: attackSize.y, y: attackSize.x };
+        else this.attackSize = {x: attackSize.x, y: attackSize.y };
     };
-  } else {
-    Object.getPrototypeOf = function(object){
-      // May break if the constructor has been tampered with
-      return object.constructor.prototype;
+
+    Pickaxe.prototype.update = function() {
+
     };
-  }
-}
-*/
 
-}());
+    Pickaxe.prototype.render = function(ctx, debug) {
+        if (debug) renderDebug(this, ctx);
+    };
 
-},{}],7:[function(require,module,exports){
+    Pickaxe.prototype.boundingBox = function() {
+        return {
+            left: this.x - this.attackSize.x / 2,
+            top: this.y - this.attackSize.y / 2,
+            right: this.x + this.attackSize.x / 2,
+            bottom: this.y + this.attackSize.y / 2
+        };
+    };
+
+
+    Pickaxe.prototype.boundingCircle = function() {
+        return {
+            cx: this.x,
+            cy: this.y,
+            radius: attackRadius
+        };
+    };
+
+
+    Pickaxe.prototype.collide = function(otherEntity, entityManager) {
+        if( otherEntity.type == "player") {
+            return;
+        } else if(otherEntity.lives) {
+            if(--otherEntity.lives < 1) {
+                if(otherEntity.die){
+                    otherEntity.die(entityManager);
+                } else {
+                    entityManager.remove(otherEntity);
+                }
+            }
+        } else {
+            this.enabled = false;
+            if(otherEntity.die){
+                otherEntity.die(entityManager);
+            } else {
+                entityManager.remove(otherEntity);
+            }
+        }
+    };
+
+    function renderDebug(player, ctx) {
+        var bounds = player.boundingBox();
+        var circle = player.boundingCircle();
+        ctx.save();
+
+        // Draw player bounding box
+        ctx.strokeStyle = "red";
+        ctx.beginPath();
+        ctx.moveTo(bounds.left, bounds.top);
+        ctx.lineTo(bounds.right, bounds.top);
+        ctx.lineTo(bounds.right, bounds.bottom);
+        ctx.lineTo(bounds.left, bounds.bottom);
+        ctx.closePath();
+        ctx.stroke(); // Outline tile underfoot
+
+        ctx.strokeStyle = "blue";
+        ctx.beginPath();
+        ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+
+
+
+    return Pickaxe;
+
+
+})();
+
+},{"./entity.js":16}],5:[function(require,module,exports){
+module.exports = (function (){
+    return {
+      SCREENSIZEX : 1280,
+      SCREENSIZEY : 720,
+      TILESIZEX : 64,
+      TILESIZEY : 64,
+      MAPSIZEX : 1000,
+      MAPSIZEY : 1000,
+      MAX_ENTITIES : 200,
+      UPDATE_REGION : 75,
+      RENDER_REGION : 25,
+      UPDATE_TIME : 1/60,
+      LIQUID_UPDATE_TIME: 1,
+    };
+})();
+
+},{}],6:[function(require,module,exports){
 module.exports = function () {
 
 
@@ -1388,7 +733,7 @@ module.exports = function () {
 
 }();
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /* Class of the Barrel Skeleton entity
  *
  * Author:
@@ -1401,8 +746,8 @@ module.exports = (function(){
 		Player = require('./player.js'),
 		Bone = require('./bone.js'),
       Animation = require('./animation.js'),
-	  PowerUp = require('./powerUp.js'),
-	  entityManager = require('./entity-manager.js');
+	  PowerUp = require('./powerUp.js');
+	//  entityManager = require('./entity-manager.js');
 
 
   const DEBUG = true;
@@ -1472,7 +817,7 @@ module.exports = (function(){
 	this.range = 5*SIZE;
 	this.attackFrequency = 1.7;
 	this.lastAttack = 0;
-	this.lives = 5;
+	this.lives = 2;
 	this.timeDead = 0;
 	this.score = 10;
 
@@ -1618,7 +963,7 @@ module.exports = (function(){
 
 
 		case ATTACKING:
-			sprite.attack(elapsedTime, entities);
+			sprite.attack(elapsedTime, entities, entityManager);
 			if(!sprite.onGround(tilemap)) {
             sprite.state = FALLING;
             sprite.velocityY = 0;
@@ -1803,13 +1148,13 @@ module.exports = (function(){
     *   to determine what type it is to know what to
     *   do with it.
     */
-   Barrel.prototype.collide = function(otherEntity) {
+   Barrel.prototype.collide = function(otherEntity, entityManager) {
 	   if((this.state == ATTACKING || this.state == IDLE) && this.recovered && otherEntity instanceof Player){
 		   if(DEBUG){
 		   console.log("Collision with player");
 	   }
 		   if(--this.lives<=0){
-			   this.die();
+			   this.die(entityManager);
 
 		   } else {
 			   if(DEBUG){
@@ -1828,7 +1173,7 @@ module.exports = (function(){
 	   }
    }
 
-   Barrel.prototype.die = function(){
+   Barrel.prototype.die = function(entityManager){
 	   this.state = DEAD;
 			   boneUp = new PowerUp(this.currentX, this.currentY, this.layerIndex, 'boneUp', 64, 64, 10, 'img/powerUps/boneUp.png');
 			   entityManager.add(boneUp);
@@ -1837,13 +1182,13 @@ module.exports = (function(){
 			}
    }
 
-   Barrel.prototype.attack = function(elapsedTime, entities){
+   Barrel.prototype.attack = function(elapsedTime, entities, entityManager){
 		this.lastAttack += elapsedTime;
 		if(this.lastAttack >= this.attackFrequency){
 
 			for(var i=0; i<entities.length;i++){
-				if(entities[i] instanceof Player){
-					var playerX = entities[i].currentX;
+				if(entities[i].type == 'player'){
+					var playerX = entities[i].x;
 					break;
 				}
 			}
@@ -1864,7 +1209,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./bone.js":11,"./entity-manager.js":18,"./entity.js":19,"./player.js":32,"./powerUp.js":33}],9:[function(require,module,exports){
+},{"./animation.js":6,"./bone.js":9,"./entity.js":16,"./player.js":31,"./powerUp.js":32}],8:[function(require,module,exports){
 /* Bird Module
 	Authors: Josh Benard
 */
@@ -1943,6 +1288,7 @@ module.exports = (function(){
 					this.state = EXPLODED;
 				break;
 			default:
+				entityManager.remove(this);
 				break;
 		}
 	}
@@ -2012,270 +1358,9 @@ module.exports = (function(){
 	return Bird;
 
 }());
-},{"./animation.js":7,"./entity.js":19,"./player.js":32}],10:[function(require,module,exports){
-module.exports = (function(){
-  var Entity = require('./entity.js');
-  var PlayerClass = require('./player.js');
-  var player;
-  var spritesheet;
-  var extantBlobbers;
-  const SIZE = 64;
-
-  const FALLING = 0;
-  const IDLE = 1;
-  const AIM = 2;
-  const FIRE = 3;
-  const DEAD = 4;
-
-  var State = 0;
-  var idleOffset = 0;
-  var aimTimer = 0;
-  var cooldown = 0;
-  function Blobber(locationX, locationY, layerIndex, xVel, yVel, p, eb) {
-    extantBlobbers = eb;
-    spritesheet = new Image();
-    spritesheet.src = "./img/blobber.png";
-
-    this.layerIndex = layerIndex;
-    this.currentX = locationX;
-    this.currentY = locationY;
-
-
-    this.dug = false;
-    this.downPressed = false;
-    this.nextX = 0;
-    this.nextY = 0;
-    this.currentTileIndex = 0;
-    this.nextTileIndex = 0;
-    this.constSpeed = 15;
-    this.gravity = 0.5;
-    this.angle = 0;
-    this.xSpeed = xVel;
-    this.ySpeed = yVel;
-    this.isLeft = false;
-    this.score = 2;
-
-    player = p;
-    this.type = "BlobLobber";
-
-    this.shots = 3;
-    this.sterile = false;
-  }
-
-
-  Blobber.prototype = new Entity();
-
-  Blobber.prototype.update = function(elapsedTime, tilemap, entityManager) {
-
-    cooldown -= elapsedTime;
-
-    //console.log(State);
-if (State < 2)
-    if (this.onGround(tilemap)==true) {
-      this.ySpeed = 0;
-      State = 1;
-    } else {
-      this.ySpeed += 5*elapsedTime;
-      //State = 0;
-    }
-
-
-
-    if (State<=2) {
-      //   >:)
-      if (distance(player,this) < 150 && State < 2) {
-          // Go to aiming/charging attack state
-          aimTimer = 0;
-          State = AIM;
-      }
-
-
-      var rand = Math.random();
-
-
-      //if (player.currentY > this.currentY-10)
-      if (Math.abs(player.currentX-this.currentX) > 100)
-        if (player.currentX > this.currentX) {
-          if (this.xSpeed < -.2) this.xSpeed = 0;
-          this.xSpeed+=elapsedTime*3 + rand*elapsedTime;
-        } else {
-          if (this.xSpeed > .2) this.xSpeed = 0;
-          this.xSpeed-=elapsedTime*3 - rand*elapsedTime;
-        }
-
-      if (player.currentY > this.currentY) {
-        this.ySpeed+=elapsedTime*3;
-      } else {
-        this.ySpeed-=elapsedTime*3;
-      }
-
-
-    }
-
-    if (State==AIM) {
-      //State=FIRE;
-
-      if (aimTimer > 1 && cooldown <= 0) {
-        aimTimer = 0;
-        State=FIRE;
-      } else {
-        aimTimer += elapsedTime;
-      }
-
-
-    } else if (State==FIRE) {
-
-
-      var vectorx, vectory, dist;
-      dist = distance(player,this);
-
-      // Unit vector for where to shoot him to
-      vectorx = 0-this.currentX-player.currentX;
-      vectory = 0-this.currentY-player.currentY;
-
-      var mag = Math.sqrt(vectorx*vectorx + vectory*vectory);
-
-      var scalar = 5;
-      vectorx = scalar*vectorx/mag;
-      vectory = scalar*vectory/mag;
-
-      cooldown = 5;
-
-      //alert("Vector is " + vectorx + " ___ " + vectory);
-
-      if (extantBlobbers < 20) {
-        var BlobToLob = new Blobber(this.currentX,this.currentY, this.layerIndex, vectorx,vectory, player, ++extantBlobbers);
-        entityManager.add(BlobToLob);
-        console.log("Extant Blobbers: "+(extantBlobbers));
-      }
-
-      console.log("BlobLobber has Lobbed Blobbers");
-      console.log("Vector is " + vectorx + " ___ " + vectory);
-      if (this.shots > 0) {
-        this.shots--;
-        State = 1;
-
-      } else {
-
-        // DIE
-        State = 4;
-      }
-
-    } else if (State==DEAD) {
-      // TODO play dying crap
-      State = 5;
-    } else if (State==5) {
-      entityManager.remove(this);
-    }
-    if (State < 4) {
-      this.currentX += this.xSpeed;
-      this.currentY += this.ySpeed;
-    }
-
-  }
-
-  Blobber.prototype.collide = function(otherEntity) {
-
-
-        if (otherEntity instanceof PlayerClass) {
-          entityManager.remove(this);
-
-            otherEntity.SPEED *= 0.86;
-            console.log("Player entity has caught a cold! Speed is now " + otherEntity.SPEED + "(out of original 150)");
-        }
-        //entityManager.remove(this);
-  }
-
-  Blobber.prototype.onGround = function(tilemap) {
-    var box = this.boundingBox(),
-        tileX = Math.floor((box.left + (SIZE/2))/64),
-        tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    // find the tile we are standing on.
-    return (tile && tile.data.solid) ? true : false;
-  }
-
-  Blobber.prototype.boundingBox = function() {
-    return {
-      left: this.currentX,
-      top: this.currentY,
-      right: this.currentX + SIZE,
-      bottom: this.currentY + SIZE
-    }
-  }
-
-  Blobber.prototype.boundingCircle = function() {
-    return {
-      cx: this.currentX + SIZE/2,
-      cy: this.currentY + SIZE/2,
-      radius: SIZE/2
-    }
-  }
-
-  var frameIndex = 0;
-
-  Blobber.prototype.render = function(ctx, debug) {
-
-    ctx.drawImage(spritesheet,0,0+frameIndex*414,414,414,this.currentX,this.currentY,64,64);
-    frameIndex++;
-    if (frameIndex>7)
-      frameIndex = 0;
-    //ctx.drawImage(spritesheet,this.currentX,this.currentY);
-    if (debug) debugRender(this, ctx);
-
-
-  }
-var everal = false;
-  function distance(player,enemy) {
-    return Math.sqrt((player.currentX-enemy.currentX)*(player.currentX-enemy.currentX) + (player.currentY-enemy.currentY)*(player.currentY-enemy.currentY))
-  }
-
-  function debugRender(blobber, ctx) {
-    var bounds = blobber.boundingBox();
-
-
-
-    ctx.save();
-
-    // Draw player bounding box
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-    ctx.moveTo(bounds.left, bounds.top);
-    ctx.lineTo(bounds.right, bounds.top);
-    ctx.lineTo(bounds.right, bounds.bottom);
-    ctx.lineTo(bounds.left, bounds.bottom);
-    ctx.closePath();
-    ctx.stroke();
-
-    // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
-        tileY = 64 * (Math.floor(bounds.bottom / 64));
-    ctx.strokeStyle = "black";
-    ctx.beginPath();
-    ctx.moveTo(tileX, tileY);
-    ctx.lineTo(tileX + 64, tileY);
-    ctx.lineTo(tileX + 64, tileY + 64);
-    ctx.lineTo(tileX, tileY + 64);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.font = "30px Arial";
-    ctx.fillText("Shots left: " + this.shots,this.currentX,this.currentY + 50);
-    ctx.stroke();
-
-    ctx.restore();
-
-
-  }
-
-
-  return Blobber;
-
-}());
-
-},{"./entity.js":19,"./player.js":32}],11:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":16,"./player.js":31}],9:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"./animation.js":7,"./entity-manager.js":18,"./entity.js":19,"./player.js":32,"./powerUp.js":33,"dup":1}],12:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":16,"./player.js":31,"./powerUp.js":32,"dup":1}],10:[function(require,module,exports){
 module.exports = (function(){
 
 var Animation = require('./animation.js'),
@@ -2343,9 +1428,16 @@ function Cannonball(locationX, locationY, mapLayer, verticalV, horizontalV, grav
 		this.projectileTimeExploding = 0;
 	}
 
-	this.checkCollisions = function(tile) {
+	this.checkCollisions = function(tile, tileX, tileY) {
 		if (tile && tile.data.solid) {
-			tilemap.destroyTileAt(1, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			var layerType = tilemap.returnTileLayer(tileX, tileY, 0);
+			if (layerType === 0) {
+					tilemap.destroyTileAt(1, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			} else if (layerType == 1) {
+					tilemap.destroyTileAt(13, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			} else if (layerType == 2) {
+					tilemap.destroyTileAt(15, this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0);
+			}
 			this.state = EXPLODING;
 			this.offsetExploding();
 			this.explosionSound.play();
@@ -2383,14 +1475,17 @@ Cannonball.prototype = new Entity();
 		if (this.state == EXPLODING) {
 			this.animations[this.state].update(elapsedTime);
 			this.projectileTimeExploding += elapsedTime;
-			if (this.projectileTimeExploding > 2) {
+			if (this.projectileTimeExploding > 1) {
 				this.state = IDLE;
 				//Wyatt Watson - Now removes the explosion left overs
-				entityManager.remove(this);
+				// MZ - If you do that the turret has nothing to shoot with afterwards
+				// entityManager.remove(this);
+				this.posX = 0;
+				this.posY = 0;
 			}
 		}
-
-		this.checkCollisions(Tilemap.tileAt(this.getXFromCoords(this.posX), this.getYFromCoords(this.posY), 0));
+		var tileX = this.getXFromCoords(this.posX), tileY = this.getYFromCoords(this.posY);
+		this.checkCollisions(Tilemap.tileAt(tileX, tileY, 0), tileX, tileY);
 	}
 
 	Cannonball.prototype.render = function(context, debug)
@@ -2471,7 +1566,7 @@ return Cannonball;
 
 }())
 
-},{"./animation.js":7,"./entity.js":19,"./tilemap.js":43}],13:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":16,"./tilemap.js":36}],11:[function(require,module,exports){
 /* The construct for a collectible. Inherits from entity.
  * Removed from entity manager upon being collected by player.
  * Certain strategies derived from the powerup class.
@@ -2631,7 +1726,7 @@ module.exports = (function(){
 
 }())
 
-},{"./animation.js":7,"./entity.js":19}],14:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":16}],12:[function(require,module,exports){
 // Credits Menu game state defined using the Module pattern
 module.exports = (function (){
   var menu = document.getElementById("credits-menu"),
@@ -2703,139 +1798,7 @@ module.exports = (function (){
   }
   
 })();
-},{}],15:[function(require,module,exports){
-/* Entity: Diamond(added by Diamond) module
- * Implements the entity pattern and provides
- * the entity Diamond info.
- * Author:
- * - Karen(Fei) Fang
- * Image source: https://openclipart.org
- */
-module.exports = (function(){
-  var Entity = require('./entity.js'),
-      Animation = require('./animation.js');
-
-  // The Sprite Size
-  const SIZE = 64;
-
-  /* The following are Diamond States */
-  const HOLD = 0;
-  const DROPPED = 1;
-  const PICKED = 2;
-
-  //The Diamond spritesheet
-  var diamondImage = new Image();
-  diamondImage .src = 'img/diamond-animation.png';
-
-  var pickFrame = 0;
-
-
-  //The Diamond constructor
-  function Diamond(locationX, locationY, layerIndex) {
-    this.type = "Diamond";
-
-    this.layerIndex = layerIndex;
-    this.currentX = locationX;
-    this.currentY = locationY;
-
-    this.score = 20;
-
-    //default state
-    this.state = HOLD;
-
-    this.currentTileIndex = 0;
-
-    //The animations
-    this.animations = [];
-    this.animations[DROPPED] = new Animation(diamondImage, SIZE, SIZE, 0, 0);
-    this.animations[PICKED] = new Animation(diamondImage, SIZE, SIZE, 0, 0, 4, 1/4);
-  }
-
-  // Diamond inherits from Entity
-  Diamond.prototype = new Entity();
-
-  /* Diamond update function
-   * arguments:
-   * - elapsedTime, the time that has passed
-   *   between this and the last frame.
-   * - tilemap, the tilemap that corresponds to
-   *   the current game world.
-   */
-  Diamond.prototype.update = function(elapsedTime, tilemap, entityManager) {
-    switch (this.state) {
-      case HOLD:
-        return;
-      case DROPPED:
-        break;
-      case PICKED:
-        if(this.pickFrame <= 3*(1/elapsedTime)){
-          this.pickFrame++;
-        }else {
-          entityManager.remove(this);
-          console.log("Diamond: Player picked up the diamond! Entity Diamond removed.");
-          return;
-        }
-        break;
-    }
-    this.animations[this.state].update(elapsedTime);
-
-  }
-
-  /* Diamond Render Function
-   * arguments:
-   * - ctx, the rendering context
-   * - debug, a flag that indicates turning on
-   * visual debugging
-   */
-  Diamond.prototype.render = function(ctx, debug) {
-    // Draw the Diamond (and the correct animation)
-    //console.log("Diamond: this.state: "+this.state);
-    if(this.state != HOLD){
-      //console.log("Diamond: this.currentX: "+this.currentX+" this.currentY: "+this.currentY);
-      this.animations[this.state].render(ctx, this.currentX, this.currentY);
-    }
-  }
-
-  /* Diamond BoundingBox Function
-   * returns: A bounding box representing the Diamond
-   */
-  Diamond.prototype.boundingBox = function() {
-    return {
-      left: this.currentX + 1/4*SIZE,
-      top: this.currentY,
-      right: this.currentX + 3/4*SIZE,
-      bottom: this.currentY + SIZE
-    }
-  }
-
-  Diamond.prototype.boundingCircle =function(){
-    return{
-      cx: this.currentX + SIZE/2,
-      cy: this.currentY + SIZE/2,
-      radius: SIZE/2
-    }
-  }
-
-  Diamond.prototype.collide = function(otherEntity){
-    if(otherEntity.type === "Kakao"&& this.state===HOLD){
-      //console.log("Kakao: Update diamond position.");
-      this.currentX = otherEntity.currentX;
-      this.currentY = otherEntity.currentY;
-      return;
-    }
-    if(otherEntity.type!="player" && otherEntity.type!= "Kakao"){  //collides with other players
-      this.state = DROPPED;
-    }
-    if(otherEntity.type === "player"){  //collides with player
-      this.state = PICKED;
-    }
-  }
-
-  return Diamond;
-
-}());
-
-},{"./animation.js":7,"./entity.js":19}],16:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 /* Dynamite Dynamite module
  * Authors:
  * Alexander Duben
@@ -2869,8 +1832,7 @@ module.exports = (function(){
   var explosion = new Audio('resources/sounds/explosion.wav');
 
   //The Dynamite constructor
-  function Dynamite(locationX, locationY, layerIndex, inputManager, sourceEntity) {
-    this.inputManager = inputManager
+  function Dynamite(locationX, locationY, layerIndex, sourceEntity, surface) {
     this.state = FALLING; 
     this.dug = false; 
     this.downPressed = false;
@@ -2891,6 +1853,7 @@ module.exports = (function(){
 	this.type = 'dynamite';
 	this.velocityY = -800;
 	this.source = sourceEntity;
+	this.surface = surface;
 	
        //The animations
     this.animations = {
@@ -2927,11 +1890,6 @@ module.exports = (function(){
    */
   Dynamite.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
-    
-    // The "with" keyword allows us to change the
-    // current scope, i.e. 'this' becomes our 
-    // inputManager
-    with (this.inputManager) {	
 
 		switch(sprite.state) {
         case FALLING:
@@ -2947,7 +1905,7 @@ module.exports = (function(){
           break;
 		case COUNTDOWN:
 			detonationTimer++;
-			if(detonationTimer > 260){
+			if(detonationTimer > 150){
 				sprite.state = DETONATE;
 			}
 		break;
@@ -2964,18 +1922,38 @@ module.exports = (function(){
 				tileY = Math.floor(box.bottom / 64);
 				for(var i = tileX-3; i < tileX+3;i++){
 					for(var j = tileY -3; j < tileY+3;j++){
+						if(j < this.surface){
+							tilemap.destroyTileAt(1, i, j, 0);
+						}else{
+							tilemap.removeTileAt(i, j, 0);
+						}
 						
-						tilemap.setTileAt(7, i, j, 0);
 					}	  
 				}
 				for(var i = tileX-5; i < tileX+5;i++){
 					for(var j = tileY -5; j < tileY+5;j++){
 						if(Math.random() < 0.4){
-							tilemap.setTileAt(7, i, j, 0);
+							if(j < this.surface){
+								tilemap.destroyTileAt(1,i, j, 0);
+							}else{
+								tilemap.removeTileAt(i, j, 0);
+							}
 						}
 						
 					}	  
 				}
+				
+				killedEntities = entityManager.queryRadius(sprite.currentX, sprite.currentY, 10*64);
+				killedEntities.forEach(function(entity) {
+					if(entity.type == 'player'){
+						entity.hurt(80);
+					}else{
+						if((entity).type != 'dynamite')
+						entityManager.remove(entity);
+					}
+				});
+										
+				
 				sprite.state = DONE;
 				
 				
@@ -2987,12 +1965,6 @@ module.exports = (function(){
 		  //final state
 			break;
 		}
-		
-      
-      
-      // Swap input buffers
-      swapBuffers();
-    }
        
     // Update animation
     
@@ -3076,7 +2048,7 @@ module.exports = (function(){
   return Dynamite;
 
 }());
-},{"./animation.js":7,"./entity.js":19}],17:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":16}],14:[function(require,module,exports){
 /* Dynamite Dwarf module
  * Authors:
  * Alexander Duben
@@ -3155,8 +2127,8 @@ module.exports = (function(){
 	dyingTimer = 0;
 
   //The Dwarf constructor
-  function Dwarf(locationX, locationY, layerIndex, inputManager) {
-    this.inputManager = inputManager
+  function Dwarf(locationX, locationY, layerIndex, inputManager, scoreEngine) {
+	this.inputManager = inputManager;
     this.state = WALKING; 
     this.dug = false; 
     this.downPressed = false;
@@ -3175,7 +2147,8 @@ module.exports = (function(){
     this.isLeft = false;
 	this.isPlayerColliding = false;
 	this.type = 'dynamiteDwarf';
-	this.score = -500;
+	this.score = 10;//negative ten
+	this.scoreEngine = scoreEngine;
 	//this.player = playerEntity;
     
     //The animations
@@ -3250,18 +2223,12 @@ module.exports = (function(){
   Dwarf.prototype.update = function(elapsedTime, tilemap, entityManager) {
     var sprite = this;
     GROUNDLVL = tilemap.surface;
-    // The "with" keyword allows us to change the
-    // current scope, i.e. 'this' becomes our 
-    // inputManager
-    with (this.inputManager) {
+    
 	
       // Process Dwarf state
       switch(sprite.state) {
         case STANDING:
 			sprite.isPlayerColliding = false;
-			if(isKeyDown(commands.DIGDOWN)|isKeyDown(commands.DIGUP)|isKeyDown(commands.DIGLEFT)|isKeyDown(commands.DIGRIGHT)){
-				sprite.state = DYING;
-			}
 			if(!sprite.onGround(tilemap)) {
 				sprite.state = FALLING;
 				sprite.velocityY = 0;
@@ -3270,7 +2237,7 @@ module.exports = (function(){
 			}
 			if(idleTimer < 120){
 				idleTimer++;
-				if(isKeyDown(commands.PAY)) {
+				if(this.inputManager.isKeyDown(this.inputManager.commands.PAY)) {
 					sprite.state = DETONATING;
 				}
 			}else{
@@ -3306,7 +2273,7 @@ module.exports = (function(){
        
         case DETONATING:
 			var player = entityManager.getPlayer();//player entity
-			if(settingChargesTimer < 150){
+			if(settingChargesTimer < 67){
 				settingChargesTimer++;
 			}else{
 				settingChargesTimer = 0;
@@ -3314,12 +2281,12 @@ module.exports = (function(){
 				tileX = Math.floor((box.left + (SIZE/2))/64),
 				tileY = Math.floor(box.bottom / 64);								
 				for(var j = tileY; j > GROUNDLVL;j--){
-					tilemap.setTileAt(7, tileX, j-1, 0);
+					tilemap.removeTileAt( tileX, j-1, 0);
 				}
 				player.currentX = tileX*64;
 				player.currentY = tileY*64;
 				//player.velocityY = -1500;		
-				player.velocityY = -Math.sqrt((tileY-GROUNDLVL)*64*10*(-GRAVITY));//shoot player above surface level
+				player.velocityY = -Math.sqrt((tileY-GROUNDLVL)*64*30*(-GRAVITY));//shoot player above surface level
 				if((tileY-GROUNDLVL) <= 0){//if above surface just use just constant force
 					player.velocityY = -1500;
 				}
@@ -3338,26 +2305,26 @@ module.exports = (function(){
           
           break;
         case DYING:
-			if(dyingTimer < 25){
+			if(dyingTimer < 12){
 				dyingTimer++;
 			}else{
 				dyingTimer = 0;
-				var dynamite = new Dynamite(sprite.currentX,sprite.currentY,0, sprite.inputManager,sprite);
+				var dynamite = new Dynamite(sprite.currentX,sprite.currentY,0,sprite, GROUNDLVL);
 				entityManager.add(dynamite);
 				sprite.state = DEAD;
+				this.scoreEngine.subScore(this.score);
 			}
 			break;
 		case DEAD:
-			//stays dead until body destroyed
+			
 			break;
 		case DONE:
-			//final state
+			entityManager.remove(this);
 			break;
       }
       
-      // Swap input buffers
-      swapBuffers();
-    }
+  
+    
        
     // Update animation
     if(this.isLeft)
@@ -3423,6 +2390,9 @@ module.exports = (function(){
 	  if(otherEntity.type == 'player'){
 		  this.isPlayerColliding = true;
 	  }
+	  else if(otherEntity.type == 'Pickaxe'){
+		 this.state = DYING;		 
+	  }
   }
   
   /* Dwarf BoundingBox Function
@@ -3444,7 +2414,7 @@ module.exports = (function(){
   return Dwarf;
 
 }());
-},{"./animation.js":7,"./dynamite.js":16,"./entity.js":19}],18:[function(require,module,exports){
+},{"./animation.js":6,"./dynamite.js":13,"./entity.js":16}],15:[function(require,module,exports){
 /* The entity manager for the DiggyHole game
 * Currently it uses brute-force approaches
 * to its role - this needs to be refactored
@@ -3453,316 +2423,311 @@ module.exports = (function(){
 * - Nathan Bean
 */
 module.exports = (function() {
-    /* jshint esnext: true */
-    const MAX_ENTITIES = 200;
+    var settings = require('./Settings.js');
 
-    QuadTree = require('./QuadTree.js');
+    var entityXpos = [],
+        entityYpos = [],
+        player,
+        timeSinceUpdateRegion;
 
-    var collisionTree = new QuadTree({ x: 0, y: 0, width: 1000*64, height: 1000*64 }, false);
+    function EntityManager(p) {
+        /* jshint esnext: true */
+        player = p;
+        this.add(player);
+    }
 
-    var entities = [],
-    entityCount = 0;
+        /* Adds an entity to those managed.
+         * Arguments:
+         * - entity, the entity to add
+         */
+    EntityManager.prototype.add = function(entityToAdd) {
+        if (entityXpos.length < settings.MAX_ENTITIES) {
+            var boundingBox = entityToAdd.boundingBox();
+            var entityPos = {
+                entity: entityToAdd,
+                hitbox: boundingBox
+            };
 
-    /* Adds an entity to those managed.
-    * Arguments:
-    * - entity, the entity to add
-    */
-    function add(entity) { if (entityCount < MAX_ENTITIES) {
-        // Determine the entity's unique ID
-        // (we simply use an auto-increment count)
-        var id = entityCount;
-        entityCount++;
+            entityXpos.push(entityPos);
+            entityYpos.push(entityPos);
+        }
+    };
 
-        // Set the entity's id on the entity itself
-        // as a property.  Due to the dynamic nature of
-        // JavaScript, this is easy
-        entity._entity_id = id;
-
-        // Store the entity in the entities array
-        entities[id] = entity;
+        /* Removes an entity from those managed
+         * Arguments:
+         * - entity, the entity to remove
+         * returns true if the entity was removed, false if not
+         */
+    EntityManager.prototype.remove = function(entity) {
+        var xPos = -1, yPos = -1;
+        for (var i = 0; i < entityXpos.length; i++) {
+            if (entityXpos[i].entity === entity) xPos = i;
+            if (entityYpos[i].entity === entity) yPos = i;
+        }
+        if (xPos === -1 || yPos === -1) return false;
+        entityXpos.splice(xPos, 1);
+        entityYpos.splice(yPos, 1);
         return true;
-    } else {
-        // We've hit the max number of allowable entities,
-        // yet we may have freed up some space within our
-        // entity array when an entity was removed.
-        // If so, let's co-opt it.
-        for (var i = 0; i < MAX_ENTITIES; i++) {
-            if (entities[i] === undefined) {
-                entity._entity_id = i;
-                entities[i] = entity;
-                return i;
+    };
+
+
+    EntityManager.prototype.updateEntityHitboxes = function() {
+        for (var i = 0; i < entityXpos.length; i++) {
+            entityXpos[i].hitbox = entityXpos[i].entity.boundingBox();
+        }
+    };
+
+    EntityManager.prototype.insertionSortLeft = function(items) {
+        for (var i = 0; i < items.length; ++i) {
+            var tmp = items[i];
+            for (var j = i - 1; j >=0 && items[j].hitbox.left > tmp.hitbox.left; --j) {
+                items[j + 1] = items[j];
+            }
+            items[j + 1] = tmp;
+        }
+    };
+
+    EntityManager.prototype.insertionSortTop = function(items) {
+        for (var i = 0; i < items.length; ++i) {
+            var tmp = items[i];
+            for (var j = i - 1; j >=0 && items[j].hitbox.top > tmp.hitbox.top; --j) {
+                items[j + 1] = items[j];
+            }
+            items[j + 1] = tmp;
+        }
+    };
+
+    EntityManager.prototype.sortEntities = function() {
+        this.insertionSortLeft(entityXpos);
+        this.insertionSortTop(entityYpos);
+    };
+
+    /* Checks for collisions between entities, and
+     * triggers the collide() event handler.
+     */
+    EntityManager.prototype.checkCollisions = function() {
+         this.updateEntityHitboxes();
+         this.sortEntities();
+
+         var xPotentialCollisions = [];
+         var yPotentialCollisions = [];
+         var i, j, current;
+
+         for(i = 0; i < entityXpos.length; i++) {
+             current = entityXpos[i].hitbox;
+             j = i;
+             while(++j < entityXpos.length && current.right >= entityXpos[j].hitbox.left) {
+                 xPotentialCollisions.push({ a: entityXpos[i].entity, b: entityXpos[j].entity });
+             }
+         }
+
+         for(i = 0; i < entityYpos.length; i++) {
+             current = entityYpos[i].hitbox;
+             j = i;
+             while(++j < entityYpos.length && current.bottom >= entityYpos[j].hitbox.top) {
+                 yPotentialCollisions.push({ a: entityYpos[i].entity, b: entityYpos[j].entity });
+             }
+         }
+
+         for(i = 0; i < xPotentialCollisions.length; i++) {
+             for(j = 0; j < yPotentialCollisions.length; j++) {
+                 if( (xPotentialCollisions[i].a === yPotentialCollisions[j].a && xPotentialCollisions[i].b === yPotentialCollisions[j].b) ||
+                     (xPotentialCollisions[i].b === yPotentialCollisions[j].a && xPotentialCollisions[i].a === yPotentialCollisions[j].b)) {
+                     xPotentialCollisions[i].a.collide(xPotentialCollisions[i].b, this);
+                     xPotentialCollisions[i].b.collide(xPotentialCollisions[i].a, this);
+                     break;
+                 }
+             }
+         }
+     };
+
+    /* Returns all entities within the given radius.
+     * Arguments:
+     * - x, the x-coordinate of the center of the query circle
+     * - y, the y-coordinate of the center of the query circle
+     * - r, the radius of the center of the circle
+     * Returns:
+     *   An array of entity references
+     */
+    EntityManager.prototype.queryRadius = function(x, y, r) {
+        var entitesInRadius = [];
+        for (var i = 0; i < entityXpos.length; i++) {
+            if (entityXpos[i] !== null) {
+                var boundingCircle = entityXpos[i].entity.boundingCircle();
+                if (this.isWithinCircle(x, y, r, boundingCircle))
+                    entitesInRadius.push(entityXpos[i].entity);
             }
         }
-        // If we get to this point, there are simply no
-        // available spaces for a new entity.
-        // Log an error message, and return an error value.
-        console.error("Too many entities");
-        return undefined;
-    }
-}
 
-/* Removes an entity from those managed
-* Arguments:
-* - entity, the entity to remove
-*/
-function remove(entity) {
-    // Set the entry in the entities table to undefined,
-    // indicating an open slot
-    if (entity.score) {
-        this.scoreEngine.addScore(entity.score);
-    }
-    entities[entity._entity_id] = undefined;
-}
+        return entitesInRadius;
+    };
 
-/* Checks for collisions between entities, and
-* triggers the collide() event handler.
-*/
-function checkCollisions() {
-    var colliders = [];
-    for(var i = 0; i < entityCount; i++) {
-        if(entities[i]) {
-            var hitbox = entities[i].boundingBox();
-            colliders.push({
-                x: hitbox.left,
-                y: hitbox.top,
-                width: hitbox.right - hitbox.left,
-                height: hitbox.bottom - hitbox.top,
-                entity: entities[i]
-            });
-        }
-    }
+    EntityManager.prototype.isWithinCircle = function(x, y, r, circle) {
+        if(Math.pow(circle.radius + r, 2) >=
+            (Math.pow(x - circle.cx, 2) + Math.pow(y - circle.cy, 2)))
+            return true;
 
-    collisionTree.insert(colliders);
+        return false;
+    };
 
-    for (i = 0; i < colliders.length; i++) {
-        var possibleCollisions = collisionTree.retrieve(colliders[i]);
-        for (var j = 0; j < possibleCollisions.length; j++) {
-            var boundsA = colliders[i].entity.boundingBox();
-            var boundsB = possibleCollisions[j].entity.boundingBox();
-            if (boundsA.left < boundsB.right &&
-                boundsA.right > boundsB.left &&
-                boundsA.top < boundsB.bottom &&
-                boundsA.bottom > boundsB.top
-            ) {
-                colliders[i].entity.collide(possibleCollisions[j].entity);
+    //Determines if 2 bounding boxes intersect in any way
+    EntityManager.prototype.isWithinBox = function(bb1, bb2) {
+        return(bb1.left < bb2.right && bb1.right > bb2.left && bb1.top < bb2.bottom && bb1.bottom > bb2.top);
+    };
 
-                //TODO bug if removed?
-                possibleCollisions[j].entity.collide(colliders[i].entity);
+    /* Updates all managed entities
+     * Arguments:
+     * - elapsedTime, how much time has passed between the prior frameElement
+     *   and this one.
+     * - tilemap, the current tilemap for the game.
+     */
+    EntityManager.prototype.update = function(elapsedTime, tilemap, ParticleManager) {
+        timeSinceUpdateRegion += elapsedTime;
+
+        //create bounding box and clean updatable objects, but only after some time interval
+        if(timeSinceUpdateRegion >= settings.UPDATE_TIME) {
+            var playerBB = player.boundingBox(),
+                updateFactor = settings.UPDATE_REGION * settings.TILESIZEX,
+                updateBox = {
+                    top: playerBB.top - updateFactor,
+                    bottom: playerBB.bottom + updateFactor,
+                    left: playerBB.left - updateFactor,
+                    right: playerBB.right + updateFactor
+                };
+
+            timeSinceUpdateRegion = 0;
+            for(var i = 0; i < entityXpos.length; i ++) {
+                if(entityXpos[i] !== null) {
+                    if(!this.isWithinBox(updateBox, entityXpos[i].hitbox))
+                        this.remove(entityXpos[i]);
+                }
             }
-
         }
 
-    }
-    collisionTree.clear(); /* do this now for garbage collector speed */
-}
-
-/* Returns all entities within the given radius.
-* Arguments:
-* - x, the x-coordinate of the center of the query circle
-* - y, the y-coordinate of the center of the query circle
-* - r, the radius of the center of the circle
-* Returns:
-*   An array of entity references
-*/
-function queryRadius(x, y, r) {
-    var entitiesInRadius = [];
-    for (var i = 0; i < entityCount; i++) {
-        // Only check existing entities
-        if (entities[i]) {
-            var circ = entities[i].boundingCircle();
-            if (Math.pow(circ.radius + r, 2) >=
-            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.cy, 2)
-        ) {
-            entitiesInRadius.push(entities[i]);
+        //call everyone's update function
+        for(var i = 0; i < entityXpos.length; i ++) {
+            if(entityXpos[i] !== null) {
+                entityXpos[i].entity.update(elapsedTime, tilemap, this, ParticleManager);
+            }
         }
-    }
-}
-return entitiesInRadius;
-}
 
-function queryRectangle(rect) {
-    var entitiesInRect = [];
-    for (var i = 0; i < entityCount; i++) {
-        // Only check existing entities
-        if (entities[i]) {
-            entityHitbox = entities[i].boundingBox();
-            if( entityHitbox.left > rect.right || entityHitbox.right < rect.left ||
-                entityHitbox.top > rect.bottom || entityHitbox.bottom < rect.top) continue;
-            entitiesInRect.push(entities[i]);
+        //check collisions
+        this.checkCollisions();
+    };
+
+    /* Renders the managed entities
+     * Arguments:
+     * - ctx, the rendering contextual
+     * - debug, the flag to trigger visual debugging
+     */
+    EntityManager.prototype.render = function(ctx, debug) {
+        //create the renderable region
+        var playerBB = player.boundingBox(),
+            updateFactor = settings.RENDER_REGION * settings.TILESIZEX,
+            updateBox = {
+                top: playerBB.top - updateFactor,
+                bottom: playerBB.bottom + updateFactor,
+                left: playerBB.left - updateFactor,
+                right: playerBB.right + updateFactor
+            };
+
+        //call the real update method
+        for(var i = 0; i < entityXpos.length; i ++) {
+            if(entityXpos[i] !== null) {
+                if(this.isWithinBox(updateBox, entityXpos[i].hitbox))
+                    entityXpos[i].entity.render(ctx, debug);
+            }
         }
-    }
-    return entitiesInRect;
-}
+    };
 
-/* Updates all managed entities
-* Arguments:
-* - elapsedTime, how much time has passed between the prior frameElement
-*   and this one.
-* - tilemap, the current tilemap for the game.
-*/
-function update(elapsedTime, tilemap, ParticleManager) {
-    //loops through entities
-    for (var i = 0; i < entityCount; i++) {
-        if(entities[i]) {
-            entities[i].update(elapsedTime, tilemap, this, ParticleManager);
-        }
-    }
-    scoreEngine.update();
-    checkCollisions();
-}
+    EntityManager.prototype.getPlayer = function() {
+        return player;
+    };
 
-/* Renders the managed entities
-* Arguments:
-* - ctx, the rendering contextual
-* - debug, the flag to trigger visual debugging
-*/
-function render(ctx, debug) {
-    //used for determining the area of the screen/what entities are on/near screen to be rendered
-    var play = getPlayer();
-    var viewPortArea = tilemap.getViewPort();
-
-    var entitiesOnScreen = queryRectangle(viewPortArea);
-    //loops through entities
-    for (var i = 0; i < entitiesOnScreen.length; i++) {
-        if(entitiesOnScreen[i]) {
-            entitiesOnScreen[i].render(ctx, debug);
-        }
-    }
-    scoreEngine.render(ctx);
-}
-
-function getPlayer() {
-    for (var i = 0; i < entityCount; i++) {
-        if (entities[i] && entities[i].type == "player") {
-            return entities[i];
-        }
-    }
-}
-
-function getEntity(index) {
-    return entities[index];
-}
-
-/* Gets distance between entity and player */
-function playerDistanceSquaredFrom(entity) {
-    if(typeof(entity) === "undefined" || entity === null) return Number.MAX_VALUE;
-    var playerHitbox = getPlayer().boundingBox();
-    var entityHitbox = entity.boundingBox();
-
-    return (entityHitbox.left - playerHitbox.left) * (entityHitbox.left - playerHitbox.left) +
-            (entityHitbox.top - playerHitbox.top) * (entityHitbox.top - playerHitbox.top);
-}
-
-/* Gets direction relative to player */
-function playerDirection(entity) {
-    if(typeof(entity) === "undefined" || entity === null) return false; // TODO ?
-    var playerHitbox = getPlayer().boundingBox();
-    var entityHitbox = entity.boundingBox();
-
-    if (playerHitbox.right < entityHitbox.left) {
-        return true;
-    }
-    return false;
-}
-
-function setScoreEngine(score) {
-    this.scoreEngine = score;
-}
-
-return {
-    add: add,
-    remove: remove,
-    queryRadius: queryRadius,
-    update: update,
-    render: render,
-    playerDistanceSquaredFrom: playerDistanceSquaredFrom,
-    playerDirection: playerDirection,
-    getPlayer: getPlayer,
-    getEntity: getEntity,
-    setScoreEngine: setScoreEngine
-};
+    return EntityManager;
 
 }());
 
-},{"./QuadTree.js":6}],19:[function(require,module,exports){
+},{"./Settings.js":5}],16:[function(require,module,exports){
 /* Base class for all game entities,
- * implemented as a common JS module
- * Authors:
- * - Nathan Bean 
- */
+* implemented as a common JS module
+* Authors:
+* - Nathan Bean
+*/
 module.exports = (function(){
-  
-  /* Constructor
-   * Generally speaking, you'll want to set
-   * the X and Y position, as well as the layerX
-   * of the map the entity is located on
-   */
-  function Entity(locationX, locationY, mapLayer){
-    this.x = locationX;
-    this.y = locationY;
-    this.mapLayer = mapLayer;
-  }
-  
-  /* Update function
-   * parameters:
-   * - elapsedTime is the time that has passed since the
-   *   previous frame 
-   * - tilemap is the currently loaded tilemap; you'll 
-   *   probably want to call its tileAt and setTile methods.
-   * - entityManager is the game's entity manager, and
-   *   keeps track of where all game entities are.
-   *   you can call its query functions
-   */
-  Entity.prototype.update = function(elapsedTime, tilemap, entityManager) {
-      // TODO: Determine what your entity will do
-  }
-  
-  /* Render function
-   * parameters:
-   *  - context is the rendering context.  It may be transformed
-   *    to account for the camera 
-   */
-   Entity.prototype.render = function(context) {
-     // TODO: Draw your entity sprite
-   }
-   
-   /* Collide function
+
+    /* Constructor
+    * Generally speaking, you'll want to set
+    * the X and Y position, as well as the layerX
+    * of the map the entity is located on
+    */
+    function Entity(locationX, locationY, mapLayer){
+        this.x = locationX;
+        this.y = locationY;
+        this.mapLayer = mapLayer;
+    }
+
+    /* Update function
+    * parameters:
+    * - elapsedTime is the time that has passed since the
+    *   previous frame
+    * - tilemap is the currently loaded tilemap; you'll
+    *   probably want to call its tileAt and setTile methods.
+    * - entityManager is the game's entity manager, and
+    *   keeps track of where all game entities are.
+    *   you can call its query functions
+    */
+    Entity.prototype.update = function(elapsedTime, tilemap, entityManager) {
+        // TODO: Determine what your entity will do
+    };
+
+    /* Render function
+    * parameters:
+    *  - context is the rendering context.  It may be transformed
+    *    to account for the camera
+    */
+    Entity.prototype.render = function(context) {
+        // TODO: Draw your entity sprite
+    };
+
+    /* Collide function
     * This function is called by the entityManager when it determines
     * a possible collision.
     * parameters:
     * - otherEntity is the entity this enemy collided with
-    *   You will likely want to use 
-    *     'otherEntity instanceof <Type>' 
-    *   to determine what type it is to know what to 
+    *   You will likely want to use
+    *     'otherEntity instanceof <Type>'
+    *   to determine what type it is to know what to
     *   do with it.
     */
-   Entity.prototype.collide = function(otherEntity) {
-   } 
-   
-   /* BoundingBox function
+    Entity.prototype.collide = function(otherEntity) {
+    };
+
+    /* BoundingBox function
     * This function returns an axis-aligned bounding
     * box, i.e {top: 0, left: 0, right: 20, bottom: 50}
     * the box should contain your entity or at least the
     * part that can be collided with.
     */
-   Entity.prototype.boundingBox = function() {
-     // Return a bounding box for your entity
-   }
-   
-   /* BoundingCircle function
+    Entity.prototype.boundingBox = function() {
+        // Return a bounding box for your entity
+    };
+
+    /* BoundingCircle function
     * This function returns a bounding circle, i.e.
     * {cx: 0, cy: 0, radius: 20}
-    * the circle should contain your entity or at 
+    * the circle should contain your entity or at
     * least the part that can be collided with.
     */
-   Entity.prototype.boundingCircle = function() {
-     // Return a bounding circle for your entity
-   }
-   
-   return Entity;
-  
+    Entity.prototype.boundingCircle = function() {
+        // Return a bounding circle for your entity
+    };
+
+    return Entity;
+
 }());
-},{}],20:[function(require,module,exports){
+
+},{}],17:[function(require,module,exports){
 /* Game GameState module
  * Provides the main game logic for the Diggy Hole game.
  * Authors:
@@ -3772,44 +2737,15 @@ module.exports = (function (){
     /* jshint esnext: true */
 
     // The width & height of the screen
-    const SCREEN_WIDTH = 1280,
-        SCREEN_HEIGHT = 720;
 
     // Module variables
     var Player = require('./player.js'),
-        Rat = require('./rat.js'),
-        Wolf = require('./wolf.js'),
-        Robo_Killer = require('./robo-killer.js'),
-        Octopus = require('./octopus.js'),
         inputManager = require('./input-manager.js'),
         tilemap = require('./tilemap.js'),
-        entityManager = require('./entity-manager.js'),
+        EntityManager = require('./entity-manager.js'),
+        entityManager,
         SpawningManager = require('./spawning-manager.js'),
-        StoneMonster = require('./stone-monster.js'),
-        DemonicGroundHog = require('./DemonicGroundH.js'),
-        Barrel = require('./barrel.js'),
-        Turret = require('./turret.js'),
-        DynamiteDwarf = require('./dynamiteDwarf.js'),
-        Kakao = require('./Kakao.js'),
-        Bird = require('./bird.js'),
-        bird,
-        kakao,
-        wolf,
-        robo_killer,
-        GoblinMiner = require('./goblin-miner.js'),
-        Shaman = require('./goblin-shaman.js'),
-        Blobber = require('./blobber.js'),
-        blobber,
-        extantBlobbers,
         player,
-        rat,
-        octopus,
-        stoneMonster,
-        Slime = require('./slime.js'),
-        Sudo_Chan = require('./sudo_chan.js'),
-        sudo_chan,
-        slime,
-        goblinMiner,
         screenCtx,
         backBuffer,
         backBufferCtx,
@@ -3818,9 +2754,11 @@ module.exports = (function (){
         PowerUp = require('./powerUp.js'),
         Collectible = require('./collectible.js'),
         ParticleManager = require('./particle-manager.js'),
-		HUD = require('./HUD.js'),
-		hud,
-		healthBar = require('./healthBar.js');
+        HUD = require('./HUD.js'),
+        hud,
+        healthBar = require('./healthBar.js'),
+        Inventory = require('./inventory.js'),
+        Settings = require('./Settings.js');
 
     /* Loads the GameState, triggered by the StateManager
      * This function sets up the screen canvas, the tilemap,
@@ -3834,120 +2772,56 @@ module.exports = (function (){
 
         // Set up the screen canvas
         var screen = document.createElement("canvas");
-        screen.width = SCREEN_WIDTH;
-        screen.height = SCREEN_HEIGHT;
+        screen.width = Settings.SCREENSIZEX;
+        screen.height = Settings.SCREENSIZEY;
         screenCtx = screen.getContext("2d");
         document.getElementById("game-screen-container").appendChild(screen);
 
         // Set up the back buffer
         backBuffer = document.createElement("canvas");
-        backBuffer.width = SCREEN_WIDTH;
-        backBuffer.height = SCREEN_HEIGHT;
+        backBuffer.width = Settings.SCREENSIZEX;
+        backBuffer.height = Settings.SCREENSIZEY;
         backBufferCtx = backBuffer.getContext("2d");
 
         // Generate the tilemap
-        tilemap.generate(1000, 1000, {
+        tilemap.generate(Settings.MAPSIZEX, Settings.MAPSIZEY, {
             viewport: {
-                width: 1280,
-                height: 720
+                width: Settings.SCREENSIZEX,
+                height: Settings.SCREENSIZEY
             },
             onload: function() {
                 window.tilemap = tilemap;
                 tilemap.render(screenCtx);
+                //tilemap.renderWater(screenCtx);
             }
         });
-		
-		// Set up score engine
-        scoreEngine = new ScoreEngine();
-        scoreEngine.setPositionFunction(tilemap.getCameraPosition);
-        entityManager.setScoreEngine(scoreEngine);
-		
+
 		// Set up HUD
-		hud = new HUD(SCREEN_WIDTH, SCREEN_HEIGHT);
-		hb = new healthBar();
-		hud.addElement(hb);
+		hud = new HUD(Settings.SCREENSIZEX, Settings.SCREENSIZEY);
+
+        // Set up score engine
+        scoreEngine = new ScoreEngine();
+        hud.addElement(scoreEngine);
+
+        // Set up invenotory
+        inventory = new Inventory(4);
 		
+        hud.addElement(inventory);
+		for(i=0;i<5;i++){
+			inventory.powerUpPickedUp(2);
+		}
+
+        // Set up health bar
+        hb = new healthBar(stateManager,scoreEngine);
+        hud.addElement(hb);
+
         // Create the player and add them to
         // the entity manager
-        player = new Player(400, 240, 0, inputManager, hb, scoreEngine);
-        entityManager.add(player);
+        var randomPos = tilemap.randomOnSurface();
+        player = new Player(0,0, 0, inputManager, hb, scoreEngine, inventory);
+        entityManager = new EntityManager(player);
 
-        this.spawningManager = new SpawningManager(entityManager, scoreEngine, player);
-
-        //add wolf to
-        // the entity manager
-        //wolf = new Wolf(430,240,0,inputManager);  //four tiles to the right of the player
-        //entityManager.add(wolf);
-
-        // for (var i = 0; i < 35; i += 7){
-        //     stoneMonster = new StoneMonster(64*i, 300, 0);
-        //     entityManager.add(stoneMonster);
-        // }
-
-        // bird = new Bird(600, 100);
-        // entityManager.add(bird);
-        //
-        // // Add a robo-killer to the entity manager.
-        // robo_killer = new Robo_Killer(450, 1240, 0);
-        // entityManager.add(robo_killer);
-        //
-        // rat = new Rat(500, 1360, 0);
-        // entityManager.add(rat);
-        //
-        // slime = new Slime(400, 1120, 0);
-        // entityManager.add(slime);
-        //
-        // sudo_chan = new Sudo_Chan(490, 1240, 0);
-        // entityManager.add(sudo_chan);
-        //
-        octopus = new Octopus(120, 2240, 0);
-        entityManager.add(octopus);
-        //
-        // DemonicGroundHog = new DemonicGroundHog(5*64,240,0,entityManager);
-        // entityManager.add(DemonicGroundHog);
-        //
-        // goblinMiner = new GoblinMiner(180-64-64, 240, 0, entityManager);
-        // entityManager.add(goblinMiner);
-
-        // Create collectibles.
-        // WHOEVER IS IN CHARGE OF ENTITY PLACEMENT: Feel free to change the coordiates (first 2 parameters - x,y).
-        // entityManager.add(new Collectible(500, 240, 0,'bit_coin', 64, 64, 8, './img/bit_coin.png', 10));
-        // entityManager.add(new Collectible(600, 240, 0,'lost_cat', 64, 64, 14, './img/lost_cat.png', 15));
-
-        // Spawn 10 barrels close to player
-        // And some turrets
-        // and some shamans
-        for(i = 0; i < 3; i++) {
-            // if (i < 3) {
-                // turret = new Turret(Math.random()*64*50, Math.random()*64*20, 0);
-                // entityManager.add(turret);
-        
-            // }
-            // dynamiteDwarf = new DynamiteDwarf(Math.random()*64*50, Math.random()*64*20, 0, inputManager);
-            // entityManager.add(dynamiteDwarf);
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'pick', 64, 64, 2, './img/powerUps/pick.png', false, 3600));
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'medicine', 64, 64, 1, './img/powerUps/medicine.png', false, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'crystal', 32, 32, 8, './img/powerUps/crystal.png', true, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'coin', 44, 40, 10, './img/powerUps/coin.png', true, -1));
-            entityManager.add(new PowerUp(Math.random()*64*50, Math.random()*64*20, 0,'stone-shield', 64, 64, 1, './img/powerUps/stone_shield.png', false, -1));
-            // barrel = new Barrel(Math.random()*64*50, Math.random()*64*20, 0);
-            // entityManager.add(barrel);
-            // entityManager.add(new Shaman(Math.random()*64*50, Math.random()*64*20, 0));
-        
-        
-        }
-        // powerUp = new PowerUp(280, 240, 0, 'demo', 44, 40, 10, './img/powerUps/coin.png');
-
-
-        // Karenfang: Create a Kakao and add it to
-        // the entity manager
-        // kakao = new Kakao(310,1240,0);  //two tiles to the right of the player
-        // entityManager.add(kakao);
-        //
-        // extantBlobbers = 1;
-        // blobber = new Blobber(280,240,0,0,0,player,extantBlobbers);
-        // entityManager.add(blobber);
-
+        this.spawningManager = new SpawningManager(entityManager, scoreEngine, player, inputManager);
 
         // Kyle Brown: Background Music
         var bgMusic = new Audio('./resources/sounds/DiggyHoleBGMusicAm.wav');
@@ -3966,24 +2840,24 @@ module.exports = (function (){
      * this and the prior frame.
      */
     var update = function(elapsedTime) {
-        this.spawningManager.update(elapsedTime);
+        this.spawningManager.update(elapsedTime, tilemap);
         entityManager.update(elapsedTime, tilemap, ParticleManager);
-        tilemap.update();
+        tilemap.update(elapsedTime);
         ParticleManager.update(elapsedTime);
         inputManager.swapBuffers();
-        octopus.getPlayerPosition(player.boundingBox());
-		hud.update(player.boundingBox());
+        //octopus.getPlayerPosition(player.boundingBox());
+        hud.update(player.boundingBox());
     };
 
     /* Renders the current state of the game world
      */
     var render = function() {
         // Clear the back buffer
-        backBufferCtx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        backBufferCtx.fillRect(0, 0, Settings.SCREENSIZEX, Settings.SCREENSIZEY);
         // TODO: Calculate rubberbanding
         var bounds = player.boundingBox();
-        var offsetX = SCREEN_WIDTH / 2,
-            offsetY = SCREEN_HEIGHT / 2;
+        var offsetX = Settings.SCREENSIZEX / 2,
+            offsetY = Settings.SCREENSIZEY / 2;
 
         // Apply camera transforms
         backBufferCtx.save();backBufferCtx.translate(offsetX - bounds.left, offsetY - bounds.top);
@@ -3991,16 +2865,16 @@ module.exports = (function (){
 
         // Redraw the map & entities
         tilemap.render(backBufferCtx);
-        entityManager.render(backBufferCtx, true);
+        entityManager.render(backBufferCtx, false);
         //player.render(backBufferCtx, true);
         ParticleManager.render(backBufferCtx);
         tilemap.renderWater(backBufferCtx);
-		hud.render(backBufferCtx);
+        hud.render(backBufferCtx);
 
         backBufferCtx.restore();
-		
+
         // Flip the back buffer
-        screenCtx.drawImage(backBuffer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        screenCtx.drawImage(backBuffer, 0, 0, Settings.SCREENSIZEX, Settings.SCREENSIZEY);
     };
 
     /* Event handler for key down events
@@ -4025,7 +2899,7 @@ module.exports = (function (){
 
     /* Exits the game */
     var exit = function() {};
-    
+
     return {
         load: load,
         exit: exit,
@@ -4037,7 +2911,340 @@ module.exports = (function (){
 
 })();
 
-},{"./DemonicGroundH.js":2,"./HUD.js":3,"./Kakao.js":4,"./barrel.js":8,"./bird.js":9,"./blobber.js":10,"./collectible.js":13,"./dynamiteDwarf.js":17,"./entity-manager.js":18,"./goblin-miner.js":21,"./goblin-shaman.js":22,"./healthBar.js":23,"./input-manager.js":25,"./main-menu.js":26,"./octopus.js":29,"./particle-manager.js":31,"./player.js":32,"./powerUp.js":33,"./rat.js":34,"./robo-killer.js":35,"./score.js":36,"./slime.js":37,"./spawning-manager.js":38,"./stone-monster.js":40,"./sudo_chan.js":42,"./tilemap.js":43,"./turret.js":44,"./wolf.js":45}],21:[function(require,module,exports){
+},{"./HUD.js":3,"./Settings.js":5,"./collectible.js":11,"./entity-manager.js":15,"./healthBar.js":22,"./input-manager.js":24,"./inventory.js":25,"./main-menu.js":27,"./particle-manager.js":30,"./player.js":31,"./powerUp.js":32,"./score.js":33,"./spawning-manager.js":34,"./tilemap.js":36}],18:[function(require,module,exports){
+/* Game over module
+ * Authors:
+ * - Filip Stanek
+ */
+module.exports = (function (){
+
+	
+    var gameOver = document.getElementById("game_over");
+	
+	
+	var engine = function(scoreEngine){
+		this.score = document.getElementById("score");
+		this.score.innerHTML = "Score: " + scoreEngine.getScore();
+	};
+    var load = function(sm) {
+        gameOver.style.display = "flex";
+    };
+
+    var exit = function() {
+        gameOver.style.display = "none";
+    };
+
+    var update = function() {};
+
+    var render = function() {};
+
+    var keyDown = function(event) {
+        switch(event.keyCode) {
+            case 13: // ENTER
+                location.reload();
+                break;
+        }
+    };
+
+    function keyUp(event) {}
+
+    return {
+		engine: engine,
+        load: load,
+        exit: exit,
+        update: update,
+        render: render,
+        keyDown: keyDown,
+        keyUp: keyUp
+    }
+})();
+},{}],19:[function(require,module,exports){
+/* Ghost Miner module
+ * Implements the entity pattern and provides
+ * the Ghost Miner info.
+ * Authors:
+ * - Daniel Marts
+ */
+module.exports = (function(){
+  var Entity = require('./entity.js'),
+      Animation = require('./animation.js');
+
+const IDLE = 0;
+const MOVING = 1;
+const AGGRESSIVE = 2;
+const ATTACKING = 3;
+var direction;//0 for left, 1 for right
+
+  // The Sprite Size
+  const SIZE = 64;
+
+  // Movement constants
+  const PAS_SPEED = 40;//Passive speed
+  const AGR_SPEED = 120;//Aggressive speed
+
+  //The Right facing dwarf spritesheet
+  var ghostRight = new Image();
+  ghostRight.src = 'img/GhostAnimatedLeft.png';
+
+  //The left facing dwarf spritesheet
+  var ghostLeft = new Image();
+  ghostLeft.src = "img/GhostAnimatedLeft.png";
+
+  //The Player constructor
+  function Ghost(locationX, locationY, layerIndex, id) {
+    this.state = IDLE;
+    this.direction = 1;
+    this.layerIndex = layerIndex;
+    this.currentX = locationX;
+    this.currentY = locationY;
+    this.velocityX = 0;
+    this.velocityY = 0;
+    this.health = 100;
+    this.lastTime = 0;//Tracks the last time update was called
+    this.id = id;
+	  this.type = "ghost";
+    this.score = 4;
+
+    //The animations
+    this.animations = {
+      left: [],
+      right: [],
+    }
+
+    //The right-facing animations
+    this.animations.right[IDLE] = new Animation(ghostRight, SIZE, SIZE, 0, 0, 4);
+    this.animations.right[MOVING] = new Animation(ghostRight, SIZE, SIZE, 0, 0, 4);
+    this.animations.right[AGGRESSIVE] = new Animation(ghostRight, SIZE, SIZE, SIZE*1, 0, 4);
+    this.animations.right[ATTACKING] = new Animation(ghostRight, SIZE, SIZE, SIZE*2, 0, 4);
+
+    //The left-facing animations
+    this.animations.left[IDLE] = new Animation(ghostLeft, SIZE, SIZE, 0, 0, 4);
+    this.animations.left[MOVING] = new Animation(ghostLeft, SIZE, SIZE, 0, 0, 4);
+    this.animations.left[AGGRESSIVE] = new Animation(ghostLeft, SIZE, SIZE, SIZE*1, 4);
+    this.animations.left[ATTACKING] = new Animation(ghostLeft, SIZE, SIZE, 0, SIZE*2, 4);
+  }
+
+  // Player inherits from Entity
+  Ghost.prototype = new Entity();
+
+  // Determines if the player is on the ground
+  Ghost.prototype.onGround = function(tilemap) {
+    var box = this.boundingBox(),
+        tileX = Math.floor((box.left + (SIZE/2))/64),
+        tileY = Math.floor(box.bottom / 64),
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    // find the tile we are standing on.
+    return (tile && tile.data.solid) ? true : false;
+  }
+
+  // Moves the player to the left, colliding with solid tiles
+  Ghost.prototype.moveLeft = function(distance, tilemap) {
+    this.currentX -= distance;
+    var box = this.boundingBox(),
+        tileX = Math.floor(box.left/64),
+        tileY = Math.floor(box.bottom / 64) - 1,
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
+  }
+
+  // Moves the player to the right, colliding with solid tiles
+  Ghost.prototype.moveRight = function(distance, tilemap) {
+    this.currentX += distance;
+    var box = this.boundingBox();
+        tileX = Math.floor(box.right/64);
+        tileY = Math.floor(box.bottom / 64) - 1;
+        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+    if (tile && tile.data.solid)
+      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
+  }
+
+  /* Ghost update function
+   * arguments:
+   * - elapsedTime, the time that has passed
+   *   between this and the last frame.
+   * - tilemap, the tilemap that corresponds to
+   *   the current game world.
+   */
+  Ghost.prototype.update = function(elapsedTime, tilemap, entityManager) {
+    if (this.health == 0) {
+      entityManager.remove(this.id);
+    }
+    else {
+      switch(this.state){
+        case IDLE:
+          if (this.health < 100) {
+            this.state = AGGRESSIVE;
+          }
+          else {
+            var chance = Math.random();
+            if (chance > .95) { //5% chance to change states
+              this.state = MOVING;
+            }
+          }
+          break;
+        case MOVING:
+          if (this.health < 100)
+          {
+            this.state = AGGRESSIVE;
+          }
+          else {
+            var chance = Math.random();
+            if (chance > 95) { //5% chance to change states
+              this.state = IDLE;
+            }
+            else if (chance > 92) { //Small chance to change direction
+              if (direction == 0) direction = 1;
+              else direction = 0;
+            }
+            else {
+              if (!this.onGround(tilemap)){
+                this.velocityY = -1;
+                this.currentY = this.currentY + this.velocityY;
+              }
+              else this.velocityY = 0;
+              if (direction == 0) this.moveLeft(elapsedTime * PAS_SPEED, tilemap);
+              else this.moveRight(elapsedTime * PAS_SPEED, tilemap);
+            }
+          }
+          break;
+        case AGGRESSIVE:
+          if (this.health == 100) this.state = IDLE;
+          var PlayerX = Player.currentX;
+          var PlayerY = Player.currentY;
+          var dist = (PlayerX - this.currentX) * (PlayerX - this.currentX) + (PlayerY - 
+			this.currentY) * (PlayerY - this.currentY);
+          if (dist <= 40*40){
+            this.state = ATTACKING;
+            //We do not want to pause moving, so we always execute code below this
+          }
+          if (this.currentX > PlayerX) this.moveLeft(elapsedTime * AGR_SPEED, tilemap);
+          else this.moveRight(elapsedTime * AGR_SPEED, tilemap);
+          if (this.currentY > PlayerY) this.velocityY = -5;
+          else this.velocityY = 5;
+          this.currentY = this.currentY + this.velocityY;
+          break;
+        case ATTACKING:
+          if (this.health == 100) this.state = IDLE;
+          else {
+            var PlayerX = Player.currentX;
+            var PlayerY = Player.currentY;
+            var dist = (PlayerX - this.currentX) * (PlayerX - this.currentX) + (PlayerY - 
+				this.currentY) * (PlayerY - this.currentY);
+            if (dist > 40*40) {
+              this.state = AGGRESSIVE;
+            }
+            else {
+              if (this.currentX > PlayerX) this.moveLeft(elapsedTime * AGR_SPEED, tilemap);
+              else this.moveRight(elapsedTime * AGR_SPEED, tilemap);
+              if (this.currentY > PlayerY) this.velocityY = -5;
+              else this.velocityY = 5;
+              this.currentY = this.currentY + this.velocityY;
+              if (direction == 0) {
+                if (animations.left[ATTACKING].frameIndex == 3) {
+                  Player.health -= 10;
+                }
+              }
+              else if (direction == 1) {
+                if (animations.right[ATTACKING].frameIndex == 3) {
+                  Player.health -= 10;
+                }
+              }
+            }
+          }
+
+          break;
+        }
+        if (this.health < 100) {
+          this.health += Math.floor(elapsedTime / 100);
+          if (this.health > 100) this.health = 100;
+        }
+
+        // Update animation
+        if(direction == 0)
+          this.animations.left[this.state].update(elapsedTime);
+        else
+          this.animations.right[this.state].update(elapsedTime);
+    }
+  }
+
+  /* Ghost Render Function
+   * arguments:
+   * - ctx, the rendering context
+   * - debug, a flag that indicates turning on
+   * visual debugging
+   */
+  Ghost.prototype.render = function(ctx, debug) {
+    // Draw the ghost (and the correct animation)
+    if(this.direction == 0)
+      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
+    else
+      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
+
+    if(debug) renderDebug(this, ctx);
+  }
+
+  // Draw debugging visual elements
+  function renderDebug(player, ctx) {
+    var bounds = player.boundingBox();
+    ctx.save();
+
+    // Draw ghost bounding box
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(bounds.left, bounds.top);
+    ctx.lineTo(bounds.right, bounds.top);
+    ctx.lineTo(bounds.right, bounds.bottom);
+    ctx.lineTo(bounds.left, bounds.bottom);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  /* Ghost BoundingBox Function
+   * returns: A bounding box representing the player
+   */
+  Ghost.prototype.boundingBox = function() {
+    return {
+      left: this.currentX,
+      top: this.currentY,
+      right: this.currentX + SIZE,
+      bottom: this.currentY + SIZE
+    }
+  }
+
+  Ghost.prototype.boundingCircle = function() {
+     return {
+		 cx: this.currentX + SIZE/2,
+		 cy: this.currentY + SIZE/2,
+		 radius: SIZE/2
+	  }
+   }
+
+   Ghost.prototype.collide = function(otherEntity) {
+     if (otherEntity.type == "player" && state == ATTACKING) {
+       var rand = Math.random();
+       //10% chance to haunt the player, killing the ghost and dealing a
+       //large amount of damage to the player
+       if (rand > .90) { //10% chance to haunt the player
+         //There is no way to remove the entity from entity manager
+         //without changing the function, which will then not match
+         //other students collide function, so I have set his
+         //health to 0 for now, and damage the player
+         health = 0;//remove the ghost from game
+         otherEntity.health -= 30;
+
+       }
+
+     }
+   }
+
+  return Ghost;
+
+}());
+
+},{"./animation.js":6,"./entity.js":16}],20:[function(require,module,exports){
 /* Goblin Miner module
  * Implements the entity pattern and provides
  * the DiggyHole Goblin Miner info.
@@ -4079,6 +3286,7 @@ module.exports = (function(){
 		this.velocityY = 0;
 	    this.isLeft = false;
 		this.direction = 0;
+		this.type = 'goblinMiner';
 
 	    // The animations
 	    this.animations = {
@@ -4544,7 +3752,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity.js":19}],22:[function(require,module,exports){
+},{"./animation.js":6,"./entity.js":16}],21:[function(require,module,exports){
 /* Richard Habeeb */
 
 module.exports = (function(){
@@ -4732,84 +3940,100 @@ module.exports = (function(){
     return shaman;
 })();
 
-},{"./animation.js":7,"./entity.js":19}],23:[function(require,module,exports){
- module.exports = (function(){
-	 var HB;
-	 
-	 function HealthBar() {
-		 const 	hbYOffset = 50,
-				hbWidth = 200,
-				hbHeight = 30,
-				lineCount = Math.round(hbWidth / 40),
-				lineOffset = Math.round(hbWidth / 100),
-				alpha = 1/lineCount,
-				hbXOffset = Math.round(hbWidth / 25),
-				hbFrameWidthOffset = 5,
-				hbFrameYOffset = hbYOffset - ((lineCount+1)*4-lineOffset)/2 - hbFrameWidthOffset;
-				
-				
-		 
-		 this.x;
-		 this.y;
-		 this.health = 100;
-		 this.deficit = 0;
-		 
-		 
-		 this.heal = function(health) {
-			 this.health = Math.min(this.health + health, 100)
-		 }
-		 
-		 this.hurt = function(health) {
-			 this.health = Math.max(this.health - health, 0)
-		 }
-		 
-		 /**
-			screenCtx: 		canvas
-			x:				top left corner x of the player
-			y:				top left corner y of the player
-			screenWidth:	screen width
-			screenHeight:	screen height
+},{"./animation.js":6,"./entity.js":16}],22:[function(require,module,exports){
+module.exports = (function(){
+
+	function HealthBar(stateManager, scoreEngine) {
+		const 	hbYOffset = 50,
+			hbWidth = 200,
+			hbHeight = 30,
+			lineCount = Math.round(hbWidth / 40),
+			lineOffset = Math.round(hbWidth / 100),
+			alpha = 1/lineCount,
+			hbXOffset = Math.round(hbWidth / 25),
+			hbFrameWidthOffset = 5,
+			hbFrameYOffset = hbYOffset - ((lineCount+1)*4-lineOffset)/2 - hbFrameWidthOffset;
+
+
+		this.x;
+		this.y;
+		this.health = 100;
+		this.deficit = 0;
+		
+		this.stateManager = stateManager;
+		this.scoreEngine = scoreEngine;
+		this.gameOver = require('./gameOver.js');
+		
+
+		this.heal = function(health) {
+			this.health = Math.min(this.health + health, 100)
+		};
+
+		/**
+		 returns true if the player is alive
+		 returns false if the player is dead
 		 */
-		 this.update = function(x, y, screenWidth, screenHeight) {
-			 // console.log("x: " + x + " y: " + y);
-			 this.x = x;
-			 this.y = y;
-			 this.deficit = (1 - this.health / 100) * (hbWidth - 2 * hbXOffset);
-		 }
-		 
-		 
-		 /**
-			screenCtx: 		canvas
+		this.hurt = function(health) {
+			this.health = Math.max(this.health - health, 0);
+			var sm = this.stateManager;
+			var go = this.gameOver;
+			
+			if (this.health == 0) {
+				this.gameOver.engine(this.scoreEngine);
+				setInterval(function(){
+					
+					sm.pushState(go);
+				}, 3000);
+				return false;
+			}
+			return true;
+		};
+
+		/**
+		 screenCtx: 		canvas
+		 x:				top left corner x of the player
+		 y:				top left corner y of the player
+		 screenWidth:	screen width
+		 screenHeight:	screen height
 		 */
-		 this.render = function(screenCtx) {
-			 
-			 screenCtx.strokeStyle = 'black';
-			 screenCtx.fillStyle = 'black';
-			 screenCtx.lineWidth = 5;
-			 screenCtx.rect(this.x, this.y + hbFrameYOffset, hbWidth,
-							(lineCount+1)*4-lineOffset + hbFrameWidthOffset*2);
-			 screenCtx.stroke();
-			 
-			 for (var j = lineCount; j >= 0; j --) {
-				 screenCtx.lineWidth = (j+1)*4-lineOffset;
-				 if	(j == 0)
-					 screenCtx.strokeStyle = '#fff';
-				 else
-					 screenCtx.strokeStyle = 'rgba(255,0,0,'+alpha+')';
-				 screenCtx.beginPath();
-				 screenCtx.moveTo(this.x + hbXOffset, this.y + hbYOffset);
-				 screenCtx.lineTo(this.x + hbWidth - hbXOffset - this.deficit, this.y + hbYOffset);
-				 screenCtx.stroke();
-			 }
-		 }
-		 HB = this;
-	 }
-	 
-	 
-	 
-	 return HealthBar
+		this.update = function(x, y, screenWidth, screenHeight) {
+			// console.log("x: " + x + " y: " + y);
+			this.x = x;
+			this.y = y;
+			this.deficit = (1 - this.health / 100) * (hbWidth - 2 * hbXOffset);
+		};
+
+
+		/**
+		 screenCtx: 		canvas
+		 */
+		this.render = function(screenCtx) {
+
+			screenCtx.strokeStyle = 'black';
+			// screenCtx.fillStyle = 'black';
+			screenCtx.lineWidth = 5;
+			screenCtx.rect(this.x, this.y + hbFrameYOffset, hbWidth,
+				(lineCount+1)*4-lineOffset + hbFrameWidthOffset*2);
+			screenCtx.stroke();
+
+			for (var j = lineCount; j >= 0; j --) {
+				screenCtx.lineWidth = (j+1)*4-lineOffset;
+				if	(j == 0)
+					screenCtx.strokeStyle = 'yellow';
+				else
+					screenCtx.strokeStyle = 'rgba(255,0,0,'+alpha+')';
+				screenCtx.beginPath();
+				screenCtx.moveTo(this.x + hbXOffset, this.y + hbYOffset);
+				screenCtx.lineTo(this.x + hbWidth - hbXOffset - this.deficit, this.y + hbYOffset);
+				screenCtx.closePath();
+				screenCtx.stroke();
+			}
+		}
+	}
+
+	return HealthBar;
 }());
-},{}],24:[function(require,module,exports){
+},{"./gameOver.js":18}],23:[function(require,module,exports){
 /**
  * Help Menu: Manages the help menu screen
  * Created by Josh Benard on 11/19/15.
@@ -4932,7 +4156,7 @@ module.exports = (function (){
     }
 
 })();
-},{"./bone.js":11,"./input-manager.js":25,"./player.js":32}],25:[function(require,module,exports){
+},{"./bone.js":9,"./input-manager.js":24,"./player.js":31}],24:[function(require,module,exports){
 module.exports = (function() { 
 
   var commands = {	
@@ -4944,9 +4168,15 @@ module.exports = (function() {
     DIGLEFT: 65, 	// A
     DIGRIGHT: 68,	// D
     DIGUP: 87,		// W
-	PAY: 80,		// P
+	PAY: 50,		// P
 	ATTACK : 65,	// A
-	SHOOT : 66	 	// B
+	SHOOT : 66,	 	// B
+	ONE : 49,
+	TWO : 50,
+	THREE : 51,
+	FOUR : 52,
+	FIVE : 53,
+	SIX : 54
   }
   
   var oldKeys = [];
@@ -4997,7 +4227,118 @@ module.exports = (function() {
   }
   
 })();
-},{}],26:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
+module.exports = (function(){
+	
+	var InventorySlot = require('./inventorySlot.js');
+	
+	const	slotSize = 64,
+			lineWidth = 5;
+	
+	/**
+	This class manages player's inventory.
+	All actions from input manager are handled
+	from the player class - section commented as
+	Power Up Usage Management
+	
+	slotNum		- number of slots in the inventory
+	*/
+	function Inventory(slotNum) {
+		this.x;
+		this.y;
+		this.slotNum = slotNum;
+		this.slots = new Array(slotNum);
+		this.inventoryLength = slotNum * slotSize;
+		
+		
+		//Init Power Ups
+			// Hardcoded to 3
+			// Change parameter in inventory constructor in game.js
+		for (var i = 0; i < slotNum; i ++) {
+			if (i == 0) {
+				this.slots[0] = new InventorySlot('./img/powerUps/medicine.png');
+			} else if (i == 1) {
+				this.slots[1] = new InventorySlot('./img/powerUps/coinsingle.png');
+			} else if (i == 2) {
+				this.slots[2] = new InventorySlot('./img/powerUps/bone.png');
+			} else if (i == 3) {
+				 this.slots[3] = new InventorySlot('./img/powerUps/crystal.png');
+			} 
+		};
+		
+		this.slotUsed = function(idx) {
+			return this.slots[idx].slotUsed();
+		};
+		
+		this.powerUpPickedUp = function(idx) {
+			this.slots[idx].pickedUp();
+		}
+		
+		this.update = function(x, y, screenWidth, screenHeight) {
+			this.x = x + screenWidth - this.inventoryLength - lineWidth;
+			this.y = y + screenHeight - slotSize;
+		};
+	
+		this.render = function(screenCtx) {
+			screenCtx.strokeStyle = 'black';
+			screenCtx.lineWidth = lineWidth;
+			for (var i = 0; i < this.slotNum; i ++) {
+				screenCtx.rect(this.x + i * slotSize, this.y, slotSize, slotSize);
+				this.slots[i].render(screenCtx, this.x + i * slotSize, this.y);
+			}
+			screenCtx.stroke();
+		};
+	};
+
+return Inventory;
+}());
+},{"./inventorySlot.js":26}],26:[function(require,module,exports){
+module.exports = (function(){
+	
+	const IMG_SIZE = 64;
+	
+	function InventorySlot(imgSrc) {
+		this.amount = 0;
+		this.img = new Image();
+		this.img.src = imgSrc;
+		
+		/**
+			Returns true if power up in the inventory otherwise false
+		*/
+		this.slotUsed = function() {
+			if (this.amount > 0) {
+				this.amount--;
+				console.log("Used slot");
+				return true;
+			}
+			console.log("Not enough in slot");
+			return false;
+		};
+		
+		this.pickedUp = function() {
+			this.amount ++;
+		};
+		
+		this.render = function(screenCtx, x, y) {
+			if (this.img.complete == false)
+				return;
+			if (this.amount > 0)
+				screenCtx.drawImage(this.img, 0, 0, IMG_SIZE, IMG_SIZE, x, y, IMG_SIZE, IMG_SIZE);
+				screenCtx.font = "20pt Calibri";
+				screenCtx.fillStyle = "red";
+				screenCtx.fillText("x"+this.amount, x+5, y + IMG_SIZE - 10);
+				
+		};
+	}
+
+
+return InventorySlot;
+}());
+
+
+
+
+},{}],27:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -5131,7 +4472,7 @@ module.exports = (function (){
   }
   
 })();
-},{"./credits-screen":14,"./help-screen":24}],27:[function(require,module,exports){
+},{"./credits-screen":12,"./help-screen":23}],28:[function(require,module,exports){
 
 
 // Wait for the window to load completely
@@ -5176,7 +4517,7 @@ window.onload = function() {
   window.requestAnimationFrame(loop);
   
 };
-},{"./game":20,"./splash-screen":39}],28:[function(require,module,exports){
+},{"./game":17,"./splash-screen":35}],29:[function(require,module,exports){
 /* Noise generation module
  * Authors:
  * - Nathan Bean
@@ -5184,7 +4525,7 @@ window.onload = function() {
  */
 module.exports = (function(){
   // Initially, we start with a random seed
-  var seed = 0; //Math.random();
+  var seed = Math.random();
 
   /* Seeds the random number generator
    * params:
@@ -5210,88 +4551,68 @@ module.exports = (function(){
   Nathan Bean's Perlin Noise file*/
 
   function generateNoise(width, height){
-    var noise = new Array(width*height);
+      var map = new Array(width * height);
 
-    for (i = 0; i < width; i++){
-      for (j = 0; j < height; j++){
-        noise[j * width + i] = (randomNumber(0, 1269.5));
+      for (var a = 0; a < height; a++){
+          for (var b = 0; b < width; b++) {
+              map[a*height + b] = Math.random();
+          }
       }
-    }
 
-    return noise;
+      return map;
   }
 
-  function generateSmoothNoise(mapWidth, noise, octave){
-    var width = mapWidth;
-    var height = noise.length / width;
+  function generateSmoothNoise(x, y, width, height, noise) {
+      var fractX = x - Math.floor(x);
+      var fractY = y - Math.floor(y);
 
-    var smoothNoise = new Array(width*height);
+      var x1 = (Math.floor(x) + width) % width;
+      var y1 = (Math.floor(y) + height) % height;
 
-    var samplePeriod = Math.floor(Math.pow(2, octave));
-    var sampleFrequency = 1.0 / samplePeriod;
+      var x2 = (x1 + width - 1) % width;
+      var y2 = (y1 + height - 1) % height;
 
-    for (i = 0; i < width; i++){
-      var sample_i0 = Math.floor(Math.floor(i / samplePeriod) * samplePeriod);
-      var sample_i1 = Math.floor((sample_i0 + samplePeriod) % width);
-      var horizontal_blend = (i - sample_i0) * sampleFrequency;
+      var value = 0.0;
+      value += fractX * fractY * noise[y1 * width + x1];
+      value += fractX * (1 - fractY) * noise[y2 * width + x1];
+      value += (1 - fractX) * fractY * noise[y1 * width + x2];
+      value += (1 - fractX) * (1 - fractY) * noise[y2 * width + x2];
 
-      for (j = 0; j < height; j++){
-        var sample_j0 = Math.floor(Math.floor(j / samplePeriod) * samplePeriod);
-        var sample_j1 = Math.floor((sample_j0 + samplePeriod) % height);
-        var vertical_blend = (j - sample_j0) * sampleFrequency;
-
-        var top = Interpolate(noise[sample_j0 * width + sample_i0],
-          noise[sample_j0 * width + sample_i1], horizontal_blend);
-
-        var bottom = Interpolate(noise[sample_j1 * width + sample_i0],
-          noise[sample_j1 * width + sample_i1], horizontal_blend);
-
-        smoothNoise[j * width + i] = Interpolate(top, bottom, vertical_blend);
-      }
-    }
-
-    return smoothNoise;
+      return value;
   }
 
   function Interpolate(x0, x1, alpha){
     return x0 * (1-alpha) + alpha * x1;
   }
 
-  function generatePerlinNoise(mapWidth, noise, octave){
-    var width = mapWidth;
-    var height = noise.length / width;
+  function Turbulence(x, y, width, height, size, noise) {
+      var value = 0.0, initialSize = size;
 
-    var smoothNoise = new Array(octave);
-
-    var persistance = 0.5;
-
-    for (x = 0; x < octave; x++){
-      smoothNoise[x] = generateSmoothNoise(mapWidth, noise, x);}
-
-    var perlinNoise = new Array(width*height);
-    var amplitude = 1.0;
-    var totalAmplitude = 0.0;
-
-    for (o = octave - 1; o >= 0; o--){
-      amplitude *= persistance;
-      totalAmplitude += amplitude;
-
-      for (i = 0; i < width; i++){
-        for (j = 0; j < height; j++){
-          perlinNoise[j * width + i] = smoothNoise[o][j * width + i] * amplitude;
-        }
+      while (size >= 1) {
+          value += generateSmoothNoise(x / size, y / size, width, height, noise) * size;
+          size /= 2.0;
       }
-    }
 
-    for (i = 0; i < width; i++){
-      for (j = 0; j < height; j++){
-        perlinNoise[j * width + i] = perlinNoise[j * width + i] / totalAmplitude;
-      }
-    }
-
-    return perlinNoise;
+      return (128.0 * value / initialSize);
   }
-  /*END PERLIN NOISE TUTORIAL/CODE*/
+
+  function generatePerlinNoise(map, width, height, noise) {
+      var translate = [1,1,1,3,5,10,4,4,5,9,6,11,7,9,7];
+
+      for (var a = 0; a < height; a++) {
+          for (var b = 0; b < width; b++) {
+              map[a * width + b] = translate[Math.floor(Clamp(Turbulence(a, b, width, height, 64, noise) / 10 /*FREQUENCY*/,0,15))];
+          }
+      }
+
+      return map;
+  }
+
+  function Clamp(val, min, max) {
+      if (val > max) return max;
+      else if (val < min) return min;
+      else return val;
+  }
 
   return {
     setSeed: setSeed,
@@ -5299,269 +4620,12 @@ module.exports = (function(){
     generateNoise: generateNoise,
     generateSmoothNoise: generateSmoothNoise,
     generatePerlinNoise: generatePerlinNoise,
+    Turbulence: Turbulence,
+    Clamp: Clamp
   }
-
 }());
 
-},{}],29:[function(require,module,exports){
-/**
- * Created by Jessica on 11/8/15.
- */
-
-module.exports = function () {
-
-    var Entity = require('./entity.js'),
-        OctopusAnimation = require('./octopus_animation.js');
-
-
-    //const STANDING = 0;
-    const WALKING = 1;
-    const JUMPING = 2;
-    const ATTACKING = 3;
-    const FALLING = 4;
-
-    const SIZE = 64;
-
-    const SPEED = 150;
-    const GRAVITY = -250;
-    const JUMP_VELOCITY = -600;
-
-    const IMG_WIDTH = 240;
-    const IMG_HEIGH = 309;
-
-    var oct = new Image();
-    oct.src = './img/octopus.png';
-
-    function Octopus(locationX, locationY, layerIndex) {
-        this.state = WALKING;
-        this.layerIndex = layerIndex;
-        this.currentX = locationX;
-        this.currentY = locationY;
-        this.gravity = 0.5;
-        this.xSpeed = 10;
-        this.ySpeed = 15;
-        this.animations = [];
-        this.isLeft = false;
-        this.type = "magicOctopus";
-
-        //this.animations[STANDING] = new OctopusAnimation(oct, IMG_WIDTH, IMG_HEIGH, SIZE, 0, 0);
-        this.animations[WALKING] = new OctopusAnimation(oct, IMG_WIDTH, IMG_HEIGH, SIZE, 0, 0, 4);
-        this.animations[JUMPING] = new OctopusAnimation(oct, IMG_WIDTH, IMG_HEIGH, SIZE, 0, IMG_HEIGH, 4);
-        this.animations[FALLING] = new OctopusAnimation(oct, IMG_WIDTH, IMG_HEIGH, SIZE, 0, 0);
-        this.animations[ATTACKING] = new OctopusAnimation(oct, IMG_WIDTH, IMG_HEIGH, SIZE, 0, IMG_HEIGH * 2, 4);
-
-    }
-
-    Octopus.prototype = new Entity();
-
-    Octopus.prototype.onGround = function (tilemap) {
-        var box = this.boundingBox(),
-            tileX = Math.floor((box.left + (SIZE / 2)) / 64),
-            tileY = Math.floor(box.bottom / 64);
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        return (tile && tile.data.solid) ? true : false;
-    };
-
-    Octopus.prototype.moveLeft = function (distance, tilemap) {
-        this.currentX -= distance;
-        var box = this.boundingBox(),
-            tileX = Math.floor(box.left / 64),
-            tileY = Math.floor(box.bottom / 64) - 1,
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && tile.data.solid)
-            this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
-    };
-
-    Octopus.prototype.moveRight = function (distance, tilemap) {
-        this.currentX += distance;
-        var box = this.boundingBox(),
-            tileX = Math.floor(box.right / 64),
-            tileY = Math.floor(box.bottom / 64) - 1,
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && tile.data.solid)
-            this.currentX = (Math.ceil(this.currentX / 64) - 1) * 64;
-    };
-
-    Octopus.prototype.getPlayerPosition = function(playerPosition) {
-
-        if (playerPosition.top <= this.currentY - 64) {
-            this.state = JUMPING;
-            this.velocityY = JUMP_VELOCITY;
-        } else if (playerPosition.left > this.currentX + 64) {
-            this.state = WALKING;
-            this.isLeft = false;
-        } else if (playerPosition.left < this.currentX - 64) {
-            this.state = WALKING;
-            this.isLeft = true;
-        }
-
-    };
-
-    Octopus.prototype.update = function(elapsedTime, tilemap) {
-
-        switch(this.state) {
-            //case STANDING:
-            case WALKING:
-                // If there is no ground underneath, fall
-                if (!this.onGround(tilemap)) {
-                    this.state = FALLING;
-                    this.velocityY = 0;
-                }
-                if (this.isLeft == true) {
-                    this.moveLeft(elapsedTime * SPEED, tilemap);
-                } else {
-                    this.moveRight(elapsedTime * SPEED, tilemap);
-                }
-
-                break;
-            case JUMPING:
-                this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-                this.currentY += this.velocityY * elapsedTime;
-                if (this.velocityY > 0) {
-                    this.state = FALLING;
-                }
-                break;
-            case FALLING:
-                this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-                this.currentY += this.velocityY * elapsedTime;
-                if (this.onGround(tilemap)) {
-                    this.state = WALKING;
-                    this.currentY = 64 * Math.floor(this.currentY / 64);
-                }
-                break;
-        }
-        this.animations[this.state].update(elapsedTime);
-
-     };
-
-    function renderDebug(player, ctx) {
-        var bounds = player.boundingBox();
-        ctx.save();
-
-        // Draw player bounding box
-        ctx.strokeStyle = "black";
-        ctx.beginPath();
-        ctx.moveTo(bounds.left, bounds.top);
-        ctx.lineTo(bounds.right, bounds.top);
-        ctx.lineTo(bounds.right, bounds.bottom);
-        ctx.lineTo(bounds.left, bounds.bottom);
-        ctx.closePath();
-        ctx.stroke(); // Outline tile underfoot
-        var tileX = 64 * Math.floor((bounds.left + (SIZE / 2 )) / 64),
-            tileY = 64 * (Math.floor(bounds.bottom / 64));
-        ctx.strokeStyle = "black";
-        ctx.beginPath();
-        ctx.moveTo(tileX, tileY);
-        ctx.lineTo(tileX + 64, tileY);
-        ctx.lineTo(tileX + 64, tileY + 64);
-        ctx.lineTo(tileX, tileY + 64);
-        ctx.closePath();
-        ctx.stroke();
-
-        ctx.restore();
-    }
-
-
-    Octopus.prototype.render = function (context, debug) {
-        this.animations[this.state].render(context, this.currentX, this.currentY);
-
-        if (debug) renderDebug(this, context);
-    };
-
-    Octopus.prototype.collide = function (otherEntity) {
-        if (otherEntity.type != "player") {
-            if (this.onGround(tilemap)) {
-                this.state = ATTACKING;
-            }
-        }
-    };
-
-    Octopus.prototype.boundingBox = function () {
-        return {
-            left: this.currentX,
-            top: this.currentY,
-            right: this.currentX + SIZE,
-            bottom: this.currentY + SIZE
-        }
-    };
-
-    Octopus.prototype.boundingCircle = function () {
-        return {
-            cx: this.currentX + SIZE / 2,
-            cy: this.currentY + SIZE / 2,
-            radius: SIZE / 2
-        }
-    };
-
-    return Octopus;
-
-}();
-
-
-},{"./entity.js":19,"./octopus_animation.js":30}],30:[function(require,module,exports){
-/**
- * Created by Jessica on 11/8/15.
- */
-module.exports = (function() {
-
-    function OctopusAnimation(image, srcWidth, srcHeight, size, top, left, numberOfFrames, secondsPerFrame) {
-        this.frameIndex = 0;
-        this.time = 0;
-        this.secondsPerFrame = secondsPerFrame || (1/16);
-        this.numberOfFrames = numberOfFrames || 1;
-
-        this.srcWidth = srcWidth;
-        this.srcHeight = srcHeight;
-        this.size = size;
-        this.image = image;
-
-        this.drawLocationX = top || 0;
-        this.drawLocationY = left || 0;
-    }
-
-    OctopusAnimation.prototype.setStats = function(frameCount, locationX, locationY){
-        this.numberOfFrames = frameCount;
-        this.drawLocationY = locationY;
-        this.drawLocationX = locationX;
-    };
-
-    OctopusAnimation.prototype.update = function (elapsedTime, tilemap) {
-        this.time += elapsedTime;
-
-        // Update animation
-        if (this.time > this.secondsPerFrame) {
-            if(this.time > this.secondsPerFrame) this.time -= this.secondsPerFrame;
-
-            // If the current frame index is in range
-            if (this.frameIndex < this.numberOfFrames - 1) {
-                this.frameIndex += 1;
-            } else {
-                this.frameIndex = 0;
-            }
-        }
-    };
-
-    OctopusAnimation.prototype.render = function(ctx, x, y) {
-
-        // Draw the current frame
-        ctx.drawImage(
-            this.image,
-            this.drawLocationX + this.frameIndex * this.srcWidth,
-            this.drawLocationY,
-            this.srcWidth,
-            this.srcHeight,
-            x,
-            y,
-            this.size,
-            this.size);
-    };
-
-
-
-    return OctopusAnimation;
-
-}());
-},{}],31:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 /* The particle manager maintains the list of particles currently in the world,
 *  and handles the update and rendering functions for it
 *
@@ -5778,7 +4842,7 @@ return {
 
 }());
 
-},{}],32:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 /* Player module
  * Implements the entity pattern and provides
  * the DiggyHole player info.
@@ -5792,13 +4856,15 @@ module.exports = (function() {
     var Entity = require('./entity.js'),
         Animation = require('./animation.js'),
         Pickaxe = require('./Pickaxe.js'),
-        Bone = require('./Bone.js');
+        Bone = require('./Bone.js'),
+        Settings = require('./Settings.js');
 
     /*Audio sources*/
     jump_sound = new Audio('resources/sounds/jumping_sound.wav');
     dig_sound = new Audio('resources/sounds/digging_sound.mp3');
     walk_sound = new Audio('resources/sounds/walking_sound.mp3');
     throw_sound = new Audio('resources/sounds/throwing_sound.mp3');
+    death_sound = new Audio('resources/sounds/death.wav');
 
 
     /* The following are player States (Swimming is not implemented) */
@@ -5808,6 +4874,7 @@ module.exports = (function() {
     const DIGGING = 3;
     const FALLING = 4;
     const SWIMMING = 5;
+    const DEAD = 6;
 
     /* The following are digging direction states */
     const NOT_DIGGING = 0;
@@ -5817,7 +4884,9 @@ module.exports = (function() {
     const UP_DIGGING = 4;
 
     // The Sprite Size
+    //depricated. this will soon be removed. TODO
     const SIZE = 64;
+
 
     // Movement constants
     const GRAVITY = -250;
@@ -5825,9 +4894,12 @@ module.exports = (function() {
     const JUMP_VELOCITY = -900;
 
     // Swimming Moving Constant
-    const GRAVITY_IN_WATER = -80;
-    const SWIM_UP = -164;
+    const GRAVITY_IN_WATER = -120;
+    const SWIM_UP = -100;
     const SPEED_IN_LIQUID = 80;
+
+    // Inventory constants
+    const POWER_UP_FREQUENCY = 0.5;
 
     //The Right facing dwarf spritesheet
     var dwarfRight = new Image();
@@ -5837,6 +4909,9 @@ module.exports = (function() {
     var dwarfLeft = new Image();
     dwarfLeft.src = "DwarfAnimatedLeft.png";
 
+    var dwarfDead = new Image();
+    dwarfDead.src = './img/dead_small.png';
+
     var ratRight = new Image();
     ratRight.src = 'img/ratRight2.png';
 
@@ -5844,26 +4919,24 @@ module.exports = (function() {
     ratLeft.src = "img/ratLeft2.png";
 
     //The Player constructor
-    function Player(locationX, locationY, layerIndex, inputManager, healthBar, scoreEngine) {
+    function Player(locationX, locationY, layerIndex, inputManager, healthBar, scoreEngine, inventory) {
         this.inputManager = inputManager;
         this.state = WALKING;
         this.digState = NOT_DIGGING;
         this.dug = false;
         this.downPressed = false;
         this.layerIndex = layerIndex;
-        this.currentX = locationX;
-        this.currentY = locationY;
-        this.nextX = 0;
-        this.nextY = 0;
-        this.currentTileIndex = 0;
-        this.nextTileIndex = 0;
-        this.constSpeed = 15;
+        this.x = locationX;
+        this.y = locationY;
+        this.spriteOffset = { x: -8, y: -16 };
+        this.spriteSize = { x: 64, y: 64 };
+        this.hitboxSize = { x: 48, y: 48 };
         this.gravity = 0.5;
         this.angle = 0;
         this.xSpeed = 10;
         this.ySpeed = 15;
         this.isLeft = false;
-        this.SPEED = 150;
+        this.SPEED = 300;
         this.type = "player";
         this.superPickaxe = false;
         this.superAxeImg = new Image();
@@ -5871,13 +4944,14 @@ module.exports = (function() {
         this.boneImg = new Image();
         this.boneImg.src = "./img/BoneLeft.png";
         this.stoneShield = false;
-		this.healthBar = healthBar;
-		this.scoreEngine = scoreEngine;
+        this.healthBar = healthBar;
+        this.scoreEngine = scoreEngine;
+        this.inventory = inventory;
+        this.lastPowerUpUsed = 0;
 
         // bone powerup
         this.attackFrequency = 1;
         this.lastAttack = 0;
-        this.bones = 5;
 
         //The animations
         this.animations = {
@@ -5892,18 +4966,20 @@ module.exports = (function() {
         };
 
         //The right-facing animations
-        this.animations.right[STANDING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 3, 0);
-        this.animations.right[WALKING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
-        this.animations.right[DIGGING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE * 2, 4);
-        this.animations.right[FALLING] = new Animation(dwarfRight, SIZE, SIZE, 0, SIZE);
-        this.animations.right[SWIMMING] = new Animation(dwarfRight, SIZE, SIZE, 0, 0, 4);
+        this.animations.right[STANDING] = new Animation(dwarfRight, this.spriteSize.x, this.spriteSize.y, this.spriteSize.y * 3, 0);
+        this.animations.right[WALKING] = new Animation(dwarfRight, this.spriteSize.x, this.spriteSize.y, 0, 0, 4);
+        this.animations.right[DIGGING] = new Animation(dwarfRight, this.spriteSize.x, this.spriteSize.y, 0, this.spriteSize.x * 2, 4);
+        this.animations.right[FALLING] = new Animation(dwarfRight, this.spriteSize.x, this.spriteSize.y, 0, this.spriteSize.x);
+        this.animations.right[SWIMMING] = new Animation(dwarfRight, this.spriteSize.x, this.spriteSize.y, 0, 0, 4);
+        this.animations.right[DEAD] = new Animation(dwarfDead, this.spriteSize.x, this.spriteSize.y, 0, 0, 16, 1/8, 1 );
 
         //The left-facing animations
-        this.animations.left[STANDING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0);
-        this.animations.left[WALKING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
-        this.animations.left[DIGGING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE * 2, 4);
-        this.animations.left[FALLING] = new Animation(dwarfLeft, SIZE, SIZE, SIZE * 3, SIZE);
-        this.animations.left[SWIMMING] = new Animation(dwarfLeft, SIZE, SIZE, 0, 0, 4);
+        this.animations.left[STANDING] = new Animation(dwarfLeft, this.spriteSize.x, this.spriteSize.y, 0, 0);
+        this.animations.left[WALKING] = new Animation(dwarfLeft, this.spriteSize.x, this.spriteSize.y, 0, 0, 4);
+        this.animations.left[DIGGING] = new Animation(dwarfLeft, this.spriteSize.x, this.spriteSize.y, 0, this.spriteSize.x * 2, 4);
+        this.animations.left[FALLING] = new Animation(dwarfLeft, this.spriteSize.x, this.spriteSize.y, this.spriteSize.y * 3, this.spriteSize.x);
+        this.animations.left[SWIMMING] = new Animation(dwarfLeft, this.spriteSize.x, this.spriteSize.y, 0, 0, 4);
+        this.animations.left[DEAD] = new Animation(dwarfDead, this.spriteSize.x, this.spriteSize.y, 0, 0, 16, 1/8, 1 );
 
         //Setup the jump animations
         resetJumpingAnimation(this);
@@ -5913,46 +4989,46 @@ module.exports = (function() {
     Player.prototype = new Entity();
 
     // Check to see if player is in water i.e full body immersion (head inside water)
-    Player.prototype.inWater = function(tilemap) {
+    Player.prototype.inWaterorLava = function(tilemap) {
         var box = this.boundingBox();
-        var tileX = Math.floor((box.right - (SIZE/24))/64);
+        var tileX = Math.floor((box.right - (SIZE/24))/Settings.TILESIZEX);
         // Based on the position that player is facing changed the location of it's X coordinate
         if(this.isLeft) {
-            tileX = Math.floor((box.left + (SIZE/(3/2)))/64);
+            tileX = Math.floor((box.left + (SIZE/(3/2)))/Settings.TILESIZEX);
         }
-        var tileY = Math.floor(box.top / 64),
+        var tileY = Math.floor(box.top / Settings.TILESIZEX),
             tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
         if(tile){
-            if (tile.data.type == "Water"){
+            if (tile.data.type == "Water" || tile.data.type == "Lava"){
                 return true;
             }
         }
-        return false; //
+        return false;
     };
-
     // Check to see if player is on top of water
-    Player.prototype.onWater = function(tilemap) {
-        var box = this.boundingBox();
-        var tileX = Math.floor((box.right)/64);
-        // Based on the position that player is facing changed the location of it's X coordinate
-        if(this.isLeft) {
-            tileX = Math.floor((box.left)/64);
-        }
-        var tileY = Math.floor(box.bottom / 64) - 1,// check if player is right above water.
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if(tile){
-            if (tile.data.type == "Water" && !this.inWater(tilemap)){
-                return true;
+        Player.prototype.onWaterorLava = function(tilemap) {
+            var box = this.boundingBox();
+            var tileX = Math.floor((box.right)/Settings.TILESIZEX);
+            // Based on the position that player is facing changed the location of it's X coordinate
+            if(this.isLeft) {
+            	tileX = Math.floor((box.left)/Settings.TILESIZEX);
             }
-        }
-        return false; //
-    };
+            var tileY = Math.floor(box.bottom / Settings.TILESIZEX) - 1,// check if player is right above water.
+            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
+            if(tile){
+                if((tile.data.type == "Water" || tile.data.type == "Lava") && !this.inWaterorLava(tilemap)){
+                    return true;
+                }
+             }
+         return false; //
+        };
+
 
     // Determines if the player is on the ground
     Player.prototype.onGround = function(tilemap) {
         var box = this.boundingBox(),
-            tileXL = Math.floor((box.left + 5) / 64),
-            tileXR = Math.floor((box.right - 5) / 64),
+            tileXL = Math.floor((box.left + 32) / 64),
+            tileXR = Math.floor((box.right - 32) / 64),
             tileY = Math.floor((box.bottom) / 64),
             tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
             tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
@@ -5961,20 +5037,39 @@ module.exports = (function() {
         if(tileR && tileR.data.solid) return true;
         return false;
     };
+    // Determine if the player is on the ground in water
+    Player.prototype.onGroundInWater = function(tilemap) {
+        var box = this.boundingBox(),
+            tileXL = Math.floor((box.left + 5) / Settings.TILESIZEX),
+            tileXR = Math.floor((box.right - 5) / Settings.TILESIZEX),
+            tileY = Math.floor((box.bottom) / Settings.TILESIZEY),
+            tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
+            tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
+        // find the tile we are standing on.
+        if(tileL && tileL.data.solid) return true;
+        if(tileR && tileR.data.solid) return true;
+        return false;
+    };
 
-    // Check that player's head is above water
+
+    // Check that player's head is above water but not hitting a solid
     Player.prototype.headOverWater = function (tilemap){
-        var box = this.boundingBox();
-        tile = tilemap.tileAt(Math.floor(box.right / 64), Math.floor(box.top / 64), this.layerIndex);
-        return (tile && tile.data.type == "SkyBackground");
+
+        var box = this.boundingBox(),
+            tileXL = Math.floor((box.left) / 64),
+            tileXR = Math.floor((box.right) / 64),
+            tileY = Math.floor((box.top) / 64),
+            tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
+            tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
+            return ((tileL && tileL.data.notDiggable) || (tileR && tileR.data.notDiggable))&& !this.inWaterorLava(tilemap);
     };
 
     // Determines if the player will ram his head into a block above
     Player.prototype.isBlockAbove = function(tilemap) {
         var box = this.boundingBox(),
-            tileXL = Math.floor((box.left + 5) / 64),
-            tileXR = Math.floor((box.right - 5) / 64),
-            tileY = Math.floor((box.top + 5) / 64),
+            tileXL = Math.floor((box.left + 5) / Settings.TILESIZEX),
+            tileXR = Math.floor((box.right - 5) / Settings.TILESIZEX),
+            tileY = Math.floor((box.top + 5) / Settings.TILESIZEY),
             tileL = tilemap.tileAt(tileXL, tileY, this.layerIndex),
             tileR = tilemap.tileAt(tileXR, tileY, this.layerIndex);
         // find the tile we are standing on.
@@ -5986,21 +5081,50 @@ module.exports = (function() {
     // Moves the player to the left, colliding with solid tiles
     Player.prototype.moveLeft = function(distance, tilemap) {
         var box = this.boundingBox(),
-            tileX = Math.floor(box.left / 64),
-            tileY = Math.floor(box.bottom / 64) - 1,
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && !tile.data.solid)
-            this.currentX -= distance;
+            tileXUpper = Math.floor(box.left / Settings.TILESIZEX),
+            tileYUpper = Math.floor(box.top / Settings.TILESIZEY),
+            tileXLower = Math.floor(box.left/ Settings.TILESIZEX),
+            tileYLower = Math.floor(box.bottom / Settings.TILESIZEY),
+            tileUpper = tilemap.tileAt(tileXUpper, tileYUpper, this.layerIndex),
+            tileLower = tilemap.tileAt(tileXLower, tileYLower, this.layerIndex);
+        if (this.state === FALLING || this.state === JUMPING) {
+          if (tileUpper && !tileUpper.data.solid && tileLower && !tileLower.data.solid) {
+            this.x -= distance;
+          }
+        }
+        else {
+          if (tileUpper && !tileUpper.data.solid) {
+            this.x -= distance;
+          }
+          else {
+              this.x = Settings.TILESIZEX * (tileXUpper + 1) - 5;
+          }
+        }
     };
 
     // Moves the player to the right, colliding with solid tiles
     Player.prototype.moveRight = function(distance, tilemap) {
         var box = this.boundingBox(),
-            tileX = Math.floor(box.right / 64),
-            tileY = Math.floor(box.bottom / 64) - 1,
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && !tile.data.solid)
-            this.currentX += distance;
+            tileXUpper = Math.floor(box.right / Settings.TILESIZEX),
+            tileYUpper = Math.floor(box.top / Settings.TILESIZEY),
+            tileXLower = Math.floor(box.right / Settings.TILESIZEX),
+            tileYLower = Math.floor(box.bottom / Settings.TILESIZEY),
+            tileUpper = tilemap.tileAt(tileXUpper, tileYUpper, this.layerIndex),
+            tileLower = tilemap.tileAt(tileXLower, tileYLower, this.layerIndex);
+
+        if (this.state === FALLING || this.state === JUMPING) {
+          if (tileUpper && !tileUpper.data.solid && tileLower && !tileLower.data.solid) {
+            this.x += distance;
+          }
+        }
+        else {
+          if (tileUpper && !tileUpper.data.solid) {
+            this.x += distance;
+          }
+          else {
+              this.x = Settings.TILESIZEX * (tileXUpper) - this.hitboxSize.x;
+          }
+        }
     };
 
     /* Player update function
@@ -6017,20 +5141,21 @@ module.exports = (function() {
         if(this.digState == NOT_DIGGING) {
             if (this.inputManager.isKeyDown(this.inputManager.commands.DIGDOWN)) {
                 this.digState = DOWN_DIGGING;
-                this.setupDig(new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY + SIZE}, true), entityManager, ParticleManager);
+                this.setupDig(new Pickaxe({ x: this.x + this.hitboxSize.x / 2, y: this.y + this.hitboxSize.y}, true), entityManager, ParticleManager);
             } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGLEFT)) {
                 this.digState = LEFT_DIGGING;
                 this.isLeft = true;
-                this.setupDig(new Pickaxe({ x: this.currentX, y: this.currentY + SIZE / 2 }), entityManager, ParticleManager);
+                this.setupDig(new Pickaxe({ x: this.x, y: this.y + this.hitboxSize.y / 2 }), entityManager, ParticleManager);
             } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGRIGHT)) {
                 this.digState = RIGHT_DIGGING;
                 this.isLeft = false;
-                this.setupDig(new Pickaxe({ x: this.currentX + SIZE, y: this.currentY + SIZE / 2 }), entityManager, ParticleManager);
+                this.setupDig(new Pickaxe({ x: this.x + this.hitboxSize.x, y: this.y + this.hitboxSize.y / 2 }), entityManager, ParticleManager);
             } else if(this.inputManager.isKeyDown(this.inputManager.commands.DIGUP)) {
                 this.digState = UP_DIGGING;
-                this.setupDig(new Pickaxe({ x: this.currentX + SIZE / 2, y: this.currentY }, true), entityManager, ParticleManager);
+                this.setupDig(new Pickaxe({ x: this.x + this.hitboxSize.x / 2, y: this.y }, true), entityManager, ParticleManager);
             }
         }
+
 
         // Process player state
         switch (this.state) {
@@ -6042,16 +5167,10 @@ module.exports = (function() {
                     this.velocityY = 0;
                 }
                 // If player is above water or inside water
-                else if(this.inWater(tilemap)){
-                    if(this.swimmingProperty.escapeSwimming){
-                        this.state = JUMPING;
-                        this.velocityY = JUMP_VELOCITY;
-                        this.swimmingProperty.escapeSwimming = false;
-                    }
-                    else{
-                        this.state = SWIMMING;
-                        this.holdBreath = true;
-                    }
+                else if(this.inWaterorLava(tilemap)){
+                    this.state = SWIMMING;
+                    this.holdBreath = true;
+                    this.velocityY = 0;
                 }
                 else {
                     if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
@@ -6083,13 +5202,15 @@ module.exports = (function() {
                 break;
             case JUMPING:
                 this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-                this.currentY += this.velocityY * elapsedTime;
+                this.y += this.velocityY * elapsedTime;
                 if (this.velocityY > 0) {
                     this.state = FALLING;
+                    console.log("I falling from jump");
                     resetJumpingAnimation(this);
                 } else if (this.isBlockAbove(tilemap)) {
                     this.state = FALLING;
                     this.velocityY = 0;
+                    this.y = Settings.TILESIZEY * (Math.floor((this.y) / Settings.TILESIZEY)+1);
                     resetJumpingAnimation(this);
                 }
 
@@ -6105,11 +5226,19 @@ module.exports = (function() {
             case FALLING:
                 if(this.velocityY < TERMINAL_VELOCITY) {
                     this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
+                    console.log("I am being called");
                 }
-                this.currentY += this.velocityY * elapsedTime;
+                if(this.onWaterorLava(tilemap) || this.inWaterorLava(tilemap)){
+                    this.state = SWIMMING;
+                    this.velocityY = Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
+                    this.holdBreath = true;
+                }
+                else{
+                	this.y += this.velocityY * elapsedTime;
+                }
                 if (this.onGround(tilemap)) {
                     this.state = STANDING;
-                    this.currentY = 64 * Math.floor(this.currentY / 64);
+                    this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
                 } else if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
                     this.isLeft = true;
                     this.moveLeft(elapsedTime * this.SPEED, tilemap);
@@ -6118,69 +5247,60 @@ module.exports = (function() {
                     this.isLeft = false;
                     this.moveRight(elapsedTime * this.SPEED, tilemap);
                 }
-                else if(this.inWater(tilemap)){
-                    this.state = SWIMMING;
-                    this.holdBreath = true;
-                }
                 break;
             case SWIMMING:
-                //Player Sinks automatically, they have resistance i.e sink slower if fully immersed in water
-                if(this.inWater(tilemap)) {
-                    this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2) + (this.velocityY / GRAVITY_IN_WATER);
-                    console.log("in water");
-                    this.currentY += this.velocityY * elapsedTime;
-                    if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
-                        this.velocityY = 0;
-                        this.isLeft = true;
-                        this.moveLeft(elapsedTime * SPEED_IN_LIQUID, tilemap);
-                    }
-                    else if (this.inputManager.isKeyDown(this.inputManager.commands.RIGHT)) {
-                        this.velocityY = 0;
-                        this.isLeft = false;
-                        this.moveRight(elapsedTime * SPEED_IN_LIQUID, tilemap);
-                    }
-                    else if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
-                        this.velocityY = SWIM_UP;
-                        console.log("SWIMING UP");
-                    }
-                    else if (!this.inWater(tilemap) && !this.headOverWater(tilemap)) {
-                        this.state = FALLING;
-                        console.log("Player hit its head on something");
-                        this.holdBreath = false;
-                    }
-                    else if (this.onGround(tilemap) && !this.inWater(tilemap)) {
-                        this.velocityY = 0;
-                        this.currentY = 64 * Math.floor(this.currentY / 64);
-                        this.state = STANDING;
-                        console.log("standing");
-                    }
-                    else if (this.onGround(tilemap) && this.inWater(tilemap)) {
-                        this.velocityY = 0;
-                        this.currentY = 64 * Math.floor(this.currentY / 64);
-                        console.log("floating in water");
-                    }
-                    this.swimmingProperty.escapeSwimming = false;
-                }
-                else if (this.headOverWater(tilemap)) {
-                    this.state = STANDING;
-                    this.swimmingProperty.escapeSwimming = true;
-                    console.log("Can escape swimming");
-                    this.currentY += this.velocityY * elapsedTime;
-                }
-                else{
-                    this.state = FALLING;
-                    this.currentY += this.velocityY * elapsedTime;
-                }
-                // Exact copy of walking state code, might be a bit redudant, possibly make it a global function?
-
-
+                //Player automatically sinks down when in water
+                  this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2) + (this.velocityY / GRAVITY_IN_WATER);
+                  if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
+                      this.velocityY = 0;
+                      this.isLeft = true;
+                      this.moveLeft(elapsedTime * SPEED_IN_LIQUID, tilemap);
+                  }
+                  else if (this.inputManager.isKeyDown(this.inputManager.commands.RIGHT)) {
+                      this.velocityY = 0;
+                      this.isLeft = false;
+                      this.moveRight(elapsedTime * SPEED_IN_LIQUID, tilemap);
+                  }
+                  else if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
+                      if(this.headOverWater(tilemap)){
+                          this.velocityY = JUMP_VELOCITY;
+                          //this.y += this.velocityY * elapsedTime;
+                          console.log("I am not in water");
+                          this.state = JUMPING;
+                          this.holdBreath = false;
+                      }
+                      else{
+                          this.velocityY = SWIM_UP;
+                          this.y += this.velocityY * elapsedTime;
+                      }
+                  }
+                  if (this.onGround(tilemap) && !this.inWaterorLava(tilemap)) {
+                      this.velocityY = 0;
+                      this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
+                      this.state = STANDING;
+                      console.log("standing");
+                      this.holdBreath = false;
+                  }
+                  else if (this.onGroundInWater(tilemap) && this.inWaterorLava(tilemap)) {
+                      this.velocityY = 0;
+                      this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
+                      console.log("floating in water");
+                  }
+                  else if (this.isBlockAbove(tilemap)){
+                      this.state = FALLING;
+                      console.log("I hit my head");
+                      this.y = Settings.TILESIZEY * (Math.floor((this.y) / Settings.TILESIZEY)+1);
+                      this.velocityY = 0;
+                  }
+                  else{
+                      if(!this.onGroundInWater(tilemap)){
+                          // continously sets a new position of player when sinking down
+                      this.y += this.velocityY * elapsedTime;
+                      }
+                  }
                 // A counter for the health bar to check if player is drowning
                 if (this.swimmingProperty.breathCount > 20) {
-                    //Player is dead!
-                    //<progress id="health" value="100" max="100"></progress>
-                    // var health = document.getElementById("health")
-                    // health.value = health.value (add, subtract health, whatever.)
-                    this.swimmingProperty.breathCount = 0;
+                    this.hurt(1);
                 }
                 break;
         }
@@ -6190,40 +5310,107 @@ module.exports = (function() {
             this.lastAttack += elapsedTime;
         }
 
-        if (this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
-            this.shoot();
+
+        // Power Up Usage Management
+        this.lastPowerUpUsed += elapsedTime;
+
+		if (this.inputManager.isKeyDown(this.inputManager.commands.THREE) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
+                console.log("SIX or B pressed");
+                if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(2)) {
+						this.shoot();
+                }
+            }
+
+        if (this.lastPowerUpUsed >= POWER_UP_FREQUENCY) {
+            if (this.inputManager.isKeyDown(this.inputManager.commands.ONE)) {
+                console.log("One pressed");
+                if (inventory.slotUsed(0)) {
+                    this.heal(30);
+                }
+            } else if (this.inputManager.isKeyDown(this.inputManager.commands.TWO)) {
+                console.log("TWO pressed");
+                if (inventory.slotUsed(1)) {
+						this.score(-20);
+                }
+            } else if (this.inputManager.isKeyDown(this.inputManager.commands.THREE)) {
+                console.log("THREE pressed");
+                if (inventory.slotUsed(2)) {
+
+                }
+            } else if (this.inputManager.isKeyDown(this.inputManager.commands.FOUR)) {
+                console.log("FOUR pressed");
+                if (inventory.slotUsed(3)) {
+
+                }
+			} else if (this.inputManager.isKeyDown(this.inputManager.commands.FIVE)) {
+                console.log("FIVE pressed");
+                if (inventory.slotUsed(4)) {
+
+                }
+			this.lastPowerUpUsed = 0;
+			}
         }
+
+
 
         // Swap input buffers
         this.inputManager.swapBuffers();
 
             // Check oxygen level of player
-        if(this.holdBreath && this.inWater(tilemap)){
+        if(this.holdBreath && this.inWaterorLava(tilemap)){
             this.swimmingProperty.breathCount += elapsedTime;
         }
         else{
             this.swimmingProperty.breathCount = 0; // If player is not in water reset breath count to zero
         }
 
-        // Update animation
+
+        /* Update animations and pick */
         var animationSet = this.isLeft ? this.animations.left : this.animations.right;
 
-        if(this.digState == NOT_DIGGING) {
+        if(this.digState == NOT_DIGGING || this.state == DEAD) {
             animationSet[this.state].update(elapsedTime);
         } else {
+
+            /* update pick position every frame */
+            if(this.pick && this.digState == LEFT_DIGGING) {
+                this.pick.x = this.x;
+                this.pick.y = this.y + this.hitboxSize.y / 2;
+            }
+            if(this.pick && this.digState == RIGHT_DIGGING) {
+                this.pick.x = this.x + this.hitboxSize.x;
+                this.pick.y = this.y + this.hitboxSize.y / 2;
+            }
+            if(this.pick && this.digState == UP_DIGGING) {
+                this.pick.x = this.x + this.hitboxSize.x / 2;
+                this.pick.y = this.y;
+            }
+            if(this.pick && this.digState == DOWN_DIGGING) {
+                this.pick.x = this.x + this.hitboxSize.x / 2;
+                this.pick.y = this.y + this.hitboxSize.y;
+            }
+
             //TODO create animations for each dig state
+            if(this.digState == LEFT_DIGGING) {
+                animationSet = this.animations.left;
+            }
+            else if(this.digState == RIGHT_DIGGING) {
+                animationSet = this.animations.right;
+            }
             animationSet[DIGGING].update(elapsedTime);
         }
 
     };
 
+    //TODO this should be a prototype function like the rest
     /* This function resets (or initializes) the jumping animations */
     function resetJumpingAnimation(player) {
-        player.animations.right[JUMPING] = new Animation(dwarfRight, SIZE, SIZE, SIZE * 3, SIZE, 3, 0.1, true, null, true);
-        player.animations.left[JUMPING] = new Animation(dwarfLeft, SIZE, SIZE, 0, SIZE, 3, 0.1, true);
+        player.animations.right[JUMPING] = new Animation(dwarfRight, player.spriteSize.x, player.spriteSize.y, player.spriteSize.y * 3, player.spriteSize.x, 3, 0.1, true, null, true);
+        player.animations.left[JUMPING] = new Animation(dwarfLeft, player.spriteSize.x, player.spriteSize.y, 0, player.spriteSize.x, 3, 0.1, true);
     }
 
     // Update function for use with the help player
+    //this should be either its own entity or should just use the regular update.
     Player.prototype.demoUpdate = function(elapsedTime) {
         var sprite = this;
 
@@ -6237,7 +5424,7 @@ module.exports = (function() {
                 case STANDING:
                 case WALKING:
                     // If there is no ground underneath, fall
-                    if (sprite.currentY < 64) {
+                    if (sprite.y < 64) {
                         sprite.state = FALLING;
                         sprite.velocityY = 0;
                     } else {
@@ -6308,8 +5495,8 @@ module.exports = (function() {
                     break;
                 case JUMPING:
                     sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-                    sprite.currentY += sprite.velocityY * elapsedTime;
-                    if (sprite.currentY <= -64) {
+                    sprite.y += sprite.velocityY * elapsedTime;
+                    if (sprite.y <= -64) {
                         sprite.state = FALLING;
                         sprite.velocityY = 0;
                     }
@@ -6324,8 +5511,8 @@ module.exports = (function() {
                     if(sprite.velocityY < TERMINAL_VELOCITY) {
                         sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
                     }
-                    sprite.currentY += sprite.velocityY * elapsedTime;
-                    if (sprite.currentY >= 64) {
+                    sprite.y += sprite.velocityY * elapsedTime;
+                    if (sprite.y >= 64) {
                         sprite.state = STANDING;
                     } else if (isKeyDown(commands.LEFT)) {
                         sprite.isLeft = true;
@@ -6359,7 +5546,7 @@ module.exports = (function() {
         var digComplete = function() {
             /* Add score */
             //TODO different scores for different blocks?
-            entityManager.scoreEngine.addScore(1);
+            //currentPlayer.score(1);
 
             var box = currentPlayer.boundingBox(),
                 tileX,
@@ -6368,20 +5555,20 @@ module.exports = (function() {
             /* set the tile location that we are deleting */
             switch(currentPlayer.digState) {
                 case DOWN_DIGGING:
-                    tileX = Math.floor((box.left + (SIZE / 2)) / 64);
-                    tileY = Math.floor(box.bottom / 64);
+                    tileX = Math.floor((box.left + box.right) / 2 / Settings.TILESIZEX);
+                    tileY = Math.floor(box.bottom / Settings.TILESIZEY);
                     break;
                 case LEFT_DIGGING:
-                    tileX = Math.floor((box.left - 5)/ 64);
-                    tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                    tileX = Math.floor((box.left - 5)/ Settings.TILESIZEX);
+                    tileY = Math.floor((box.bottom + box.top) / 2 / Settings.TILESIZEY);
                     break;
                 case RIGHT_DIGGING:
-                    tileX = Math.floor((box.right + 5)/ 64);
-                    tileY = Math.floor((box.bottom - (SIZE / 2)) / 64);
+                    tileX = Math.floor((box.right + 5)/ Settings.TILESIZEX);
+                    tileY = Math.floor((box.bottom + box.top) / 2 / Settings.TILESIZEY);
                     break;
                 case UP_DIGGING:
-                    tileX = Math.floor((box.left + (SIZE / 2)) / 64);
-                    tileY = Math.floor((box.top - 5) / 64);
+                    tileX = Math.floor((box.left + box.right) / 2 / Settings.TILESIZEX);
+                    tileY = Math.floor((box.top - 5) / Settings.TILESIZEY);
                     break;
                 default:
                     return;
@@ -6403,11 +5590,13 @@ module.exports = (function() {
                 tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
             }
 
-            if (tileNum.data.type === "Sky Earth" || tileNum.data.type === "DirtWithGrass" || tileNum.data.type === "Dirt"){
-              ParticleManager.addDirtParticles(tileX, tileY);
-            }
-            else if (tileNum.data.type === "GemsWithGrass" || tileNum.data.type === "StoneWithGrass" || tileNum.data.type === "Gems" || tileNum.data.type === "Stone"){
-              ParticleManager.addStoneParticles(tileX, tileY);
+            if(tileNum.data) {
+                if (tileNum.data.type === "Sky Earth" || tileNum.data.type === "DirtWithGrass" || tileNum.data.type === "Dirt") {
+                    ParticleManager.addDirtParticles(tileX, tileY);
+                }
+                else if (tileNum.data.type === "GemsWithGrass" || tileNum.data.type === "StoneWithGrass" || tileNum.data.type === "Gems" || tileNum.data.type === "Stone") {
+                    ParticleManager.addStoneParticles(tileX, tileY);
+                }
             }
 
             /* setup the callback for when the animation is complete */
@@ -6433,14 +5622,14 @@ module.exports = (function() {
         console.log("Picked up power up: " + powerUp.type);
 
         if (powerUp.type == 'boneUp') {
-            this.bones++;
+            inventory.powerUpPickedUp(2);
         } else if (powerUp.type == 'coin') {
             // add points
-			scoreEngine.addScore(20);
+            this.score(20);
 
         } else if (powerUp.type == 'crystal') {
             // add points
-			scoreEngine.addScore(50);
+            this.score(50);
 
         } else if (powerUp.type == 'pick') {
 
@@ -6449,9 +5638,11 @@ module.exports = (function() {
 
         } else if (powerUp.type == 'stone-shield') {
             this.stoneShield = true;
+
         } else if (powerUp.type == 'medicine') {
-			this.heal(30);
-		}
+            inventory.powerUpPickedUp(0);
+            // this.heal(30); now used manually from the inventory
+        }
 
 
         if(powerUp.effectDuration < 0){//if power up lasts 4ever
@@ -6459,14 +5650,21 @@ module.exports = (function() {
         }
 
     };
-	
-	Player.prototype.heal = function(health) {
-		this.healthBar.heal(health);
-	}
-	
-	Player.prototype.hurt = function(health) {
-		this.healthBar.hurt(health);
-	}
+
+    Player.prototype.heal = function(health) {
+        this.healthBar.heal(health);
+    };
+
+    Player.prototype.hurt = function(health) {
+        if (this.healthBar.hurt(health) === false) {
+            this.state = DEAD;
+            death_sound.play();
+        }
+    };
+
+    Player.prototype.score = function(score) {
+        this.scoreEngine.addScore(score);
+    };
 
     /*
      This method gets called when a power up effect vanishes
@@ -6487,14 +5685,11 @@ module.exports = (function() {
      Bone projectile powerup
      */
     Player.prototype.shoot = function(){
-        if(this.bones > 0 && this.lastAttack >= this.attackFrequency){
             //Added sound for throwing bone
             throw_sound.play();
-            var bone = new Bone(this.currentX, this.currentY, 0, this.isLeft, this);
+            var bone = new Bone(this.x, this.y, 0, this.isLeft, this);
             this.entityManager.add(bone);
-            this.bones--;
             this.lastAttack = 0;
-        }
     };
 
     /* Player Render Function
@@ -6504,14 +5699,19 @@ module.exports = (function() {
      * visual debugging
      */
     Player.prototype.render = function(ctx, debug) {
-        // Draw the player (and the correct animation)
-        var animationSet = this.isLeft ? this.animations.left : this.animations.right;
 
-        if(this.digState == NOT_DIGGING) {
-            animationSet[this.state].render(ctx, this.currentX, this.currentY);
+        /* Draw the player */
+        var animationSet = this.isLeft ? this.animations.left : this.animations.right;
+        if(this.digState == NOT_DIGGING || this.state == DEAD) {
+            animationSet[this.state].render(ctx, this.x + this.spriteOffset.x, this.y + this.spriteOffset.y);
         } else {
-            //TODO create animations for each dig state
-            animationSet[DIGGING].render(ctx, this.currentX, this.currentY);
+            if(this.digState == LEFT_DIGGING) {
+                animationSet = this.animations.left;
+            }
+            else if(this.digState == RIGHT_DIGGING) {
+                animationSet = this.animations.right;
+            }
+            animationSet[DIGGING].render(ctx, this.x + this.spriteOffset.x, this.y + this.spriteOffset.y);
         }
 
 
@@ -6519,11 +5719,17 @@ module.exports = (function() {
             var bb = this.boundingBox();
             var width = (bb.right - bb.left) - ((Math.floor(this.swimmingProperty.breathCount) / 20) * (bb.right - bb.left));
 
+            //TODO create a hud element for this bar and wrap this code
+            ctx.save();
             ctx.fillStyle = "#21C8FF";
             ctx.fillRect(bb.left, bb.top - 15, width, 10);
             ctx.fill();
+            ctx.fillStyle = "rgba(0,0,200,0)";
+            ctx.restore();
         }
 
+
+        //TODO draw this in a hud class?
         //draw powerups
         if(this.superPickaxe){
             ctx.drawImage(
@@ -6532,24 +5738,12 @@ module.exports = (function() {
                 0,
                 64,
                 64,
-                this.currentX + 500,
-                this.currentY - 350,
+                this.x + 500,
+                this.y - 350,
                 64,
                 64);
         }
 
-        ctx.drawImage(
-            this.boneImg,
-            0,
-            0,
-            64,
-            64,
-            this.currentX + 400,
-            this.currentY - 350,
-            64,
-            64);
-        ctx.font = "20pt Calibri";
-        ctx.fillText("x"+this.bones, this.currentX + 445, this.currentY - 300);
 
         if (debug) renderDebug(this, ctx);
     };
@@ -6570,14 +5764,14 @@ module.exports = (function() {
         ctx.stroke();
 
         // Outline tile underfoot
-        var tileX = 64 * Math.floor((bounds.left + (SIZE / 2)) / 64),
-            tileY = 64 * (Math.floor(bounds.bottom / 64));
+        var tileX = Settings.TILESIZEX * Math.floor((bounds.left + bounds.right) / 2 / Settings.TILESIZEX),
+            tileY = Settings.TILESIZEY * (Math.floor(bounds.bottom / Settings.TILESIZEY));
         ctx.strokeStyle = "black";
         ctx.beginPath();
         ctx.moveTo(tileX, tileY);
-        ctx.lineTo(tileX + 64, tileY);
-        ctx.lineTo(tileX + 64, tileY + 64);
-        ctx.lineTo(tileX, tileY + 64);
+        ctx.lineTo(tileX + Settings.TILESIZEX, tileY);
+        ctx.lineTo(tileX + Settings.TILESIZEX, tileY + Settings.TILESIZEY);
+        ctx.lineTo(tileX, tileY + Settings.TILESIZEY);
         ctx.closePath();
         ctx.stroke();
 
@@ -6589,19 +5783,19 @@ module.exports = (function() {
      */
     Player.prototype.boundingBox = function() {
         return {
-            left: this.currentX,
-            top: this.currentY,
-            right: this.currentX + SIZE,
-            bottom: this.currentY + SIZE
+            left: this.x,
+            top: this.y,
+            right: this.x + this.hitboxSize.x,
+            bottom: this.y + this.hitboxSize.y
         };
     };
 
 
     Player.prototype.boundingCircle = function() {
         return {
-            cx: this.currentX + SIZE / 2,
-            cy: this.currentY + SIZE / 2,
-            radius: SIZE / 2
+            cx: this.x + this.hitboxSize.x / 2,
+            cy: this.y + this.hitboxSize.y / 2,
+            radius: this.hitboxSize.x / 2
         };
     };
 
@@ -6609,7 +5803,7 @@ module.exports = (function() {
 
 }());
 
-},{"./Bone.js":1,"./Pickaxe.js":5,"./animation.js":7,"./entity.js":19}],33:[function(require,module,exports){
+},{"./Bone.js":1,"./Pickaxe.js":4,"./Settings.js":5,"./animation.js":6,"./entity.js":16}],32:[function(require,module,exports){
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Entity = require('./entity.js'),
@@ -6768,591 +5962,7 @@ module.exports = (function(){
 
 }());
 
-},{"./animation.js":7,"./entity-manager.js":18,"./entity.js":19,"./player.js":32}],34:[function(require,module,exports){
-/* Enemy module
- * Authors:
- * Kien Le
- */
-module.exports = (function(){
-  var Entity = require('./entity.js'),
-      Animation = require('./animation.js');
-
-  /* The following are enemy States */
-  const STANDING = 0;
-  const WALKING = 1;
-  const FALLING = 2;
-  const ATTACKING = 3;
-
-  // The Sprite Size
-  const SIZE = 64;
-
-  // Movement constants
-  const SPEED = 100;
-  const GRAVITY = -250;
-  const JUMP_VELOCITY = -600;
-
-  var ratIdleRight = new Image();
-  ratIdleRight.src = 'img/ratIdleRight.png';
-
-  var ratIdleLeft = new Image();
-  ratIdleLeft.src = 'img/ratIdleLeft.png';
-
-  var ratRight = new Image();
-  ratRight.src = 'img/ratRight2.png';
-
-  var ratLeft = new Image();
-  ratLeft.src = "img/ratLeft2.png";
-
-  //The enemy constructor
-  function Rat(locationX, locationY, layerIndex)
-  {
-    this.state = WALKING;
-    this.layerIndex = layerIndex;
-    this.currentX = locationX;
-    this.currentY = locationY;
-    this.nextX = 0;
-    this.nextY = 0;
-    this.currentTileIndex = 0;
-    this.nextTileIndex = 0;
-    this.constSpeed = 15;
-    this.gravity = .5;
-    this.angle = 0;
-    this.xSpeed = 10;
-    this.ySpeed = 15;
-    this.isLeft = false;
-	this.type = "rat";
-
-    //The animations
-    this.animations = {
-      left: [],
-      right: [],
-    }
-
-    //The right-facing animations
-    this.animations.right[STANDING] = new Animation(ratIdleRight, SIZE, SIZE, SIZE*2, SIZE);
-    this.animations.right[WALKING] = new Animation(ratRight, SIZE, SIZE, 0, 0, 8);
-    this.animations.right[FALLING] = new Animation(ratIdleRight, SIZE, SIZE, 0, 0, 8);
-	this.animations.right[ATTACKING] = new Animation(ratRight, SIZE, SIZE, 0, 0, 8);
-
-    //The left-facing animations
-    this.animations.left[STANDING] = new Animation(ratIdleLeft, SIZE, SIZE, SIZE*2, SIZE);
-    this.animations.left[WALKING] = new Animation(ratLeft, SIZE, SIZE, 0, 0, 8);
-    this.animations.left[FALLING] = new Animation(ratIdleLeft, SIZE, SIZE, 0, 0, 8);
-	this.animations.left[ATTACKING] = new Animation(ratLeft, SIZE, SIZE, 0, 0, 8);
-  }
-
-  // Player inherits from Entity
-  Rat.prototype = new Entity();
-
-  // Determines if the player is on the ground
-  Rat.prototype.onGround = function(tilemap)
-  {
-    var box = this.boundingBox(),
-        tileX = Math.floor((box.left + (SIZE/2))/64),
-        tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    // find the tile we are standing on.
-    return (tile && tile.data.solid) ? true : false;
-  }
-
-  Rat.prototype.checkLeft = function(tilemap)
-  {
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    return (tile && tile.data.solid) ? true : false;
-  }
-
-  Rat.prototype.checkRight = function(tilemap)
-  {
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    return (tile && tile.data.solid) ? true : false;
-  }
-
-  // Moves the enemy to the left, colliding with solid tiles
-  Rat.prototype.moveLeft = function(distance, tilemap)
-  {
-    this.currentX -= distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
-  }
-
-  // Moves the enemy to the right, colliding with solid tiles
-  Rat.prototype.moveRight = function(distance, tilemap)
-  {
-    this.currentX += distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
-  }
-
-  /* Enemy update function
-   * arguments:
-   * - elapsedTime, the time that has passed
-   *   between this and the last frame.
-   * - tilemap, the tilemap that corresponds to
-   *   the current game world.
-   */
-  Rat.prototype.update = function(elapsedTime, tilemap) {
-    var sprite = this;
-
-      // Process enemy state
-      switch(sprite.state) {
-        case STANDING:
-        case WALKING:
-          // If there is no ground underneath, fall
-          if(!sprite.onGround(tilemap))
-		  {
-            sprite.state = FALLING;
-            sprite.velocityY = 0;
-          }
-		  else
-		  {
-            if(sprite.onGround(tilemap) && sprite.checkLeft(tilemap))
-			{
-              sprite.isLeft = false;
-              sprite.state = WALKING;
-              sprite.moveRight(elapsedTime * SPEED, tilemap);
-            }
-            else if(sprite.onGround(tilemap) && sprite.checkRight(tilemap))
-			{
-              sprite.isLeft = true;
-              sprite.state = WALKING;
-              sprite.moveLeft(elapsedTime * SPEED, tilemap);
-            }
-            else
-			{
-              sprite.state = STANDING;
-            }
-          }
-          break;
-        case FALLING:
-          sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-          sprite.currentY += sprite.velocityY * elapsedTime;
-          if(sprite.onGround(tilemap)) {
-            sprite.state = STANDING;
-            sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-          }
-          break;
-        //case SWIMMING:
-          // NOT IMPLEMENTED YET
-		case ATTACKING:
-		  sprite.state = STANDING;
-		  //TODO: attack player
-      }
-
-    // Update animation
-    if(this.isLeft)
-      this.animations.left[this.state].update(elapsedTime);
-    else
-      this.animations.right[this.state].update(elapsedTime);
-
-  }
-
-  /* Enemy Render Function
-   * arguments:
-   * - ctx, the rendering context
-   * - debug, a flag that indicates turning on
-   * visual debugging
-   */
-  Rat.prototype.render = function(ctx, debug) {
-    // Draw the enemy (and the correct animation)
-    if(this.isLeft)
-      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
-    else
-      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
-
-    if(debug) renderDebug(this, ctx);
-  }
-
-  // Draw debugging visual elements
-  function renderDebug(player, ctx) {
-    var bounds = player.boundingBox();
-    ctx.save();
-
-    // Draw player bounding box
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-    ctx.moveTo(bounds.left, bounds.top);
-    ctx.lineTo(bounds.right, bounds.top);
-    ctx.lineTo(bounds.right, bounds.bottom);
-    ctx.lineTo(bounds.left, bounds.bottom);
-    ctx.closePath();
-    ctx.stroke();
-
-    // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
-        tileY = 64 * (Math.floor(bounds.bottom / 64));
-    ctx.strokeStyle = "black";
-    ctx.beginPath();
-    ctx.moveTo(tileX, tileY);
-    ctx.lineTo(tileX + 64, tileY);
-    ctx.lineTo(tileX + 64, tileY + 64);
-    ctx.lineTo(tileX, tileY + 64);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.restore();
-   }
-
-   Rat.prototype.collide = function (otherEntity)
-   {
-        if (otherEntity.type != "player") {
-            if (this.onGround(tilemap)) {
-                this.state = ATTACKING;
-            }
-        }
-    };
-
-  Rat.prototype.boundingBox = function()
-  {
-    return {
-      left: this.currentX,
-      top: this.currentY,
-      right: this.currentX + SIZE,
-      bottom: this.currentY + SIZE
-    }
-  }
-
-  Rat.prototype.boundingCircle = function ()
-  {
-        return {
-            cx: this.currentX + SIZE / 2,
-            cy: this.currentY + SIZE / 2,
-            radius: SIZE / 2
-        }
-    };
-
-  return Rat;
-
-}());
-
-},{"./animation.js":7,"./entity.js":19}],35:[function(require,module,exports){
-/* Entity: Robo-Killer module
- * Implements the entity pattern, provides specific robo-killer constructs.
- *
- * Author: Christian Hughes
- *
- * Image labled for reuse. Source: http://4.bp.blogspot.com/-iu9fsSz_L5I/T9X-dz3AFhI/AAAAAAAAAfQ/bG6hvI_eKzo/s1600/robotboy.png
- */
-module.exports = (function() {
-  var Entity = require('./entity.js'),
-  Animation = require('./animation.js');
-
-  // States for the robo-killer
-  const PATROLING = 0;
-  const ATTACKING = 1;
-  const IDLE = 2;
-  const FALLING = 3;
-
-  // The sprite size (It's a square 64 pixels x 64 pixels)
-  const SIZE = 64;
-
-  // Movement constants, which are in line with that of the player (player.js)
-  const SPEED = 150;
-  const GRAVITY = -250;
-  const JUMP_VELOCITY = -600;
-
-  // The right walking robo-killer spritesheet
-  var roboKillerWalkRight = new Image();
-  roboKillerWalkRight.src = './img/robo-killer_walk_right.png';
-
-  // The left walking robo-killer spritesheet
-  var roboKillerWalkLeft = new Image();
-  roboKillerWalkLeft.src = "./img/robo-killer_walk_left.png";
-
-  // The right attacking robo-killer spritesheet
-  var roboKillerAttackRight = new Image();
-  roboKillerAttackRight.src = "./img/robo-killer_attack_right.png";
-
-  // The left attacking robo-killer spritesheet
-  var roboKillerAttackLeft = new Image();
-  roboKillerAttackLeft.src = "./img/robo-killer_attack_left.png";
-
-
-  // Constructor for the robo-killer enemy. It inherits from entity (entity.js).
-  function Robo_Killer(locationX, locationY, layerIndex){
-    // Establish entity type.
-    this.type = "robo-killer";
-
-    // Establish visual layer.
-    this.layerIndex = layerIndex;
-
-    // Establish current position.
-    this.currentX = locationX;
-    this.currentY = locationY;
-
-    this.state  = PATROLING; // The default state is patrolling. Set the state accordingly.
-    this.isLeft = false; // The robo-killer begins facing to the right.
-
-    this.patrolDirectionCounter = 0; // A counter denoting how long the robo-killer should patrol in one direction. 0-100 by deafault.
-    this.attackCounter = 0; // Determines how long the robo-killer will attack for upon seeing the player. 0-10 by default.
-
-
-    // Create an animations property, with arrays for each direction of animations.
-    this.animations = {
-      left: [],
-      right: []
-    };
-
-    // The right-facing animations.
-    this.animations.right[PATROLING] = new Animation(roboKillerWalkRight, SIZE, SIZE, 0, 0, 3, .2);
-    this.animations.right[ATTACKING] = new Animation(roboKillerAttackRight, SIZE, SIZE, 0, 0, 3, .2);
-    this.animations.right[IDLE] = new Animation(roboKillerWalkRight, SIZE, SIZE, 0, 0, 1);
-    this.animations.right[FALLING] = new Animation(roboKillerWalkRight, SIZE, SIZE, 0, 0, 1);
-
-    //The left-facing animations
-    this.animations.left[PATROLING] = new Animation(roboKillerWalkLeft, SIZE, SIZE, 0, 0, 3, .2);
-    this.animations.left[ATTACKING] = new Animation(roboKillerAttackLeft, SIZE, SIZE, 0, 0, 3, .2);
-    this.animations.left[IDLE] = new Animation(roboKillerWalkLeft, SIZE, SIZE, 0, 0, 1);
-    this.animations.left[FALLING] = new Animation(roboKillerWalkLeft, SIZE, SIZE, 0, 0, 1);
-
-  }
-  // Robo-Killer inherits from Entity
-  Robo_Killer.prototype = new Entity();
-
-  /* Update function for Robo_Killer
-   *
-   * The robot patrols a fixed distance. He will attack the player if the player comes near.
-   * He will fall off ledges, and contine patrolling upon landing on solid ground.
-   */
-  Robo_Killer.prototype.update = function(elapsedTime, tilemap, entityManager) {
-      // Determins what the robo-killer will do.
-      var sprite = this;
-
-      switch (sprite.state)
-      {
-          case PATROLING:
-            // If there is no ground underneath, fall down.
-            if(!sprite.onGround(tilemap))
-            {
-              sprite.state = FALLING;
-              sprite.velocityY = 0;
-            }
-            else // Otherwise, begin the patrolling sequence.
-            {
-              if(sprite.isLeft) // Patrols to the left for a specified period.
-              {
-                sprite.moveLeft(elapsedTime * SPEED, tilemap);
-                sprite.patrolDirectionCounter++;
-                if (sprite.patrolDirectionCounter === 100)
-                {
-                  sprite.patrolDirectionCounter = 0;
-                  sprite.isLeft = false;
-                }
-              }
-              else // Patrols to the right for a specified duration.
-              {
-                sprite.moveRight(elapsedTime * SPEED, tilemap);
-                sprite.patrolDirectionCounter++;
-                if (sprite.patrolDirectionCounter === 100)
-                {
-                  sprite.patrolDirectionCounter = 0;
-                  sprite.isLeft = true;
-                }
-              }
-            }
-            break;
-          case ATTACKING:
-            // Trigger attack animation upon contact with the Player.
-            // Possibly implement some sort of damage later on.
-            sprite.attackCounter++;
-            if (sprite.attackCounter === 20)
-            {
-              sprite.attackCounter = 0;
-              sprite.state = PATROLING;
-            }
-            break;
-          // I may implement an idle state later. For the time being, the entity will simply attack the player if the player ends up in the patrol zone.
-          // In my opinion, the lack of idle behavior may be more fitting
-          // case IDLE: // Goes to idle state if the robo-killer loses site of the player. He will stay there for several seconds.
-          //   // If he sees the player, he will chase after them.
-          //
-          //   // Otherwise he will return back to patrolling.
-          //
-          //   break;
-          case FALLING: // Fall down at an accelerating speed until solid ground is hit. He will fall straight down, then continue to patrol at the landing zone.
-            sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-            sprite.currentY += sprite.velocityY * elapsedTime;
-            if (sprite.onGround(tilemap))
-            {
-              sprite.state = PATROLING;
-              sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-            }
-            break;
-      };
-
-      // Update animation each time the update() function runs.
-      if(this.isLeft)
-      {
-        this.animations.left[this.state].update(elapsedTime);
-      }
-      else
-      {
-        this.animations.right[this.state].update(elapsedTime);
-      }
-  }
-
-  /* Render function
-   *
-   * Renders the character based on state (direction facing/if debugging is enabled).
-   *
-   * params:
-   * context - The context from the canvas being drawn to.
-   * debug - A binary flag denoting whether debug mode is on (draws bounding box around Robo-Killer).
-   */
-   Robo_Killer.prototype.render = function(context, debug) {
-     // Draw the Robo-Killer (and the correct animation).
-     if (this.isLeft)
-     {
-       this.animations.left[this.state].render(context, this.currentX, this.currentY);
-     }
-     else
-     {
-       this.animations.right[this.state].render(context, this.currentX, this.currentY);
-     }
-
-     if (debug)
-     {
-       renderDebug(this, context);
-     }
-   };
-
-   // Draws debugging visual elements. Same method used in player.js.
-   function renderDebug(robo_killer, ctx) {
-     var bounds = robo_killer.boundingBox();
-     ctx.save();
-
-     // Draw player bounding box
-     ctx.strokeStyle = "red";
-     ctx.beginPath();
-     ctx.moveTo(bounds.left, bounds.top);
-     ctx.lineTo(bounds.right, bounds.top);
-     ctx.lineTo(bounds.right, bounds.bottom);
-     ctx.lineTo(bounds.left, bounds.bottom);
-     ctx.closePath();
-     ctx.stroke();
-
-     // Outline tile underneath the robo-killer.
-     var tileX = 64 * Math.floor((bounds.left + (SIZE / 2)) / 64),
-       tileY = 64 * (Math.floor(bounds.bottom / 64));
-     ctx.strokeStyle = "black";
-     ctx.beginPath();
-     ctx.moveTo(tileX, tileY);
-     ctx.lineTo(tileX + 64, tileY);
-     ctx.lineTo(tileX + 64, tileY + 64);
-     ctx.lineTo(tileX, tileY + 64);
-     ctx.closePath();
-     ctx.stroke();
-
-     ctx.restore();
-   }
-
-   // Determines if the robo killer is on the ground (method copied from player.js).
-   Robo_Killer.prototype.onGround = function(tilemap) {
-     var box = this.boundingBox(),
-       tileX = Math.floor((box.left + (SIZE / 2)) / 64),
-       tileY = Math.floor(box.bottom / 64),
-       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-     // find the tile we are standing on.
-     return (tile && tile.data.solid) ? true : false;
-   };
-
-   // Moves the robo-killer to the left, colliding with solid tiles (method copied from player.js).
-   Robo_Killer.prototype.moveLeft = function(distance, tilemap) {
-     this.currentX -= distance;
-     var box = this.boundingBox(),
-       tileX = Math.floor(box.left / 64),
-       tileY = Math.floor(box.bottom / 64) - 1,
-       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-     if (tile && tile.data.solid)
-       this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
-   };
-
-   // Moves the robo-killer to the right, colliding with solid tiles (method copied from player.js).
-   Robo_Killer.prototype.moveRight = function(distance, tilemap) {
-     this.currentX += distance;
-     var box = this.boundingBox(),
-       tileX = Math.floor(box.right / 64),
-       tileY = Math.floor(box.bottom / 64) - 1,
-       tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-     if (tile && tile.data.solid)
-       this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
-   };
-
-   /* Collide function
-    *
-    * This robot hates slime. He will telport away from the slime as soon as contact is made.
-    *
-    * params:
-    * otherEntity - The entity being colided with.
-    */
-   Robo_Killer.prototype.collide = function(otherEntity) {
-     // The robo-killer is terrifed of slime. He will teleport in the opposite direction upon touching the slime.
-     if (otherEntity.type == "Slime")
-     {
-       if (this.isLeft)
-       {
-         // If hit from the left, teleport to the right.
-         this.CurrentX += SIZE * 3;
-       }
-       else
-       {
-         //If hit from the right, teleport to the left.
-         this.CurrentX -= SIZE * 3;
-       }
-     }
-     else if (otherEntity.type == "player") // If we touch the player, begin attacking.
-     {
-       this.state = ATTACKING;
-     }
-   }
-
-   /* BoundingBox function
-    *
-    * Returns a bounding box (which is 64 x 64 pixels) denoting the bounds
-    * of the Robo-Killer.
-    */
-   Robo_Killer.prototype.boundingBox = function() {
-     // Return a bounding box for Robo-Killer
-     return {
-       left: this.currentX,
-       top: this.currentY,
-       right: this.currentX + SIZE,
-       bottom: this.currentY + SIZE
-     };
-   };
-
-   /* BoundingCircle function
-    *
-    * Returns a bouding circle that surrounds the Robo-Killer.
-    * The cirlce has a radius of 32 pixels, and a diameter of 64 pixels.
-    */
-   Robo_Killer.prototype.boundingCircle = function() {
-     // Return a bounding circle Robo-Killer
-     return {
-       cx: this.currentX + SIZE / 2,
-       cy: this.currentY + SIZE / 2,
-       radius: SIZE / 2
-     };
-   };
-
-   return Robo_Killer;
-
-}());
-
-},{"./animation.js":7,"./entity.js":19}],36:[function(require,module,exports){
+},{"./animation.js":6,"./entity-manager.js":15,"./entity.js":16,"./player.js":31}],33:[function(require,module,exports){
 /* Score engine */
 
 module.exports = (function (){
@@ -7366,7 +5976,7 @@ module.exports = (function (){
     this.frameGoal       = [0, 0, 0, 0];
     this.numFramesPerRow = 4;
     this.numRows         = 10;
-    this.ticksPerFrame   = 9;
+    this.ticksPerFrame   = 2;
 
     this.xpos            = 0;
     this.ypos            = 0;
@@ -7411,6 +6021,27 @@ module.exports = (function (){
     {
       this.score = 0;
     }
+	if (this.score < 10)
+    {
+      scoreString = "000" + this.score.toString();
+    }
+    else if (this.score < 100)
+    {
+      scoreString = "00" + this.score.toString();
+    }
+    else if (this.score < 1000)
+    {
+      scoreString = "0" + this.score.toString();
+    }
+    else
+    {
+      scoreString = this.score.toString();
+    }
+    for (var i = 0; i < scoreString.length; i++)
+    {
+      var temp = parseInt(scoreString[i]);
+      this.frameGoal[i] = temp * 4;
+    }
   };
 
   ScoreEngine.prototype.scoreToZero = function() {
@@ -7421,8 +6052,10 @@ module.exports = (function (){
     }
   };
 
-  ScoreEngine.prototype.update = function()
+  ScoreEngine.prototype.update = function(x, y)
   {
+    this.x = x;
+    this.y = y;
     this.updatePosition();
     this.updateAnimation();
   }
@@ -7444,8 +6077,8 @@ module.exports = (function (){
         sy,
         this.width,
         this.height,
-        this.xpos + (32 * i),
-        this.ypos,
+        this.x + (32 * i),
+        this.y,
         this.width,
         this.height
       );
@@ -7507,295 +6140,305 @@ module.exports = (function (){
 
 })();
 
-},{}],37:[function(require,module,exports){
-/* Base class for all game entities,
- * implemented as a common JS module
- * Authors:
- * - Austin Boerger
- * - Nathan Bean 
- */
-module.exports = (function(){
-  var Entity = require('./entity.js'),
-	  Animation = require('./animation.js');
-
-  // SLime States
-  const IDLE = 0;
-  const MOVING = 1;
-  const FALLING = 2;
-  
-   const SPEED = 90;
-   const GRAVITY = -250;
-   const JUMP_VELOCITY = -600;
-   const IDLE_COUNT = 50;
-  
-  // Slime Size
-  const SIZE = 64;
-  
-  // Slime Sprite
-  var slimage = new Image();
-  slimage.src = 'img/slime.png';
-  
-  /* Constructor
-   * Generally speaking, you'll want to set
-   * the X and Y position, as well as the layerX
-   * of the map the entity is located on
-   */
-  function Slime(locationX, locationY, layerIndex){
-    this.type = "Slime";
-	this.currentX = locationX;
-    this.curentY = locationY;
-    this.layerIndex = layerIndex;
-	this.state = MOVING;
-	this.score = 100;
-	
-	this.animations = {
-		left: [],
-		right: []
-	}
-	
-	//Slime Moving Left
-	this.animations.left[MOVING] = new Animation(slimage, SIZE, SIZE, 0, SIZE, 3);
-	
-	//Slime Moving Right
-	this.animations.right[MOVING] = new Animation(slimage, SIZE, SIZE, 0, SIZE*2, 3);
-	
-	//Slime Idling
-	this.animations.left[IDLE] = new Animation(slimage, SIZE, SIZE, 0, 0, 3);
-	this.animations.right[IDLE] = new Animation(slimage, SIZE, SIZE, 0, 0, 3);
-	
-	//Slime falling
-	this.animations.left[FALLING] = new Animation(slimage, SIZE, SIZE, 0, 0, 3);
-	this.animations.right[FALLING] = new Animation(slimage, SIZE, SIZE, 0, 0, 3);
-  }
-  
-  Slime.prototype = new Entity();
-  
-  
-  // Determines if the Slime is on the ground
-  Slime.prototype.onGround = function(tilemap) {
-    var box = this.boundingBox(),
-      tileX = Math.floor((box.left + (SIZE / 2)) / 64),
-      tileY = Math.floor(box.bottom / 64),
-      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    // find the tile we are standing on.
-    return (tile && tile.data.solid) ? true : false;
-  };
-  
-  // Moves the Slime to the left, colliding with solid tiles
-  Slime.prototype.moveLeft = function(distance, tilemap) {
-    this.currentX -= distance;
-    var box = this.boundingBox(),
-      tileX = Math.floor(box.left / 64),
-      tileY = Math.floor(box.bottom / 64) - 1,
-      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid){
-      this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
-	  return true;
-	}
-	return false;
-  };
-
-  // Moves the Slime to the right, colliding with solid tiles
-  Slime.prototype.moveRight = function(distance, tilemap) {
-    this.currentX += distance;
-    var box = this.boundingBox(),
-      tileX = Math.floor(box.right / 64),
-      tileY = Math.floor(box.bottom / 64) - 1,
-      tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid){
-      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
-  	  return true;
-	}
-	return false;
-  };
-  
-  /* Update function
-   * parameters:
-   * - elapsedTime is the time that has passed since the
-   *   previous frame 
-   * - tilemap is the currently loaded tilemap; you'll 
-   *   probably want to call its tileAt and setTile methods.
-   * - entityManager is the game's entity manager, and
-   *   keeps track of where all game entities are.
-   *   you can call its query functions
-   */
-  Slime.prototype.update = function(elapsedTime, tilemap, entityManager) {
-      // TODO: Determine what your entity will do
-	  var sprite = this;
-	  var i = 0;
-	  switch(sprite.state){
-		case IDLE:
-		  if(sprite.onGround(tilemap)){
-			  if(i < IDLE_COUNT){
-				i++;}
-			  else{
-				  sprite.state = MOVING;
-			  }
-		  }else{
-			  sprite.state = FALLING;
-			  sprite.velocityY = 0;
-		  }
-		  break;
-		case MOVING:
-			if(!sprite.onGround(tilemap)){
-				sprite.state = FALLING;
-				sprite.velocityY = 0;
-			  }else{
-				if(sprite.isLeft){
-				  sprite.moveLeft(elapsedTime * SPEED, tilemap);
-				}else{
-				  sprite.moveRight(elapsedTime * SPEED, tilemap);
-				}  
-			  }
-		case FALLING:
-		  sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-          sprite.currentY += sprite.velocityY * elapsedTime;
-          if(sprite.onGround(tilemap)) {
-            sprite.state = IDLE;
-            sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-		  }
-		  break;
-	  }
-	  
-	  // Update Slimation
-	  if(sprite.isLeft)
-		sprite.animations.left[sprite.state].update(elapsedTime);
-	  else
-		sprite.animations.right[sprite.state].update(elapsedTime);
-  }
-  
-  /* Render function
-   * parameters:
-   *  - context is the rendering context.  It may be transformed
-   *    to account for the camera 
-   */
-   Slime.prototype.render = function(ctx, debug) {
-     // TODO: Draw your entity sprite
-	 if(this.isLeft)
-      this.animations.left[MOVING].render(ctx, this.currentX, this.currentY);
-    else
-      this.animations.right[MOVING].render(ctx, this.currentX, this.currentY);
-  
-	 if(debug) renderDebug(this, ctx);
-   }
-   
-   // Draw debugging visual elements
-  function renderDebug(Slime, ctx) {
-    var bounds = Slime.boundingBox();
-    ctx.save();
-
-    // Draw Slime bounding box
-    ctx.strokeStyle = "blue";
-    ctx.beginPath();
-    ctx.moveTo(bounds.left, bounds.top);
-    ctx.lineTo(bounds.right, bounds.top);
-    ctx.lineTo(bounds.right, bounds.bottom);
-    ctx.lineTo(bounds.left, bounds.bottom);
-    ctx.closePath();
-    ctx.stroke();
-
-    // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
-        tileY = 64 * (Math.floor(bounds.bottom / 64));
-    ctx.strokeStyle = "green";
-    ctx.beginPath();
-    ctx.moveTo(tileX, tileY);
-    ctx.lineTo(tileX + 64, tileY);
-    ctx.lineTo(tileX + 64, tileY + 64);
-    ctx.lineTo(tileX, tileY + 64);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.restore();
-  }   
-   
-   /* Collide function
-    * This function is called by the entityManager when it determines
-    * a possible collision.
-    * parameters:
-    * - otherEntity is the entity this enemy collided with
-    *   You will likely want to use 
-    *     'otherEntity instanceof <Type>' 
-    *   to determine what type it is to know what to 
-    *   do with it.
-    */
-   Slime.prototype.collide = function(otherEntity) {
-		if(otherEntity.type = 'player'){
-			
-		}
-   }
-   
-   /* BoundingBox function
-    * This function returns an axis-aligned bounding
-    * box, i.e {top: 0, left: 0, right: 20, bottom: 50}
-    * the box should contain your entity or at least the
-    * part that can be collided with.
-    */
-   Slime.prototype.boundingBox = function() {
-     // Return a bounding box for your entity
-	 return{
-		 left: this.currentX,
-		 top: this.currentX,
-		 right: this.currentX + SIZE,
-		 bottom: this.currentY + SIZE
-	 }
-   }
-   
-   /* BoundingCircle function
-    * This function returns a bounding circle, i.e.
-    * {cx: 0, cy: 0, radius: 20}
-    * the circle should contain your entity or at 
-    * least the part that can be collided with.
-    */
-   Slime.prototype.boundingCircle = function() {
-     // Return a bounding circle for your entity
-	 return {
-		 cx: this.currentX + SIZE/2,
-		 cy: this.currentY + SIZE/2,
-		 radius: SIZE/2
-	 }
-   }
-   
-   return Slime;
-  
-}());
-},{"./animation.js":7,"./entity.js":19}],38:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 module.exports = (function() {
-    var Shaman = require('./goblin-shaman.js');
-    var DemonGHog = require('./DemonicGroundH.js');
-    var Barrel = require('./barrel.js');
-    var Miner = require('./goblin-miner.js');
-    var Turret = require('./turret.js');
+    /* Some hard coded data values for our 8 entities */
+	
+	var skyEntities = new Array();
+	var middleEntities = new Array();
+	var deepEntities = new Array();
+	var powerUps = new Array();
+	
+	var birdData = {
+		Entity: require('./bird.js'),
+		type: 'bird',
+		limit: 8,
+		count: 0
+	};
+	
+	var turretData = {
+		Entity: require('./turret.js'),
+		type: 'turret',
+		limit: 3,
+		count: 0
+	};
+			
+	var barrelData = {
+		Entity: require('./barrel.js'),
+		type: 'Barrel',
+		limit: 15,
+		count: 0
+	};
+	
+	skyEntities.push(birdData);
+	skyEntities.push(turretData);
+	skyEntities.push(barrelData);
+	
+	var demonGHogData = {
+		Entity: require('./DemonicGroundH.js'),
+		type: 'DemonicGroundHog',
+		limit: 10,
+		count: 0
+	};
+	
+	var goblinMinerData = {
+		Entity: require('./goblin-miner.js'),
+		type: 'goblinMiner',
+		limit: 8,
+		count: 0
+	};
+	
+	var goblinShamanData = {
+		Entity: require('./goblin-shaman.js'),
+		type: 'shaman',
+		limit: 5,
+		count: 0
+	};
+	
+	middleEntities.push(demonGHogData);
+	middleEntities.push(goblinMinerData);
+	middleEntities.push(goblinShamanData);
+	
+	var ghostMinerData = {
+		Entity: require('./ghostminer.js'),
+		type: 'ghost',
+		limit: 4,
+		count: 0
+	};
+	
+	var dynamiteDwarfData = {
+		Entity: require('./dynamiteDwarf.js'),
+		type: 'dynamiteDwarf',
+		limit: 2,
+		count: 0
+	}
+	
+	deepEntities.push(barrelData);
+	deepEntities.push(ghostMinerData);
+	deepEntities.push(dynamiteDwarfData);
 
-    var updatePeriodSeconds = 50;
-
-    function SpawningManager(entityManager, scoreEngine, player) {
+	var pick = { 
+	 Entity: require('./powerUp.js'),
+	 limit: 2,
+	 count: 0,
+	 name: 'pick',
+	 width: 64,
+	 height: 64,
+	 frameNum: 2,
+	 img: './img/powerUps/pick.png',
+	 flying: false,
+	 duration: 3600
+	}
+	
+	var medicine = { 
+	 Entity: require('./powerUp.js'),
+	 limit: 2,
+	 count: 0,
+	 name: 'medicine',
+	 width: 64,
+	 height: 64,
+	 frameNum: 1,
+	 img: './img/powerUps/medicine.png',
+	 flying: false,
+	 duration: -1
+	}
+	
+	var crystal = { 
+	 Entity: require('./powerUp.js'),
+	 limit: 2,
+	 count: 0,
+	 name: 'crystal',
+	 width: 32,
+	 height: 32,
+	 frameNum: 8,
+	 img: './img/powerUps/crystal.png',
+	 flying: true,
+	 duration: -1
+	}
+	
+	var coin = { 
+	 Entity: require('./powerUp.js'),
+	 limit: 2,
+	 count: 0,
+	 name: 'coin',
+	 width: 44,
+	 height: 40,
+	 frameNum: 10,
+	 img: './img/powerUps/coin.png',
+	 flying: true,
+	 duration: -1
+	}
+	
+	var stoneShield = { 
+	 Entity: require('./powerUp.js'),
+	 limit: 2,
+	 count: 0,
+	 name: 'coin',
+	 width: 64,
+	 height: 64,
+	 frameNum: 1,
+	 img: './img/powerUps/stone_shield.png',
+	 flying: false,
+	 duration: 3600
+	}
+	
+	powerUps.push(pick);
+	powerUps.push(medicine);
+	powerUps.push(crystal);
+	powerUps.push(coin);
+	powerUps.push(stoneShield);
+	
+    function SpawningManager(entityManager, scoreEngine, player,inputManager) {
         this.entityManager = entityManager;
         this.scoreEngine = scoreEngine;
         this.player = player;
         this.updateTimeLeft = 0;
+		this.inputManager = inputManager;
     }
+	
+	var updatePeriodSeconds = 2;
 
-    SpawningManager.prototype.update = function (elapsedTime) {
+    SpawningManager.prototype.update = function (elapsedTime, tilemap) {
         this.updateTimeLeft -= elapsedTime;
         if(this.updateTimeLeft < 0) {
             this.updateTimeLeft = updatePeriodSeconds;
+			
+			/* Can change frequency of chance to spawn
+			based on score values or something.
+			Higher score means shorter spawn time.
+			
+			Or change limits for spawns based on
+			score values. Higher score means
+			higher limits. */
+			
+			var count = 0;
+			var posFound = false;
+			var x = 0, y = 0;
+			do{
+				var positive;
+				if(Math.random() > .5) positive = -1;
+				else positive = 1;
+				x = Math.floor((Math.random()*5*positive + (64*15)*positive + this.player.x)/64);
+				y = Math.floor((Math.random()*5*positive + (64*15)*positive + this.player.y)/64);
+				
+				var tile = tilemap.tileAt(x, y, 0);
+				if(!(tile && tile.data.solid)){
+					posFound = true;
+				}
+					
+				count++;
+			}while(!posFound && count < 10)
+		
+			if(posFound){
+				var tile = tilemap.tileAt(x, y, 0);
+				var num = Math.floor(Math.random()*3);
+				if( tile && tile.data) {
+					if (tile.data.type == "SkyBackground" || tile.data.type == "Clouds") {
+						//Update count of that one
+						skyEntities[num].count = 0;
+						var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+						for(var i = 0; i < ents.length; i++){
+							if(ents[i].type == skyEntities[num].type){
+								skyEntities[num].count++;
+							}
+						}
+						if (skyEntities[num].limit > skyEntities[num].count) {
+							this.entityManager.add(
+								new skyEntities[num].Entity(x * 64, y * 64, 0, this.inputManager, this.scoreEngine)
+							);
+							skyEntities[num].count++;
+						}
+						else
+						{
+							num = Math.floor(Math.random()*5);
+							powerUps[num].count = 0;
+							var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+							for(var i = 0; i < ents.length; i++){
+								if(ents[i].type == powerUps[num].name){
+									powerUps[num].count++;
+								}
+							}
+							if(powerUps[num].limit > powerUps[num].count){
+								this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
+								powerUps[num].count++;
+							}
+						}
+					} 
+					else if(tile.data.type == "CaveBackground" || tile.data.type == "Water"){
+						//Update count of that one
+						middleEntities[num].count = 0;
+						var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+						for(var i = 0; i < ents.length; i++){
+							if(ents[i].type == middleEntities[num].type){
+								middleEntities[num].count++;
+							}
+						}
+						if(middleEntities[num].limit > middleEntities[num].count){
+							this.entityManager.add(
+									new middleEntities[num].Entity(x*64, y*64, 0, this.inputManager, this.scoreEngine)
+							);
+							middleEntities[num].count++;
+						}
+						else
+						{
+							num = Math.floor(Math.random()*5);
+							powerUps[num].count = 0;
+							var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+							for(var i = 0; i < ents.length; i++){
+								if(ents[i].type == powerUps[num].name){
+									powerUps[num].count++;
+								}
+							}
+							if(powerUps[num].limit > powerUps[num].count){
+								this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
+								powerUps[num].count++;
+							}		
+						}
+					}
+					else if(tile.data.type == "Lava" || tile.data.type == "DarkBackground" || tile.data.type == "DugBackground"){
+						//Update count of that one
+						deepEntities[num].count = 0;
+						var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+						for(var i = 0; i < ents.length; i++){
+							if(ents[i].type == deepEntities[num].type){
+								deepEntities[num].count++;
+							}
+						}
+						if(deepEntities[num].limit > deepEntities[num].count){
+							this.entityManager.add(
+									new deepEntities[num].Entity(x*64, y*64, 0, this.inputManager, this.scoreEngine)
+							);
+							deepEntities[num].count++;
 
-            //TODO implement this, so that enemies spawn in waves, etc
-            this.entityManager.add(new Shaman(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-        
-            this.entityManager.add(new Turret(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-            this.entityManager.add(new Miner(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-            this.entityManager.add(new DemonGHog(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
-            this.entityManager.add(new Barrel(Math.random()*64*15 + this.player.currentX, Math.random()*64*15 + this.player.currentY, 0));
+						}
+						else
+						{
+							num = Math.floor(Math.random()*5);
+							powerUps[num].count = 0;
+							var ents = this.entityManager.queryRadius(this.player.x, this.player.y, 75*64);
+							for(var i = 0; i < ents.length; i++){
+								if(ents[i].type == powerUps[num].name){
+									powerUps[num].count++;
+								}
+							}
+							if(powerUps[num].limit > powerUps[num].count){
+								this.entityManager.add(new powerUps[num].Entity(x*64, y*64, 0,powerUps[num].name, powerUps[num].width, powerUps[num].height, powerUps[num].frameNum, powerUps[num].img, powerUps[num].flying, powerUps[num].duration));
+								powerUps[num].count++;
+							}
+							
+						}
+					}
+				}
+			}
         }
-    };
+		
 
+    };
 
     return SpawningManager;
 })();
 
-},{"./DemonicGroundH.js":2,"./barrel.js":8,"./goblin-miner.js":21,"./goblin-shaman.js":22,"./turret.js":44}],39:[function(require,module,exports){
+},{"./DemonicGroundH.js":2,"./barrel.js":7,"./bird.js":8,"./dynamiteDwarf.js":14,"./ghostminer.js":19,"./goblin-miner.js":20,"./goblin-shaman.js":21,"./powerUp.js":32,"./turret.js":37}],35:[function(require,module,exports){
 /* MainMenu GameState module
  * Provides the main menu for the Diggy Hole game.
  * Authors:
@@ -7862,609 +6505,7 @@ module.exports = (function (){
   }
   
 })();
-},{}],40:[function(require,module,exports){
-/* Stone monster module
- * Implements the entity pattern
- * Authors:
- * - Filip Stanek
- */
-module.exports = (function(){
-    var Entity = require('./entity.js'),
-        Animation = require('./animation.js'),
-        Player = require('./player.js');
-
-    const SIZE = 64;
-    const GRAVITY = -250;
-    const SPEED = 50;
-
-    // StoneMonster States
-    const WAITING = 0;
-    const MOVING = 1;
-    const FALLING = 2;
-    const SMASHED = 3;
-    const STUCK = 4;
-
-    const SPRITE_WIDTH = 82;
-    const SPRITE_HEIGHT = 80;
-
-    const CLOSE_TO_PLAYER = SIZE * 4;
-    const WAIT_TIME = 3;
-
-    const TIME_TO_LIVE = 25;
-
-    function StoneMonster(locationX, locationY, layerIndex) {
-        this.type = "StoneMonster";
-        this.layerIndex = layerIndex;
-        this.currentX = locationX;
-        this.currentY = locationY;
-        this.speedY = 0;
-        this.state = MOVING;
-        this.isMovingRight = true;
-        this.bounced = false;
-        this.waitingTime = 0;
-        this.timeToLive = TIME_TO_LIVE;
-        this.renderBoundingCircle = false;
-
-        this.score = 3;
-
-        this.idle_image = new Image();
-        this.idle_image.src = 'img/stone-monster-img/stone_monster_idle.png';
-
-
-        var moving_image_left = new Image();
-        moving_image_left.src = 'img/stone-monster-img/stone-monster-moving-left.png';
-        var moving_image_right = new Image();
-        moving_image_right.src = 'img/stone-monster-img/stone-monster-moving-right.png';
-        var destroyed_image = new Image();
-        destroyed_image.src = 'img/stone-monster-img/stone_monster_destroyed.png';
-
-        this.animation_right = new Animation(moving_image_right, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
-        this.animation_left = new Animation(moving_image_left, SPRITE_WIDTH, SPRITE_HEIGHT, 0, 0, 8, 0.1);
-        this.animation_destroyed = new Animation(destroyed_image, SIZE, SIZE, 0, 0, 8, 0.05, true);
-    }
-
-    StoneMonster.prototype = new Entity();
-
-    StoneMonster.prototype.moveLeft = function(distance, tilemap) {
-        this.currentX -= distance;
-        var box = this.boundingBox(),
-            tileX = Math.floor(box.left/64),
-            tileY = Math.floor(box.bottom / 64) - 1,
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && tile.data.solid) {
-            this.currentX = (Math.floor(this.currentX / 64) + 1) * 64;
-            return true;
-        }
-        return false;
-    };
-
-    StoneMonster.prototype.moveRight = function(distance, tilemap) {
-        this.currentX += distance;
-        var box = this.boundingBox(),
-            tileX = Math.floor(box.right/64),
-            tileY = Math.floor(box.bottom / 64) - 1,
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if (tile && tile.data.solid) {
-            this.currentX = (Math.ceil(this.currentX / 64) - 1) * 64;
-            return true;
-        }
-        return false;
-    };
-
-    StoneMonster.prototype.move = function(elapsedTime, tilemap, entityManager){
-        var collided = false;
-        if(this.isMovingRight){
-            collided = this.moveRight(elapsedTime * SPEED, tilemap);
-        }
-        else{
-            collided = this.moveLeft(elapsedTime * SPEED, tilemap);
-        }
-        if(collided){
-            if(this.bounced){
-                this.state = STUCK;
-                return;
-            }
-            this.isMovingRight = !this.isMovingRight;
-            this.bounced = true;
-        }
-        else if(!this.bounced){
-            var player = entityManager.getPlayer();
-            if (player) {
-                if (this.currentX < player.currentX - CLOSE_TO_PLAYER) {
-                    this.isMovingRight = true;
-                }
-                else if (this.currentX > player.currentX + CLOSE_TO_PLAYER) {
-                    this.isMovingRight = false;
-                }
-                else if (this.currentY > player.currentY){
-                    this.state = WAITING;
-                }
-            }
-        }
-    };
-
-    StoneMonster.prototype.update = function(elapsedTime, tilemap, entityManager) {
-        switch (this.state) {
-            case WAITING:
-                this.waitingTime += elapsedTime;
-                if (this.waitingTime < WAIT_TIME) {
-                    break;
-                }
-                var player = entityManager.getPlayer();
-                if (player && (this.currentX <= 64*Math.floor((player.currentX - CLOSE_TO_PLAYER)/64)
-                    || this.currentX >= 64*Math.floor((player.currentX + CLOSE_TO_PLAYER)/64)
-                    || this.currentY < player.currentY )) {
-                    this.waitingTime = 0;
-                    this.state = MOVING;
-                }
-                break;
-            case MOVING:
-                if (!this.onGround(tilemap)) {
-                    this.state = FALLING;
-                    this.speedY = 0;
-                    break;
-                }
-                this.move(elapsedTime, tilemap, entityManager);
-                break;
-            case FALLING:
-                this.bounced = false;
-                this.speedY += Math.pow(GRAVITY * elapsedTime, 2);
-                this.currentY += this.speedY * elapsedTime;
-                if (this.onGround(tilemap)) {
-                    this.state = MOVING;
-                    this.currentY = 64 * Math.floor(this.currentY / 64);
-                }
-                break;
-            case SMASHED:
-                this.animation_destroyed.update(elapsedTime);
-                this.timeToLive -= elapsedTime;
-                if(this.timeToLive < 0){
-                    entityManager.remove(this);
-                }
-                break;
-            case STUCK:
-                var player = entityManager.getPlayer();
-                if (player && (this.currentX <= 64*Math.floor((player.currentX - CLOSE_TO_PLAYER)/64)
-                    || this.currentX >= 64*Math.floor((player.currentX + CLOSE_TO_PLAYER)/64)
-                    || this.currentY < player.currentY )) {
-                    this.timeToLive -= elapsedTime;
-                }
-                else{
-                    this.timeToLive = TIME_TO_LIVE;
-                }
-                if(this.timeToLive < 0){
-                    entityManager.remove(this);
-                }
-                break;
-        }
-        if (this.state == MOVING) {
-            if (this.isMovingRight) {
-                this.animation_right.update(elapsedTime);
-            }
-            else {
-                this.animation_left.update(elapsedTime);
-            }
-        }
-    };
-
-    StoneMonster.prototype.render = function(ctx, debug) {
-        if(this.state == WAITING || this.state == FALLING || this.state == STUCK) {
-            ctx.drawImage(this.idle_image, this.currentX, this.currentY);
-        }
-        else if(this.state == MOVING) {
-            if(this.isMovingRight){
-                this.animation_right.render(ctx, this.currentX - 19, this.currentY - 16);
-            }
-            else {
-                this.animation_left.render(ctx, this.currentX, this.currentY - 16);
-            }
-        }
-        else if(this.state == SMASHED){
-            this.animation_destroyed.render(ctx, this.currentX, this.currentY);
-        }
-        if(debug){
-            this.renderDebug(ctx);
-        }
-    };
-
-    StoneMonster.prototype.renderDebug = function(ctx) {
-        var bounds = this.boundingBox();
-        ctx.save();
-        ctx.strokeStyle = "purple";
-        ctx.beginPath();
-        ctx.moveTo(bounds.left, bounds.top);
-        ctx.lineTo(bounds.right, bounds.top);
-        ctx.lineTo(bounds.right, bounds.bottom);
-        ctx.lineTo(bounds.left, bounds.bottom);
-        ctx.closePath();
-        ctx.stroke();
-        if(this.renderBoundingCircle){
-            var boundingCircle = this.boundingCircle();
-            ctx.beginPath();
-            ctx.arc(boundingCircle.cx, boundingCircle.cy, boundingCircle.radius, 0, 2*Math.PI);
-            ctx.closePath();
-            ctx.stroke();
-        }
-        ctx.restore();
-    };
-
-    StoneMonster.prototype.onGround = function(tilemap) {
-        var box = this.boundingBox(),
-            tileX = Math.floor((box.left + (SIZE/3))/64),
-            tileY = Math.floor(box.bottom / 64),
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        return (tile && tile.data.solid) ? true : false;
-    };
-
-    StoneMonster.prototype.boundingBox = function() {
-        return {
-            left: this.currentX,
-            top: this.currentY,
-            right: this.currentX + SIZE,
-            bottom: this.currentY + SIZE
-        }
-    };
-
-    StoneMonster.prototype.boundingCircle = function() {
-        return {
-            cx: this.currentX + SIZE/2,
-            cy: this.currentY + SIZE/2,
-            radius: Math.sqrt(2*SIZE*SIZE)/2
-        }
-    };
-
-    StoneMonster.prototype.collide = function(otherEntity){
-        if(!otherEntity || otherEntity instanceof StoneMonster){
-            return;
-        }
-        if(otherEntity instanceof Player && this.state != FALLING
-            && otherEntity.currentY + SIZE/2 <= this.currentY && !otherEntity.stoneShield){
-            this.state = SMASHED;
-        }
-        var entityRect = otherEntity.boundingBox();
-        var thisRect = this.boundingBox();
-
-
-        if(entityRect.bottom > thisRect.top){
-            if(otherEntity instanceof Player) {
-                otherEntity.currentY = thisRect.top - SIZE - 2;
-                if (this.state == SMASHED) {
-                    //otherEntity.health -= DAMAGE;
-                    console.log("damage");
-                }
-            }
-        }
-        else if(entityRect.right - SIZE/3 >= thisRect.left){
-            otherEntity.currentX -= (entityRect.right - thisRect.left);
-        }
-        else if(entityRect.left - SIZE/3 <= thisRect.right){
-            console.log(thisRect.right - entityRect.left);
-            otherEntity.currentX = this.currentX + SIZE + 2;
-        }
-    };
-
-    return StoneMonster;
-}());
-
-},{"./animation.js":7,"./entity.js":19,"./player.js":32}],41:[function(require,module,exports){
-/**
- * Created by Administrator on 11/12/15.
- */
-/**
- * Created by Administrator on 11/12/15.
- */
-/**
- * Created by Administrator on 11/7/15.
- * Author Uzzi Emuchay
- * Animation for sudo-chan monster
- */
-module.exports = (function() {
-
-    function Sudo_Animation(image, width, height, top, left, numberOfFrames,secondsPerFrame) {
-        this.frameIndex = 0,
-            this.time = 0,
-            this.secondsPerFrame = secondsPerFrame || (1/16),
-            this.numberOfFrames = numberOfFrames || 0;
-
-
-        this.width = width;
-        this.height = height;
-        this.image = image;
-
-        this.drawLocationX = top || 0;
-        this.drawLocationY = left || 0;
-    }
-
-    Sudo_Animation.prototype.setStats = function(frameCount, locationX, locationY){
-        this.numberOfFrames = frameCount;
-        this.drawLocationY = locationY;
-        this.drawLocationX = locationX;
-        console.log("I am called");
-    };
-
-    Sudo_Animation.prototype.update = function (elapsedTime, tilemap) {
-        this.time += elapsedTime;
-        // Update animation
-        if (this.time > this.secondsPerFrame) {
-            if(this.time > this.secondsPerFrame) this.time -= this.secondsPerFrame;
-            // If the current frame index is in range
-            if (this.frameIndex < this.numberOfFrames - 1) {
-                this.frameIndex += 1;
-            } else {
-                this.frameIndex = 0;
-            }
-        }
-    };
-
-    Sudo_Animation.prototype.render = function(ctx, x, y) {
-
-        // Draw the current frame
-        //console.log("image name "+ this.image);
-        //console.log("This is the index of frame " + this.frameIndex);
-        ctx.drawImage(
-            this.image,
-            this.drawLocationX + this.frameIndex * this.width,
-            this.drawLocationY,
-            this.width,
-            this.height,
-            x,
-            y,
-            this.width,
-            this.height);
-    }
-
-    return Sudo_Animation;
-
-}());
-},{}],42:[function(require,module,exports){
-/**
- * Created by Administrator on 11/12/15.
- */
-/**
- * Created by Administrator on 11/6/15.
- * Author: Uzzi Emuchay
- * Sudo-Chan Monster Entity For Diggy Hole Game
- */
-module.exports = (function(){
-    var Entity = require('./entity.js'),
-        Sudo_Animation = require('./sudo-chan-animation.js');
-    const STANDING = 0;
-    const WALKING = 1;
-    const JUMPING = 2;
-    const PUNCHING = 3;
-    const FALLING = 4;
-    const HIT = 5;
-    const STOP = 6;
-
-    const SIZE = 64;
-    const GRAVITY = -250;
-    const SPEED_OF_MOVEMENT = 50;
-    const JUMPING_VELOCITY = -600;
-    //The right face sudo-chan spritesheet
-    var sudo_chan_right_idle = new Image();
-    sudo_chan_right_idle.src = 'img/sudo-chan-images/idle_sudo_chan.png';
-    var sudo_chan_right_walk = new Image();
-    sudo_chan_right_walk.src = 'img/sudo-chan-images/walking_sudo_chan.png';
-    var sudo_chan_right_jump = new Image();
-    sudo_chan_right_jump.src = 'img/sudo-chan-images/jumping_sudo_chan.png';
-    var sudo_chan_right_punch = new Image();
-    sudo_chan_right_punch.src = 'img/sudo-chan-images/celebrating_sudo_chan.png';
-    var sudo_chan_right_fall = new Image();
-    sudo_chan_right_fall.src = 'img/sudo-chan-images/falling_sudo_chan.png';
-    var sudo_chan_right_hit =  new Image();
-    sudo_chan_right_hit.src = 'img/sudo-chan-images/hurt_sudo_chan.png';
-
-    function Sudo_Chan(locationX, locationY, mapLayer) {
-        this.positionX = locationX;
-        this.positionY = locationY;
-        this.mapLayer = mapLayer;
-        this.state_of_player = STANDING;
-        this.constant_speed = 15;
-        this.facing_left = false;
-        this.type = "sudo_chan";
-        this.sudo_chan_collided_with_knight = false;
-
-        this.animations = {
-            left: [],
-            right: [],
-        };
-
-        this.animations.right[STANDING] = new Sudo_Animation(sudo_chan_right_idle, SIZE, SIZE, 0, 0, 10);
-        this.animations.right[WALKING] = new Sudo_Animation(sudo_chan_right_walk, SIZE, SIZE, 0, 0, 10);
-        this.animations.right[JUMPING] = new Sudo_Animation(sudo_chan_right_jump, SIZE, SIZE, 0, 0, 10);
-        this.animations.right[PUNCHING] = new Sudo_Animation(sudo_chan_right_punch, SIZE, SIZE, 0, 0, 10);
-        this.animations.right[FALLING] = new Sudo_Animation(sudo_chan_right_fall, SIZE, SIZE, 0, 0, 10);
-        this.animations.right[HIT] = new Sudo_Animation(sudo_chan_right_hit, SIZE, SIZE, 0, 0, 10);
-        this.animations.right[STOP] = new Sudo_Animation(sudo_chan_right_idle, SIZE, SIZE, 0, 0, 10);
-
-    };
-    //Player inherits from entity
-    Sudo_Chan.prototype = new Entity();
-    Sudo_Chan.prototype.onGround = function(tilemap) {
-        var box = this.boundingBox(),
-            tileX = Math.floor((box.left + (SIZE/2) + 10)/64), //Gets the rounded off value of tile's x coordinate
-            tileY = Math.floor((box.bottom/64)), //Gets the rounded off value of the tile's y value
-            tile = tilemap.tileAt(tileX, tileY, this.mapLayer);
-        return (tile && tile.data.solid) ? true : false;
-    };
-
-    Sudo_Chan.prototype.boundingBox = function(){
-        return{
-            left: this.positionX,
-            top: this.positionY,
-            right: this.positionX + SIZE,
-            bottom: this.positionY + SIZE
-        }
-    };
-    
-     Sudo_Chan.prototype.boundingCircle = function() {
-    return {
-      cx: this.positionX + SIZE / 2,
-      cy: this.positionY + SIZE / 2,
-      radius: SIZE / 2
-    };
-  };
-
-    // Draw Player
-    Sudo_Chan.prototype.render = function(ctx, debug) {
-        if(this.facing_left){
-            this.animations.left[this.state_of_player].render(ctx, this.positionX, this.positionY);
-        }
-        else{
-            this.animations.right[this.state_of_player].render(ctx, this.positionX, this.positionY);
-            //this.state_of_player = STANDING;
-        }
-        if(debug) {
-            renderDebug(this, ctx);
-        }
-
-    };
-    Sudo_Chan.prototype.rightMove = function (elaspedtime, tilemap){
-        var speed_of_movements;
-        if(this.sudo_chan_collided_with_knight == true){
-            speed_of_movements = SPEED_OF_MOVEMENT * 2;
-        }
-        else{
-            speed_of_movements = SPEED_OF_MOVEMENT;
-        }
-        this.positionX += speed_of_movements * elaspedtime;
-        var box = this.boundingBox(),
-            tileX = Math.floor(box.right/64),
-            tileY = Math.floor(box.bottom/64) - 1;
-        //console.log("This is tileX: "+tileX + " this is tileY: "+tileY + "layer's index "+ this.mapLayer);
-        var tile = tilemap.tileAt(tileX, tileY, this.mapLayer);
-        if(tile && tile.data.solid){
-            //this.positionX = (Math.floor(this.positionX/64) + 1) * 64;
-            this.state_of_player = STOP;
-        }
-    };
-    Sudo_Chan.prototype.leftMove = function (elaspedtime, tilemap){
-
-        this.positionX += SPEED_OF_MOVEMENT * elaspedtime;
-        var box = this.boundingBox(),
-            tileX = Math.floor(box.left/64),
-            tileY = Math.floor(box.bottom/64) - 1,
-            tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-        if(tile && tile.data.solid){
-            this.positionX = (Math.floor(this.positionX/64) + 1) * 64;
-            this.state_of_player = STOP;
-        }
-    };
-    Sudo_Chan.prototype.update = function(elapsedtime, tilemap) {
-        var sudo_chan_sprite = this;
-        var celebration_count = 0;
-        switch (sudo_chan_sprite.state_of_player) {
-            case STOP:
-                sudo_chan_sprite.state_of_player = JUMPING;
-                sudo_chan_sprite.sprite_velocityY = JUMPING_VELOCITY;
-                //console.log("punching");
-                break;
-            // Case when there is no ground beneath sudo-chan
-            case STANDING:
-                if (!sudo_chan_sprite.onGround(tilemap)) {
-                    //loop through for loop rendering the animation sprite
-                    sudo_chan_sprite.state_of_player = FALLING;
-                    sudo_chan_sprite.sprite_velocityY = 0;
-                    //console.log("this should cause monster to drop")
-                }
-                else {
-                    //changed state of sudo-chan to walking
-                    sudo_chan_sprite.state_of_player = WALKING;
-                    //console.log("this should cause monster to walk");
-                }
-                break;
-            // Case when sudo-chan is already falling, if there is ground sudo-chan stops falling
-            case FALLING:
-                sudo_chan_sprite.sprite_velocityY = sudo_chan_sprite.sprite_velocityY + Math.pow(GRAVITY * elapsedtime, 2);
-                sudo_chan_sprite.positionY = sudo_chan_sprite.positionY + sudo_chan_sprite.sprite_velocityY * elapsedtime;
-                if (sudo_chan_sprite.onGround(tilemap)) {
-                    sudo_chan_sprite.state_of_player = STANDING;
-                    sudo_chan_sprite.positionY = 64 * Math.floor(sudo_chan_sprite.positionY / 64);
-                }
-                break;
-            case WALKING:
-                if (!sudo_chan_sprite.onGround(tilemap)) {
-                    //loop through for loop rendring the animation sprite
-                    sudo_chan_sprite.state_of_player = STOP;
-                    sudo_chan_sprite.sprite_velocityY = 0;
-                }
-                if(sudo_chan_sprite.isLeft){
-                    sudo_chan_sprite.leftMove(elapsedtime, tilemap);
-                }
-                else {
-                    sudo_chan_sprite.rightMove(elapsedtime, tilemap);
-                }
-                sudo_chan_sprite.sudo_chan_collided_with_knight = false;
-                break;
-            case PUNCHING:
-                celebration_count += 1;
-                break;
-            case JUMPING:
-                sudo_chan_sprite.sprite_velocityY += Math.pow(GRAVITY * elapsedtime, 2);
-                sudo_chan_sprite.positionY += sudo_chan_sprite.sprite_velocityY * elapsedtime;
-                if(sudo_chan_sprite.sprite_velocityY > 0)
-                {
-                    if(sudo_chan_sprite.isLeft){
-                        sudo_chan_sprite.leftMove(elapsedtime, tilemap);
-                    }
-                    else{
-                        sudo_chan_sprite.rightMove(elapsedtime, tilemap);
-                    }
-                    sudo_chan_sprite.state_of_player = FALLING;
-                }
-                break;
-        }
-
-        if (this.isLeft) {
-            this.animations.left[this.state_of_player].update(elapsedtime);
-        }
-        else {
-            this.animations.right[this.state_of_player].update(elapsedtime);
-        }
-    };
-
-    //When Sudo Chan colides with player it squares up!
-    Sudo_Chan.prototype.collide = function (otherEntity) {
-        if(otherEntity.type == "knight"){
-            this.state_of_player = PUNCHING;
-            this.state_of_player = STANDING;
-        }
-    };
-
-    function renderDebug(player, ctx) {
-        var bounds = player.boundingBox();
-        ctx.save();
-
-        // Draw player bounding box
-        ctx.strokeStyle = "red";
-        ctx.beginPath();
-        ctx.moveTo(bounds.left, bounds.top);
-        ctx.lineTo(bounds.right, bounds.top);
-        ctx.lineTo(bounds.right, bounds.bottom);
-        ctx.lineTo(bounds.left, bounds.bottom);
-        ctx.closePath();
-        ctx.stroke();
-
-        // Outline tile underfoot
-        var tileX = 64 * Math.floor((bounds.left + (SIZE/2))/64),
-            tileY = 64 * (Math.floor(bounds.bottom / 64));
-        ctx.strokeStyle = "black";
-        ctx.beginPath();
-        ctx.moveTo(tileX, tileY);
-        ctx.lineTo(tileX + 64, tileY);
-        ctx.lineTo(tileX + 64, tileY + 64);
-        ctx.lineTo(tileX, tileY + 64);
-        ctx.closePath();
-        ctx.stroke();
-
-        ctx.restore();
-    }
-
-
-    return Sudo_Chan;
-}());
-
-},{"./entity.js":19,"./sudo-chan-animation.js":41}],43:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 /* Tilemap engine providing the static world
  * elements for Diggy Hole
  * Authors:
@@ -8474,6 +6515,7 @@ module.exports = (function(){
 
 module.exports = (function (){
   var noisy = require('./noise.js'),
+      settings = require('./Settings.js'),
       tiles = [],
       tilesets = [],
       layers = [],
@@ -8505,6 +6547,8 @@ module.exports = (function (){
     var smallcloudxs = {};
     var smallcloudys = {};
     var smallcloudsize = {};
+
+    var timeSinceLiquidMovement = 0;
 
   /* Clamps the provided value to the provided range
    * Arguments:
@@ -8667,251 +6711,304 @@ module.exports = (function (){
     });
   }
 
+  /*############################
+  * # BinaryTreeNode functions #
+  * ############################
+  *
+  * Function : BinaryTreeNode(key, value, left, right)
+  *  Description : Creates a new BinaryTreeNode object.
+  */
+  function BinaryTreeNode(key, value, left, right) {
+      this.key = key;
+      this.value = value;
+      this.LeftNode = left;
+      this.RightNode = right;
+  }
+
+  /* Function : AddNode(key, value, left, right, tree)
+  *  Description : Adds a node to the tree structure. If a node and new key are the same, then the value is replaced.
+  */
+  function AddNode(key, value, left, right, tree) {
+      if (key < tree.key) {
+          if (tree.LeftNode == null) {
+              tree.LeftNode = new BinaryTreeNode(key, value, left, right);
+          }
+          else {
+              AddNode(key, value, left, right, tree.LeftNode);
+          }
+      }
+      else if (key > tree.key) {
+          if (tree.RightNode == null) {
+              tree.RightNode = new BinaryTreeNode(key, value, left, right);
+          }
+          else {
+              AddNode(key, value, left, right, tree.RightNode);
+          }
+      }
+      else {
+          tree.value = value;
+      }
+  }
+
+  /* Function : Search(key, tree)
+  *  Description : Searches a given tree for a corresponding key. Returns a value, or null if no such key is found.
+  */
+  function Search(key, tree) {
+      if (key != tree.key) {
+          if (key < tree.key) {
+              if (tree.LeftNode != null) {
+                  tree = Search(key, tree.LeftNode);
+              }
+          }
+          else {
+              if (tree.RightNode != null) {
+                  tree = Search(key, tree.RightNode);
+              }
+          }
+      }
+      return tree;
+  }
+
   /* Generates a random tilemap
    * Arguments:
    * - width, the width of the tilemap
    * - height, the height of the tilemap
    * - options, options to trigger
    */
-  var generate = function(width, height, options) {
-    var map = new Array(width*height);
-    var noise = noisy.generateNoise(width, height);
-    noise = noisy.generatePerlinNoise(width, noise, 7);
+   var generate = function(width, height, options) {
+     var map = new Array(width*height);
+     var noise = noisy.generateNoise(width, height);
+     noise = noisy.generatePerlinNoise(map, width, height, noise);
 
-    var tileWidth = 64, tileHeight = 64;
-    var tilesets = [
-      {
-        firstgid: 0,
-        image: "Tileset.png",
-        imageheight: 256,
-        imagewidth: 256,
-        margin: 0,
-        name: "Tileset",
-        tileproperties: {
-          0: { // Sky background
-            type: "SkyBackground",
-            notDiggable: true
-          },
-          1: { // Clouds
-            type: "Clouds",
-            notDiggable: true
-          },
-          2: { // Sky Earth
-            type: "Sky Earth",
-            solid: true
-          },
-          3: { // Gems w grass
-            type: "GemsWithGrass",
-            solid: true,
-            gems: true
-          },
-          4: { // Dirt w grass
-            type: "DirtWithGrass",
-            solid: true
-          },
-          5: { // Stone w grass
-            type: "StoneWithGrass",
-            solid: true,
-            notDiggable: true
-          },
-          6: { // Water
-            type: "Water",
-            liquid: true,
-            notDiggable: true
-          },
-          7: { // Cave background
-            type: "CaveBackground",
-            notDiggable: true
-          },
-          8: { // Gems
-            type: "Gems",
-            solid: true,
-            gems: true
-          },
-          9: { // dirt
-            type: "Dirt",
-            solid: true,
-          },
-          10: { // stone
-            type: "Stone",
-            solid: true,
-            notDiggable: true
-          },
-          11: { // water
-            type: "Water",
-            liquid: true,
-            notDiggable: true
-          },
-          12: { // cave background
-            type: "CaveBackground",
-            notDiggable: true
-          },
-          13: { // lava
-            type: "Lava",
-            liquid: true,
-            damage: 10,
-            notDiggable: true
-          },
-          14: { // dark background
-            type: "DarkBackground",
-            notDiggable: true
-          },
-          15: { // dug background
-            type: "DugBackground",
-            notDiggable: true
-          }
-        },
-        spacing: 0,
-        tilewidth: 64,
-        tileheight: 64
-      }
-    ]
+     var tileWidth = 64, tileHeight = 64;
+     var tilesets = [
+       {
+         firstgid: 0,
+         image: "Tileset.png",
+         imageheight: 256,
+         imagewidth: 256,
+         margin: 0,
+         name: "Tileset",
+         tileproperties: {
+           0: { // Sky background
+             type: "SkyBackground",
+               notDiggable: true
+           },
+           1: { // Clouds
+              type: "Clouds",
+               nodDiggable: true
+           },
+           2: { // Sky Earth
+             type: "Sky Earth",
+             solid: true
+           },
+           3: { // Gems w grass
+             type: "GemsWithGrass",
+             solid: true,
+             gems: true
+           },
+           4: { // Dirt w grass
+             type: "DirtWithGrass",
+             solid: true
+           },
+           5: { // Stone w grass
+             type: "StoneWithGrass",
+             solid: true,
+               notDiggable: true
+           },
+           6: { // Water
+             type: "Water",
+             liquid: true,
+               notDiggable: true
+           },
+           7: { // Cave background
+             type: "CaveBackground",
+               notDiggable: true
+           },
+           8: { // Gems
+             type: "Gems",
+             solid: true,
+             gems: true
+           },
+           9: { // dirt
+             type: "Dirt",
+             solid: true,
+           },
+           10: { // stone
+             type: "Stone",
+             solid: true,
+              
+           },
+           11: { // water
+             type: "Water",
+             liquid: true,
+               notDiggable: true
+           },
+           12: { // cave background
+             type: "CaveBackground",
+               notDiggable: true
+           },
+           13: { // lava
+             type: "Lava",
+             liquid: true,
+             damage: 10,
+               notDiggable: true
+           },
+           14: { // dark background
+             type: "DarkBackground",
+           },
+           15: { // dug background
+             type: "DugBackground",
+               notDiggable: true
+           }
+         },
+         spacing: 0,
+         tilewidth: 64,
+         tileheight: 64
+       }
+     ]
 
-    // Determines where the surface is (and end of the sky)
-    var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));
-    this.surface = surface;
-    // Determines where the crust layer of the earth ends
-    var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
-    this.midEarth = midEarth;
-    // Used to help clump up the sky islands
-    var skyEarthCount = 0;
-    var cloudCount = 0;
+     // Determines where the surface is (and end of the sky)
+     var surface = Math.floor(noisy.randomNumber(Math.floor(height*1/8), Math.floor(height*2/8)));
+     this.surface = surface;
+     // Determines where the crust layer of the earth ends
+     var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
 
-    /* As a key the tile numbers are as follows:
-     * SkyBackground: 0, Clouds: 1, SkyEarth: 2, GemsWithGrass: 3, DirtWithGrass: 4, StoneWithGrass: 5, Water: 6,
-     * CaveBackground: 7, Gems: 8, Dirt: 9, Stone: 10, Water(Again): 11, CaveBackground(Again): 12, Lava: 13, DarkBackground: 14, DugTile: 15
-     * you can replace any of the tiles that are unwanted (or wanted) at any point and it will preserve initial functionality*/
-    for(j = 0; j < height; j++){
-      var rand = noisy.randomNumber(0, 3);
-      var rand2 = noisy.randomNumber(0, 1);
-      for(i = 0; i < width; i++){
-        var index = j * width + i;
-        var temp = noise[index];
-        //Ensure first row is sky
-        if(j == 0){
-          map[index] = 1;
-        }
-        //Sky Area
-        else if(j < surface-2){
-          if(temp < 8 && skyEarthCount == 0 && cloudCount == 0){ //Sky Background
-            map[index] = 1;
-          }
-          else if(temp < 9.4 && skyEarthCount == 0){ //Clouds
-            map[index] = 2;
-            cloudCount++;
-            if(cloudCount > rand2){
-              rand2 = noisy.randomNumber(0, 3);
-              cloudCount = 0;
-            }
-          }
-          else{ //Sky Earth
-            map[index] = 3;
-            skyEarthCount++;
-            if(skyEarthCount > rand){
-              skyEarthCount = 0;
-              rand = noisy.randomNumber(0, 3);
-            }
-          }
-        }
-        //Ensure row before the surface is sky
-        else if(j < surface){
-          map[index] = 1;
-        }
-        //Surface blocks - Start of Crust Layer
-        else if(j == surface){
-          if(temp < .5){ //Gems w grass
-            map[index] = 4;
-          }
-          else if(temp < 5){ //Dirt w grass
-            map[index] = 5;
-          }
-          else if(temp < 6){ //Stone w grass
-            map[index] = 6;
-          }
-          else if(temp < 8){ //Water
-            map[index] = 7;
-          }
-          else{ //Cave Background
-            map[index] = 13;
-          }
-        }
-        //Crust Area
-        else if(j < midEarth-1){
-          if(temp < .5){ //Gems
-            map[index] = 9;
-          }
-          else if(temp < 4){ //Dirt
-            map[index] = 10;
-          }
-          else if(temp < 6){ //Stone
-            map[index] = 11;
-          }
-          else if(temp < 8){ //Water 11
-            map[index] = 12;
-          }
-          else{ //Cave Background
-            map[index] = 13;
-          }
-        }
-        //Solid layer between crust and deep earth
-        else if(j < midEarth){
-          if(temp < .5){ //Gems
-            map[index] = 9;
-          }
-          else if(temp < 4){ //Dirt
-            map[index] = 10;
-          }
-          else if(temp < 6){ //Stone
-            map[index] = 11;
-          }
-          else if(temp < 8){ //Water 11
-            map[index] = 10;
-          }
-          else{ //Cave Background
-            map[index] = 11;
-          }
-        }
-        //Deep Earth
-        else{
-          if(temp < 4){ // Lava
-            map[index] = 14;
-          }
-          else if(temp < 6){ // Stone
-            map[index] = 11;
-          }
-          else{ // Dark Background
-            map[index] = 15;
-          }
-        }
+     // Used to help clump up the sky islands
+     var skyEarthCount = 0;
+     var cloudCount = 0;
 
-      }
-    }
+     /* As a key the tile numbers are as follows:
+      * SkyBackground: 0, Clouds: 1, SkyEarth: 2, GemsWithGrass: 3, DirtWithGrass: 4, StoneWithGrass: 5, Water: 6,
+      * CaveBackground: 7, Gems: 8, Dirt: 9, Stone: 10, Water(Again): 11, CaveBackground(Again): 12, Lava: 13, DarkBackground: 14, DugTile: 15
+      * you can replace any of the tiles that are unwanted (or wanted) at any point and it will preserve initial functionality*/
 
-    for(var x = 0; x < height/20; x++){
-      map = consolidateLiquids(map, width, height, width-1, 0, 0, height-1, width, 2);
-    }
+     for(j = 0; j < height; j++){
+       var rand = noisy.randomNumber(0, 3);
+       var rand2 = noisy.randomNumber(0, 1);
+       for(i = 0; i < width; i++){
+         var index = j * width + i;
+         var temp = noise[index];
+         //Ensure first row is sky
+         if(j == 0){
+           map[index] = 1;
+         }
+         //Sky Area
+         else if(j < surface-2){
+           if(temp < 8 && skyEarthCount == 0 && cloudCount == 0){ //Sky Background
+             map[index] = 1;
+           }
+           else if(temp < 15 && skyEarthCount == 0){ //Clouds
+             map[index] = 2;
+             cloudCount++;
+             if(cloudCount > rand2){
+               rand2 = noisy.randomNumber(0, 3);
+               cloudCount = 0;
+             }
+           }
+           else{ //Sky Earth
+             map[index] = 0;
+             skyEarthCount++;
+             if(skyEarthCount > rand){
+               skyEarthCount = 0;
+               rand = noisy.randomNumber(0, 3);
+             }
+         }
+         }
+         //Ensure row before the surface is sky
+         else if(j < surface){
+           map[index] = 1;
+         }
+         //Surface blocks - Start of Crust Layer
+         else if(j == surface){
+           if(temp < 2){ //Gems w grass
+             map[index] = 4;
+           }
+           else if(temp < 7){ //Dirt w grass
+             map[index] = 5;
+           }
+           else if(temp < 11){ //Stone w grass
+             map[index] = 6;
+           }
+           else if(temp < 14.5){ //Water
+             map[index] = 7;
+           }
+           else{ //Cave Background
+             map[index] = 13;
+           }
+         }
+         //Crust Area
+         else if(j < midEarth-1){
+           if(temp < 2){ //Gems
+             map[index] = 9;
+           }
+           else if(temp < 7){ //Dirt
+             map[index] = 10;
+           }
+           else if(temp < 11){ //Stone
+             map[index] = 11;
+           }
+           else if(temp < 14.5){ //Water 11
+             map[index] = 12;
+           }
+           else{ //Cave Background
+             map[index] = 13;
+           }
+         }
+         //Solid layer between crust and deep earth
+         else if(j < midEarth){
+           if(temp < 2){ //Gems
+             map[index] = 9;
+           }
+           else if(temp < 7){ //Dirt
+             map[index] = 10;
+           }
+           else if(temp < 11){ //Stone
+             map[index] = 11;
+           }
+           else if(temp < 14.5){ //Water 11
+             map[index] = 10;
+           }
+           else{ //Cave Background
+             map[index] = 11;
+           }
+         }
+         //Deep Earth
+         else{
+           if(temp < 4){ // Lava
+             map[index] = 14;
+           }
+           else if(temp < 6){ // Stone
+             map[index] = 11;
+           }
+           else{ // Dark Background
+             map[index] = 15;
+           }
+         }
+       }
+   }
 
-    // Create mapData object
-    var mapData = {
-      height: height,
-      width: width,
-      tilewidth: tileWidth,
-      tileheight: tileHeight,
-      layers: [{
-        data: map,
-        name: "Interaction Layer",
-        type: "tilelayer",
-        height: height,
-        width: width,
-        visible: true,
-        x: 0,
-        y: 0
-      }],
-      tilesets: tilesets,
-      options: options
-    }
-    return load(mapData, options);
-  }
+     // Create mapData object
+     var mapData = {
+       height: height,
+       width: width,
+       tilewidth: tileWidth,
+       tileheight: tileHeight,
+       layers: [{
+           data: map,
+           name: "Interaction Layer",
+           type: "tilelayer",
+           height: height,
+           width: width,
+           visible: true,
+           x: 0,
+           y: 0
+       }],
+       tilesets: tilesets,
+       options: options
+     }
+     return load(mapData, options);
+   }
 
   function shiftWaterDown(map, width, height, rightStart, bottomStart, viewWidth, viewHeight){
     for(var j = bottomStart; j > bottomStart-viewHeight; j--){
@@ -9035,16 +7132,22 @@ module.exports = (function (){
   }
 
 // Added by Wyatt Watson
-  var update = function(){
+  var update = function(elapsedTime){
     layers.forEach(function(layer){
       var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
       var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
       var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
       var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
 
-      consolidateLiquids(layer.data, layer.width, layer.height, endX, startX, startY, endY, endX-startX, endY-startY);
+      timeSinceLiquidMovement += elapsedTime;
+
+      //create bounding box and clean updatable objects, but only after some time interval
+      if(timeSinceLiquidMovement >= settings.LIQUID_UPDATE_TIME) {
+          consolidateLiquids(layer.data, layer.width, layer.height, endX, startX, startY, endY, endX-startX, endY-startY);
+          timeSinceLiquidMovement = 0;
+      }
     });
-  }
+  };
 
   /*Karenfang*/
   var renderWater = function(screenCtx){
@@ -9230,6 +7333,13 @@ module.exports = (function (){
       layers[layer].data[x + y * mapWidth] = newType;
   };
 
+  var randomOnSurface = function() {
+    return {
+      x: Math.floor(Math.random() * mapWidth / 2 + mapWidth / 4),
+      y: this.surface - 1
+    };
+  };
+
   // Expose the module's public API
   return {
     load: load,
@@ -9248,19 +7358,19 @@ module.exports = (function (){
     mineAt: mineAt,
     consolidateLiquids: consolidateLiquids,
     update: update,
-    renderWater: renderWater
+    renderWater: renderWater,
+    randomOnSurface: randomOnSurface
   }
 
 
 })();
 
-},{"./noise.js":28}],44:[function(require,module,exports){
+},{"./Settings.js":5,"./noise.js":29}],37:[function(require,module,exports){
 module.exports = (function(){
 	var Animation = require('./animation.js'),
 		Player = require('./player.js'),
 		Entity = require('./entity.js'),
 		Cannonball = require('./cannonball.js'),
-		entityManager = require('./entity-manager.js'),
 		turret = new Image();
 		turret.src = './img/turret/turretMany.png';
 		destroyedTurret = new Image();
@@ -9323,8 +7433,9 @@ module.exports = (function(){
 		this.cannonballs = [],
 		this.cnbsFired = 0;
 		this.shotSound = [];
+		this.firstUpdate = false;
 
-		this.spawnCannonballs = function() {
+		this.spawnCannonballs = function(entityManager) {
 			for (var i = 0; i < cannonballNum; i ++) {
 				this.cannonballs[i] = new Cannonball(this.posX, this.posY, 0, 0, 0, this.gravity, centerOffsetX, centerOffsetY);
 				entityManager.add(this.cannonballs[i]);
@@ -9452,13 +7563,18 @@ module.exports = (function(){
 		}
 
 		this.loadAnimations();
-		this.spawnCannonballs();
+
 	}
 
 	Turret.prototype = new Entity();
 
 	Turret.prototype.update = function(elapsedTime, tilemap, entityManager)
 	{
+		if(!this.firstUpdate) {
+			this.spawnCannonballs(entityManager);
+			this.firstUpdate = true;
+		}
+
 		this.optimizationTimer += elapsedTime;
 
 		if (this.onGround(tilemap) == false) {
@@ -9499,7 +7615,7 @@ module.exports = (function(){
 
 		if (this.targeting == true) {
 			// entitiesInRange = entityManager.queryRadius(this.posX, this.posY, 1500);
-			var angle = this.getAngle(this.player.currentX, this.player.currentY);
+			var angle = this.getAngle(this.player.x, this.player.y);
 				if (isNaN(angle) == false) {
 					this.angle = angle;
 					this.targetInRange(this.player);
@@ -9613,7 +7729,7 @@ module.exports = (function(){
 		ctx.restore();
   }
 
-	Turret.prototype.collide = function(otherEntity)
+	Turret.prototype.collide = function(otherEntity, entityManager)
 	{
 		if (otherEntity.type == 'cannonball' && (otherEntity.state == 3 /*Cannonball.EXPLODING*/)) {
 			this.state = DESTROYED;
@@ -9646,262 +7762,4 @@ module.exports = (function(){
 	return Turret;
 }())
 
-},{"./animation.js":7,"./cannonball.js":12,"./entity-manager.js":18,"./entity.js":19,"./player.js":32}],45:[function(require,module,exports){
-
-/* Wolf module
- * Implements the entity pattern and provides
- * the DiggyHole Wolf info.
- * Authors:
- * Ryan Ward
- */
-
-module.exports = (function(){
-  var Entity = require('./entity.js'),
-      Animation = require('./animation.js');
-  
-  /* The following are Wolf States  */
-  const IDLE = 0;
-  const RIGHT = 1;
-  const LEFT = 2;
-  const SMELL = 3;
-  const AGRO = 4;
-  const FALLING = 5;
-
-  // The Sprite HEIGHT
-  const HEIGHT = 62;
-  const WIDTH = 37;
-
-  // Movement constants
-  const SPEED = 100;
-  const GRAVITY = -250;
-  const JUMP_VELOCITY = -600;
-  
-  //The Right facing wolf spritesheet
-  var WolfRight = new Image();
-  WolfRight.src = './img/Wolf_walkright.png';
-
-  //The left facing wolf spritesheet
-  var WolfLeft = new Image();
-  WolfLeft.src = "./img/Wolf_walkleft.png";
-  
-   //The IDLE wolf spritesheet
-  var WolfIdle = new Image();
-  WolfIdle.src = "./img/Wolf_idle.png";
-
-  //The Wolf constructor
-  function Wolf(locationX, locationY, layerIndex, inputManager) {
-	  console.log('WolfCreated');
-    this.inputManager = inputManager;
-    this.state = RIGHT; 
-    this.layerIndex = layerIndex;
-    this.currentX = locationX; 
-    this.currentY = locationY; 
-    this.nextX = 0; 
-    this.nextY = 0;
-    this.currentTileIndex = 0; 
-    this.nextTileIndex = 0;
-    this.constSpeed = 15; 
-    this.gravity = .5; 
-    this.angle = 0; 
-    this.xSpeed = 10; 
-    this.ySpeed = 15;
-    this.isLeft = false;
-    this.type = "Wolf";
-    
-    //The animations
-    this.animations = {
-      left: [],
-      right: [],
-    }
-    
-    //The right-facing animations
-    this.animations.right[RIGHT] = new Animation(WolfRight, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.right[IDLE] = new Animation(WolfIdle, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.right[FALLING] = new Animation(WolfIdle, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.right[SMELL]= new Animation(WolfIdle, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.right[AGRO] =  new Animation(WolfRight, WIDTH, HEIGHT, 0, 0, 8);
-    //this.animations.right[SWIMMING] = new Animation(WolfRight, HEIGHT, HEIGHT, 0, 0, 4);
-    
-    //The left-facing animations
-    this.animations.left[LEFT] = new Animation(WolfLeft, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.left[IDLE] = new Animation(WolfIdle, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.left[FALLING] = new Animation(WolfIdle, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.left[SMELL]= new Animation(WolfIdle, WIDTH, HEIGHT, 0, 0, 8);
-    this.animations.left[AGRO] = new Animation(WolfLeft, WIDTH, HEIGHT, 0, 0, 8);
-    //this.animations.left[SWIMMING] = new Animation(WolfLeft, HEIGHT, HEIGHT, 0, 0, 4);
-  }
-  
-  // Wolf inherits from Entity
-  Wolf.prototype = new Entity();
-  
-  // Determines if the Wolf is on the ground
-  Wolf.prototype.onGround = function(tilemap) {
-    var box = this.boundingBox(),
-        tileX = Math.floor((box.left + (WIDTH/2))/64),
-        tileY = Math.floor(box.bottom / 64),
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);   
-    // find the tile we are standing on.
-    return (tile && tile.data.solid) ? true : false;
-  }
-  
-  // Moves the Wolf to the left, colliding with solid tiles
-  Wolf.prototype.moveLeft = function(distance, tilemap) {
-    this.currentX -= distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.left/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid) 
-      this.currentX = (Math.floor(this.currentX/64) + 1) * 64
-  }
-  
-  // Moves the Wolf to the right, colliding with solid tiles
-  Wolf.prototype.moveRight = function(distance, tilemap) {
-    this.currentX += distance;
-    var box = this.boundingBox(),
-        tileX = Math.floor(box.right/64),
-        tileY = Math.floor(box.bottom / 64) - 1,
-        tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
-    if (tile && tile.data.solid)
-      this.currentX = (Math.ceil(this.currentX/64)-1) * 64;
-  }
-  
-  /* Wolf update function
-   * arguments:
-   * - elapsedTime, the time that has passed 
-   *   between this and the last frame.
-   * - tilemap, the tilemap that corresponds to
-   *   the current game world.
-   */
-  Wolf.prototype.update = function(elapsedTime, tilemap, entityManager) {
-    var sprite = this;
-    
-    // The "with" keyword allows us to change the
-    // current scope, i.e. 'this' becomes our 
-    // inputManager
-    //with (this.inputManager) {
-    
-      // Process Wolf state
-       switch(sprite.state) {
-       case RIGHT:
-          // If there is no ground underneath, fall
-          if(!sprite.onGround(tilemap)) {
-            sprite.state = FALLING;
-            sprite.velocityY = 0;
-          } else {
-              sprite.isLeft = false;
-              sprite.moveRight(elapsedTime * SPEED, tilemap);
-			  //var i = Math.floor((Math.random() * 100) + 1);
-			  //if(i < 50) sprite.state = RIGHT;
-			  //else if( i < 75) sprite.state = LEFT;
-			  //else if( i < 100) sprite.sate = SMELL;
-            }
-          break; 
-		/*case LEFT:
-          // If there is no ground underneath, fall
-          if(!sprite.onGround(tilemap)) {
-            sprite.state = FALLING;
-            sprite.velocityY = 0;
-          } else {
-              sprite.isLeft = true;
-              sprite.moveLeft(elapsedTime * SPEED, tilemap);
-			  var i = Math.floor((Math.random() * 100) + 1);
-			  if(i < 50) sprite.state = LEFT;
-			  else if( i < 75) sprite.state = RIGHT;
-			  else if( i < 100) sprite.sate = SMELL;
-            }
-         break; */
-		case FALLING:
-			sprite.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
-			sprite.currentY += sprite.velocityY * elapsedTime;
-			if(sprite.onGround(tilemap)) {
-				sprite.isLeft = false;
-				sprite.state = RIGHT;
-				sprite.currentY = 64 * Math.floor(sprite.currentY / 64);
-			}
-			break;
-          }
-       
-    // Update animation
-    if(this.isLeft)
-      this.animations.left[this.state].update(elapsedTime);
-    else
-      this.animations.right[this.state].update(elapsedTime);
-    
-  }
-  
-  /* Wolf Render Function
-   * arguments:
-   * - ctx, the rendering context
-   * - debug, a flag that indicates turning on
-   * visual debugging
-   */
-  Wolf.prototype.render = function(ctx, debug) {
-    // Draw the Wolf (and the correct animation)
-    if(this.isLeft)
-      this.animations.left[this.state].render(ctx, this.currentX, this.currentY);
-    else
-      this.animations.right[this.state].render(ctx, this.currentX, this.currentY);
-    
-    if(debug) renderDebug(this, ctx);
-  }
-  
-  // Draw debugging visual elements
-  function renderDebug(Wolf, ctx) {
-    var bounds = Wolf.boundingBox();
-    ctx.save();
-    
-    // Draw Wolf bounding box
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-    ctx.moveTo(bounds.left, bounds.top);
-    ctx.lineTo(bounds.right, bounds.top);
-    ctx.lineTo(bounds.right, bounds.bottom);
-    ctx.lineTo(bounds.left, bounds.bottom);
-    ctx.closePath();
-    ctx.stroke();
-    
-    // Outline tile underfoot
-    var tileX = 64 * Math.floor((bounds.left + (WIDTH/2))/64),
-        tileY = 64 * (Math.floor(bounds.bottom / 64));
-    ctx.strokeStyle = "black";
-    ctx.beginPath();
-    ctx.moveTo(tileX, tileY);
-    ctx.lineTo(tileX + 64, tileY);
-    ctx.lineTo(tileX + 64, tileY + 64);
-    ctx.lineTo(tileX, tileY + 64);
-    ctx.closePath();
-    ctx.stroke();
-    
-    ctx.restore();
-  }
-  
-  /* Wolf BoundingBox Function
-   * returns: A bounding box representing the Wolf 
-   */
-  Wolf.prototype.boundingBox = function() {
-    return {
-      left: this.currentX,
-      top: this.currentY,
-      right: this.currentX + WIDTH,
-      bottom: this.currentY + HEIGHT
-    }
-  }
-  
-    Wolf.prototype.boundingCircle =function(){
-    return{
-      cx: this.currentX + WIDTH/2,
-      cy: this.currentY + HEIGHT/2,
-      radius: WIDTH/2
-    }
-  }
-  
-   Wolf.prototype.collide = function(otherEntity){
-      this.state = AGRO;
-    }
-  return Wolf;
-
-}());
-
-
-},{"./animation.js":7,"./entity.js":19}]},{},[27]);
+},{"./animation.js":6,"./cannonball.js":10,"./entity.js":16,"./player.js":31}]},{},[28]);

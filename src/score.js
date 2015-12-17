@@ -11,7 +11,7 @@ module.exports = (function (){
     this.frameGoal       = [0, 0, 0, 0];
     this.numFramesPerRow = 4;
     this.numRows         = 10;
-    this.ticksPerFrame   = 9;
+    this.ticksPerFrame   = 2;
 
     this.xpos            = 0;
     this.ypos            = 0;
@@ -56,6 +56,27 @@ module.exports = (function (){
     {
       this.score = 0;
     }
+	if (this.score < 10)
+    {
+      scoreString = "000" + this.score.toString();
+    }
+    else if (this.score < 100)
+    {
+      scoreString = "00" + this.score.toString();
+    }
+    else if (this.score < 1000)
+    {
+      scoreString = "0" + this.score.toString();
+    }
+    else
+    {
+      scoreString = this.score.toString();
+    }
+    for (var i = 0; i < scoreString.length; i++)
+    {
+      var temp = parseInt(scoreString[i]);
+      this.frameGoal[i] = temp * 4;
+    }
   };
 
   ScoreEngine.prototype.scoreToZero = function() {
@@ -66,8 +87,10 @@ module.exports = (function (){
     }
   };
 
-  ScoreEngine.prototype.update = function()
+  ScoreEngine.prototype.update = function(x, y)
   {
+    this.x = x;
+    this.y = y;
     this.updatePosition();
     this.updateAnimation();
   }
@@ -89,8 +112,8 @@ module.exports = (function (){
         sy,
         this.width,
         this.height,
-        this.xpos + (32 * i),
-        this.ypos,
+        this.x + (32 * i),
+        this.y,
         this.width,
         this.height
       );

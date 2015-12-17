@@ -6,233 +6,227 @@
 * - Nathan Bean
 */
 module.exports = (function() {
-    /* jshint esnext: true */
-    const MAX_ENTITIES = 200;
+    var settings = require('./Settings.js');
 
-    QuadTree = require('./QuadTree.js');
+    var entityXpos = [],
+        entityYpos = [],
+        player,
+        timeSinceUpdateRegion;
 
-    var collisionTree = new QuadTree({ x: 0, y: 0, width: 1000*64, height: 1000*64 }, false);
+    function EntityManager(p) {
+        /* jshint esnext: true */
+        player = p;
+        this.add(player);
+    }
 
-    var entities = [],
-    entityCount = 0;
+        /* Adds an entity to those managed.
+         * Arguments:
+         * - entity, the entity to add
+         */
+    EntityManager.prototype.add = function(entityToAdd) {
+        if (entityXpos.length < settings.MAX_ENTITIES) {
+            var boundingBox = entityToAdd.boundingBox();
+            var entityPos = {
+                entity: entityToAdd,
+                hitbox: boundingBox
+            };
 
-    /* Adds an entity to those managed.
-    * Arguments:
-    * - entity, the entity to add
-    */
-    function add(entity) { if (entityCount < MAX_ENTITIES) {
-        // Determine the entity's unique ID
-        // (we simply use an auto-increment count)
-        var id = entityCount;
-        entityCount++;
+            entityXpos.push(entityPos);
+            entityYpos.push(entityPos);
+        }
+    };
 
-        // Set the entity's id on the entity itself
-        // as a property.  Due to the dynamic nature of
-        // JavaScript, this is easy
-        entity._entity_id = id;
-
-        // Store the entity in the entities array
-        entities[id] = entity;
+        /* Removes an entity from those managed
+         * Arguments:
+         * - entity, the entity to remove
+         * returns true if the entity was removed, false if not
+         */
+    EntityManager.prototype.remove = function(entity) {
+        var xPos = -1, yPos = -1;
+        for (var i = 0; i < entityXpos.length; i++) {
+            if (entityXpos[i].entity === entity) xPos = i;
+            if (entityYpos[i].entity === entity) yPos = i;
+        }
+        if (xPos === -1 || yPos === -1) return false;
+        entityXpos.splice(xPos, 1);
+        entityYpos.splice(yPos, 1);
         return true;
-    } else {
-        // We've hit the max number of allowable entities,
-        // yet we may have freed up some space within our
-        // entity array when an entity was removed.
-        // If so, let's co-opt it.
-        for (var i = 0; i < MAX_ENTITIES; i++) {
-            if (entities[i] === undefined) {
-                entity._entity_id = i;
-                entities[i] = entity;
-                return i;
+    };
+
+
+    EntityManager.prototype.updateEntityHitboxes = function() {
+        for (var i = 0; i < entityXpos.length; i++) {
+            entityXpos[i].hitbox = entityXpos[i].entity.boundingBox();
+        }
+    };
+
+    EntityManager.prototype.insertionSortLeft = function(items) {
+        for (var i = 0; i < items.length; ++i) {
+            var tmp = items[i];
+            for (var j = i - 1; j >=0 && items[j].hitbox.left > tmp.hitbox.left; --j) {
+                items[j + 1] = items[j];
+            }
+            items[j + 1] = tmp;
+        }
+    };
+
+    EntityManager.prototype.insertionSortTop = function(items) {
+        for (var i = 0; i < items.length; ++i) {
+            var tmp = items[i];
+            for (var j = i - 1; j >=0 && items[j].hitbox.top > tmp.hitbox.top; --j) {
+                items[j + 1] = items[j];
+            }
+            items[j + 1] = tmp;
+        }
+    };
+
+    EntityManager.prototype.sortEntities = function() {
+        this.insertionSortLeft(entityXpos);
+        this.insertionSortTop(entityYpos);
+    };
+
+    /* Checks for collisions between entities, and
+     * triggers the collide() event handler.
+     */
+    EntityManager.prototype.checkCollisions = function() {
+         this.updateEntityHitboxes();
+         this.sortEntities();
+
+         var xPotentialCollisions = [];
+         var yPotentialCollisions = [];
+         var i, j, current;
+
+         for(i = 0; i < entityXpos.length; i++) {
+             current = entityXpos[i].hitbox;
+             j = i;
+             while(++j < entityXpos.length && current.right >= entityXpos[j].hitbox.left) {
+                 xPotentialCollisions.push({ a: entityXpos[i].entity, b: entityXpos[j].entity });
+             }
+         }
+
+         for(i = 0; i < entityYpos.length; i++) {
+             current = entityYpos[i].hitbox;
+             j = i;
+             while(++j < entityYpos.length && current.bottom >= entityYpos[j].hitbox.top) {
+                 yPotentialCollisions.push({ a: entityYpos[i].entity, b: entityYpos[j].entity });
+             }
+         }
+
+         for(i = 0; i < xPotentialCollisions.length; i++) {
+             for(j = 0; j < yPotentialCollisions.length; j++) {
+                 if( (xPotentialCollisions[i].a === yPotentialCollisions[j].a && xPotentialCollisions[i].b === yPotentialCollisions[j].b) ||
+                     (xPotentialCollisions[i].b === yPotentialCollisions[j].a && xPotentialCollisions[i].a === yPotentialCollisions[j].b)) {
+                     xPotentialCollisions[i].a.collide(xPotentialCollisions[i].b, this);
+                     xPotentialCollisions[i].b.collide(xPotentialCollisions[i].a, this);
+                     break;
+                 }
+             }
+         }
+     };
+
+    /* Returns all entities within the given radius.
+     * Arguments:
+     * - x, the x-coordinate of the center of the query circle
+     * - y, the y-coordinate of the center of the query circle
+     * - r, the radius of the center of the circle
+     * Returns:
+     *   An array of entity references
+     */
+    EntityManager.prototype.queryRadius = function(x, y, r) {
+        var entitesInRadius = [];
+        for (var i = 0; i < entityXpos.length; i++) {
+            if (entityXpos[i] !== null) {
+                var boundingCircle = entityXpos[i].entity.boundingCircle();
+                if (this.isWithinCircle(x, y, r, boundingCircle))
+                    entitesInRadius.push(entityXpos[i].entity);
             }
         }
-        // If we get to this point, there are simply no
-        // available spaces for a new entity.
-        // Log an error message, and return an error value.
-        console.error("Too many entities");
-        return undefined;
-    }
-}
 
-/* Removes an entity from those managed
-* Arguments:
-* - entity, the entity to remove
-*/
-function remove(entity) {
-    // Set the entry in the entities table to undefined,
-    // indicating an open slot
-    if (entity.score) {
-        this.scoreEngine.addScore(entity.score);
-    }
-    entities[entity._entity_id] = undefined;
-}
+        return entitesInRadius;
+    };
 
-/* Checks for collisions between entities, and
-* triggers the collide() event handler.
-*/
-function checkCollisions() {
-    var colliders = [];
-    for(var i = 0; i < entityCount; i++) {
-        if(entities[i]) {
-            var hitbox = entities[i].boundingBox();
-            colliders.push({
-                x: hitbox.left,
-                y: hitbox.top,
-                width: hitbox.right - hitbox.left,
-                height: hitbox.bottom - hitbox.top,
-                entity: entities[i]
-            });
-        }
-    }
+    EntityManager.prototype.isWithinCircle = function(x, y, r, circle) {
+        if(Math.pow(circle.radius + r, 2) >=
+            (Math.pow(x - circle.cx, 2) + Math.pow(y - circle.cy, 2)))
+            return true;
 
-    collisionTree.insert(colliders);
+        return false;
+    };
 
-    for (i = 0; i < colliders.length; i++) {
-        var possibleCollisions = collisionTree.retrieve(colliders[i]);
-        for (var j = 0; j < possibleCollisions.length; j++) {
-            var boundsA = colliders[i].entity.boundingBox();
-            var boundsB = possibleCollisions[j].entity.boundingBox();
-            if (boundsA.left < boundsB.right &&
-                boundsA.right > boundsB.left &&
-                boundsA.top < boundsB.bottom &&
-                boundsA.bottom > boundsB.top
-            ) {
-                colliders[i].entity.collide(possibleCollisions[j].entity);
+    //Determines if 2 bounding boxes intersect in any way
+    EntityManager.prototype.isWithinBox = function(bb1, bb2) {
+        return(bb1.left < bb2.right && bb1.right > bb2.left && bb1.top < bb2.bottom && bb1.bottom > bb2.top);
+    };
 
-                //TODO bug if removed?
-                possibleCollisions[j].entity.collide(colliders[i].entity);
+    /* Updates all managed entities
+     * Arguments:
+     * - elapsedTime, how much time has passed between the prior frameElement
+     *   and this one.
+     * - tilemap, the current tilemap for the game.
+     */
+    EntityManager.prototype.update = function(elapsedTime, tilemap, ParticleManager) {
+        timeSinceUpdateRegion += elapsedTime;
+
+        //create bounding box and clean updatable objects, but only after some time interval
+        if(timeSinceUpdateRegion >= settings.UPDATE_TIME) {
+            var playerBB = player.boundingBox(),
+                updateFactor = settings.UPDATE_REGION * settings.TILESIZEX,
+                updateBox = {
+                    top: playerBB.top - updateFactor,
+                    bottom: playerBB.bottom + updateFactor,
+                    left: playerBB.left - updateFactor,
+                    right: playerBB.right + updateFactor
+                };
+
+            timeSinceUpdateRegion = 0;
+            for(var i = 0; i < entityXpos.length; i ++) {
+                if(entityXpos[i] !== null) {
+                    if(!this.isWithinBox(updateBox, entityXpos[i].hitbox))
+                        this.remove(entityXpos[i]);
+                }
             }
-
         }
 
-    }
-    collisionTree.clear(); /* do this now for garbage collector speed */
-}
-
-/* Returns all entities within the given radius.
-* Arguments:
-* - x, the x-coordinate of the center of the query circle
-* - y, the y-coordinate of the center of the query circle
-* - r, the radius of the center of the circle
-* Returns:
-*   An array of entity references
-*/
-function queryRadius(x, y, r) {
-    var entitiesInRadius = [];
-    for (var i = 0; i < entityCount; i++) {
-        // Only check existing entities
-        if (entities[i]) {
-            var circ = entities[i].boundingCircle();
-            if (Math.pow(circ.radius + r, 2) >=
-            Math.pow(x - circ.cx, 2) + Math.pow(y - circ.cy, 2)
-        ) {
-            entitiesInRadius.push(entities[i]);
+        //call everyone's update function
+        for(var i = 0; i < entityXpos.length; i ++) {
+            if(entityXpos[i] !== null) {
+                entityXpos[i].entity.update(elapsedTime, tilemap, this, ParticleManager);
+            }
         }
-    }
-}
-return entitiesInRadius;
-}
 
-function queryRectangle(rect) {
-    var entitiesInRect = [];
-    for (var i = 0; i < entityCount; i++) {
-        // Only check existing entities
-        if (entities[i]) {
-            entityHitbox = entities[i].boundingBox();
-            if( entityHitbox.left > rect.right || entityHitbox.right < rect.left ||
-                entityHitbox.top > rect.bottom || entityHitbox.bottom < rect.top) continue;
-            entitiesInRect.push(entities[i]);
+        //check collisions
+        this.checkCollisions();
+    };
+
+    /* Renders the managed entities
+     * Arguments:
+     * - ctx, the rendering contextual
+     * - debug, the flag to trigger visual debugging
+     */
+    EntityManager.prototype.render = function(ctx, debug) {
+        //create the renderable region
+        var playerBB = player.boundingBox(),
+            updateFactor = settings.RENDER_REGION * settings.TILESIZEX,
+            updateBox = {
+                top: playerBB.top - updateFactor,
+                bottom: playerBB.bottom + updateFactor,
+                left: playerBB.left - updateFactor,
+                right: playerBB.right + updateFactor
+            };
+
+        //call the real update method
+        for(var i = 0; i < entityXpos.length; i ++) {
+            if(entityXpos[i] !== null) {
+                if(this.isWithinBox(updateBox, entityXpos[i].hitbox))
+                    entityXpos[i].entity.render(ctx, debug);
+            }
         }
-    }
-    return entitiesInRect;
-}
+    };
 
-/* Updates all managed entities
-* Arguments:
-* - elapsedTime, how much time has passed between the prior frameElement
-*   and this one.
-* - tilemap, the current tilemap for the game.
-*/
-function update(elapsedTime, tilemap, ParticleManager) {
-    //loops through entities
-    for (var i = 0; i < entityCount; i++) {
-        if(entities[i]) {
-            entities[i].update(elapsedTime, tilemap, this, ParticleManager);
-        }
-    }
-    scoreEngine.update();
-    checkCollisions();
-}
+    EntityManager.prototype.getPlayer = function() {
+        return player;
+    };
 
-/* Renders the managed entities
-* Arguments:
-* - ctx, the rendering contextual
-* - debug, the flag to trigger visual debugging
-*/
-function render(ctx, debug) {
-    //used for determining the area of the screen/what entities are on/near screen to be rendered
-    var play = getPlayer();
-    var viewPortArea = tilemap.getViewPort();
-
-    var entitiesOnScreen = queryRectangle(viewPortArea);
-    //loops through entities
-    for (var i = 0; i < entitiesOnScreen.length; i++) {
-        if(entitiesOnScreen[i]) {
-            entitiesOnScreen[i].render(ctx, debug);
-        }
-    }
-    scoreEngine.render(ctx);
-}
-
-function getPlayer() {
-    for (var i = 0; i < entityCount; i++) {
-        if (entities[i] && entities[i].type == "player") {
-            return entities[i];
-        }
-    }
-}
-
-function getEntity(index) {
-    return entities[index];
-}
-
-/* Gets distance between entity and player */
-function playerDistanceSquaredFrom(entity) {
-    if(typeof(entity) === "undefined" || entity === null) return Number.MAX_VALUE;
-    var playerHitbox = getPlayer().boundingBox();
-    var entityHitbox = entity.boundingBox();
-
-    return (entityHitbox.left - playerHitbox.left) * (entityHitbox.left - playerHitbox.left) +
-            (entityHitbox.top - playerHitbox.top) * (entityHitbox.top - playerHitbox.top);
-}
-
-/* Gets direction relative to player */
-function playerDirection(entity) {
-    if(typeof(entity) === "undefined" || entity === null) return false; // TODO ?
-    var playerHitbox = getPlayer().boundingBox();
-    var entityHitbox = entity.boundingBox();
-
-    if (playerHitbox.right < entityHitbox.left) {
-        return true;
-    }
-    return false;
-}
-
-function setScoreEngine(score) {
-    this.scoreEngine = score;
-}
-
-return {
-    add: add,
-    remove: remove,
-    queryRadius: queryRadius,
-    update: update,
-    render: render,
-    playerDistanceSquaredFrom: playerDistanceSquaredFrom,
-    playerDirection: playerDirection,
-    getPlayer: getPlayer,
-    getEntity: getEntity,
-    setScoreEngine: setScoreEngine
-};
+    return EntityManager;
 
 }());
