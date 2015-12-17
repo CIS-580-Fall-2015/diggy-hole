@@ -4680,7 +4680,7 @@ module.exports = (function(){
   }
 
   function generatePerlinNoise(map, width, height, noise) {
-      var translate = [1,1,1,3,5,10,4,4,5,9,6,11,7,9,7];
+      var translate = [1,1,1,3,5,9,4,4,5,9,6,11,7,9,7,10];
 
       for (var a = 0; a < height; a++) {
           for (var b = 0; b < width; b++) {
@@ -5672,10 +5672,10 @@ module.exports = (function() {
                 tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
             } else if (layerType == 1) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
-                tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
+                tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
             } else if (layerType == 2) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
-                tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
+                tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
             }
 
             if(tileNum.data) {
@@ -6961,6 +6961,7 @@ module.exports = (function (){
      this.surface = surface;
      // Determines where the crust layer of the earth ends
      var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
+     this.midEarth = midEarth;
 
      // Used to help clump up the sky islands
      var skyEarthCount = 0;
@@ -6987,7 +6988,7 @@ module.exports = (function (){
              map[index] = 1;
            }
            else if(temp < 15 && skyEarthCount == 0){ //Clouds
-             map[index] = 2;
+             map[index] = 1;
              cloudCount++;
              if(cloudCount > rand2){
                rand2 = noisy.randomNumber(0, 3);
@@ -6995,7 +6996,7 @@ module.exports = (function (){
              }
            }
            else{ //Sky Earth
-             map[index] = 0;
+             map[index] = 1;
              skyEarthCount++;
              if(skyEarthCount > rand){
                skyEarthCount = 0;
@@ -7015,7 +7016,7 @@ module.exports = (function (){
            else if(temp < 7){ //Dirt w grass
              map[index] = 5;
            }
-           else if(temp < 11){ //Stone w grass
+           else if(temp < 8){ //Stone w grass
              map[index] = 6;
            }
            else if(temp < 14.5){ //Water
@@ -7030,7 +7031,7 @@ module.exports = (function (){
            if(temp < 2){ //Gems
              map[index] = 9;
            }
-           else if(temp < 7){ //Dirt
+           else if(temp < 9){ //Dirt
              map[index] = 10;
            }
            else if(temp < 11){ //Stone
@@ -7048,7 +7049,7 @@ module.exports = (function (){
            if(temp < 2){ //Gems
              map[index] = 9;
            }
-           else if(temp < 7){ //Dirt
+           else if(temp < 9){ //Dirt
              map[index] = 10;
            }
            else if(temp < 11){ //Stone
@@ -7222,8 +7223,8 @@ module.exports = (function (){
 // Added by Wyatt Watson
   var update = function(elapsedTime){
     layers.forEach(function(layer){
-      var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
-      var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
+      var startX =  clamp(Math.floor(((cameraX - 32) - (viewportHalfWidth*2)) / tileWidth) - 1, 0, layer.width);
+      var startY =  clamp(Math.floor((cameraY - (viewportHalfHeight*2)) / tileHeight) - 1, 0, layer.height);
       var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
       var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
 

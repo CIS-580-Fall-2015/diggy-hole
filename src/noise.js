@@ -77,7 +77,7 @@ module.exports = (function(){
   }
 
   function generatePerlinNoise(map, width, height, noise) {
-      var translate = [1,1,1,3,5,10,4,4,5,9,6,11,7,9,7];
+      var translate = [1,1,1,3,5,9,4,4,5,9,6,11,7,9,7,10];
 
       for (var a = 0; a < height; a++) {
           for (var b = 0; b < width; b++) {

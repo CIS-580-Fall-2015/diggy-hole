@@ -392,7 +392,7 @@ module.exports = (function (){
              map[index] = 1;
            }
            else if(temp < 15 && skyEarthCount == 0){ //Clouds
-             map[index] = 2;
+             map[index] = 1;
              cloudCount++;
              if(cloudCount > rand2){
                rand2 = noisy.randomNumber(0, 3);
@@ -400,7 +400,7 @@ module.exports = (function (){
              }
            }
            else{ //Sky Earth
-             map[index] = 0;
+             map[index] = 1;
              skyEarthCount++;
              if(skyEarthCount > rand){
                skyEarthCount = 0;
@@ -420,7 +420,7 @@ module.exports = (function (){
            else if(temp < 7){ //Dirt w grass
              map[index] = 5;
            }
-           else if(temp < 11){ //Stone w grass
+           else if(temp < 8){ //Stone w grass
              map[index] = 6;
            }
            else if(temp < 14.5){ //Water
@@ -435,7 +435,7 @@ module.exports = (function (){
            if(temp < 2){ //Gems
              map[index] = 9;
            }
-           else if(temp < 7){ //Dirt
+           else if(temp < 9){ //Dirt
              map[index] = 10;
            }
            else if(temp < 11){ //Stone
@@ -453,7 +453,7 @@ module.exports = (function (){
            if(temp < 2){ //Gems
              map[index] = 9;
            }
-           else if(temp < 7){ //Dirt
+           else if(temp < 9){ //Dirt
              map[index] = 10;
            }
            else if(temp < 11){ //Stone
@@ -627,8 +627,8 @@ module.exports = (function (){
 // Added by Wyatt Watson
   var update = function(elapsedTime){
     layers.forEach(function(layer){
-      var startX =  clamp(Math.floor(((cameraX - 32) - viewportHalfWidth) / tileWidth) - 1, 0, layer.width);
-      var startY =  clamp(Math.floor((cameraY - viewportHalfHeight) / tileHeight) - 1, 0, layer.height);
+      var startX =  clamp(Math.floor(((cameraX - 32) - (viewportHalfWidth*2)) / tileWidth) - 1, 0, layer.width);
+      var startY =  clamp(Math.floor((cameraY - (viewportHalfHeight*2)) / tileHeight) - 1, 0, layer.height);
       var endX = clamp(startX + viewportTileWidth + 1, 0, layer.width);
       var endY = clamp(startY + viewportTileHeight + 1, 0, layer.height);
 
