@@ -379,9 +379,7 @@ module.exports = (function() {
                 }
                 if(this.onWater(tilemap) || this.inWaterorLava(tilemap)){
                     this.state = SWIMMING;
-                    this.velocityY = GRAVITY_IN_WATER;
-                    //this.velocityY += Math.pow(-10 * elapsedTime, 2);
-                    console.log("In water jumping down");
+                    this.velocityY = Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
                 }
                 else{
                 	this.y += this.velocityY * elapsedTime;
@@ -510,10 +508,11 @@ module.exports = (function() {
             this.swimmingProperty.breathCount = 0; // If player is not in water reset breath count to zero
         }
 
-        // Update animation
+
+        /* Update animations and pick */
         var animationSet = this.isLeft ? this.animations.left : this.animations.right;
 
-        if(this.digState == NOT_DIGGING) {
+        if(this.digState == NOT_DIGGING || this.state == DEAD) {
             animationSet[this.state].update(elapsedTime);
         } else {
 
@@ -536,6 +535,12 @@ module.exports = (function() {
             }
 
             //TODO create animations for each dig state
+            if(this.digState == LEFT_DIGGING) {
+                animationSet = this.animations.left;
+            }
+            else if(this.digState == RIGHT_DIGGING) {
+                animationSet = this.animations.right;
+            }
             animationSet[DIGGING].update(elapsedTime);
         }
 
@@ -844,17 +849,22 @@ module.exports = (function() {
      * visual debugging
      */
     Player.prototype.render = function(ctx, debug) {
-        // Draw the player (and the correct animation)
-        var animationSet = this.isLeft ? this.animations.left : this.animations.right;
 
-        if(this.digState == NOT_DIGGING) {
+        /* Draw the player */
+        var animationSet = this.isLeft ? this.animations.left : this.animations.right;
+        if(this.digState == NOT_DIGGING || this.state == DEAD) {
             animationSet[this.state].render(ctx, this.x + this.spriteOffset.x, this.y + this.spriteOffset.y);
         } else {
-            //TODO create animations for each dig state
+            if(this.digState == LEFT_DIGGING) {
+                animationSet = this.animations.left;
+            }
+            else if(this.digState == RIGHT_DIGGING) {
+                animationSet = this.animations.right;
+            }
             animationSet[DIGGING].render(ctx, this.x + this.spriteOffset.x, this.y + this.spriteOffset.y);
         }
 
-            /*
+
         if (this.holdBreath && this.state == SWIMMING) {
             var bb = this.boundingBox();
             var width = (bb.right - bb.left) - ((Math.floor(this.swimmingProperty.breathCount) / 20) * (bb.right - bb.left));
@@ -867,7 +877,7 @@ module.exports = (function() {
             ctx.fillStyle = "rgba(0,0,200,0)";
             ctx.restore();
         }
-        */
+
 
         //TODO draw this in a hud class?
         //draw powerups
