@@ -5672,10 +5672,10 @@ module.exports = (function() {
                 tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
             } else if (layerType == 1) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
-                tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
+                tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
             } else if (layerType == 2) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
-                tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
+                tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
             }
 
             if(tileNum.data) {
@@ -6902,7 +6902,7 @@ module.exports = (function (){
            5: { // Stone w grass
              type: "StoneWithGrass",
              solid: true,
-               notDiggable: true
+            //   notDiggable: true
            },
            6: { // Water
              type: "Water",
@@ -6925,7 +6925,7 @@ module.exports = (function (){
            10: { // stone
              type: "Stone",
              solid: true,
-              
+            //  notDiggable: true
            },
            11: { // water
              type: "Water",
@@ -6961,6 +6961,7 @@ module.exports = (function (){
      this.surface = surface;
      // Determines where the crust layer of the earth ends
      var midEarth = Math.floor(noisy.randomNumber(Math.floor(height*3/8), Math.floor(height*5/8)) + surface);
+     this.midEarth = midEarth;
 
      // Used to help clump up the sky islands
      var skyEarthCount = 0;
