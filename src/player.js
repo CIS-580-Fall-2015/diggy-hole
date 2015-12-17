@@ -416,8 +416,17 @@ module.exports = (function() {
                       this.moveRight(elapsedTime * SPEED_IN_LIQUID, tilemap);
                   }
                   else if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
-                      this.velocityY = SWIM_UP;
-                      this.y += this.velocityY * elapsedTime;
+                      if(this.headOverWater(tilemap)){
+                          this.velocityY = -500;
+                          //this.y += this.velocityY * elapsedTime;
+                          console.log("I am not in water");
+                          this.state = JUMPING;
+                      }
+                      else{
+                          this.velocityY = SWIM_UP;
+                          this.y += this.velocityY * elapsedTime;
+                      }
+
                   }
                   if (this.onGround(tilemap) && !this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
@@ -429,12 +438,6 @@ module.exports = (function() {
                       this.velocityY = 0;
                       this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
                       console.log("floating in water");
-                  }
-                  else if(this.headOverWater(tilemap)){
-                      this.velocityY = -500;
-                      //this.y += this.velocityY * elapsedTime;
-                      console.log("I am not in water");
-                      this.state = JUMPING;
                   }
                   else if (this.isBlockAbove(tilemap)){
                       this.state = FALLING;
