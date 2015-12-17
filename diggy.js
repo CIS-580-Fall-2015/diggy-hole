@@ -5203,7 +5203,7 @@ module.exports = (function() {
                 }
                 if(this.onWater(tilemap) || this.inWaterorLava(tilemap)){
                     this.state = SWIMMING;
-                    this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
+                    this.velocityY = Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
                 }
                 else{
                 	this.y += this.velocityY * elapsedTime;
@@ -5221,10 +5221,9 @@ module.exports = (function() {
                 }
                 break;
             case SWIMMING:
-              //if(this.inWater(tilemap)) {
                   this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2) + (this.velocityY / GRAVITY_IN_WATER);
                   console.log("in water");
-                    this.y += this.velocityY * elapsedTime;
+                    //this.y += this.velocityY * elapsedTime;
                   if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
                       this.velocityY = 0;
                       this.isLeft = true;
@@ -5242,13 +5241,13 @@ module.exports = (function() {
                   }
                   if (this.onGround(tilemap) && !this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
-                        this.y = Settings.TILESIZEY * Math.floor(this.y / Settings.TILESIZEY);
+                      this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
                       this.state = STANDING;
                       console.log("standing");
                   }
                   else if (this.onGroundInWater(tilemap) && this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
-                        this.y = Settings.TILESIZEY * Math.floor(this.y / Settings.TILESIZEY);
+                      this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
                       console.log("floating in water");
                   }
                   else if(this.headOverWater(tilemap)){
@@ -5260,12 +5259,13 @@ module.exports = (function() {
                   else if (this.isBlockAbove(tilemap)){
                       this.state = FALLING;
                       console.log("I hit my head");
-                    this.y += this.velocityY * elapsedTime;
+                      this.y = Settings.TILESIZEY * (Math.floor((this.y) / Settings.TILESIZEY)+1);
+                      this.velocityY = 0;
                   }
                   else{
                       if(!this.onGroundInWater(tilemap)){
                           //Player Sinks automatically, they have resistance i.e sink slower if fully immersed in water
-                    this.y += this.velocityY * elapsedTime;
+                      this.y += this.velocityY * elapsedTime;
                       }
 
                   }
@@ -6276,7 +6276,7 @@ module.exports = (function() {
 	
 	var updatePeriodSeconds = 2;
 
-    SpawningManager.prototype.update = function (elapsedTime, tilemap, entityManager) {
+    SpawningManager.prototype.update = function (elapsedTime, tilemap) {
         this.updateTimeLeft -= elapsedTime;
         if(this.updateTimeLeft < 0) {
             this.updateTimeLeft = updatePeriodSeconds;
@@ -6293,8 +6293,11 @@ module.exports = (function() {
 			var posFound = false;
 			var x = 0, y = 0;
 			do{
-				x = Math.floor((Math.random()*10 +64*15 + this.player.x)/64);
-				y = Math.floor((Math.random()*10 +64*15 + this.player.y)/64);
+				var positive;
+				if(Math.random() > .5) positive = -1;
+				else positive = 1;
+				x = Math.floor((Math.random()*5*positive + (64*15)*positive + this.player.x)/64);
+				y = Math.floor((Math.random()*5*positive + (64*15)*positive + this.player.y)/64);
 				
 				var tile = tilemap.tileAt(x, y, 0);
 				if(!(tile && tile.data.solid)){
