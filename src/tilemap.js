@@ -306,7 +306,7 @@ module.exports = (function (){
            5: { // Stone w grass
              type: "StoneWithGrass",
              solid: true,
-               notDiggable: true
+            //   notDiggable: true
            },
            6: { // Water
              type: "Water",
@@ -329,7 +329,7 @@ module.exports = (function (){
            10: { // stone
              type: "Stone",
              solid: true,
-              
+            //  notDiggable: true
            },
            11: { // water
              type: "Water",
