@@ -417,10 +417,10 @@ module.exports = (function (){
            if(temp < 2){ //Gems w grass
              map[index] = 4;
            }
-           else if(temp < 7){ //Dirt w grass
+           else if(temp < 10){ //Dirt w grass
              map[index] = 5;
            }
-           else if(temp < 8){ //Stone w grass
+           else if(temp < 11){ //Stone w grass
              map[index] = 6;
            }
            else if(temp < 14.5){ //Water
