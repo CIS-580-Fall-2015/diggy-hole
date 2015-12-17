@@ -121,6 +121,7 @@ module.exports = (function (){
         inputManager.swapBuffers();
         //octopus.getPlayerPosition(player.boundingBox());
         hud.update(player.boundingBox());
+        minimap.update(elapsedTime, tilemap, player.boundingBox());
     };
 
     /* Renders the current state of the game world
