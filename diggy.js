@@ -192,25 +192,24 @@ module.exports = (function(){
    Bone.prototype.collide = function(otherEntity, entityManager) {
 	   if(!this.enabled || otherEntity.type == this.parent.type || otherEntity.type == "Bone" || otherEntity.type == "Pickaxe" || otherEntity instanceof PowerUp){
 		   return
-		   
+
 	   }
-	   
+
 	   if( otherEntity.type == "player"){
 		   this.enabled = false;
 		   otherEntity.hurt(10);
 		   if(DEBUG){
 		   console.log("Player hit by bone");
-		   otherEntity.scoreEngine.scoreToZero();
 		   }
 	   } else if(otherEntity.lives){
 		   this.enabled = false;
 		   if(--otherEntity.lives < 1){
-			   
+
 				if(DEBUG){
 					console.log("Entity "+otherEntity.type+" killed by bone.");
 				}
 				if(otherEntity.die){
-					otherEntity.die();				
+					otherEntity.die(entityManager);
 				} else {
 					entityManager.remove(otherEntity);
 				}
@@ -224,7 +223,7 @@ module.exports = (function(){
 				console.log("Entity "+otherEntity.type+" killed by bone.");
 			}
 		   if(otherEntity.die){
-					otherEntity.die();				
+					otherEntity.die(entityManager);				
 				} else {
 					entityManager.remove(otherEntity);
 				}
@@ -544,88 +543,106 @@ module.exports = (function(){
 
 },{}],4:[function(require,module,exports){
 /* Pickaxe is an invisible entity created by player that represents the hitbox
- * of the Pickaxe.
- * In the future this would be interesting to have an attack animation effect
- * like a slash or something.
- */
+* of the Pickaxe.
+* In the future this would be interesting to have an attack animation effect
+* like a slash or something.
+*/
 module.exports = (function() {
-  var Entity = require('./entity.js');
+    var Entity = require('./entity.js');
 
-  /* moveing these values to a pickaxe factory class would be cool.
-  Then powerups could change the attack size. */
-  var attackSize = { x: 20, y: 40 };
-  var attackRadius = 15;
+    /* moveing these values to a pickaxe factory class would be cool.
+    Then powerups could change the attack size. */
+    var attackSize = { x: 20, y: 40 };
+    var attackRadius = 15;
 
 
-  var Pickaxe = function(position, horizontal) {
-      this.x = position.x;
-      this.y = position.y;
-      this.score = 0;
-      this.type = "Pickaxe";
-      if(horizontal) this.attackSize = {x: attackSize.y, y: attackSize.x };
-      else this.attackSize = {x: attackSize.x, y: attackSize.y };
-  };
-
-  Pickaxe.prototype.update = function() {
-
-  };
-
-  Pickaxe.prototype.render = function(ctx, debug) {
-      if (debug) renderDebug(this, ctx);
-  };
-
-  Pickaxe.prototype.boundingBox = function() {
-    return {
-        left: this.x - this.attackSize.x / 2,
-        top: this.y - this.attackSize.y / 2,
-        right: this.x + this.attackSize.x / 2,
-        bottom: this.y + this.attackSize.y / 2
+    var Pickaxe = function(position, horizontal) {
+        this.x = position.x;
+        this.y = position.y;
+        this.score = 0;
+        this.type = "Pickaxe";
+        if(horizontal) this.attackSize = {x: attackSize.y, y: attackSize.x };
+        else this.attackSize = {x: attackSize.x, y: attackSize.y };
     };
-  };
 
+    Pickaxe.prototype.update = function() {
 
-  Pickaxe.prototype.boundingCircle = function() {
-    return {
-        cx: this.x,
-        cy: this.y,
-        radius: attackRadius
     };
-  };
+
+    Pickaxe.prototype.render = function(ctx, debug) {
+        if (debug) renderDebug(this, ctx);
+    };
+
+    Pickaxe.prototype.boundingBox = function() {
+        return {
+            left: this.x - this.attackSize.x / 2,
+            top: this.y - this.attackSize.y / 2,
+            right: this.x + this.attackSize.x / 2,
+            bottom: this.y + this.attackSize.y / 2
+        };
+    };
 
 
-  Pickaxe.prototype.collide = function(ent) {
-  };
-
-  function renderDebug(player, ctx) {
-      var bounds = player.boundingBox();
-      var circle = player.boundingCircle();
-      ctx.save();
-
-      // Draw player bounding box
-      ctx.strokeStyle = "red";
-      ctx.beginPath();
-      ctx.moveTo(bounds.left, bounds.top);
-      ctx.lineTo(bounds.right, bounds.top);
-      ctx.lineTo(bounds.right, bounds.bottom);
-      ctx.lineTo(bounds.left, bounds.bottom);
-      ctx.closePath();
-      ctx.stroke(); // Outline tile underfoot
-
-      ctx.strokeStyle = "blue";
-      ctx.beginPath();
-      ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
-      ctx.stroke();
-
-      ctx.restore();
-  }
+    Pickaxe.prototype.boundingCircle = function() {
+        return {
+            cx: this.x,
+            cy: this.y,
+            radius: attackRadius
+        };
+    };
 
 
+    Pickaxe.prototype.collide = function(otherEntity, entityManager) {
+        if( otherEntity.type == "player") {
+            return;
+        } else if(otherEntity.lives) {
+            if(--otherEntity.lives < 1) {
+                if(otherEntity.die){
+                    otherEntity.die(entityManager);
+                } else {
+                    entityManager.remove(otherEntity);
+                }
+            }
+        } else {
+            this.enabled = false;
+            if(otherEntity.die){
+                otherEntity.die(entityManager);
+            } else {
+                entityManager.remove(otherEntity);
+            }
+        }
+    };
+
+    function renderDebug(player, ctx) {
+        var bounds = player.boundingBox();
+        var circle = player.boundingCircle();
+        ctx.save();
+
+        // Draw player bounding box
+        ctx.strokeStyle = "red";
+        ctx.beginPath();
+        ctx.moveTo(bounds.left, bounds.top);
+        ctx.lineTo(bounds.right, bounds.top);
+        ctx.lineTo(bounds.right, bounds.bottom);
+        ctx.lineTo(bounds.left, bounds.bottom);
+        ctx.closePath();
+        ctx.stroke(); // Outline tile underfoot
+
+        ctx.strokeStyle = "blue";
+        ctx.beginPath();
+        ctx.arc(circle.cx, circle.cy, circle.radius, 0, 2*Math.PI);
+        ctx.stroke();
+
+        ctx.restore();
+    }
 
 
-  return Pickaxe;
 
 
-  })();
+    return Pickaxe;
+
+
+})();
 
 },{"./entity.js":16}],5:[function(require,module,exports){
 module.exports = (function (){
@@ -2787,11 +2804,11 @@ module.exports = (function (){
         hud.addElement(scoreEngine);
 
         // Set up invenotory
-        inventory = new Inventory(6);
-
+        inventory = new Inventory(4);
+		
         hud.addElement(inventory);
 		for(i=0;i<5;i++){
-			inventory.powerUpPickedUp(5);
+			inventory.powerUpPickedUp(2);
 		}
 
         // Set up health bar
@@ -4139,7 +4156,7 @@ module.exports = (function() {
     DIGLEFT: 65, 	// A
     DIGRIGHT: 68,	// D
     DIGUP: 87,		// W
-	PAY: 80,		// P
+	PAY: 50,		// P
 	ATTACK : 65,	// A
 	SHOOT : 66,	 	// B
 	ONE : 49,
@@ -4229,16 +4246,12 @@ module.exports = (function(){
 			if (i == 0) {
 				this.slots[0] = new InventorySlot('./img/powerUps/medicine.png');
 			} else if (i == 1) {
-				this.slots[1] = new InventorySlot('./img/powerUps/pick.png');
+				this.slots[1] = new InventorySlot('./img/powerUps/coinsingle.png');
 			} else if (i == 2) {
-				this.slots[2] = new InventorySlot('./img/powerUps/stone_shield.png');
+				this.slots[2] = new InventorySlot('./img/powerUps/bone.png');
 			} else if (i == 3) {
-				 this.slots[3] = new InventorySlot('./img/powerUps/coin.png');
-			} else if (i == 4) {
-				this.slots[4] = new InventorySlot('./img/powerUps/crystal.png');
-			} else if (i == 5){
-				this.slots[5] = new InventorySlot('./img/powerUps/bone.png');
-			}
+				 this.slots[3] = new InventorySlot('./img/powerUps/crystal.png');
+			} 
 		};
 		
 		this.slotUsed = function(idx) {
@@ -4888,7 +4901,7 @@ module.exports = (function() {
     const JUMP_VELOCITY = -900;
 
     // Swimming Moving Constant
-    const GRAVITY_IN_WATER = -80;
+    const GRAVITY_IN_WATER = -120;
     const SWIM_UP = -100;
     const SPEED_IN_LIQUID = 80;
 
@@ -5000,7 +5013,7 @@ module.exports = (function() {
         return false;
     };
     // Check to see if player is on top of water
-        Player.prototype.onWater = function(tilemap) {
+        Player.prototype.onWaterorLava = function(tilemap) {
             var box = this.boundingBox();
             var tileX = Math.floor((box.right)/Settings.TILESIZEX);
             // Based on the position that player is facing changed the location of it's X coordinate
@@ -5010,7 +5023,7 @@ module.exports = (function() {
             var tileY = Math.floor(box.bottom / Settings.TILESIZEX) - 1,// check if player is right above water.
             tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
             if(tile){
-                if (tile.data.type == "Water" && !this.inWaterorLava(tilemap)){
+                if((tile.data.type == "Water" || tile.data.type == "Lava") && !this.inWaterorLava(tilemap)){
                     return true;
                 }
              }
@@ -5031,6 +5044,7 @@ module.exports = (function() {
         if(tileR && tileR.data.solid) return true;
         return false;
     };
+    // Determine if the player is on the ground in water
     Player.prototype.onGroundInWater = function(tilemap) {
         var box = this.boundingBox(),
             tileXL = Math.floor((box.left + 5) / Settings.TILESIZEX),
@@ -5221,9 +5235,10 @@ module.exports = (function() {
                     this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
                     console.log("I am being called");
                 }
-                if(this.onWater(tilemap) || this.inWaterorLava(tilemap)){
+                if(this.onWaterorLava(tilemap) || this.inWaterorLava(tilemap)){
                     this.state = SWIMMING;
                     this.velocityY = Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
+                    this.holdBreath = true;
                 }
                 else{
                 	this.y += this.velocityY * elapsedTime;
@@ -5241,9 +5256,8 @@ module.exports = (function() {
                 }
                 break;
             case SWIMMING:
+                //Player automatically sinks down when in water
                   this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2) + (this.velocityY / GRAVITY_IN_WATER);
-                  console.log("in water");
-                    //this.y += this.velocityY * elapsedTime;
                   if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
                       this.velocityY = 0;
                       this.isLeft = true;
@@ -5256,10 +5270,11 @@ module.exports = (function() {
                   }
                   else if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
                       if(this.headOverWater(tilemap)){
-                          this.velocityY = -500;
+                          this.velocityY = JUMP_VELOCITY;
                           //this.y += this.velocityY * elapsedTime;
                           console.log("I am not in water");
                           this.state = JUMPING;
+                          this.holdBreath = false;
                       }
                       else{
                           this.velocityY = SWIM_UP;
@@ -5272,20 +5287,13 @@ module.exports = (function() {
                       this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
                       this.state = STANDING;
                       console.log("standing");
+                      this.holdBreath = false;
                   }
                   else if (this.onGroundInWater(tilemap) && this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
                       this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
                       console.log("floating in water");
                   }
-                  /*
-                  else if(this.headOverWater(tilemap)){
-                      this.velocityY = -500;
-                      //this.y += this.velocityY * elapsedTime;
-                      console.log("I am not in water");
-                      this.state = JUMPING;
-                  }
-                  */
                   else if (this.isBlockAbove(tilemap)){
                       this.state = FALLING;
                       console.log("I hit my head");
@@ -5294,13 +5302,10 @@ module.exports = (function() {
                   }
                   else{
                       if(!this.onGroundInWater(tilemap)){
-                          //Player Sinks automatically, they have resistance i.e sink slower if fully immersed in water
+                          // continously sets a new position of player when sinking down
                       this.y += this.velocityY * elapsedTime;
                       }
-
                   }
-
-
                 // A counter for the health bar to check if player is drowning
                 if (this.swimmingProperty.breathCount > 20) {
                     this.hurt(1);
@@ -5317,9 +5322,9 @@ module.exports = (function() {
         // Power Up Usage Management
         this.lastPowerUpUsed += elapsedTime;
 
-		if (this.inputManager.isKeyDown(this.inputManager.commands.SIX) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
+		if (this.inputManager.isKeyDown(this.inputManager.commands.THREE) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
                 console.log("SIX or B pressed");
-                if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(5)) {
+                if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(2)) {
 						this.shoot();
                 }
             }
@@ -5333,7 +5338,7 @@ module.exports = (function() {
             } else if (this.inputManager.isKeyDown(this.inputManager.commands.TWO)) {
                 console.log("TWO pressed");
                 if (inventory.slotUsed(1)) {
-
+						this.score(-20);
                 }
             } else if (this.inputManager.isKeyDown(this.inputManager.commands.THREE)) {
                 console.log("THREE pressed");
@@ -5585,15 +5590,12 @@ module.exports = (function() {
             if (layerType === 0) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
-                currentPlayer.score(1);
             } else if (layerType == 1) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
-                currentPlayer.score(1);
             } else if (layerType == 2) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
-                currentPlayer.score(1);
             }
 
             if(tileNum.data) {
@@ -6294,11 +6296,12 @@ module.exports = (function() {
 	powerUps.push(coin);
 	powerUps.push(stoneShield);
 	
-    function SpawningManager(entityManager, scoreEngine, player) {
+    function SpawningManager(entityManager, scoreEngine, player,inputManager) {
         this.entityManager = entityManager;
         this.scoreEngine = scoreEngine;
         this.player = player;
         this.updateTimeLeft = 0;
+		this.inputManager = inputManager;
     }
 	
 	var updatePeriodSeconds = 2;
@@ -6349,7 +6352,7 @@ module.exports = (function() {
 						}
 						if (skyEntities[num].limit > skyEntities[num].count) {
 							this.entityManager.add(
-								new skyEntities[num].Entity(x * 64, y * 64, 0)
+								new skyEntities[num].Entity(x * 64, y * 64, 0, this.inputManager, this.scoreEngine)
 							);
 							skyEntities[num].count++;
 						}
@@ -6380,7 +6383,7 @@ module.exports = (function() {
 						}
 						if(middleEntities[num].limit > middleEntities[num].count){
 							this.entityManager.add(
-									new middleEntities[num].Entity(x*64, y*64, 0)
+									new middleEntities[num].Entity(x*64, y*64, 0, this.inputManager, this.scoreEngine)
 							);
 							middleEntities[num].count++;
 						}
@@ -6411,7 +6414,7 @@ module.exports = (function() {
 						}
 						if(deepEntities[num].limit > deepEntities[num].count){
 							this.entityManager.add(
-									new deepEntities[num].Entity(x*64, y*64, 0)
+									new deepEntities[num].Entity(x*64, y*64, 0, this.inputManager, this.scoreEngine)
 							);
 							deepEntities[num].count++;
 

@@ -49,7 +49,7 @@ module.exports = (function() {
     const JUMP_VELOCITY = -900;
 
     // Swimming Moving Constant
-    const GRAVITY_IN_WATER = -80;
+    const GRAVITY_IN_WATER = -120;
     const SWIM_UP = -100;
     const SPEED_IN_LIQUID = 80;
 
@@ -161,7 +161,7 @@ module.exports = (function() {
         return false;
     };
     // Check to see if player is on top of water
-        Player.prototype.onWater = function(tilemap) {
+        Player.prototype.onWaterorLava = function(tilemap) {
             var box = this.boundingBox();
             var tileX = Math.floor((box.right)/Settings.TILESIZEX);
             // Based on the position that player is facing changed the location of it's X coordinate
@@ -171,7 +171,7 @@ module.exports = (function() {
             var tileY = Math.floor(box.bottom / Settings.TILESIZEX) - 1,// check if player is right above water.
             tile = tilemap.tileAt(tileX, tileY, this.layerIndex);
             if(tile){
-                if (tile.data.type == "Water" && !this.inWaterorLava(tilemap)){
+                if((tile.data.type == "Water" || tile.data.type == "Lava") && !this.inWaterorLava(tilemap)){
                     return true;
                 }
              }
@@ -192,6 +192,7 @@ module.exports = (function() {
         if(tileR && tileR.data.solid) return true;
         return false;
     };
+    // Determine if the player is on the ground in water
     Player.prototype.onGroundInWater = function(tilemap) {
         var box = this.boundingBox(),
             tileXL = Math.floor((box.left + 5) / Settings.TILESIZEX),
@@ -382,9 +383,10 @@ module.exports = (function() {
                     this.velocityY += Math.pow(GRAVITY * elapsedTime, 2);
                     console.log("I am being called");
                 }
-                if(this.onWater(tilemap) || this.inWaterorLava(tilemap)){
+                if(this.onWaterorLava(tilemap) || this.inWaterorLava(tilemap)){
                     this.state = SWIMMING;
                     this.velocityY = Math.pow(GRAVITY_IN_WATER * elapsedTime, 2);
+                    this.holdBreath = true;
                 }
                 else{
                 	this.y += this.velocityY * elapsedTime;
@@ -402,9 +404,8 @@ module.exports = (function() {
                 }
                 break;
             case SWIMMING:
+                //Player automatically sinks down when in water
                   this.velocityY += Math.pow(GRAVITY_IN_WATER * elapsedTime, 2) + (this.velocityY / GRAVITY_IN_WATER);
-                  console.log("in water");
-                    //this.y += this.velocityY * elapsedTime;
                   if (this.inputManager.isKeyDown(this.inputManager.commands.LEFT)) {
                       this.velocityY = 0;
                       this.isLeft = true;
@@ -417,10 +418,11 @@ module.exports = (function() {
                   }
                   else if (this.inputManager.isKeyDown(this.inputManager.commands.UP)) {
                       if(this.headOverWater(tilemap)){
-                          this.velocityY = -500;
+                          this.velocityY = JUMP_VELOCITY;
                           //this.y += this.velocityY * elapsedTime;
                           console.log("I am not in water");
                           this.state = JUMPING;
+                          this.holdBreath = false;
                       }
                       else{
                           this.velocityY = SWIM_UP;
@@ -433,6 +435,7 @@ module.exports = (function() {
                       this.y = Settings.TILESIZEY * Math.floor((this.y + this.hitboxSize.y) / Settings.TILESIZEY) - this.hitboxSize.y;
                       this.state = STANDING;
                       console.log("standing");
+                      this.holdBreath = false;
                   }
                   else if (this.onGroundInWater(tilemap) && this.inWaterorLava(tilemap)) {
                       this.velocityY = 0;
@@ -447,13 +450,10 @@ module.exports = (function() {
                   }
                   else{
                       if(!this.onGroundInWater(tilemap)){
-                          //Player Sinks automatically, they have resistance i.e sink slower if fully immersed in water
+                          // continously sets a new position of player when sinking down
                       this.y += this.velocityY * elapsedTime;
                       }
-
                   }
-
-
                 // A counter for the health bar to check if player is drowning
                 if (this.swimmingProperty.breathCount > 20) {
                     this.hurt(1);
@@ -470,9 +470,9 @@ module.exports = (function() {
         // Power Up Usage Management
         this.lastPowerUpUsed += elapsedTime;
 
-		if (this.inputManager.isKeyDown(this.inputManager.commands.SIX) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
+		if (this.inputManager.isKeyDown(this.inputManager.commands.THREE) || this.inputManager.isKeyDown(this.inputManager.commands.SHOOT)) {
                 console.log("SIX or B pressed");
-                if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(5)) {
+                if (this.lastAttack >= this.attackFrequency && inventory.slotUsed(2)) {
 						this.shoot();
                 }
             }
@@ -486,7 +486,7 @@ module.exports = (function() {
             } else if (this.inputManager.isKeyDown(this.inputManager.commands.TWO)) {
                 console.log("TWO pressed");
                 if (inventory.slotUsed(1)) {
-
+						this.score(-20);
                 }
             } else if (this.inputManager.isKeyDown(this.inputManager.commands.THREE)) {
                 console.log("THREE pressed");
@@ -738,15 +738,12 @@ module.exports = (function() {
             if (layerType === 0) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(1, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
-                currentPlayer.score(1);
             } else if (layerType == 1) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(13, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
-                currentPlayer.score(1);
             } else if (layerType == 2) {
                 tileNum = tilemap.tileAt(tileX, tileY, 0);
                 tilemap.mineAt(15, tileX, tileY, currentPlayer.layerIndex, currentPlayer.superPickaxe);
-                currentPlayer.score(1);
             }
 
             if(tileNum.data) {
