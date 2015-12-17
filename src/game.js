@@ -95,6 +95,8 @@ module.exports = (function (){
 
         this.spawningManager = new SpawningManager(entityManager, scoreEngine, player, inputManager);
 
+	minimap = new Minimap(Settings.SCREENSIZEX, Settings.SCREENSIZEY, player);
+
         // Kyle Brown: Background Music
         var bgMusic = new Audio('./resources/sounds/DiggyHoleBGMusicAm.wav');
         bgMusic.addEventListener('ended', function() {
