@@ -276,7 +276,7 @@ module.exports = (function (){
      var tilesets = [
        {
          firstgid: 0,
-         image: "Tileset.png",
+         image: "TileSet.png",
          imageheight: 256,
          imagewidth: 256,
          margin: 0,
